@@ -1,6 +1,6 @@
 # API
 
-> For schema read https://github.com/plebbit/plebbit-js#schema
+> For schema see https://github.com/plebbit/plebbit-js#schema
 
 - useFeed(subplebbitIpnsNames[], startCommentIndex, endCommentIndex) returns Comments[]
 - useSubplebbit(subplebbitIpnsName, startCommentIndex, endCommentIndex) returns Subplebbit
