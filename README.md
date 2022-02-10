@@ -4,7 +4,7 @@
 
 > For schema see https://github.com/plebbit/plebbit-js#schema
 
-- useFeed(subplebbitIpnsNames[], startCommentIndex, endCommentIndex) returns Comments[]
-- useSubplebbit(subplebbitIpnsName, startCommentIndex, endCommentIndex) returns Subplebbit
+- useDefaultSubplebbits() returns subplebbitIpnsName[]
+- useSubplebbits(subplebbitIpnsName[], {sort: 'new' | 'best' | 'top' | 'controversial', startCommentIndex, endCommentIndex}) returns Subplebbits
 - useComment(commentCid) returns Comment
 - useAuthor(Author) returns Author
