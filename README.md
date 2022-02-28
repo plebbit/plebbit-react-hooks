@@ -62,7 +62,7 @@ Account {
   plebbit: Plebbit,
   plebbitOptions: PlebbitOptions,
   subscriptions: subplebbitAddress[],
-  addressesLimits: {[key: address]: addressLimits} // TODO: not sure about this name, used to block/limit authors/subplebbits
+  addressesLimits: {[key: address]: addressLimits}, // TODO: not sure about this name, used to block/limit authors/subplebbits
   theme: 'light' | 'dark
 }
 AccountComment {
@@ -83,7 +83,7 @@ Signer {
 }
 addressLimits { // TODO: not sure about this name, used to block/limit authors/subplebbits
   feed: number,
-  notifications: number
+  notifications: number,
   crossposts: number
 }
 ```
