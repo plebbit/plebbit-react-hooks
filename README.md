@@ -9,7 +9,7 @@
     [key: accountName]: Account
   }
   AccountsMetadata {
-    names: strings[],
+    accountNames: strings[],
     activeAccountName: string
   }
   AccountsComments {
@@ -48,6 +48,7 @@
 - useAccountVotes(accountName | undefined) // only used while exporting/backing up account
 - useAccountVote(commentCid, accountName | undefined) // used to know if you already voted on some comment
 - useAccounts()
+- useAccountsActions()
 - useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
 
 ### Schema
@@ -55,6 +56,13 @@
 > For full schema see https://github.com/plebbit/plebbit-js#schema
 
 ```
+AccountsActions {
+  createAccount: function, 
+  deleteAccount: function, 
+  setAccount: function, 
+  importAccount: function, 
+  exportAccount: function
+}
 Account {
   name: string, // the nickname of the account, eg "Account 1"
   author: Author,
