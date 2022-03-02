@@ -173,6 +173,12 @@ yarn test
 DEBUG=* yarn test
 ```
 
+#### Test single file
+
+```
+DEBUG=* yarn test file-name
+```
+
 #### Before commit
 
 ```
