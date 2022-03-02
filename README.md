@@ -30,10 +30,23 @@
 
 #### Contexts
 
-- SubplebbitsContext // store in indexeddb last recently used
-- FeedsContext // no persistant storage, can be rebuilt from subplebbits and comments persistant storage
-- CommentsContext // store in indexeddb last recently used
-- AccountsContext // store in indexeddb permanently
+```
+SubplebbitsContext (store in indexeddb last recently used) {
+  // TODO
+}
+FeedsContext (no persistant storage, can be rebuilt from subplebbits and comments persistant storage) {
+  // TODO
+}
+CommentsContext (store in indexeddb last recently used) {
+  // TODO
+}
+AccountsContext (store in indexeddb permanently) {
+  accounts: {[key: accountName]: Account}
+  accountNames: string[], 
+  activeAccountName: string,
+  accountsActions: AccountsActions
+}
+```
 
 #### Hooks
 
@@ -57,11 +70,13 @@
 
 ```
 AccountsActions {
-  createAccount: function, 
-  deleteAccount: function, 
-  setAccount: function, 
-  importAccount: function, 
-  exportAccount: function
+  createAccount(account: Account),
+  deleteAccount(accountName: string),
+  setAccount(accountName: string, account: Account),
+  setActiveAccountName(accountName: string),
+  setAccountsOrder(accountNames: string[]),
+  importAccount(serializedAccount: string | buffer),
+  exportAccount(accountName)
 }
 Account {
   name: string, // the nickname of the account, eg "Account 1"
