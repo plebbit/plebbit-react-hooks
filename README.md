@@ -150,3 +150,34 @@ const subplebbit = useSubplebbit({plebbit, subplebbitInsName})
 #### Update a subplebbit
 
 #### Edit an author
+
+#### Install
+
+```
+sudo npm install -g typescript ts-node jest n yarn prettier
+# install version of node specified in .nvmrc
+sudo n auto
+# install node modules
+yarn
+```
+
+#### Test
+
+```
+yarn test
+```
+
+#### Test with logs
+
+```
+DEBUG=* yarn test
+```
+
+#### Before commit
+
+```
+yarn test
+yarn lint
+yarn prettier
+yarn build
+```
