@@ -77,8 +77,7 @@ describe('AccountsProvider', () => {
       rendered.rerender('custom name')
       expect(rendered.result.current.account.name).toBe('custom name')
 
-      // render a second context with empty state to check if accounts
-      // to saved to database
+      // render second context with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), { wrapper: AccountsProvider })
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
@@ -150,8 +149,7 @@ describe('AccountsProvider', () => {
       })
       expect(rendered.result.current.account.name).toBe('custom name')
 
-      // render a second context with empty state to check if
-      // active account saved to database
+      // render second context with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), { wrapper: AccountsProvider })
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
@@ -223,8 +221,7 @@ describe('AccountsProvider', () => {
       expect(rendered.result.current.accounts[2].name).toBe('Account 2')
       expect(rendered.result.current.accounts[3].name).toBe('Account 1')
 
-      // render a second context with empty state to check if accounts
-      // to saved to database
+      // render second context with empty state to check if saved to database
       const rendered2 = renderHook<any, any>(() => useAccounts(), { wrapper: AccountsProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current[0].name).toBe('custom name')
