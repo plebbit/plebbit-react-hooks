@@ -28,7 +28,7 @@
   }
 ```
 
-#### Contexts
+### Contexts
 
 ```
 SubplebbitsContext (store in indexeddb last recently used) {
@@ -48,7 +48,7 @@ AccountsContext (store in indexeddb permanently) {
 }
 ```
 
-#### Hooks
+### Hooks
 
 - usePlebbit(plebbitOptions)
 - useSubplebbit(subplebbitAddress)
@@ -151,7 +151,7 @@ const subplebbit = useSubplebbit({plebbit, subplebbitInsName})
 
 #### Edit an author
 
-#### Install
+### Install
 
 ```
 sudo npm install -g typescript ts-node jest n yarn prettier
@@ -177,7 +177,7 @@ DEBUG=* yarn test
 
 ```
 yarn test
-yarn lint
+yarn lint // TODO: fix errors
 yarn prettier
 yarn build
 ```
