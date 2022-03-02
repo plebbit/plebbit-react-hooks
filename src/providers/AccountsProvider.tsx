@@ -109,7 +109,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
   const accountsActions: AccountsActions = {}
 
-  accountsActions.setActiveAccountName = async (accountName: string) => {
+  accountsActions.setActiveAccount = async (accountName: string) => {
     assert(typeof accountName === 'string', `setActiveAccountName accountName '${accountName}' not a string`)
     assert(accountName !== '', `setActiveAccountName accountName argument is empty string`)
     await accountsMetadataDatabase.setItem('activeAccountName', accountName)

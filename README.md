@@ -73,7 +73,7 @@ AccountsActions {
   createAccount(account: Account),
   deleteAccount(accountName: string),
   setAccount(accountName: string, account: Account),
-  setActiveAccountName(accountName: string),
+  setActiveAccount(accountName: string),
   setAccountsOrder(accountNames: string[]),
   importAccount(serializedAccount: string | buffer),
   exportAccount(accountName)

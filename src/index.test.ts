@@ -135,17 +135,17 @@ describe('AccountsProvider', () => {
     test('change which account is active', async () => {
       // active account is Account 1
       expect(rendered.result.current.account.name).toBe('Account 1')
-      expect(typeof rendered.result.current.setActiveAccountName).toBe('function')
+      expect(typeof rendered.result.current.setActiveAccount).toBe('function')
 
       // change active account
       await act(async () => {
-        await rendered.result.current.setActiveAccountName('Account 2')
+        await rendered.result.current.setActiveAccount('Account 2')
       })
       expect(rendered.result.current.account.name).toBe('Account 2')
 
       // change active account
       await act(async () => {
-        await rendered.result.current.setActiveAccountName('custom name')
+        await rendered.result.current.setActiveAccount('custom name')
       })
       expect(rendered.result.current.account.name).toBe('custom name')
 
