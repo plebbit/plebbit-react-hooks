@@ -181,8 +181,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     // TODO: add options to only import private key, account settings, or include all account comments/votes history
   }
 
-  accountsActions.exportAccount = async (accountName?: string) => {
+  accountsActions.exportAccount = async (accountName: string) => {
     throw Error('TODO: not implemented')
+    // don't allow no account name to avoid catastrophic bugs
+    assert(typeof accountName === 'string', `exportAccount accountName '${accountName}' not a string` )
+    assert(accountName !== '', `exportAccount accountName argument is empty string` )
     // TODO: return account as serialized JSON string for copy paste or save as file
     // the 'account' will contain AccountComments and AccountVotes
     // TODO: add options to only export private key, account settings, or include all account comments/votes history
