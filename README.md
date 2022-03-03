@@ -139,24 +139,31 @@ addressLimits { // TODO: not sure about this name, used to block/limit authors/s
 #### Create a post
 
 ```js
-const {publishComment} = useAccountsActions()
 const onChallenge = async (challenge, accountComment) => {
+  let challengeAnswer
   try {
     // ask the user to complete the challenge in a modal window
-    const challengeAnswer = await getChallengeAnswerFromUser(challenge)
-    await comment.publishChallengeAnswer(challengeAnswer)
+    challengeAnswer = await getChallengeAnswerFromUser(challenge)
   }
   catch (e) {
-    console.error(e)
+    // if he declines, throw error and don't get a challenge answer
+  }
+  if (challengeAnswer) {
+    // if user declines, publishChallengeAnswer is not called, retry loop stops
+    await accountComment.publishChallengeAnswer(challengeAnswer)
   }
 }
+
 const onChallengeVerification = (challengeVerification, accountComment) => {
   // if the challengeVerification fails, a new challenge request will be sent automatically
   // to break the loop, the user must decline to send a challenge answer
   // if the subplebbit owner sends more than 1 challenge for the same challenge request, subsequents will be ignored
   console.log('challenge verified', challengeVerification)
 }
-const handlePublishComment = () => publishComment({
+
+const {publishComment} = useAccountsActions()
+
+publishComment({
   content: 'hello',
   title: 'hello',
   subplebbitAddress: 'Qm...',
