@@ -4,6 +4,8 @@ import assert from 'assert'
 import localForage from 'localforage'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
+const accountsCommentsDatabase = localForage.createInstance({ name: 'accountsComments' })
+const accountsVotesDatabase = localForage.createInstance({ name: 'accountsVotes' })
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:accountsprovider')
 
@@ -130,18 +132,28 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     // handle an account name change
     if (newAccount.name !== accountNameToSet) {
       if (activeAccountName === accountNameToSet) {
-        setActiveAccountName(newAccount.name)
+        await accountsMetadataDatabase.setItem('activeAccountName', newAccount.name)
       }
       // delete old account
       await accountsDatabase.removeItem(accountNameToSet)
       delete newAccounts[accountNameToSet]
-      // delete old account name
+      // replace old account name
       const previousAccountNameIndex = newAccountNames.indexOf(accountNameToSet)
       newAccountNames[previousAccountNameIndex] = newAccount.name
+      await accountsMetadataDatabase.setItem('accountNames', newAccountNames)
+      // replace old account comments and votes
+      await accountsCommentsDatabase.setItem(newAccount.name, await accountsCommentsDatabase.getItem(accountNameToSet))
+      await accountsCommentsDatabase.removeItem(accountNameToSet)
+      await accountsVotesDatabase.setItem(newAccount.name, await accountsVotesDatabase.getItem(accountNameToSet))
+      await accountsVotesDatabase.removeItem(accountNameToSet)
     }
     debug('accountsActions.setAccount', { accountNameToSet, account: newAccount })
     setAccounts(newAccounts)
     setAccountNames(newAccountNames)
+    // handle active account name change
+    if (activeAccountName === accountNameToSet && newAccount.name !== accountNameToSet) {
+      setActiveAccountName(newAccount.name)
+    }
   }
 
   accountsActions.createAccount = async (accountName?: string) => {
@@ -159,11 +171,17 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     const newAccounts = { ...accounts, [newAccount.name]: newAccount }
     await Promise.all([
       accountsMetadataDatabase.setItem('accountNames', newAccountNames),
+      accountsCommentsDatabase.setItem(newAccount.name, []),
+      accountsVotesDatabase.setItem(newAccount.name, {}),
       addAccountToDatabase(newAccount),
     ])
     debug('accountsActions.createAccount', { accountName, account: newAccount })
     setAccounts(newAccounts)
     setAccountNames(newAccountNames)
+    // there was no accounts left before creating this account so set the only account as active
+    if (newAccountNames.length === 1) {
+      setActiveAccountName(newAccountNames[0])
+    }
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
@@ -225,6 +243,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         await Promise.all([
           accountsMetadataDatabase.setItem('accountNames', accountNames),
           accountsMetadataDatabase.setItem('activeAccountName', activeAccountName),
+          accountsCommentsDatabase.setItem(defaultAccount.name, []),
+          accountsVotesDatabase.setItem(defaultAccount.name, {}),
           addAccountToDatabase(defaultAccount),
         ])
       }
@@ -240,7 +260,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
   // don't give access to any context until first load
   let accountsContext: any
-  if (accountNames && activeAccountName && accounts) {
+  if (accountNames && accounts) {
     accountsContext = {
       accounts,
       accountNames,

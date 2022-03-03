@@ -10,6 +10,8 @@ const deleteDatabases = () =>
   Promise.all([
     localForage.createInstance({ name: 'accountsMetadata' }).clear(),
     localForage.createInstance({ name: 'accounts' }).clear(),
+    localForage.createInstance({ name: 'accountsComments' }).clear(),
+    localForage.createInstance({ name: 'accountsVotes' }).clear(),
   ])
 
 describe('accounts', () => {
@@ -175,28 +177,45 @@ describe('accounts', () => {
       })
     })
 
-    test('edit account display name', async () => {
-      expect(rendered.result.current.account.name).toBe('Account 1')
+    test('edit non active account display name', async () => {
+      rendered.rerender('Account 2')
+      expect(rendered.result.current.account.name).toBe('Account 2')
       expect(rendered.result.current.account.author.displayName).toBe(null)
       const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account, plebbit: undefined }))
-      newAccount.author.displayName = 'john'
+      newAccount.author.displayName = 'display name john'
       await act(async () => {
-        await rendered.result.current.setAccount('Account 1', newAccount)
+        await rendered.result.current.setAccount('Account 2', newAccount)
       })
-      expect(rendered.result.current.account.author.displayName).toBe('john')
+      expect(rendered.result.current.account.author.displayName).toBe('display name john')
+
+      // render second context with empty state to check if account change saved to database
+      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), { wrapper: AccountsProvider })
+      // accounts not yet loaded from database
+      expect(rendered2.result.current).toBe(undefined)
+      await rendered2.waitForNextUpdate()
+      // active account display name is still 'display name john'
+      expect(rendered2.result.current.author.displayName).toBe('display name john')
     })
 
     test('edit active account name and display name', async () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(rendered.result.current.account.author.displayName).toBe(null)
       const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account, plebbit: undefined }))
-      newAccount.author.displayName = 'john'
-      newAccount.name = 'john'
+      newAccount.author.displayName = 'display name john'
+      newAccount.name = 'account name john'
       await act(async () => {
         await rendered.result.current.setAccount('Account 1', newAccount)
       })
-      expect(rendered.result.current.account.author.displayName).toBe('john')
-      expect(rendered.result.current.account.name).toBe('john')
+      expect(rendered.result.current.account.author.displayName).toBe('display name john')
+      expect(rendered.result.current.account.name).toBe('account name john')
+
+      // render second context with empty state to check if account change saved to database
+      const rendered2 = renderHook<any, any>(() => useAccount(), { wrapper: AccountsProvider })
+      // accounts not yet loaded from database
+      expect(rendered2.result.current).toBe(undefined)
+      await rendered2.waitForNextUpdate()
+      // active account is still 'account name john'
+      expect(rendered2.result.current.name).toBe('account name john')
     })
 
     test.todo('export account')
@@ -232,7 +251,7 @@ describe('accounts', () => {
 
     test.todo(`delete active account, active account switches second account in accountNames`)
 
-    test.todo(`delete all accounts and create a new one`)
+    test.todo(`delete all accounts and create a new one, which becomes active`)
   })
 
   describe('multiple comments and votes in database', () => {
