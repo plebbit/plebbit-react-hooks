@@ -38,12 +38,14 @@ FeedsContext (no persistant storage, can be rebuilt from subplebbits and comment
   // TODO
 }
 CommentsContext (store in indexeddb last recently used) {
-  // TODO
+  comments: {[key: commentCid]: Comment},
 }
 AccountsContext (store in indexeddb permanently) {
   accounts: {[key: accountName]: Account}
   accountNames: string[], 
   activeAccountName: string,
+  accountsComments: {[key: accountName]: AccountComment[]}, // cid of comment unknown at time of posting, so store it in array
+  accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}},
   accountsActions: AccountsActions
 }
 ```
@@ -51,17 +53,33 @@ AccountsContext (store in indexeddb permanently) {
 ### Hooks
 
 - usePlebbit(plebbitOptions)
-- useSubplebbit(subplebbitAddress)
-- useSubplebbits(subplebbitAddress[])
+
+#### Accounts Hooks
+
+- useAccount(accountName | undefined): Account | undefined
+- useIsAccountComment(commentCid, accountName | undefined): boolean // know if a comment is your own comment
+- useAccountComments(accountName | undefined): Comment[] // export or display list of own comments
+- useAccountCommentsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[] // get your own comments in a subplebbit
+- useAccountPostsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[]  // get your own posts in a subplebbit
+- useAccountCommentsInPost(postCid, accountName | undefined): Comment[] // get your own comments in a thread
+- useAccountVotes(accountName | undefined): Vote[]  // export or display list of own votes
+- useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
+- useAccounts(): Account[]
+- useAccountsActions(): AccountsActions
+
+#### Comments Hooks
+
+- useComment(commentCid): Comment | undefined
+- useComments(commentCid[]): Comment[]
+
+#### Subplebbits Hooks
+
+- useSubplebbit(subplebbitAddress): Subplebbit | undefined
+- useSubplebbits(subplebbitAddress[]): Subplebbits[]
+
+#### Feeds Hooks
+
 - useFeed(feedNameOrSubplebbitAddress)
-- useComment(commentCid)
-- useComments(commentCid[])
-- useAccount(accountName | undefined)
-- useAccountComments(accountName | undefined)
-- useAccountVotes(accountName | undefined) // only used while exporting/backing up account
-- useAccountVote(commentCid, accountName | undefined) // used to know if you already voted on some comment
-- useAccounts()
-- useAccountsActions()
 - useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
 
 ### Schema
@@ -76,7 +94,9 @@ AccountsActions {
   setActiveAccount(accountName: string),
   setAccountsOrder(accountNames: string[]),
   importAccount(serializedAccount: string | buffer),
-  exportAccount(accountName)
+  exportAccount(accountName: string), // don't allow undefined to prevent catastrophic bugs
+  publishComment(comment: Comment, accountName: string | undefined),
+  publishVote(vote: Vote, accountName: string | undefined)
 }
 Account {
   name: string, // the nickname of the account, eg "Account 1"
@@ -92,11 +112,16 @@ AccountComment {
   ...Comment,
   previousAccountCommentCid: string // needed to scroll to every comment an account has published
 }
+AccountCommentsFilter { // only get your own account's comments on a certain subplebbit, thread, etc useful for certain UI pages
+  subplebbitAddresses?: string[],
+  postCids?: string[],
+  hasParentCommentCids?: boolean // get only posts, no comments
+}
 AccountVote {
   ...Vote,
   previousAccountVoteCid: string // needed to scroll to every vote an account has published
 }
-Author {
+Authord {
   displayName: string,
   address: string
 }
