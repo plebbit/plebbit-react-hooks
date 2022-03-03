@@ -254,6 +254,61 @@ describe('accounts', () => {
     test.todo(`delete all accounts and create a new one, which becomes active`)
   })
 
+  describe('no comments and votes in database', () => {
+    let rendered: any
+
+    beforeEach(async () => {
+      // on first render, the account is undefined because it's not yet loaded from database
+      rendered = renderHook<any, any>(
+        (accountName) => {
+          const account = useAccount(accountName)
+          const accountsActions = useAccountsActions()
+          return { account, ...accountsActions }
+        },
+        { wrapper: AccountsProvider }
+      )
+
+      // on second render, you get the default generated account
+      await rendered.waitForNextUpdate()
+      expect(rendered.result.current.account.name).toBe('Account 1')
+      expect(typeof rendered.result.current.publishComment).toBe('function')
+      expect(typeof rendered.result.current.publishVote).toBe('function')
+    })
+
+    afterEach(async () => {
+      await deleteDatabases()
+    })
+
+    test(`create comments`, async () => {
+      const publishCommentOptions = {
+        subplebbitAddress: 'Qm...',
+        parentCommentCid: 'Qm...', 
+        content: 'some content',
+        title: 'some title',
+        onChallenge: () => {},
+        onChallengeVerification: () => {},
+      }
+      await act(async () => {
+        await rendered.result.current.publishComment(publishCommentOptions)
+      })
+      throw Error('TODO: test onChallenge and onChallengeVerification')
+    })
+
+    // test(`create posts`, () => {
+    //   const publishCommentOptions = {
+    //     subplebbitAddress: 'Qm...',
+    //     content: 'some content',
+    //   }
+    //   await act(async () => {
+    //     await rendered.result.current.publishComment()
+    //   })
+    // })
+
+    // test(`create votes`, () => {
+
+    // })
+  })
+
   describe('multiple comments and votes in database', () => {
     test.todo(`get account's comment`)
 

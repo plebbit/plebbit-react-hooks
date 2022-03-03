@@ -15,6 +15,12 @@ type Account = any
 type Accounts = { [key: string]: Account }
 // TODO: define AccountsActions type
 type AccountsActions = any
+// TODO: define type
+type PublishCommentOptions = any
+// TODO: define type
+type Challenge = any
+// TODO: define type
+type ChallengeVerification = any
 
 const getAccountsFromDatabase = async (accountNames: string[]) => {
   assert(Array.isArray(accountNames), `getAccountsFromDatabase accountNames '${accountNames}' not an array`)
@@ -156,6 +162,19 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
   }
 
+  accountsActions.setAccountsOrder = async (newOrderedAccountNames: string[]) => {
+    assert(
+      JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()),
+      `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`
+    )
+    debug('accountsActions.setAccountsOrder', {
+      previousAccountNames: accountNames,
+      newAccountNames: newOrderedAccountNames,
+    })
+    await accountsMetadataDatabase.setItem('accountNames', newOrderedAccountNames)
+    setAccountNames(newOrderedAccountNames)
+  }
+
   accountsActions.createAccount = async (accountName?: string) => {
     const newAccount = await createDefaultAccount()
     if (accountName) {
@@ -209,17 +228,48 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     // TODO: add options to only export private key, account settings, or include all account comments/votes history
   }
 
-  accountsActions.setAccountsOrder = async (newOrderedAccountNames: string[]) => {
-    assert(
-      JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()),
-      `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`
-    )
-    debug('accountsActions.setAccountsOrder', {
-      previousAccountNames: accountNames,
-      newAccountNames: newOrderedAccountNames,
-    })
-    await accountsMetadataDatabase.setItem('accountNames', newOrderedAccountNames)
-    setAccountNames(newOrderedAccountNames)
+  accountsActions.publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
+    let account = accountName ? accounts[accountName] : accounts[activeAccountName]
+    assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
+    assert(accountName !== '', `publishComment accountName argument is empty string`)
+    assert(account, `publishComment no account with name '${accountName || activeAccountName}' in AccountsContext`)
+    assert(publishCommentOptions && typeof publishCommentOptions === 'object', 'publishComment publishCommentOptions not an object')
+    assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function')
+    assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function')
+    assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string')
+    assert(publishCommentOptions && typeof publishCommentOptions.parentCommentCid === 'string', 'publishComment publishCommentOptions.parentCommentCid not a string')
+    assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string')
+    assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string')
+    assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number')
+
+    const commentOptions = {
+      subplebbitAddress: publishCommentOptions.subplebbitAddress,
+      parentCommentCid: publishCommentOptions.parentCommentCid, 
+      content: publishCommentOptions.content,
+      timestamp: publishCommentOptions.timestamp || Date.now() / 1000,
+      author: account.author,
+      signer: account.signer
+    }
+    let comment = account.plebbit.createComment(commentOptions)
+    const publishAndRetryFailedChallengeVerification = () => {
+      comment.once('challenge', async (challenge: Challenge) => {
+        publishCommentOptions.onChallenge(challenge, comment)
+      })
+      comment.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+        publishCommentOptions.onChallengeVerification(challengeVerification, comment)
+        if (!challengeVerification.challengeAnswerIsVerified) {
+          // publish again automatically on fail
+          comment = account.plebbit.createComment(commentOptions)
+          publishAndRetryFailedChallengeVerification()
+        }
+      })
+      comment.publish()
+    }
+    publishAndRetryFailedChallengeVerification()
+    return comment
+  }
+
+  accountsActions.publishVote = async () => {
   }
 
   // load accounts from database once on load

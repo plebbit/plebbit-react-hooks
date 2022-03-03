@@ -139,8 +139,30 @@ addressLimits { // TODO: not sure about this name, used to block/limit authors/s
 #### Create a post
 
 ```js
-const {author, signer, plebbit} = useAccount()
-const handleCreateComment = (content) => plebbit.createComment({content, author, signer})
+const {publishComment} = useAccountsActions()
+const onChallenge = async (challenge, accountComment) => {
+  try {
+    // ask the user to complete the challenge in a modal window
+    const challengeAnswer = await getChallengeAnswerFromUser(challenge)
+    await comment.publishChallengeAnswer(challengeAnswer)
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+const onChallengeVerification = (challengeVerification, accountComment) => {
+  // if the challengeVerification fails, a new challenge request will be sent automatically
+  // to break the loop, the user must decline to send a challenge answer
+  // if the subplebbit owner sends more than 1 challenge for the same challenge request, subsequents will be ignored
+  console.log('challenge verified', challengeVerification)
+}
+const handlePublishComment = () => publishComment({
+  content: 'hello',
+  title: 'hello',
+  subplebbitAddress: 'Qm...',
+  onChallenge,
+  onChallengeVerification
+})
 ```
 
 #### Get a default account, like if the user arrives on the site for the first time
@@ -152,22 +174,19 @@ const account = useAccount()
 #### Get a post
 
 ```js
-const {plebbit} = useAccount()
-const post = useComment({plebbit, commentCid})
+const post = useComment(commentCid)
 ```
 
 #### Get a comment
 
 ```js
-const {plebbit} = useAccount()
-const comment = useComment({plebbit, commentCid})
+const comment = useComment(plebbit, commentCid)
 ```
 
 #### Get a subplebbit
 
 ```js
-const {plebbit} = useAccount()
-const subplebbit = useSubplebbit({plebbit, subplebbitInsName})
+const subplebbit = useSubplebbit(subplebbitAddress)
 ```
 
 #### Get feed
