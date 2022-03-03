@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { useAccount, useAccounts, useAccountsActions } from '.'
-import AccountsProvider from './providers/AccountsProvider'
+import { useAccount, useAccounts, useAccountsActions } from './accounts'
+import AccountsProvider from '../providers/AccountsProvider'
 import localForage from 'localforage'
-import PlebbitMock from './plebbit-js/plebbit-js-mock'
-import { mockPlebbitJs } from './plebbit-js'
+import PlebbitMock from '../plebbit-js/plebbit-js-mock'
+import { mockPlebbitJs } from '../plebbit-js'
 mockPlebbitJs(PlebbitMock)
 
 const deleteDatabases = () =>
@@ -12,7 +12,7 @@ const deleteDatabases = () =>
     localForage.createInstance({ name: 'accounts' }).clear(),
   ])
 
-describe('AccountsProvider', () => {
+describe('accounts', () => {
   afterEach(async () => {
     await deleteDatabases()
   })
