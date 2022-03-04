@@ -116,6 +116,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     const newAccount = await getAccountFromDatabase(account.name)
     const newAccounts = { ...accounts, [newAccount.name]: newAccount }
     const newAccountNames = [...accountNames]
+
     // handle an account name change
     if (newAccount.name !== accountNameToSet) {
       if (activeAccountName === accountNameToSet) {
@@ -134,6 +135,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       await accountsVotesDatabase.setItem(newAccount.name, await accountsVotesDatabase.getItem(accountNameToSet))
       await accountsVotesDatabase.removeItem(accountNameToSet)
     }
+
     debug('accountsActions.setAccount', { accountNameToSet, account: newAccount })
     setAccounts(newAccounts)
     setAccountNames(newAccountNames)
@@ -212,6 +214,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       author: account.author,
       signer: account.signer
     }
+
     let comment = account.plebbit.createComment(commentOptions)
     const publishAndRetryFailedChallengeVerification = () => {
       comment.once('challenge', async (challenge: Challenge) => {
@@ -227,6 +230,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       })
       comment.publish()
     }
+
     publishAndRetryFailedChallengeVerification()
     return comment
   }
@@ -246,7 +250,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           getAccountsFromDatabase(accountNames),
         ])
       }
-      // no accounts in database, generate a default account
+      // no accounts in database, create a default account
       else {
         const defaultAccount = await createDefaultAccount()
         accountNames = [defaultAccount.name]

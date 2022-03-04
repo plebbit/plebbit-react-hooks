@@ -279,30 +279,50 @@ describe('accounts', () => {
       await deleteDatabases()
     })
 
-    test(`create comments`, async () => {
-      const publishCommentOptions = {
-        subplebbitAddress: 'Qm...',
-        parentCommentCid: 'Qm...', 
-        content: 'some content',
-        title: 'some title',
-        onChallenge: () => {},
-        onChallengeVerification: () => {},
-      }
-      await act(async () => {
-        await rendered.result.current.publishComment(publishCommentOptions)
-      })
-      // throw Error('TODO: test onChallenge and onChallengeVerification')
-    })
+    describe(`create comment`, () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
 
-    // test(`create posts`, () => {
-    //   const publishCommentOptions = {
-    //     subplebbitAddress: 'Qm...',
-    //     content: 'some content',
-    //   }
-    //   await act(async () => {
-    //     await rendered.result.current.publishComment()
-    //   })
-    // })
+      test('publish comment', async () => {
+        const publishCommentOptions = {
+          subplebbitAddress: 'Qm...',
+          parentCommentCid: 'Qm...', 
+          content: 'some content',
+          title: 'some title',
+          onChallenge,
+          onChallengeVerification,
+        }
+        await act(async () => {
+          await rendered.result.current.publishComment(publishCommentOptions)
+        })
+      })
+
+      let comment: any
+
+      test('onChallenge gets called', async () => {
+        // onChallenge gets call backed once
+        await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+        expect(onChallenge.mock.calls.length).toBe(1)
+
+        // onChallenge arguments are [challenge, comment]
+        const challenge = onChallenge.mock.calls[0][0]
+        comment = onChallenge.mock.calls[0][1]
+        expect(challenge.type).toBe('CHALLENGE')
+        expect(challenge.challenges[0]).toEqual({challenge: '2+2=?', type: 'text'})
+        expect(typeof comment.publishChallengeAnswer).toBe('function')
+      })
+
+      test('onChallengeVerification gets called', async () => {
+        // publish challenge answer and wait for verification
+        comment.publishChallengeAnswer(['4'])
+        await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+        expect(onChallengeVerification.mock.calls.length).toBe(1)
+        const challengeVerification = onChallengeVerification.mock.calls[0][0]
+        const commentVerified = onChallengeVerification.mock.calls[0][1]
+        expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
+        expect(commentVerified.constructor.name).toBe('Comment')
+      })
+    })
 
     // test(`create votes`, () => {
 
@@ -310,6 +330,11 @@ describe('accounts', () => {
   })
 
   describe('multiple comments and votes in database', () => {
+//     - useIsAccountComment(commentCid, accountName | undefined): boolean // know if a comment is your own comment
+// - useAccountComments(accountName | undefined): Comment[] // export or display list of own comments
+// - useAccountCommentsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[] // get your own comments in a subplebbit
+// - useAccountPostsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[]  // get your own posts in a subplebbit
+// - useAccountCommentsInPost(postCid, accountName | undefined): Comment[] // get your own comments in a thread
     test.todo(`get account's comment`)
 
     test.todo(`get account's vote`)
