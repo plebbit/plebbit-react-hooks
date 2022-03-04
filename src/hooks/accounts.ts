@@ -10,27 +10,28 @@ const debug = Debug('plebbitreacthooks:hooks')
  */
 export function useAccount(accountName?: string) {
   const accountsContext = useContext(AccountsContext)
-  const activeAccountName = accountsContext?.activeAccountName
-  const accountNameToUse = accountName || activeAccountName
+  let accountId = accountName && accountsContext?.accountNamesToAccountIds[accountName]
+  const activeAccountId = accountsContext?.activeAccountId
+  const accountNameToUse = accountName ? accountId : activeAccountId
   const account = accountsContext?.accounts[accountNameToUse]
-  debug({ accountName, account, activeAccountName })
+  debug({ accountName, accountId, activeAccountId, account, activeAccountName: account?.name })
   return account
 }
 
 /**
- * Return all accounts in the order of `AccountsContext.accountNames`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`
+ * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`
  */
 export function useAccounts() {
   const accountsContext = useContext(AccountsContext)
   let accounts
-  if (accountsContext?.accountNames?.length && accountsContext?.accounts) {
+  if (accountsContext?.accountIds?.length && accountsContext?.accounts) {
     accounts = []
-    for (const accountName of accountsContext.accountNames) {
-      accounts.push(accountsContext.accounts[accountName])
+    for (const accountId of accountsContext.accountIds) {
+      accounts.push(accountsContext.accounts[accountId])
     }
     return accounts
   }
-  debug({ accounts, accountNames: accountsContext?.accountNames })
+  debug({ accounts, accountIds: accountsContext?.accountIds })
   return accounts
 }
 

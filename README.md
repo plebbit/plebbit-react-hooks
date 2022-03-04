@@ -6,19 +6,18 @@
 
 ```
   Accounts {
-    [key: accountName]: Account
+    [key: accountId]: Account
   }
   AccountsMetadata {
-    accountNames: strings[],
-    activeAccountName: string
+    accountIds: strings[], // this array sets the order of the accounts
+    activeAccountId: string, // the default account to use with all hooks and actions
+    accountNamesToAccountIds: {[key: accountName]: accountId}
   }
-  AccountsComments {
-    [key: commentCid]: AccountComment // used by useAccountComments, but useComment also checks there before doing an IPFS query
+  AccountsComments (each database named accountComments-[accountId]) {
+    [key: commentIndex]: AccountComment // store in array because cid is still unknown
   }
-  AccountsVotes {
-    [key: commentCid]: {
-      [key: authorAddress]: AccountVote
-    }
+  AccountsVotes (each database named accountVotes-[accountId]) {
+    [key: commentCid]: AccountVote
   }
   Subplebbits {
     [key: subplebbitAddress]: Subplebbit // last recently used database, delete oldest data
@@ -44,6 +43,7 @@ AccountsContext (store in indexeddb permanently) {
   accounts: {[key: accountName]: Account}
   accountNames: string[], 
   activeAccountName: string,
+  accountNamesToAccountIds: {[key: accountName]: accountId},
   accountsComments: {[key: accountName]: AccountComment[]}, // cid of comment unknown at time of posting, so store it in array
   accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}},
   accountsActions: AccountsActions
@@ -69,14 +69,13 @@ AccountsContext (store in indexeddb permanently) {
 
 #### Comments Hooks
 
-- useComment(commentCid): Comment | undefined
+- useComment(commentCid): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
 - useComments(commentCid[]): Comment[]
 
 #### Subplebbits Hooks
 
-- useSubplebbit(subplebbitAddress): Subplebbit | undefined
+- useSubplebbit(subplebbitAddress): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
 - useSubplebbits(subplebbitAddress[]): Subplebbits[]
-
 #### Feeds Hooks
 
 - useFeed(feedNameOrSubplebbitAddress)
@@ -90,7 +89,7 @@ AccountsContext (store in indexeddb permanently) {
 AccountsActions {
   createAccount(account: Account),
   deleteAccount(accountName: string),
-  setAccount(accountName: string, account: Account),
+  setAccount(account: Account),
   setActiveAccount(accountName: string),
   setAccountsOrder(accountNames: string[]),
   importAccount(serializedAccount: string | buffer),
@@ -99,6 +98,7 @@ AccountsActions {
   publishVote(vote: Vote, accountName: string | undefined)
 }
 Account {
+  id: string, // random immutable string
   name: string, // the nickname of the account, eg "Account 1"
   author: Author,
   signer: Signer,
@@ -134,27 +134,31 @@ addressLimits { // TODO: not sure about this name, used to block/limit authors/s
   notifications: number,
   crossposts: number
 }
+Challenge {
+  type: 'image' | 'text' | 'audio' | 'video' | 'html', // tells the client how to display the challenge, start with implementing image and text only first
+  challenge: buffer // data required to complete the challenge, could be html, png, etc.
+}
 ```
 
 #### Create a post
 
 ```js
-const onChallenge = async (challenge, accountComment) => {
-  let challengeAnswer
+const onChallenge = async (challenges: Challenge[], comment: Comment) => {
+  let challengeAnswers: string[]
   try {
-    // ask the user to complete the challenge in a modal window
-    challengeAnswer = await getChallengeAnswerFromUser(challenge)
+    // ask the user to complete the challenges in a modal window
+    challengeAnswers = await getChallengeAnswersFromUser(challenges)
   }
   catch (e) {
     // if he declines, throw error and don't get a challenge answer
   }
-  if (challengeAnswer) {
+  if (challengeAnswers) {
     // if user declines, publishChallengeAnswer is not called, retry loop stops
-    await accountComment.publishChallengeAnswer(challengeAnswer)
+    await comment.publishChallengeAnswer(challengeAnswers)
   }
 }
 
-const onChallengeVerification = (challengeVerification, accountComment) => {
+const onChallengeVerification = (challengeVerification, comment) => {
   // if the challengeVerification fails, a new challenge request will be sent automatically
   // to break the loop, the user must decline to send a challenge answer
   // if the subplebbit owner sends more than 1 challenge for the same challenge request, subsequents will be ignored
@@ -200,7 +204,17 @@ const subplebbit = useSubplebbit(subplebbitAddress)
 
 #### Update a subplebbit
 
-#### Edit an author
+#### Edit an account
+
+```js
+const {setAccount} = useAccountsActions()
+const account = useAccount() // or useAccount('Account 2')
+
+const author: {...account.author, displayName: 'John'}
+const editedAccount = {...account, author}
+
+await setAccount(editedAccount)
+```
 
 ### Install
 

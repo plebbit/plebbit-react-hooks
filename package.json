@@ -4,7 +4,8 @@
     "node": "^14 || ^16"
   },
   "keywords": [
-    "plebbit", "subplebbit"
+    "plebbit",
+    "subplebbit"
   ],
   "repository": "github:plebbit/plebbit-react-hooks",
   "license": "GPL-2.0",
@@ -34,8 +35,10 @@
   },
   "dependencies": {
     "@types/debug": "^4.1.7",
+    "@types/uuid": "^8.3.4",
     "debug": "^4.3.3",
-    "localforage": "^1.10.0"
+    "localforage": "^1.10.0",
+    "uuid": "^8.3.2"
   },
   "peerDependencies": {
     "react": ">=16.8"

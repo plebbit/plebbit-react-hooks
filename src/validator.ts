@@ -1,9 +1,9 @@
 import assert from 'assert'
 
-export const validateAccountsActionsPublishCommentArguments = ({publishCommentOptions, accountName, activeAccountName, account}: any) => {
+export const validateAccountsActionsPublishCommentArguments = ({publishCommentOptions, accountName, account}: any) => {
   assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
   assert(accountName !== '', `publishComment accountName argument is empty string`)
-  assert(account, `publishComment no account with name '${accountName || activeAccountName}' in AccountsContext`)
+  assert(!accountName || account, `publishComment no account with name '${accountName}' in AccountsContext`)
   assert(publishCommentOptions && typeof publishCommentOptions === 'object', 'publishComment publishCommentOptions not an object')
   assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function')
   assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function')
@@ -19,15 +19,6 @@ export const validateAccountsActionsExportAccountArguments = (accountName: any) 
   assert(accountName !== '', `exportAccount accountName argument is empty string` )
 }
 
-export const validateAccountsActionsCreateAccountArguments = (accountName: any, accountNames: any) => {
-  assert(typeof accountName === 'string', `createAccount accountName '${accountName}' not a string`)
-  assert(accountName !== '', `createAccount accountName argument is empty string`)
-  assert(
-    !accountNames.includes(accountName),
-    `createAccount accountName '${accountName}' already exists in database`
-  )
-}
-
 export const validateAccountsActionsSetAccountsOrderArguments = (newOrderedAccountNames: any, accountNames: any) => {
   assert(
     JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()),
@@ -35,10 +26,12 @@ export const validateAccountsActionsSetAccountsOrderArguments = (newOrderedAccou
   )
 }
 
-export const validateAccountsActionsSetAccountArguments = (accountNameToSet: any, account: any) => {
-  assert(typeof accountNameToSet === 'string', `setAccount accountNameToSet '${accountNameToSet}' not a string`)
-  assert(accountNameToSet !== '', `setAccount accountNameToSet argument is empty string`)
+export const validateAccountsActionsSetAccountArguments = (account: any) => {
   assert(account && typeof account === 'object', `setAccount account '${account}' not an object`)
+  assert(typeof account.name === 'string', `setAccount account.name '${account.name}' not a string`)
+  assert(account.name !== '', `setAccount account.name is empty string`)
+  assert(typeof account.id === 'string', `setAccount account.id '${account.id}' not a string`)
+  assert(account.id !== '', `setAccount account.id is empty string`)
 }
 
 export const validateAccountsActionsSetActiveAccountArguments = (accountName: any) => {
@@ -46,17 +39,17 @@ export const validateAccountsActionsSetActiveAccountArguments = (accountName: an
   assert(accountName !== '', `setActiveAccountName accountName argument is empty string`)
 }
 
-export const validateAccountsProviderGetAccountsFromDatabaseArguments = (accountNames: any) => {
-  assert(Array.isArray(accountNames), `AccountsProvider getAccountsFromDatabase accountNames '${accountNames}' not an array`)
-  assert(accountNames.length > 0, `AccountsProvider getAccountsFromDatabase accountNames '${accountNames}' is empty`)
-  for (const accountName of accountNames) {
+export const validateAccountsProviderGetAccountsFromDatabaseArguments = (accountIds: any) => {
+  assert(Array.isArray(accountIds), `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' not an array`)
+  assert(accountIds.length > 0, `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' is empty`)
+  for (const accountId of accountIds) {
     assert(
-      typeof accountName === 'string',
-      `AccountsProvider getAccountsFromDatabase accountNames '${accountNames}' accountName '${accountName}' not a string`
+      typeof accountId === 'string',
+      `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' accountId '${accountId}' not a string`
     )
     assert(
-      accountName !== '',
-      `AccountsProvider getAccountsFromDatabase accountNames '${accountNames}' an accountName argument is empty string`
+      accountId !== '',
+      `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' an accountId argument is empty string`
     )
   }
 }
@@ -72,14 +65,16 @@ export const validateAccountsProviderAccountNames = (accountNames: any) => {
 }
 
 export const validateAccountsProviderAddAccountToDatabaseArguments = (account: any) => {
-  assert(account && typeof account === 'object', `AccountsProvider addAccountToDatabase account '${account}' not an object`)
+  assert(account && typeof account === 'object', `AccountsProvider addAccountToDatabase '${account}' not an object`)
   assert(typeof account.name === 'string', `AccountsProvider addAccountToDatabase account.name '${account.name}' not a string`)
+  assert(account.name !== '', `AccountsProvider addAccountToDatabase account.name is empty string`)
+  assert(typeof account.id === 'string', `AccountsProvider addAccountToDatabase account.id '${account.id}' not a string`)
+  assert(account.id !== '', `AccountsProvider addAccountToDatabase account.id is empty string`)
 }
 
 const validator = {
   validateAccountsActionsPublishCommentArguments,
   validateAccountsActionsExportAccountArguments,
-  validateAccountsActionsCreateAccountArguments,
   validateAccountsActionsSetAccountsOrderArguments,
   validateAccountsActionsSetAccountArguments,
   validateAccountsActionsSetActiveAccountArguments,

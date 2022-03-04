@@ -2,55 +2,87 @@ import React, { useState, useEffect } from 'react'
 import PlebbitJs from '../plebbit-js'
 import validator from '../validator'
 import assert from 'assert'
+import {v4 as uuid} from 'uuid'
 import localForage from 'localforage'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
-const accountsCommentsDatabase = localForage.createInstance({ name: 'accountsComments' })
-const accountsVotesDatabase = localForage.createInstance({ name: 'accountsVotes' })
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:accountsprovider')
 
 type Props = { children?: React.ReactChild }
-// TODO: define Account type
+type AccountNamesToAccountIds = {[key: string]: string} 
+// TODO: define types
 type Account = any
 type Accounts = { [key: string]: Account }
-// TODO: define AccountsActions type
 type AccountsActions = any
-// TODO: define type
+type AccountsContext = any
 type PublishCommentOptions = any
-// TODO: define type
 type Challenge = any
-// TODO: define type
 type ChallengeVerification = any
 
-const getAccountsFromDatabase = async (accountNames: string[]) => {
-  validator.validateAccountsProviderGetAccountsFromDatabaseArguments(accountNames)
+const getAccountsFromDatabase = async (accountIds: string[]) => {
+  validator.validateAccountsProviderGetAccountsFromDatabaseArguments(accountIds)
   const accounts: Accounts = {}
   const promises = []
-  for (const accountName of accountNames) {
-    promises.push(accountsDatabase.getItem(accountName))
+  for (const accountId of accountIds) {
+    promises.push(accountsDatabase.getItem(accountId))
   }
   const accountsArray = await Promise.all(promises)
-  for (const [i, accountName] of accountNames.entries()) {
-    assert(accountsArray[i], `accountName '${accountName}' not found in database`)
-    accounts[accountName] = accountsArray[i]
-    accounts[accountName].plebbit = PlebbitJs.Plebbit(accounts[accountName].plebbitOptions)
+  for (const [i, accountId] of accountIds.entries()) {
+    assert(accountsArray[i], `accountId '${accountId}' not found in database`)
+    accounts[accountId] = accountsArray[i]
+    accounts[accountId].plebbit = PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
   }
   return accounts
 }
 
-const getAccountFromDatabase = async (accountName: string) => {
-  const accounts = await getAccountsFromDatabase([accountName])
-  return accounts[accountName]
+const getAccountFromDatabase = async (accountId: string) => {
+  const accounts = await getAccountsFromDatabase([accountId])
+  return accounts[accountId]
 }
 
 const addAccountToDatabase = async (account: Account) => {
   validator.validateAccountsProviderAddAccountToDatabaseArguments(account)
+  let accountIds: string[] | null = await accountsMetadataDatabase.getItem('accountIds')
+
+  // handle no duplicate names
+  if (accountIds) {
+    const accounts: Accounts = await getAccountsFromDatabase(accountIds)
+    for (const accountId of accountIds) {
+      if (accountId !== account.id && accounts[accountId].name === account.name) {
+        throw Error(`account name '${account.name}' already exists in database`)
+      }
+    }
+  }
+
+  // handle updating accounts database
   const accountToPutInDatabase = { ...account, plebbit: undefined }
-  await accountsDatabase.setItem(accountToPutInDatabase.name, accountToPutInDatabase)
+  await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
+
+  // handle updating accountNamesToAccountIds database
+  let accountNamesToAccountIds: AccountNamesToAccountIds | null = await accountsMetadataDatabase.getItem('accountNamesToAccountIds')
+  if (!accountNamesToAccountIds) {
+    accountNamesToAccountIds = {}
+  }
+  accountNamesToAccountIds[account.name] = account.id
+  await accountsMetadataDatabase.setItem('accountNamesToAccountIds', accountNamesToAccountIds)
+
+  // handle updating accountIds database
+  if (!accountIds) {
+    accountIds = [account.id]
+  }
+  if (!accountIds.includes(account.id)) {
+    accountIds.push(account.id)
+  }
+  await accountsMetadataDatabase.setItem('accountIds', accountIds) 
+
+  // handle updating activeAccountId database
+  if (accountIds.length === 1) {
+    await accountsMetadataDatabase.setItem('activeAccountId', account.id)
+  }
 }
 
-const createDefaultAccount = async () => {
+const generateDefaultAccount = async () => {
   // TODO: a default account will probably not be exactly like this
   const signer = {} // TODO: generate new signer
   const author = {
@@ -63,6 +95,7 @@ const createDefaultAccount = async () => {
   }
   const accountName = await getNextAvailableDefaultAccountName()
   const account = {
+    id: uuid(),
     name: accountName,
     author,
     signer,
@@ -75,7 +108,14 @@ const createDefaultAccount = async () => {
 }
 
 const getNextAvailableDefaultAccountName = async () => {
-  const accountNames: string[] | null = await accountsMetadataDatabase.getItem('accountNames')
+  const accountIds: string[] | null = await accountsMetadataDatabase.getItem('accountIds')
+  const accountNames = []
+  if (accountIds) {
+    const accounts: Accounts | null = await getAccountsFromDatabase(accountIds)
+    for (const accountId of accountIds) {
+      accountNames.push(accounts[accountId].name)
+    }
+  }
   let accountNumber = 1
   if (!accountNames?.length) {
     return `Account ${accountNumber}`
@@ -96,86 +136,74 @@ export const AccountsContext = React.createContext<Accounts | undefined>(undefin
 
 export default function AccountsProvider(props: Props): JSX.Element | null {
   const [accounts, setAccounts] = useState<any>(undefined)
-  const [accountNames, setAccountNames] = useState<any>(undefined)
-  const [activeAccountName, setActiveAccountName] = useState<any>(undefined)
+  const [accountIds, setAccountIds] = useState<any>(undefined)
+  const [activeAccountId, setActiveAccountId] = useState<any>(undefined)
+  const [accountNamesToAccountIds, setAccountNamesToAccountIds] = useState<any>(undefined)
+  const [accountsComments, setAccountsComments] = useState<any>(undefined)
+  const [accountsVotes, setAccountsVotes] = useState<any>(undefined)
 
   const accountsActions: AccountsActions = {}
 
   accountsActions.setActiveAccount = async (accountName: string) => {
     validator.validateAccountsActionsSetActiveAccountArguments(accountName)
-    await accountsMetadataDatabase.setItem('activeAccountName', accountName)
-    debug('accountsActions.setActiveAccountName', { accountName })
-    setActiveAccountName(accountName)
+    const accountId = accountNamesToAccountIds[accountName]
+    await accountsMetadataDatabase.setItem('activeAccountId', accountId)
+    debug('accountsActions.setActiveAccount', { accountName, accountId })
+    setActiveAccountId(accountId)
   }
 
-  accountsActions.setAccount = async (accountNameToSet: string, account: Account) => {
-    validator.validateAccountsActionsSetAccountArguments(accountNameToSet, account)
-    // use this function to serialize
+  accountsActions.setAccount = async (account: Account) => {
+    validator.validateAccountsActionsSetAccountArguments(account)
+    // use this function to serialize and update all databases
     await addAccountToDatabase(account)
-    // use this function to deserialize
-    const newAccount = await getAccountFromDatabase(account.name)
-    const newAccounts = { ...accounts, [newAccount.name]: newAccount }
-    const newAccountNames = [...accountNames]
-
-    // handle an account name change
-    if (newAccount.name !== accountNameToSet) {
-      if (activeAccountName === accountNameToSet) {
-        await accountsMetadataDatabase.setItem('activeAccountName', newAccount.name)
-      }
-      // delete old account
-      await accountsDatabase.removeItem(accountNameToSet)
-      delete newAccounts[accountNameToSet]
-      // replace old account name
-      const previousAccountNameIndex = newAccountNames.indexOf(accountNameToSet)
-      newAccountNames[previousAccountNameIndex] = newAccount.name
-      await accountsMetadataDatabase.setItem('accountNames', newAccountNames)
-      // replace old account comments and votes
-      await accountsCommentsDatabase.setItem(newAccount.name, await accountsCommentsDatabase.getItem(accountNameToSet))
-      await accountsCommentsDatabase.removeItem(accountNameToSet)
-      await accountsVotesDatabase.setItem(newAccount.name, await accountsVotesDatabase.getItem(accountNameToSet))
-      await accountsVotesDatabase.removeItem(accountNameToSet)
-    }
-
-    debug('accountsActions.setAccount', { accountNameToSet, account: newAccount })
+    const [newAccount, newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
+      // use this function to deserialize
+      getAccountFromDatabase(account.id),
+      accountsMetadataDatabase.getItem('accountIds'),
+      accountsMetadataDatabase.getItem('activeAccountId'),
+      accountsMetadataDatabase.getItem('accountNamesToAccountIds')
+    ])
+    const newAccounts = { ...accounts, [newAccount.id]: newAccount }
+    debug('accountsActions.setAccount', { account: newAccount })
     setAccounts(newAccounts)
-    setAccountNames(newAccountNames)
-    // handle active account name change
-    if (activeAccountName === accountNameToSet && newAccount.name !== accountNameToSet) {
-      setActiveAccountName(newAccount.name)
-    }
+    setAccountIds(newAccountIds)
+    setActiveAccountId(newActiveAccountId)
+    setAccountNamesToAccountIds(accountNamesToAccountIds)
   }
 
   accountsActions.setAccountsOrder = async (newOrderedAccountNames: string[]) => {
+    const accountIds = []
+    const accountNames = []
+    for (const accountName of newOrderedAccountNames) {
+      const accountId = accountNamesToAccountIds[accountName]
+      accountIds.push(accountId)
+      accountNames.push(accounts[accountId].name)
+    }
     validator.validateAccountsActionsSetAccountsOrderArguments(newOrderedAccountNames, accountNames)
     debug('accountsActions.setAccountsOrder', {
       previousAccountNames: accountNames,
       newAccountNames: newOrderedAccountNames,
     })
-    await accountsMetadataDatabase.setItem('accountNames', newOrderedAccountNames)
-    setAccountNames(newOrderedAccountNames)
+    await accountsMetadataDatabase.setItem('accountIds', accountIds)
+    setAccountIds(accountIds)
   }
 
   accountsActions.createAccount = async (accountName?: string) => {
-    const newAccount = await createDefaultAccount()
+    const newAccount = await generateDefaultAccount()
     if (accountName) {
-      validator.validateAccountsActionsCreateAccountArguments(accountName, accountNames)
       newAccount.name = accountName
     }
-    const newAccountNames = [...accountNames, newAccount.name]
-    const newAccounts = { ...accounts, [newAccount.name]: newAccount }
-    await Promise.all([
-      accountsMetadataDatabase.setItem('accountNames', newAccountNames),
-      accountsCommentsDatabase.setItem(newAccount.name, []),
-      accountsVotesDatabase.setItem(newAccount.name, {}),
-      addAccountToDatabase(newAccount),
+    await addAccountToDatabase(newAccount)
+    const newAccounts = { ...accounts, [newAccount.id]: newAccount }
+    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
+      accountsMetadataDatabase.getItem('accountIds'),
+      accountsMetadataDatabase.getItem('activeAccountId'),
+      accountsMetadataDatabase.getItem('accountNamesToAccountIds')
     ])
     debug('accountsActions.createAccount', { accountName, account: newAccount })
     setAccounts(newAccounts)
-    setAccountNames(newAccountNames)
-    // there was no accounts left before creating this account so set the only account as active
-    if (newAccountNames.length === 1) {
-      setActiveAccountName(newAccountNames[0])
-    }
+    setAccountIds(newAccountIds)
+    setAccountNamesToAccountIds(accountNamesToAccountIds)
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
@@ -203,8 +231,12 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
-    let account = accountName ? accounts[accountName] : accounts[activeAccountName]
-    validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, activeAccountName, account})
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
     const commentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
@@ -241,32 +273,31 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   // load accounts from database once on load
   useEffect(() => {
     ;(async () => {
-      let accountNames: string[] | null, activeAccountName: string, accounts: Accounts
-      accountNames = await accountsMetadataDatabase.getItem('accountNames')
+      let accountIds: string[] | null, activeAccountId: string | null, accounts: Accounts, accountNamesToAccountIds: AccountNamesToAccountIds | null
+      accountIds = await accountsMetadataDatabase.getItem('accountIds')
       // get accounts from database if any
-      if (accountNames?.length) {
-        ;[activeAccountName, accounts] = await Promise.all<any>([
-          accountsMetadataDatabase.getItem('activeAccountName'),
-          getAccountsFromDatabase(accountNames),
+      if (accountIds?.length) {
+        ;[activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all<any>([
+          accountsMetadataDatabase.getItem('activeAccountId'),
+          getAccountsFromDatabase(accountIds),
+          accountsMetadataDatabase.getItem('accountNamesToAccountIds')
         ])
       }
       // no accounts in database, create a default account
       else {
-        const defaultAccount = await createDefaultAccount()
-        accountNames = [defaultAccount.name]
-        activeAccountName = defaultAccount.name
-        accounts = { [defaultAccount.name]: defaultAccount }
-        await Promise.all([
-          accountsMetadataDatabase.setItem('accountNames', accountNames),
-          accountsMetadataDatabase.setItem('activeAccountName', activeAccountName),
-          accountsCommentsDatabase.setItem(defaultAccount.name, []),
-          accountsVotesDatabase.setItem(defaultAccount.name, {}),
-          addAccountToDatabase(defaultAccount),
+        const defaultAccount = await generateDefaultAccount()
+        await addAccountToDatabase(defaultAccount)
+        accounts = {[defaultAccount.id]: defaultAccount}
+        ;[accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all<any>([
+          accountsMetadataDatabase.getItem('accountIds'),
+          accountsMetadataDatabase.getItem('activeAccountId'),
+          accountsMetadataDatabase.getItem('accountNamesToAccountIds')
         ])
       }
       setAccounts(accounts)
-      setAccountNames(accountNames)
-      setActiveAccountName(activeAccountName)
+      setAccountIds(accountIds)
+      setActiveAccountId(activeAccountId)
+      setAccountNamesToAccountIds(accountNamesToAccountIds)
     })()
   }, [])
 
@@ -275,21 +306,23 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   // don't give access to any context until first load
-  let accountsContext: any
-  if (accountNames && accounts) {
+  let accountsContext: AccountsContext
+  if (accountIds && accounts && accountNamesToAccountIds) {
     accountsContext = {
       accounts,
-      accountNames,
-      activeAccountName,
+      accountIds,
+      activeAccountId,
+      accountNamesToAccountIds,
       accountsActions,
     }
   }
 
   debug({
     accountsContext: accountsContext && {
-      accounts: accountsContext.accounts,
-      accountNames: accountsContext.accountNames,
-      activeAccountName: accountsContext.activeAccountName,
+      accounts,
+      accountIds,
+      activeAccountId,
+      accountNamesToAccountIds
     },
   })
   return <AccountsContext.Provider value={accountsContext}>{props.children}</AccountsContext.Provider>

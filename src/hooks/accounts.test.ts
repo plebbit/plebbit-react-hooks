@@ -9,9 +9,7 @@ mockPlebbitJs(PlebbitMock)
 const deleteDatabases = () =>
   Promise.all([
     localForage.createInstance({ name: 'accountsMetadata' }).clear(),
-    localForage.createInstance({ name: 'accounts' }).clear(),
-    localForage.createInstance({ name: 'accountsComments' }).clear(),
-    localForage.createInstance({ name: 'accountsVotes' }).clear(),
+    localForage.createInstance({ name: 'accounts' }).clear()
   ])
 
 describe('accounts', () => {
@@ -172,7 +170,7 @@ describe('accounts', () => {
       expect(typeof rendered.result.current.account.name).toBe('string')
       await act(async () => {
         expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(
-          `createAccount accountName '${rendered.result.current.account.name}' already exists in database`
+          `account name '${rendered.result.current.account.name}' already exists in database`
         )
       })
     })
@@ -181,10 +179,10 @@ describe('accounts', () => {
       rendered.rerender('Account 2')
       expect(rendered.result.current.account.name).toBe('Account 2')
       expect(rendered.result.current.account.author.displayName).toBe(null)
-      const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account, plebbit: undefined }))
+      const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account }))
       newAccount.author.displayName = 'display name john'
       await act(async () => {
-        await rendered.result.current.setAccount('Account 2', newAccount)
+        await rendered.result.current.setAccount(newAccount)
       })
       expect(rendered.result.current.account.author.displayName).toBe('display name john')
 
@@ -200,11 +198,11 @@ describe('accounts', () => {
     test('edit active account name and display name', async () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(rendered.result.current.account.author.displayName).toBe(null)
-      const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account, plebbit: undefined }))
+      const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account }))
       newAccount.author.displayName = 'display name john'
       newAccount.name = 'account name john'
       await act(async () => {
-        await rendered.result.current.setAccount('Account 1', newAccount)
+        await rendered.result.current.setAccount(newAccount)
       })
       expect(rendered.result.current.account.author.displayName).toBe('display name john')
       expect(rendered.result.current.account.name).toBe('account name john')
@@ -330,11 +328,12 @@ describe('accounts', () => {
   })
 
   describe('multiple comments and votes in database', () => {
-//     - useIsAccountComment(commentCid, accountName | undefined): boolean // know if a comment is your own comment
-// - useAccountComments(accountName | undefined): Comment[] // export or display list of own comments
-// - useAccountCommentsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[] // get your own comments in a subplebbit
-// - useAccountPostsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[]  // get your own posts in a subplebbit
-// - useAccountCommentsInPost(postCid, accountName | undefined): Comment[] // get your own comments in a thread
+    // hooks to test
+    // - useIsAccountComment(commentCid, accountName | undefined): boolean // know if a comment is your own comment
+    // - useAccountComments(accountName | undefined): Comment[] // export or display list of own comments
+    // - useAccountCommentsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[] // get your own comments in a subplebbit
+    // - useAccountPostsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[]  // get your own posts in a subplebbit
+    // - useAccountCommentsInPost(postCid, accountName | undefined): Comment[] // get your own comments in a thread
     test.todo(`get account's comment`)
 
     test.todo(`get account's vote`)

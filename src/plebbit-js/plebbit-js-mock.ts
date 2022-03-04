@@ -1,5 +1,7 @@
 import EventEmitter from 'events'
 
+// TODO: make load time changeable with env variable
+// so the frontend can test with latency
 const loadTime = 10
 const waitForLoad = () => new Promise(r => setTimeout(r, loadTime))
 
