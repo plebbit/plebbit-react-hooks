@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import PlebbitJs from '../plebbit-js'
+import validator from '../validator'
 import assert from 'assert'
 import localForage from 'localforage'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
@@ -23,18 +24,7 @@ type Challenge = any
 type ChallengeVerification = any
 
 const getAccountsFromDatabase = async (accountNames: string[]) => {
-  assert(Array.isArray(accountNames), `getAccountsFromDatabase accountNames '${accountNames}' not an array`)
-  assert(accountNames.length > 0, `getAccountsFromDatabase accountNames '${accountNames}' is empty`)
-  for (const accountName of accountNames) {
-    assert(
-      typeof accountName === 'string',
-      `getAccountsFromDatabase accountNames '${accountNames}' accountName '${accountName}' not a string`
-    )
-    assert(
-      accountName !== '',
-      `getAccountsFromDatabase accountNames '${accountNames}' an accountName argument is empty string`
-    )
-  }
+  validator.validateAccountsProviderGetAccountsFromDatabaseArguments(accountNames)
   const accounts: Accounts = {}
   const promises = []
   for (const accountName of accountNames) {
@@ -55,8 +45,7 @@ const getAccountFromDatabase = async (accountName: string) => {
 }
 
 const addAccountToDatabase = async (account: Account) => {
-  assert(account && typeof account === 'object', `addAccountToDatabase account '${account}' not an object`)
-  assert(typeof account.name === 'string', `addAccountToDatabase account.name '${account.name}' not a string`)
+  validator.validateAccountsProviderAddAccountToDatabaseArguments(account)
   const accountToPutInDatabase = { ...account, plebbit: undefined }
   await accountsDatabase.setItem(accountToPutInDatabase.name, accountToPutInDatabase)
 }
@@ -88,16 +77,11 @@ const createDefaultAccount = async () => {
 const getNextAvailableDefaultAccountName = async () => {
   const accountNames: string[] | null = await accountsMetadataDatabase.getItem('accountNames')
   let accountNumber = 1
-  if (!accountNames) {
+  if (!accountNames?.length) {
     return `Account ${accountNumber}`
   }
-  assert(Array.isArray(accountNames), `getNextAvailableDefaultAccountName accountNames '${accountNames}' not an array`)
-  for (const accountName of accountNames) {
-    assert(
-      typeof accountName === 'string',
-      `getNextAvailableDefaultAccountName accountNames '${accountNames}' accountName '${accountName}' not a string`
-    )
-  }
+  validator.validateAccountsProviderAccountNames(accountNames)
+
   const accountNamesSet = new Set(accountNames)
   while (true) {
     const accountName = `Account ${accountNumber}`
@@ -118,17 +102,14 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const accountsActions: AccountsActions = {}
 
   accountsActions.setActiveAccount = async (accountName: string) => {
-    assert(typeof accountName === 'string', `setActiveAccountName accountName '${accountName}' not a string`)
-    assert(accountName !== '', `setActiveAccountName accountName argument is empty string`)
+    validator.validateAccountsActionsSetActiveAccountArguments(accountName)
     await accountsMetadataDatabase.setItem('activeAccountName', accountName)
     debug('accountsActions.setActiveAccountName', { accountName })
     setActiveAccountName(accountName)
   }
 
   accountsActions.setAccount = async (accountNameToSet: string, account: Account) => {
-    assert(typeof accountNameToSet === 'string', `setAccount accountNameToSet '${accountNameToSet}' not a string`)
-    assert(accountNameToSet !== '', `setAccount accountNameToSet argument is empty string`)
-    assert(account && typeof account === 'object', `setAccount account '${account}' not an object`)
+    validator.validateAccountsActionsSetAccountArguments(accountNameToSet, account)
     // use this function to serialize
     await addAccountToDatabase(account)
     // use this function to deserialize
@@ -163,10 +144,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.setAccountsOrder = async (newOrderedAccountNames: string[]) => {
-    assert(
-      JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()),
-      `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`
-    )
+    validator.validateAccountsActionsSetAccountsOrderArguments(newOrderedAccountNames, accountNames)
     debug('accountsActions.setAccountsOrder', {
       previousAccountNames: accountNames,
       newAccountNames: newOrderedAccountNames,
@@ -178,12 +156,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   accountsActions.createAccount = async (accountName?: string) => {
     const newAccount = await createDefaultAccount()
     if (accountName) {
-      assert(typeof accountName === 'string', `createAccount accountName '${accountName}' not a string`)
-      assert(accountName !== '', `createAccount accountName argument is empty string`)
-      assert(
-        !accountNames.includes(accountName),
-        `createAccount accountName '${accountName}' already exists in database`
-      )
+      validator.validateAccountsActionsCreateAccountArguments(accountName, accountNames)
       newAccount.name = accountName
     }
     const newAccountNames = [...accountNames, newAccount.name]
@@ -221,8 +194,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   accountsActions.exportAccount = async (accountName: string) => {
     throw Error('TODO: not implemented')
     // don't allow no account name to avoid catastrophic bugs
-    assert(typeof accountName === 'string', `exportAccount accountName '${accountName}' not a string` )
-    assert(accountName !== '', `exportAccount accountName argument is empty string` )
+    validator.validateAccountsActionsExportAccountArguments(accountName)
     // TODO: return account as serialized JSON string for copy paste or save as file
     // the 'account' will contain AccountComments and AccountVotes
     // TODO: add options to only export private key, account settings, or include all account comments/votes history
@@ -230,23 +202,13 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
   accountsActions.publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
     let account = accountName ? accounts[accountName] : accounts[activeAccountName]
-    assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
-    assert(accountName !== '', `publishComment accountName argument is empty string`)
-    assert(account, `publishComment no account with name '${accountName || activeAccountName}' in AccountsContext`)
-    assert(publishCommentOptions && typeof publishCommentOptions === 'object', 'publishComment publishCommentOptions not an object')
-    assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function')
-    assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function')
-    assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string')
-    assert(publishCommentOptions && typeof publishCommentOptions.parentCommentCid === 'string', 'publishComment publishCommentOptions.parentCommentCid not a string')
-    assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string')
-    assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string')
-    assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number')
+    validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, activeAccountName, account})
 
     const commentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
       parentCommentCid: publishCommentOptions.parentCommentCid, 
       content: publishCommentOptions.content,
-      timestamp: publishCommentOptions.timestamp || Date.now() / 1000,
+      timestamp: publishCommentOptions.timestamp || Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer
     }

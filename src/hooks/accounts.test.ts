@@ -291,7 +291,7 @@ describe('accounts', () => {
       await act(async () => {
         await rendered.result.current.publishComment(publishCommentOptions)
       })
-      throw Error('TODO: test onChallenge and onChallengeVerification')
+      // throw Error('TODO: test onChallenge and onChallengeVerification')
     })
 
     // test(`create posts`, () => {
