@@ -228,7 +228,7 @@ const post = useComment(commentCid)
 #### Get a comment
 
 ```js
-const comment = useComment(plebbit, commentCid)
+const comment = useComment(commentCid)
 ```
 
 #### Get a subplebbit
@@ -259,14 +259,25 @@ await setAccount(editedAccount)
 const myComments = useAccountComments()
 const myVotes = useAccountVotes()
 const subplebbitAddress = 'memes.eth'
-const myCommentsInMemesEth = useAccountComments({filter: {subplebbitAddresses: [subplebbitAddress]}})
-const myPostsInMemesEth = useAccountComments({filter: {hasParentCommentCid: false, subplebbitAddresses: [subplebbitAddress]}})
+const myCommentsInMemesEth = useAccountComments({
+  filter: {subplebbitAddresses: [subplebbitAddress]}
+})
+const myPostsInMemesEth = useAccountComments({
+  filter: {
+    hasParentCommentCid: false, 
+    subplebbitAddresses: [subplebbitAddress]
+  }
+})
 const postCid = 'Qm...'
-const myCommentsInSomePost = useAccountComments({filter: {postCids: [postCid]}})
+const myCommentsInSomePost = useAccountComments({
+  filter: {postCids: [postCid]}
+})
 const parentCommentCid = 'Qm...'
-const myRepliesToSomeComment = useAccountComments({filter: {parentCommentCids: [parentCommentCid]}})
+const myRepliesToSomeComment = useAccountComments({
+  filter: {parentCommentCids: [parentCommentCid]}
+})
 
-// to know if you upvoted a comment already or not
+// know if you upvoted a comment already or not
 const myVoteOnSomePost = useAccountVote(postCid)
 const myVoteOnSomeComment = useAccountVote(commentCid, 'Account 2') // to get account that isn't active use the account name
 ```
