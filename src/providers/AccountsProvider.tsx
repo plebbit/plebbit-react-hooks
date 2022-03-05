@@ -257,20 +257,17 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
   accountsActions.setAccount = async (account: Account) => {
     validator.validateAccountsActionsSetAccountArguments(account)
+    assert(accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`)
     // use this function to serialize and update all databases
     await addAccountToDatabase(account)
-    const [newAccount, newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
+    const [newAccount, accountNamesToAccountIds] = await Promise.all([
       // use this function to deserialize
       getAccountFromDatabase(account.id),
-      accountsMetadataDatabase.getItem('accountIds'),
-      accountsMetadataDatabase.getItem('activeAccountId'),
       accountsMetadataDatabase.getItem('accountNamesToAccountIds')
     ])
     const newAccounts = { ...accounts, [newAccount.id]: newAccount }
     debug('accountsActions.setAccount', { account: newAccount })
     setAccounts(newAccounts)
-    setAccountIds(newAccountIds)
-    setActiveAccountId(newActiveAccountId)
     setAccountNamesToAccountIds(accountNamesToAccountIds)
   }
 

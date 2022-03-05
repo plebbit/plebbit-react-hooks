@@ -216,6 +216,17 @@ describe('accounts', () => {
       expect(rendered2.result.current.name).toBe('account name john')
     })
 
+    test('fail to edit account with wrong account id', async () => {
+      const newAccount = JSON.parse(JSON.stringify({ ...rendered.result.current.account }))
+      newAccount.author.displayName = 'display name john'
+      newAccount.id = 'something incorrect'
+      await act(async () => {
+        expect(rendered.result.current.setAccount(newAccount)).rejects.toThrow(`cannot set account with account.id 'something incorrect' id does not exist in database`)
+      })
+    })
+
+    test.todo('edited account can still sign and publish comments')
+
     test.todo('export account')
 
     test.todo('import account')
