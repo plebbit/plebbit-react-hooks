@@ -58,11 +58,8 @@ AccountsContext (store in indexeddb permanently) {
 
 - useAccount(accountName | undefined): Account | undefined
 - useIsAccountComment(commentCid, accountName | undefined): boolean // know if a comment is your own comment
-- useAccountComments(accountName | undefined): Comment[] // export or display list of own comments
-- useAccountCommentsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[] // get your own comments in a subplebbit
-- useAccountPostsInSubplebbit(subplebbitAddress, accountName | undefined): Comment[]  // get your own posts in a subplebbit
-- useAccountCommentsInPost(postCid, accountName | undefined): Comment[] // get your own comments in a thread
-- useAccountVotes(accountName | undefined): Vote[]  // export or display list of own votes
+- useAccountComments(accountCommentsOptions: AccountsCommentsOptions): Comment[] // export or display list of own comments
+- useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export or display list of own votes
 - useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
 - useAccounts(): Account[]
 - useAccountsActions(): AccountsActions
@@ -112,16 +109,22 @@ AccountComment {
   ...Comment,
   previousAccountCommentCid: string // needed to scroll to every comment an account has published
 }
-AccountCommentsFilter { // only get your own account's comments on a certain subplebbit, thread, etc useful for certain UI pages
+AccountsCommentsOptions {
+  accountName?: string,
+  filter: AccountCommentsFilter
+}
+AccountCommentsFilter { // only get your own account's comments/votes on a certain subplebbit, thread, etc useful for certain UI pages
   subplebbitAddresses?: string[],
   postCids?: string[],
-  hasParentCommentCids?: boolean // get only posts, no comments
+  commentCids?: string[],
+  parentCommentCids?: string[],
+  hasParentCommentCid?: boolean // get only posts, no comments
 }
 AccountVote {
   ...Vote,
   previousAccountVoteCid: string // needed to scroll to every vote an account has published
 }
-Authord {
+Author {
   displayName: string,
   address: string
 }

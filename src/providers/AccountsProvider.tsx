@@ -20,6 +20,8 @@ type PublishCommentOptions = any
 type PublishVoteOptions = any
 type Challenge = any
 type ChallengeVerification = any
+type CreateCommentOptions = any
+type CreateVoteOptions = any
 
 const getAccountsFromDatabase = async (accountIds: string[]) => {
   validator.validateAccountsProviderGetAccountsFromDatabaseArguments(accountIds)
@@ -83,6 +85,106 @@ const addAccountToDatabase = async (account: Account) => {
   }
 }
 
+const accountsCommentsDatabases: any = {}
+const getAccountCommentsDatabase = (accountId: string) => {
+  assert(accountId && typeof accountId === 'string', `getAccountCommentsDatabase '${accountId}' not a string`)
+  if (!accountsCommentsDatabases[accountId]) {
+    accountsCommentsDatabases[accountId] = localForage.createInstance({ name: `accountComments-${accountId}` })
+  }
+  return accountsCommentsDatabases[accountId]
+}
+
+const addAccountCommentToDatabase = async (accountId: string, createCommentOptions: CreateCommentOptions) => {
+  const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
+  const length = (await accountCommentsDatabase.getItem('length')) || 0
+  const comment = {...createCommentOptions, signer: undefined}
+  await Promise.all([
+    accountCommentsDatabase.setItem(length, comment),
+    accountCommentsDatabase.setItem('length', length + 1)
+  ])
+}
+
+const getAccountCommentsFromDatabase = async (accountId: string) => {
+  const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
+  const length = (await accountCommentsDatabase.getItem('length')) || 0
+  if (length === 0) {
+    return []
+  }
+  let promises = []
+  let i = 0
+  while (i < length) {
+    promises.push(accountCommentsDatabase.getItem(i++))
+  }
+  const comments = await Promise.all(promises)
+  return comments
+}
+
+const getAccountsCommentsFromDatabase = async (accountIds: string[]) => {
+  const promises = []
+  for (const accountId of accountIds) {
+    promises.push(getAccountCommentsFromDatabase(accountId))
+  }
+  const accountsCommentsArray = await Promise.all(promises)
+  const accountsComments: any = {}
+  for (const [i, accountId] of accountIds.entries()) {
+    accountsComments[accountId] = accountsCommentsArray[i]
+  }
+  return accountsComments
+}
+
+const accountsVotesDatabases: any = {}
+const getAccountVotesDatabase = (accountId: string) => {
+  assert(accountId && typeof accountId === 'string', `getAccountVotesDatabase '${accountId}' not a string`)
+  if (!accountsVotesDatabases[accountId]) {
+    accountsVotesDatabases[accountId] = localForage.createInstance({ name: `accountVotes-${accountId}` })
+  }
+  return accountsVotesDatabases[accountId]
+}
+
+const addAccountVoteToDatabase = async (accountId: string, createVoteOptions: CreateCommentOptions) => {
+  assert(createVoteOptions.commentCid && typeof createVoteOptions.commentCid === 'string', `addAccountVoteToDatabase '${createVoteOptions.commentCid}' not a string`)
+  const accountVotesDatabase = getAccountVotesDatabase(accountId)
+  const length = (await accountVotesDatabase.getItem('length')) || 0
+  const vote = {...createVoteOptions, signer: undefined, author: undefined}
+  await Promise.all([
+    accountVotesDatabase.setItem(vote.commentCid, vote),
+    accountVotesDatabase.setItem(length, vote),
+    accountVotesDatabase.setItem('length', length + 1)
+  ])
+}
+
+const getAccountVotesFromDatabase = async (accountId: string) => {
+  const accountVotesDatabase = getAccountVotesDatabase(accountId)
+  const length = (await accountVotesDatabase.getItem('length')) || 0
+  const votes: any = {}
+  if (length === 0) {
+    return votes
+  }
+  let promises = []
+  let i = 0
+  while (i < length) {
+    promises.push(accountVotesDatabase.getItem(i++))
+  }
+  const votesArray = await Promise.all(promises)
+  for (const vote of votesArray) {
+    votes[vote.commentCid] = vote
+  }
+  return votes
+}
+
+const getAccountsVotesFromDatabase = async (accountIds: string[]) => {
+  const promises = []
+  for (const accountId of accountIds) {
+    promises.push(getAccountVotesFromDatabase(accountId))
+  }
+  const accountsVotesArray = await Promise.all(promises)
+  const accountsVotes: any = {}
+  for (const [i, accountId] of accountIds.entries()) {
+    accountsVotes[accountId] = accountsVotesArray[i]
+  }
+  return accountsVotes
+}
+
 const generateDefaultAccount = async () => {
   // TODO: a default account will probably not be exactly like this
   const signer = {} // TODO: generate new signer
@@ -140,8 +242,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const [accountIds, setAccountIds] = useState<any>(undefined)
   const [activeAccountId, setActiveAccountId] = useState<any>(undefined)
   const [accountNamesToAccountIds, setAccountNamesToAccountIds] = useState<any>(undefined)
-  const [accountsComments, setAccountsComments] = useState<any>(undefined)
-  const [accountsVotes, setAccountsVotes] = useState<any>(undefined)
+  const [accountsComments, setAccountsComments] = useState<any>([])
+  const [accountsVotes, setAccountsVotes] = useState<any>({})
 
   const accountsActions: AccountsActions = {}
 
@@ -205,6 +307,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     setAccounts(newAccounts)
     setAccountIds(newAccountIds)
     setAccountNamesToAccountIds(accountNamesToAccountIds)
+    setAccountsComments({...accountsComments, [newAccount.id]: []})
+    setAccountsVotes({...accountsVotes, [newAccount.id]: {}})
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
@@ -266,6 +370,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
 
     publishAndRetryFailedChallengeVerification()
+    await addAccountCommentToDatabase(account.id, createCommentOptions)
+    setAccountsComments({...accountsComments, [account.id]: [...accountsComments[account.id], createCommentOptions]})
     return comment
   }
 
@@ -303,6 +409,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
 
     publishAndRetryFailedChallengeVerification()
+    await addAccountVoteToDatabase(account.id, createVoteOptions)
+    setAccountsVotes({...accountsVotes, [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions}})
     return vote
   }
 
@@ -330,10 +438,18 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           accountsMetadataDatabase.getItem('accountNamesToAccountIds')
         ])
       }
+      const [accountsComments, accountsVotes] = await Promise.all<any>([
+        // @ts-ignore
+        getAccountsCommentsFromDatabase(accountIds),
+        // @ts-ignore
+        getAccountsVotesFromDatabase(accountIds)
+      ])
       setAccounts(accounts)
       setAccountIds(accountIds)
       setActiveAccountId(activeAccountId)
       setAccountNamesToAccountIds(accountNamesToAccountIds)
+      setAccountsComments(accountsComments)
+      setAccountsVotes(accountsVotes)
     })()
   }, [])
 
@@ -350,6 +466,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       activeAccountId,
       accountNamesToAccountIds,
       accountsActions,
+      accountsComments,
+      accountsVotes,
     }
   }
 
@@ -358,7 +476,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accounts,
       accountIds,
       activeAccountId,
-      accountNamesToAccountIds
+      accountNamesToAccountIds,
+      accountsComments,
+      accountsVotes,
     },
   })
   return <AccountsContext.Provider value={accountsContext}>{props.children}</AccountsContext.Provider>

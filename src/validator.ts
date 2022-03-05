@@ -8,7 +8,7 @@ export const validateAccountsActionsPublishCommentArguments = ({publishCommentOp
   assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function')
   assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function')
   assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string')
-  assert(publishCommentOptions && typeof publishCommentOptions.parentCommentCid === 'string', 'publishComment publishCommentOptions.parentCommentCid not a string')
+  assert(!publishCommentOptions.parentCommentCid || typeof publishCommentOptions.parentCommentCid === 'string', 'publishComment publishCommentOptions.parentCommentCid not a string')
   assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string')
   assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string')
   assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number')
