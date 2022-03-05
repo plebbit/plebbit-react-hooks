@@ -9,12 +9,15 @@ class MockedPlebbit {
   createComment() {
     return new Comment()
   }
+  createVote() {
+    return new Vote()
+  }
 }
 
 let challengeRequestCount = 0
 let challengeAnswerCount = 0
 
-class Comment extends EventEmitter {
+class Publication extends EventEmitter {
   challengeRequestId = `r${++challengeRequestCount}`
   challengeAnswerId = `a${++challengeAnswerCount}`
 
@@ -40,6 +43,10 @@ class Comment extends EventEmitter {
     this.emit('challengeverification', challengeVerificationMessage, this)
   }
 }
+
+class Comment extends Publication {}
+
+class Vote extends Publication {}
 
 export default function Plebbit() {
   return new MockedPlebbit()

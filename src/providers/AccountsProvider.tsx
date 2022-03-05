@@ -17,6 +17,7 @@ type Accounts = { [key: string]: Account }
 type AccountsActions = any
 type AccountsContext = any
 type PublishCommentOptions = any
+type PublishVoteOptions = any
 type Challenge = any
 type ChallengeVerification = any
 
@@ -238,16 +239,17 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
-    const commentOptions = {
+    const createCommentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
       parentCommentCid: publishCommentOptions.parentCommentCid, 
       content: publishCommentOptions.content,
+      title: publishCommentOptions.title,
       timestamp: publishCommentOptions.timestamp || Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer
     }
 
-    let comment = account.plebbit.createComment(commentOptions)
+    let comment = account.plebbit.createComment(createCommentOptions)
     const publishAndRetryFailedChallengeVerification = () => {
       comment.once('challenge', async (challenge: Challenge) => {
         publishCommentOptions.onChallenge(challenge, comment)
@@ -256,7 +258,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         publishCommentOptions.onChallengeVerification(challengeVerification, comment)
         if (!challengeVerification.challengeAnswerIsVerified) {
           // publish again automatically on fail
-          comment = account.plebbit.createComment(commentOptions)
+          comment = account.plebbit.createComment(createCommentOptions)
           publishAndRetryFailedChallengeVerification()
         }
       })
@@ -267,7 +269,41 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     return comment
   }
 
-  accountsActions.publishVote = async () => {
+  accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
+
+    const createVoteOptions = {
+      subplebbitAddress: publishVoteOptions.subplebbitAddress,
+      vote: publishVoteOptions.vote,
+      commentCid: publishVoteOptions.commentCid,
+      timestamp: publishVoteOptions.timestamp || Math.round(Date.now() / 1000),
+      author: account.author,
+      signer: account.signer
+    }
+
+    let vote = account.plebbit.createVote(createVoteOptions)
+    const publishAndRetryFailedChallengeVerification = () => {
+      vote.once('challenge', async (challenge: Challenge) => {
+        publishVoteOptions.onChallenge(challenge, vote)
+      })
+      vote.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+        publishVoteOptions.onChallengeVerification(challengeVerification, vote)
+        if (!challengeVerification.challengeAnswerIsVerified) {
+          // publish again automatically on fail
+          vote = account.plebbit.createVote(createVoteOptions)
+          publishAndRetryFailedChallengeVerification()
+        }
+      })
+      vote.publish()
+    }
+
+    publishAndRetryFailedChallengeVerification()
+    return vote
   }
 
   // load accounts from database once on load

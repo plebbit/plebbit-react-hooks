@@ -14,6 +14,19 @@ export const validateAccountsActionsPublishCommentArguments = ({publishCommentOp
   assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number')
 }
 
+export const validateAccountsActionsPublishVoteArguments = ({publishVoteOptions, accountName, account}: any) => {
+  assert(!accountName || typeof accountName === 'string', `publishVote accountName '${accountName}' not a string`)
+  assert(accountName !== '', `publishVote accountName argument is empty string`)
+  assert(!accountName || account, `publishVote no account with name '${accountName}' in AccountsContext`)
+  assert(publishVoteOptions && typeof publishVoteOptions === 'object', 'publishVote publishVoteOptions not an object')
+  assert(typeof publishVoteOptions.onChallenge === 'function', 'publishVote publishVoteOptions.onChallenge not a function')
+  assert(typeof publishVoteOptions.onChallengeVerification === 'function', 'publishVote publishVoteOptions.onChallengeVerification not a function')
+  assert(typeof publishVoteOptions.subplebbitAddress === 'string', 'publishVote publishVoteOptions.subplebbitAddress not a string')
+  assert(typeof publishVoteOptions.commentCid === 'string', 'publishVote publishVoteOptions.commentCid not a string')
+  assert(publishVoteOptions.vote === 1 || publishVoteOptions.vote === 0 || publishVoteOptions.vote === -1, 'publishVote publishVoteOptions.vote not 1, 0 or -1')
+  assert(!publishVoteOptions.timestamp || typeof publishVoteOptions.timestamp === 'number', 'publishVote publishVoteOptions.timestamp is not a number')
+}
+
 export const validateAccountsActionsExportAccountArguments = (accountName: any) => {
   assert(typeof accountName === 'string', `exportAccount accountName '${accountName}' not a string` )
   assert(accountName !== '', `exportAccount accountName argument is empty string` )
@@ -74,6 +87,7 @@ export const validateAccountsProviderAddAccountToDatabaseArguments = (account: a
 
 const validator = {
   validateAccountsActionsPublishCommentArguments,
+  validateAccountsActionsPublishVoteArguments,
   validateAccountsActionsExportAccountArguments,
   validateAccountsActionsSetAccountsOrderArguments,
   validateAccountsActionsSetAccountArguments,

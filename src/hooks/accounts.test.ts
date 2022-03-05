@@ -252,7 +252,7 @@ describe('accounts', () => {
     test.todo(`delete all accounts and create a new one, which becomes active`)
   })
 
-  describe('no comments and votes in database', () => {
+  describe('no comments or votes in database', () => {
     let rendered: any
 
     beforeEach(async () => {
@@ -322,9 +322,49 @@ describe('accounts', () => {
       })
     })
 
-    // test(`create votes`, () => {
+    describe(`create vote`, () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
 
-    // })
+      test('publish vote', async () => {
+        const publishVoteOptions = {
+          subplebbitAddress: 'Qm...',
+          commentCid: 'Qm...',
+          vote: 1, 
+          onChallenge,
+          onChallengeVerification,
+        }
+        await act(async () => {
+          await rendered.result.current.publishVote(publishVoteOptions)
+        })
+      })
+
+      let vote: any
+
+      test('onChallenge gets called', async () => {
+        // onChallenge gets call backed once
+        await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+        expect(onChallenge.mock.calls.length).toBe(1)
+
+        // onChallenge arguments are [challenge, comment]
+        const challenge = onChallenge.mock.calls[0][0]
+        vote = onChallenge.mock.calls[0][1]
+        expect(challenge.type).toBe('CHALLENGE')
+        expect(challenge.challenges[0]).toEqual({challenge: '2+2=?', type: 'text'})
+        expect(typeof vote.publishChallengeAnswer).toBe('function')
+      })
+
+      test('onChallengeVerification gets called', async () => {
+        // publish challenge answer and wait for verification
+        vote.publishChallengeAnswer(['4'])
+        await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+        expect(onChallengeVerification.mock.calls.length).toBe(1)
+        const challengeVerification = onChallengeVerification.mock.calls[0][0]
+        const voteVerified = onChallengeVerification.mock.calls[0][1]
+        expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
+        expect(voteVerified.constructor.name).toBe('Vote')
+      })
+    })
   })
 
   describe('multiple comments and votes in database', () => {
