@@ -99,7 +99,7 @@ const addAccountCommentToDatabase = async (accountId: string, createCommentOptio
   const length = (await accountCommentsDatabase.getItem('length')) || 0
   const comment = {...createCommentOptions, signer: undefined}
   await Promise.all([
-    accountCommentsDatabase.setItem(length, comment),
+    accountCommentsDatabase.setItem(String(length), comment),
     accountCommentsDatabase.setItem('length', length + 1)
   ])
 }
@@ -148,7 +148,7 @@ const addAccountVoteToDatabase = async (accountId: string, createVoteOptions: Cr
   const vote = {...createVoteOptions, signer: undefined, author: undefined}
   await Promise.all([
     accountVotesDatabase.setItem(vote.commentCid, vote),
-    accountVotesDatabase.setItem(length, vote),
+    accountVotesDatabase.setItem(String(length), vote),
     accountVotesDatabase.setItem('length', length + 1)
   ])
 }
@@ -342,7 +342,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
     const createCommentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
-      parentCommentCid: publishCommentOptions.parentCommentCid, 
+      parentCommentCid: publishCommentOptions.parentCommentCid,
+      postCid: publishCommentOptions.postCid, // not used by plebbit-js, but used to store in local database
       content: publishCommentOptions.content,
       title: publishCommentOptions.title,
       timestamp: publishCommentOptions.timestamp || Math.round(Date.now() / 1000),
