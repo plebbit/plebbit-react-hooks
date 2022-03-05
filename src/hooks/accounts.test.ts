@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, AccountCommentsOptions } from './accounts'
+import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions } from './accounts'
 import AccountsProvider from '../providers/AccountsProvider'
 import localForage from 'localforage'
 import PlebbitMock from '../plebbit-js/plebbit-js-mock'
@@ -388,7 +388,7 @@ describe('accounts', () => {
     beforeEach(async () => {
       rendered = renderHook<any, any>(
         (props: any) => {
-          const accountCommentsOptions: AccountCommentsOptions = {
+          const useAccountCommentsOptions: UseAccountCommentsOptions = {
             accountName: props?.accountName,
             filter: {
               commentCids: props?.commentCid && [props?.commentCid],
@@ -400,8 +400,8 @@ describe('accounts', () => {
           }
           const account = useAccount(props?.accountName)
           const accountsActions = useAccountsActions()
-          const accountComments = useAccountComments(accountCommentsOptions)
-          const accountVotes = useAccountVotes(accountCommentsOptions)
+          const accountComments = useAccountComments(useAccountCommentsOptions)
+          const accountVotes = useAccountVotes(useAccountCommentsOptions)
           const accountVote = useAccountVote(props?.commentCid, props?.accountName)
           return { account, accountComments, accountVotes, accountVote, ...accountsActions }
         },

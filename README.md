@@ -108,11 +108,11 @@ AccountComment {
   ...Comment,
   previousAccountCommentCid: string // needed to scroll to every comment an account has published
 }
-AccountsCommentsOptions {
+UseAccountsCommentsOptions {
   accountName?: string,
-  filter: AccountCommentsFilter
+  filter: UseAccountCommentsFilter
 }
-AccountCommentsFilter { // only get your own account's comments/votes on a certain subplebbit, thread, etc useful for certain UI pages
+UseAccountCommentsFilter { // only get your own account's comments/votes on a certain subplebbit, thread, etc useful for certain UI pages
   subplebbitAddresses?: string[],
   postCids?: string[],
   commentCids?: string[],

@@ -60,8 +60,8 @@ export function useAccountsActions() {
 /**
  * Returns the own user's comments stored locally, even those not yet published by the subplebbit owner
  */
-export function useAccountComments(accountCommentsOptions?: AccountCommentsOptions) {
-  const accountId = useAccountId(accountCommentsOptions?.accountName)
+export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
+  const accountId = useAccountId(useAccountCommentsOptions?.accountName)
   const accountsContext = useContext(AccountsContext)
 
   let accountComments: any
@@ -73,22 +73,22 @@ export function useAccountComments(accountCommentsOptions?: AccountCommentsOptio
     if (!accountComments) {
       return
     }
-    if (accountCommentsOptions?.filter) {
-      return filterPublications(accountComments, accountCommentsOptions.filter)
+    if (useAccountCommentsOptions?.filter) {
+      return filterPublications(accountComments, useAccountCommentsOptions.filter)
     }
     return accountComments
   }
-  , [accountComments, accountCommentsOptions])
+  , [accountComments, useAccountCommentsOptions])
 
-  debug('useAccountComments', { accountId, filteredAccountComments, accountComments, accountCommentsOptions })
+  debug('useAccountComments', { accountId, filteredAccountComments, accountComments, useAccountCommentsOptions })
   return filteredAccountComments
 }
 
 /**
  * Returns the own user's votes stored locally, even those not yet published by the subplebbit owner
  */
-export function useAccountVotes(accountVotesOptions?: AccountCommentsOptions) {
-  const accountId = useAccountId(accountVotesOptions?.accountName)
+export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
+  const accountId = useAccountId(useAccountVotesOptions?.accountName)
   const accountsContext = useContext(AccountsContext)
 
   let accountVotes: any
@@ -104,27 +104,27 @@ export function useAccountVotes(accountVotesOptions?: AccountCommentsOptions) {
     for (const i in accountVotes) {
       accountVotesArray.push(accountVotes[i])
     }
-    if (accountVotesOptions?.filter) {
-      accountVotesArray = filterPublications(accountVotesArray, accountVotesOptions.filter)
+    if (useAccountVotesOptions?.filter) {
+      accountVotesArray = filterPublications(accountVotesArray, useAccountVotesOptions.filter)
     }
     return accountVotesArray
   }
-  , [accountVotes, accountVotesOptions])
+  , [accountVotes, useAccountVotesOptions])
 
-  debug('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, accountVotesOptions })
+  debug('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions })
   return filteredAccountVotesArray
 }
 
 export function useAccountVote(commentCid?: string, accountName?: string) {
-  const accountVotesOptions: AccountCommentsOptions = {accountName}
+  const useAccountVotesOptions: UseAccountCommentsOptions = {accountName}
   if (commentCid) {
-    accountVotesOptions.filter = {commentCids: [commentCid]}
+    useAccountVotesOptions.filter = {commentCids: [commentCid]}
   }
-  const accountVotes = useAccountVotes(accountVotesOptions)
+  const accountVotes = useAccountVotes(useAccountVotesOptions)
   return accountVotes && accountVotes[0]
 }
 
-export type AccountCommentsFilter = {
+export type UseAccountCommentsFilter = {
   subplebbitAddresses?: string[]
   postCids?: string[]
   commentCids?: string[]
@@ -132,12 +132,12 @@ export type AccountCommentsFilter = {
   hasParentCommentCid?: boolean
 }
 
-export type AccountCommentsOptions = {
+export type UseAccountCommentsOptions = {
   accountName?: string
-  filter?: AccountCommentsFilter
+  filter?: UseAccountCommentsFilter
 }
 
-const filterPublications = (publications: any, filter: AccountCommentsFilter) => {
+const filterPublications = (publications: any, filter: UseAccountCommentsFilter) => {
   for (const postCid of filter.postCids || []) {
     assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`)
   }
