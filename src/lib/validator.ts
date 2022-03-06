@@ -90,6 +90,14 @@ export const validateUseCommentArguments = (commentCid: any, account: any) => {
   assert(account?.plebbit && typeof account?.plebbit === 'object', `useComment account.plebbit '${account?.plebbit}' not an object`)
 }
 
+export const validateUseCommentsArguments = (commentCids: any, account: any) => {
+  assert(Array.isArray(commentCids), 'useComment commentCids not an array')
+  for (const commentCid of commentCids) {
+    assert(typeof commentCid === 'string', `useComments commentCids '${commentCids}' commentCid '${commentCid}' not a string`)
+  }
+  assert(account?.plebbit && typeof account?.plebbit === 'object', `useComment account.plebbit '${account?.plebbit}' not an object`)
+}
+
 const validator = {
   validateAccountsActionsPublishCommentArguments,
   validateAccountsActionsPublishVoteArguments,
@@ -100,7 +108,8 @@ const validator = {
   validateAccountsProviderGetAccountsFromDatabaseArguments,
   validateAccountsProviderAddAccountToDatabaseArguments,
   validateAccountsProviderAccountNames,
-  validateUseCommentArguments
+  validateUseCommentArguments,
+  validateUseCommentsArguments
 }
 
 export default validator

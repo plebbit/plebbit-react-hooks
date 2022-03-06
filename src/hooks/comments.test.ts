@@ -1,5 +1,5 @@
-import { act, renderHook } from '@testing-library/react-hooks'
-import { useComment } from '../index'
+import { act, renderHook, suppressErrorOutput } from '@testing-library/react-hooks'
+import { useComment, useComments } from '../index'
 import PlebbitProvider from '../providers/PlebbitProvider'
 import localForage from 'localforage'
 import PlebbitMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
@@ -17,7 +17,7 @@ describe('comments', () => {
   })
 
   describe('no comments in database', () => {
-    test('get comments', async () => {
+    test('get comments one at a time', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), { wrapper: PlebbitProvider })
       expect(rendered.result.current).toBe(undefined)
@@ -56,7 +56,12 @@ describe('comments', () => {
         throw Error(`plebbit.getComment called with comment cid '${commentCid}' should not be called when getting comments from database`)
       }
       // don't simulate 'update' event during this test to see if the updates were saved to database
-      Comment.prototype.simulateUpdateEvent = () => {}
+      let throwOnCommentUpdateEvent = false
+      Comment.prototype.simulateUpdateEvent = () => {
+        if (throwOnCommentUpdateEvent) {
+          throw Error('no comment update events should be emitted when comment already in context')
+        }
+      }
 
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), { wrapper: PlebbitProvider })
@@ -73,10 +78,8 @@ describe('comments', () => {
       expect(rendered2.result.current.cid).toBe('comment cid 2')
       expect(rendered2.result.current.upvoteCount).toBe(1)
 
-      // get comment 1 again, no need to wait for any updates
-      Comment.prototype.simulateUpdateEvent = () => {
-        throw Error('no comment update events should be emitted when comment already in context')
-      }
+      // get comment 1 again from context, should not trigger any comment updates
+      throwOnCommentUpdateEvent = true
       rendered2.rerender('comment cid 1')
       expect(rendered2.result.current.cid).toBe('comment cid 1')
       expect(rendered2.result.current.upvoteCount).toBe(1)
@@ -84,6 +87,24 @@ describe('comments', () => {
       // restore mock
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
       Plebbit.prototype.getComment = getComment
+    })
+
+    test('get multiple comments at once', async () => {
+      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids), { wrapper: PlebbitProvider })
+      expect(rendered.result.current).toEqual([])
+      rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
+      expect(rendered.result.current).toEqual([undefined, undefined, undefined])
+      await rendered.waitFor(() => rendered.result.current[2].cid === 'comment cid 3')
+      expect(rendered.result.current[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current[2].cid).toBe('comment cid 3')
+      expect(rendered.result.current[0].upvoteCount).toBe(undefined)
+      expect(rendered.result.current[1].upvoteCount).toBe(undefined)
+      expect(rendered.result.current[2].upvoteCount).toBe(undefined)
+      await rendered.waitFor(() => rendered.result.current[2].upvoteCount === 1)
+      expect(rendered.result.current[0].upvoteCount).toBe(1)
+      expect(rendered.result.current[1].upvoteCount).toBe(1)
+      expect(rendered.result.current[2].upvoteCount).toBe(1)
     })
   })
 })

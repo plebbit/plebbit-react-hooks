@@ -13,7 +13,8 @@ import {
 } from './hooks/accounts'
 
 import {
-  useComment
+  useComment,
+  useComments
 } from './hooks/comments'
 
 const hooks = {
@@ -36,6 +37,7 @@ export {
   useAccountVotes,
   useAccountVote,
   useComment,
+  useComments,
 
   // types
   UseAccountCommentsOptions,

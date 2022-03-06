@@ -64,7 +64,7 @@ useAccountsActions(): AccountsActions
 #### Comments Hooks
 ```
 useComment(commentCid: string, accountName?: string): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
-useComments(commentCid[]): Comment[]
+useComments(commentCid[],  accountName?: string): Comment[]
 ```
 #### Subplebbits Hooks
 ```
@@ -197,6 +197,7 @@ const post = useComment(commentCid)
 
 ```js
 const comment = useComment(commentCid)
+const comments = useComments([commentCid1, commentCid2, commentCid3])
 ```
 
 #### Get a subplebbit
