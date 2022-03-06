@@ -51,31 +51,33 @@ AccountsContext (store in indexeddb permanently) {
 ```
 
 ### Hooks
-
-- usePlebbit(plebbitOptions)
-
+```
+usePlebbit(plebbitOptions)
+```
 #### Accounts Hooks
-
-- useAccount(accountName | undefined): Account | undefined
-- useAccountComments(accountCommentsOptions: AccountsCommentsOptions): Comment[] // export or display list of own comments
-- useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export or display list of own votes
-- useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
-- useAccounts(): Account[]
-- useAccountsActions(): AccountsActions
-
+```
+useAccount(accountName | undefined): Account | undefined
+useAccountComments(accountCommentsOptions: AccountsCommentsOptions): Comment[] // export or display list of own comments
+useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export or display list of own votes
+useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
+useAccounts(): Account[]
+useAccountsActions(): AccountsActions
+```
 #### Comments Hooks
-
-- useComment(commentCid): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
-- useComments(commentCid[]): Comment[]
-
+```
+useComment(commentCid): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
+useComments(commentCid[]): Comment[]
+```
 #### Subplebbits Hooks
-
-- useSubplebbit(subplebbitAddress): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
-- useSubplebbits(subplebbitAddress[]): Subplebbits[]
+```
+useSubplebbit(subplebbitAddress): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
+useSubplebbits(subplebbitAddress[]): Subplebbits[]
+```
 #### Feeds Hooks
-
-- useFeed(feedNameOrSubplebbitAddress)
-- useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
+```
+useFeed(feedNameOrSubplebbitAddress)
+useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
+```
 
 ### Schema
 
