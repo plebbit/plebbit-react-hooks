@@ -5,12 +5,21 @@ import EventEmitter from 'events'
 const loadTime = 10
 const waitForLoad = () => new Promise(r => setTimeout(r, loadTime))
 
-class MockedPlebbit {
-  createComment() {
-    return new Comment()
+export class Plebbit {
+  createComment(createCommentOptions: any) {
+    return new Comment(createCommentOptions)
   }
   createVote() {
     return new Vote()
+  }
+
+  async getComment(commentCid: string) {
+    await waitForLoad()
+    const createCommentOptions = {
+      cid: commentCid, 
+      commentIpnsName: commentCid + ' ipns name'
+    }
+    return new Comment(createCommentOptions)
   }
 }
 
@@ -44,10 +53,37 @@ class Publication extends EventEmitter {
   }
 }
 
-class Comment extends Publication {}
+export class Comment extends Publication {
+  cid: string | undefined
+  commentIpnsName: string | undefined
+  upvoteCount: number | undefined
+  downvoteCount: number | undefined
+
+  constructor(createCommentOptions?: any) {
+    super()
+    this.commentIpnsName = createCommentOptions?.commentIpnsName
+    this.cid = createCommentOptions?.cid
+    this.upvoteCount = createCommentOptions?.upvoteCount
+    this.downvoteCount = createCommentOptions?.downvoteCount
+
+    // is commentIpnsName is known, look for updates and emit updates immediately after creation
+    if (this.commentIpnsName) {
+      waitForLoad().then(() => {
+        this.simulateUpdateEvent()
+      })
+    }
+  }
+
+  simulateUpdateEvent() {
+    // simulate finding vote counts on an IPNS record
+    this.upvoteCount = 1
+    this.downvoteCount = 0
+    this.emit('update', this)
+  }
+}
 
 class Vote extends Publication {}
 
-export default function Plebbit() {
-  return new MockedPlebbit()
+export default function() {
+  return new Plebbit()
 }

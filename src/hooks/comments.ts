@@ -14,19 +14,19 @@ import assert from 'assert'
 export function useComment(commentCid?: string, accountName?: string) {
   const account = useAccount(accountName)
   const commentsContext = useContext(CommentsContext)
-  const [comment, setComment] = useState()
+  const comment = commentCid && commentsContext.comments[commentCid]
 
   useEffect(() => {
     if (!commentCid || !account) {
       return
     }
     validator.validateUseCommentArguments(commentCid, account)
-    ;(async () => {
-      const comment = await commentsContext.getComment(commentCid, account.plebbit)
-      setComment(comment)
-    })()      
+    if (!comment) {
+      // if comment isn't already in context, add it
+      commentsContext.commentsActions.addCommentToContext(commentCid, account.plebbit)
+    }
   }, [commentCid, account])
 
-  debug('useComment', {commentsContext, comment})
+  debug('useComment', {commentsContext: commentsContext.comments, comment, account})
   return comment
 }

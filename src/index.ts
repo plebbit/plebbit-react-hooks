@@ -12,6 +12,10 @@ import {
   UseAccountCommentsFilter
 } from './hooks/accounts'
 
+import {
+  useComment
+} from './hooks/comments'
+
 const hooks = {
   PlebbitProvider,
   useAccount,
@@ -19,7 +23,8 @@ const hooks = {
   useAccountsActions,
   useAccountComments,
   useAccountVotes,
-  useAccountVote
+  useAccountVote,
+  useComment
 }
 
 export {
@@ -30,6 +35,7 @@ export {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useComment,
 
   // types
   UseAccountCommentsOptions,

@@ -63,7 +63,7 @@ useAccountsActions(): AccountsActions
 ```
 #### Comments Hooks
 ```
-useComment(commentCid): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
+useComment(commentCid: string, accountName?: string): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
 useComments(commentCid[]): Comment[]
 ```
 #### Subplebbits Hooks
@@ -260,7 +260,7 @@ publishComment({
 
 ```js
 const {setAccount} = useAccountsActions()
-const account = useAccount() // or useAccount('Account 2')
+const account = useAccount() // or useAccount('Account 2') to use an account other than the active one
 
 const author: {...account.author, displayName: 'John'}
 const editedAccount = {...account, author}
