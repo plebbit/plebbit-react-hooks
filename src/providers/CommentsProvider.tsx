@@ -13,11 +13,18 @@ type CommentsContext = any
 type Account = any
 
 const getCommentFromDatabase = async (commentId: string, account: Account) => {
-  const commentData = await commentsDatabase.getItem(commentId)
+  const commentData: any = await commentsDatabase.getItem(commentId)
   if (!commentData) {
     return
   }
   const comment = account.plebbit.createComment(commentData)
+  // add potential missing data from the database onto the comment instance
+  for (const prop in commentData) {
+    if (comment[prop] === undefined || comment[prop] === null) {
+      if (commentData[prop] !== undefined && commentData[prop] !== null)
+        comment[prop] = commentData[prop]
+    }
+  }
   return comment
 }
 
