@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions } from './accounts'
+import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions } from '../index'
 import AccountsProvider from '../providers/AccountsProvider'
 import localForage from 'localforage'
-import PlebbitMock from '../plebbit-js/plebbit-js-mock'
-import { mockPlebbitJs } from '../plebbit-js'
+import PlebbitMock from '../lib/plebbit-js/plebbit-js-mock'
+import { mockPlebbitJs } from '../lib/plebbit-js'
 mockPlebbitJs(PlebbitMock)
 
 const deleteDatabases = () =>
@@ -233,7 +233,9 @@ describe('accounts', () => {
 
     test.todo('import account')
 
-    test.todo(`import account with duplicate account name, don't overwrite, add ' 2' to account name`)
+    test.todo(`import account with duplicate account name succeeds by adding ' 2' to account name`)
+
+    test.todo(`import account with duplicate account id succeeds because account id is reset on import`)
 
     test(`change account order`, async () => {
       expect(rendered.result.current.accounts[0].name).toBe('Account 1')

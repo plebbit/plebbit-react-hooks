@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useContext } from 'react'
 import { AccountsContext } from '../providers/AccountsProvider'
-import PlebbitJs from '../plebbit-js'
+import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:accounts')
 import assert from 'assert'

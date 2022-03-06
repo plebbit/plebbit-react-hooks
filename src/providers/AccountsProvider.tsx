@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import PlebbitJs from '../plebbit-js'
-import validator from '../validator'
+import PlebbitJs from '../lib/plebbit-js'
+import validator from '../lib/validator'
 import assert from 'assert'
 import {v4 as uuid} from 'uuid'
 import localForage from 'localforage'
@@ -113,7 +113,7 @@ const getAccountCommentsFromDatabase = async (accountId: string) => {
   let promises = []
   let i = 0
   while (i < length) {
-    promises.push(accountCommentsDatabase.getItem(i++))
+    promises.push(accountCommentsDatabase.getItem(String(i++)))
   }
   const comments = await Promise.all(promises)
   return comments
@@ -163,7 +163,7 @@ const getAccountVotesFromDatabase = async (accountId: string) => {
   let promises = []
   let i = 0
   while (i < length) {
-    promises.push(accountVotesDatabase.getItem(i++))
+    promises.push(accountVotesDatabase.getItem(String(i++)))
   }
   const votesArray = await Promise.all(promises)
   for (const vote of votesArray) {
@@ -235,7 +235,7 @@ const getNextAvailableDefaultAccountName = async () => {
   }
 }
 
-export const AccountsContext = React.createContext<Accounts | undefined>(undefined)
+export const AccountsContext = React.createContext<AccountsContext | undefined>(undefined)
 
 export default function AccountsProvider(props: Props): JSX.Element | null {
   const [accounts, setAccounts] = useState<any>(undefined)
