@@ -16,7 +16,11 @@ describe('comments', () => {
     await deleteDatabases()
   })
 
-  test('get comment', () => {
-
+  test('get comment', async () => {
+    // on first render, the account is undefined because it's not yet loaded from database
+    const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), { wrapper: CommentsProvider })
+    expect(rendered.result.current).toBe(undefined)
+    // await rendered.waitForNextUpdate()
+    // console.log(rendered.result.current)
   })
 })

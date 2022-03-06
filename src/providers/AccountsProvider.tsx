@@ -369,6 +369,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
     publishAndRetryFailedChallengeVerification()
     await addAccountCommentToDatabase(account.id, createCommentOptions)
+    debug('accountsActions.publishComment', { createCommentOptions })
     setAccountsComments({...accountsComments, [account.id]: [...accountsComments[account.id], createCommentOptions]})
     return comment
   }
@@ -408,6 +409,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
     publishAndRetryFailedChallengeVerification()
     await addAccountVoteToDatabase(account.id, createVoteOptions)
+    debug('accountsActions.publishVote', { createVoteOptions })
     setAccountsVotes({...accountsVotes, [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions}})
     return vote
   }

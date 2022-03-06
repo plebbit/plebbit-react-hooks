@@ -10,6 +10,7 @@ type Props = { children?: React.ReactChild }
 type Comment = any
 type Comments = {[key: string]: Comment}
 type CommentsContext = any
+type Plebbit = any
 
 export const CommentsContext = React.createContext<CommentsContext | undefined>(undefined)
 
@@ -22,8 +23,20 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
 
   }
 
-  commentsActions.getComment = async () => {
-    
+  commentsActions.getComment = async (commentId: string, plebbit: Plebbit) => {
+    let comment: Comment | undefined = comments[commentId]
+    // comment is in context already
+    if (comment) {
+      return comment
+    }
+    comment = await commentsDatabase.getItem(commentId)
+    if (!comment) {
+      // comment not in database, get it from plebbit-js
+      comment = await plebbit.getComment(commentId)
+    }    
+    setComments({...comments, [commentId]: comment})
+    debug('commentsActions.getComment', {commentId, comment, plebbit})
+    return comment
   }
 
   if (!props.children) {
@@ -35,6 +48,6 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
     commentsActions
   }
 
-  debug(commentsContext)
-  return <CommentsContext.Provider value={commentsContext}>{props.children}</AccountsContext.Provider>
+  debug({commentsContext: comments})
+  return <CommentsContext.Provider value={commentsContext}>{props.children}</CommentsContext.Provider>
 }

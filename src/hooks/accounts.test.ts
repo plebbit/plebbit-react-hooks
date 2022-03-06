@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions } from '../index'
-import AccountsProvider from '../providers/AccountsProvider'
+import { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions } from '../index'
 import localForage from 'localforage'
 import PlebbitMock from '../lib/plebbit-js/plebbit-js-mock'
 import { mockPlebbitJs } from '../lib/plebbit-js'
@@ -20,7 +19,7 @@ describe('accounts', () => {
   describe('no accounts in database', () => {
     test('generate default account on load', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook(() => useAccount(), { wrapper: AccountsProvider })
+      const rendered = renderHook(() => useAccount(), { wrapper: PlebbitProvider })
       expect(rendered.result.current).toBe(undefined)
 
       // on second render, you get the default generated account
@@ -45,7 +44,7 @@ describe('accounts', () => {
           const { createAccount } = useAccountsActions()
           return { account, createAccount }
         },
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
       // on first render, the account is undefined because it's not yet loaded from database
       expect(rendered.result.current.account).toBe(undefined)
@@ -78,7 +77,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('custom name')
 
       // render second context with empty state to check if accounts saved to database
-      const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), { wrapper: AccountsProvider })
+      const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), { wrapper: PlebbitProvider })
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
       await rendered2.waitForNextUpdate()
@@ -110,7 +109,7 @@ describe('accounts', () => {
           const accountsActions = useAccountsActions()
           return { account, accounts, ...accountsActions }
         },
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
 
       // on second render, you get the default generated account
@@ -150,7 +149,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('custom name')
 
       // render second context with empty state to check if accounts saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount(), { wrapper: AccountsProvider })
+      const rendered2 = renderHook<any, any>(() => useAccount(), { wrapper: PlebbitProvider })
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
       await rendered2.waitForNextUpdate()
@@ -187,7 +186,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.author.displayName).toBe('display name john')
 
       // render second context with empty state to check if account change saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), { wrapper: AccountsProvider })
+      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), { wrapper: PlebbitProvider })
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
       await rendered2.waitForNextUpdate()
@@ -208,7 +207,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('account name john')
 
       // render second context with empty state to check if account change saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount(), { wrapper: AccountsProvider })
+      const rendered2 = renderHook<any, any>(() => useAccount(), { wrapper: PlebbitProvider })
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
       await rendered2.waitForNextUpdate()
@@ -254,7 +253,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[3].name).toBe('Account 1')
 
       // render second context with empty state to check if saved to database
-      const rendered2 = renderHook<any, any>(() => useAccounts(), { wrapper: AccountsProvider })
+      const rendered2 = renderHook<any, any>(() => useAccounts(), { wrapper: PlebbitProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current[0].name).toBe('custom name')
       expect(rendered2.result.current[1].name).toBe('Account 3')
@@ -278,7 +277,7 @@ describe('accounts', () => {
           const accountsActions = useAccountsActions()
           return { account, ...accountsActions }
         },
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
 
       // on second render, you get the default generated account
@@ -407,7 +406,7 @@ describe('accounts', () => {
           const accountVote = useAccountVote(props?.commentCid, props?.accountName)
           return { account, accountComments, accountVotes, accountVote, ...accountsActions }
         },
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
       await rendered.waitForNextUpdate()      
       expect(rendered.result.current.account.name).toBe('Account 1')
@@ -450,7 +449,7 @@ describe('accounts', () => {
     test(`account comments are stored to database`, async () => {
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountComments(),
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.length).toBe(3)
@@ -469,7 +468,7 @@ describe('accounts', () => {
     test(`account votes are stored to database`, async () => {
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountVotes(),
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.length).toBe(3)
@@ -507,7 +506,7 @@ describe('accounts', () => {
         const accountVotes = useAccountVotes({accountName: 'Account 2'})
         return {accountComments, accountVotes}
       },
-        { wrapper: AccountsProvider }
+        { wrapper: PlebbitProvider }
       )
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.accountComments.length).toBe(1)

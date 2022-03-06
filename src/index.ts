@@ -1,4 +1,4 @@
-import AccountsProvider, {AccountsContext} from './providers/AccountsProvider'
+import PlebbitProvider from './providers/PlebbitProvider'
 import {
   useAccount,
   useAccounts,
@@ -6,13 +6,14 @@ import {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+
+  // types
   UseAccountCommentsOptions,
   UseAccountCommentsFilter
 } from './hooks/accounts'
 
 const hooks = {
-  AccountsProvider,
-  AccountsContext,
+  PlebbitProvider,
   useAccount,
   useAccounts,
   useAccountsActions,
@@ -22,14 +23,15 @@ const hooks = {
 }
 
 export {
-  AccountsProvider,
-  AccountsContext,
+  PlebbitProvider,
   useAccount,
   useAccounts,
   useAccountsActions,
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+
+  // types
   UseAccountCommentsOptions,
   UseAccountCommentsFilter
 }

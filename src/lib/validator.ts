@@ -85,6 +85,11 @@ export const validateAccountsProviderAddAccountToDatabaseArguments = (account: a
   assert(account.id !== '', `AccountsProvider addAccountToDatabase account.id is empty string`)
 }
 
+export const validateUseCommentArguments = (commentCid: any, account: any) => {
+  assert(typeof commentCid === 'string', `useComment commentCid '${commentCid}' not a string`)
+  assert(account?.plebbit && typeof account?.plebbit === 'object', `useComment account.plebbit '${account?.plebbit}' not an object`)
+}
+
 const validator = {
   validateAccountsActionsPublishCommentArguments,
   validateAccountsActionsPublishVoteArguments,
@@ -94,7 +99,8 @@ const validator = {
   validateAccountsActionsSetActiveAccountArguments,
   validateAccountsProviderGetAccountsFromDatabaseArguments,
   validateAccountsProviderAddAccountToDatabaseArguments,
-  validateAccountsProviderAccountNames
+  validateAccountsProviderAccountNames,
+  validateUseCommentArguments
 }
 
 export default validator
