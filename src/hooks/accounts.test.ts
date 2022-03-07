@@ -526,6 +526,15 @@ describe('accounts', () => {
 
       // restore mock
       Plebbit.prototype.commentToGet = commentToGet
+
+      // check if cids are still in database after new context
+      const rendered2 = renderHook<any, any>(() => useAccountComments(),
+        { wrapper: PlebbitProvider }
+      )
+      await rendered2.waitForNextUpdate()
+      expect(rendered2.result.current[0].cid).toBe('content 1 cid')
+      expect(rendered2.result.current[1].cid).toBe('content 2 cid')
+      expect(rendered2.result.current[2].cid).toBe(undefined)
     })
 
     test(`account comments are stored to database`, async () => {
