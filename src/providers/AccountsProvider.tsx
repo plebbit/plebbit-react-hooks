@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import PlebbitJs from '../lib/plebbit-js'
 import validator from '../lib/validator'
 import assert from 'assert'
-import {v4 as uuid} from 'uuid'
+import { v4 as uuid } from 'uuid'
 import localForage from 'localforage'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
@@ -10,7 +10,7 @@ import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:accountsprovider')
 
 type Props = { children?: React.ReactChild }
-type AccountNamesToAccountIds = {[key: string]: string} 
+type AccountNamesToAccountIds = { [key: string]: string }
 // TODO: define types
 type Account = any
 type Accounts = { [key: string]: Account }
@@ -78,7 +78,7 @@ const addAccountToDatabase = async (account: Account) => {
   if (!accountIds.includes(account.id)) {
     accountIds.push(account.id)
   }
-  await accountsMetadataDatabase.setItem('accountIds', accountIds) 
+  await accountsMetadataDatabase.setItem('accountIds', accountIds)
 
   // handle updating activeAccountId database
   if (accountIds.length === 1) {
@@ -98,16 +98,12 @@ const getAccountCommentsDatabase = (accountId: string) => {
 const addAccountCommentToDatabase = async (accountId: string, createCommentOptions: CreateCommentOptions, accountCommentIndex?: number) => {
   const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
   const length = (await accountCommentsDatabase.getItem('length')) || 0
-  const comment = {...createCommentOptions, signer: undefined}
+  const comment = { ...createCommentOptions, signer: undefined }
   if (typeof accountCommentIndex === 'number') {
     assert(accountCommentIndex < length, `addAccountCommentToDatabase cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`)
     await accountCommentsDatabase.setItem(String(accountCommentIndex), comment)
-  }
-  else {
-    await Promise.all([
-      accountCommentsDatabase.setItem(String(length), comment),
-      accountCommentsDatabase.setItem('length', length + 1)
-    ])
+  } else {
+    await Promise.all([accountCommentsDatabase.setItem(String(length), comment), accountCommentsDatabase.setItem('length', length + 1)])
   }
 }
 
@@ -152,12 +148,8 @@ const addAccountVoteToDatabase = async (accountId: string, createVoteOptions: Cr
   assert(createVoteOptions.commentCid && typeof createVoteOptions.commentCid === 'string', `addAccountVoteToDatabase '${createVoteOptions.commentCid}' not a string`)
   const accountVotesDatabase = getAccountVotesDatabase(accountId)
   const length = (await accountVotesDatabase.getItem('length')) || 0
-  const vote = {...createVoteOptions, signer: undefined, author: undefined}
-  await Promise.all([
-    accountVotesDatabase.setItem(vote.commentCid, vote),
-    accountVotesDatabase.setItem(String(length), vote),
-    accountVotesDatabase.setItem('length', length + 1)
-  ])
+  const vote = { ...createVoteOptions, signer: undefined, author: undefined }
+  await Promise.all([accountVotesDatabase.setItem(vote.commentCid, vote), accountVotesDatabase.setItem(String(length), vote), accountVotesDatabase.setItem('length', length + 1)])
 }
 
 const getAccountVotesFromDatabase = async (accountId: string) => {
@@ -263,7 +255,7 @@ const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: 
           if (!accountsCommentsWithoutCids[authorAddress]) {
             accountsCommentsWithoutCids[authorAddress] = []
           }
-          const commentWithAccountCommentData = {...comment, accountId: account.id, index: Number(accountCommentIndex)}
+          const commentWithAccountCommentData = { ...comment, accountId: account.id, index: Number(accountCommentIndex) }
           accountsCommentsWithoutCids[authorAddress].push(commentWithAccountCommentData)
         }
       }
@@ -300,7 +292,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     const [newAccount, accountNamesToAccountIds] = await Promise.all([
       // use this function to deserialize
       getAccountFromDatabase(account.id),
-      accountsMetadataDatabase.getItem('accountNamesToAccountIds')
+      accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ])
     const newAccounts = { ...accounts, [newAccount.id]: newAccount }
     debug('accountsActions.setAccount', { account: newAccount })
@@ -332,17 +324,13 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     await addAccountToDatabase(newAccount)
     const newAccounts = { ...accounts, [newAccount.id]: newAccount }
-    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
-      accountsMetadataDatabase.getItem('accountIds'),
-      accountsMetadataDatabase.getItem('activeAccountId'),
-      accountsMetadataDatabase.getItem('accountNamesToAccountIds')
-    ])
+    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([accountsMetadataDatabase.getItem('accountIds'), accountsMetadataDatabase.getItem('activeAccountId'), accountsMetadataDatabase.getItem('accountNamesToAccountIds')])
     debug('accountsActions.createAccount', { accountName, account: newAccount })
     setAccounts(newAccounts)
     setAccountIds(newAccountIds)
     setAccountNamesToAccountIds(accountNamesToAccountIds)
-    setAccountsComments({...accountsComments, [newAccount.id]: []})
-    setAccountsVotes({...accountsVotes, [newAccount.id]: {}})
+    setAccountsComments({ ...accountsComments, [newAccount.id]: [] })
+    setAccountsVotes({ ...accountsVotes, [newAccount.id]: {} })
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
@@ -375,7 +363,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
+    validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account })
 
     const createCommentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
@@ -385,7 +373,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       title: publishCommentOptions.title,
       timestamp: publishCommentOptions.timestamp || Math.round(Date.now() / 1000),
       author: account.author,
-      signer: account.signer
+      signer: account.signer,
     }
 
     let accountCommentIndex: number
@@ -400,18 +388,17 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           // publish again automatically on fail
           comment = account.plebbit.createComment(createCommentOptions)
           publishAndRetryFailedChallengeVerification()
-        }
-        else {
+        } else {
           // the challengeverification message of a comment publication should in theory send back the CID
           // of the published comment which is needed to resolve it for replies, upvotes, etc
           if (challengeVerification?.publication?.cid) {
-            const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
+            const commentWithCid = { ...createCommentOptions, cid: challengeVerification.publication.cid }
             await addAccountCommentToDatabase(account.id, commentWithCid, accountCommentIndex)
             // @ts-ignore
-            setAccountsComments(previousAccounsComments => {
+            setAccountsComments((previousAccounsComments) => {
               const updatedAccountComments = [...previousAccounsComments[account.id]]
               updatedAccountComments[accountCommentIndex] = commentWithCid
-              return {...previousAccounsComments, [account.id]: updatedAccountComments}
+              return { ...previousAccounsComments, [account.id]: updatedAccountComments }
             })
           }
         }
@@ -423,10 +410,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     await addAccountCommentToDatabase(account.id, createCommentOptions)
     debug('accountsActions.publishComment', { createCommentOptions })
     // @ts-ignore
-    setAccountsComments(previousAccounsComments => {
+    setAccountsComments((previousAccounsComments) => {
       // save account comment index to update the comment later
       accountCommentIndex = previousAccounsComments[account.id].length
-      return {...previousAccounsComments, [account.id]: [...previousAccounsComments[account.id], createCommentOptions]}
+      return { ...previousAccounsComments, [account.id]: [...previousAccounsComments[account.id], createCommentOptions] }
     })
   }
 
@@ -440,7 +427,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     for (const accountComment of accountCommentsWithoutCids) {
       // if author address and timestamp is the same, we assume it's the right comment
       if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
-        const commentWithCid = {...accountComment}
+        const commentWithCid = { ...accountComment }
         for (const i in comment) {
           if (comment[i] !== undefined && comment[i] !== null) {
             commentWithCid[i] = comment[i]
@@ -448,10 +435,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         }
         await addAccountCommentToDatabase(accountComment.accountId, commentWithCid, accountComment.index)
         // @ts-ignore
-        setAccountsComments(previousAccounsComments => {
+        setAccountsComments((previousAccounsComments) => {
           const updatedAccountComments = [...previousAccounsComments[accountComment.accountId]]
           updatedAccountComments[accountComment.index] = commentWithCid
-          return {...previousAccounsComments, [accountComment.accountId]: updatedAccountComments}
+          return { ...previousAccounsComments, [accountComment.accountId]: updatedAccountComments }
         })
         break
       }
@@ -464,7 +451,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
+    validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account })
 
     const createVoteOptions = {
       subplebbitAddress: publishVoteOptions.subplebbitAddress,
@@ -472,7 +459,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       commentCid: publishVoteOptions.commentCid,
       timestamp: publishVoteOptions.timestamp || Math.round(Date.now() / 1000),
       author: account.author,
-      signer: account.signer
+      signer: account.signer,
     }
 
     let vote = account.plebbit.createVote(createVoteOptions)
@@ -494,7 +481,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     publishAndRetryFailedChallengeVerification()
     await addAccountVoteToDatabase(account.id, createVoteOptions)
     debug('accountsActions.publishVote', { createVoteOptions })
-    setAccountsVotes({...accountsVotes, [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions}})
+    setAccountsVotes({ ...accountsVotes, [account.id]: { ...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions } })
     return vote
   }
 
@@ -505,28 +492,20 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountIds = await accountsMetadataDatabase.getItem('accountIds')
       // get accounts from database if any
       if (accountIds?.length) {
-        ;[activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all<any>([
-          accountsMetadataDatabase.getItem('activeAccountId'),
-          getAccountsFromDatabase(accountIds),
-          accountsMetadataDatabase.getItem('accountNamesToAccountIds')
-        ])
+        ;[activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all<any>([accountsMetadataDatabase.getItem('activeAccountId'), getAccountsFromDatabase(accountIds), accountsMetadataDatabase.getItem('accountNamesToAccountIds')])
       }
       // no accounts in database, create a default account
       else {
         const defaultAccount = await generateDefaultAccount()
         await addAccountToDatabase(defaultAccount)
-        accounts = {[defaultAccount.id]: defaultAccount}
-        ;[accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all<any>([
-          accountsMetadataDatabase.getItem('accountIds'),
-          accountsMetadataDatabase.getItem('activeAccountId'),
-          accountsMetadataDatabase.getItem('accountNamesToAccountIds')
-        ])
+        accounts = { [defaultAccount.id]: defaultAccount }
+        ;[accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all<any>([accountsMetadataDatabase.getItem('accountIds'), accountsMetadataDatabase.getItem('activeAccountId'), accountsMetadataDatabase.getItem('accountNamesToAccountIds')])
       }
       const [accountsComments, accountsVotes] = await Promise.all<any>([
         // @ts-ignore
         getAccountsCommentsFromDatabase(accountIds),
         // @ts-ignore
-        getAccountsVotesFromDatabase(accountIds)
+        getAccountsVotesFromDatabase(accountIds),
       ])
       setAccounts(accounts)
       setAccountIds(accountIds)
@@ -553,7 +532,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountsComments,
       accountsVotes,
       // internal accounts actions
-      addCidToAccountComment
+      addCidToAccountComment,
     }
   }
 
@@ -565,7 +544,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountNamesToAccountIds,
       accountsComments,
       accountsVotes,
-      accountsCommentsWithoutCids
+      accountsCommentsWithoutCids,
     },
   })
   return <AccountsContext.Provider value={accountsContext}>{props.children}</AccountsContext.Provider>

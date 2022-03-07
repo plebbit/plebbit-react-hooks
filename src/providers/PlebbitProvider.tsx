@@ -9,9 +9,9 @@ export default function PlebbitProvider(props: Props): JSX.Element | null {
     return null
   }
 
-  return <AccountsProvider>
-    <CommentsProvider>
-      {props.children}
-    </CommentsProvider>
-  </AccountsProvider>
+  return (
+    <AccountsProvider>
+      <CommentsProvider>{props.children}</CommentsProvider>
+    </AccountsProvider>
+  )
 }

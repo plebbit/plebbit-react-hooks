@@ -1,14 +1,10 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions, useComment } from '../index'
 import localForage from 'localforage'
-import PlebbitJsMock, {mockPlebbitJs, Plebbit} from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, { mockPlebbitJs, Plebbit } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () =>
-  Promise.all([
-    localForage.createInstance({ name: 'accountsMetadata' }).clear(),
-    localForage.createInstance({ name: 'accounts' }).clear()
-  ])
+const deleteDatabases = () => Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()])
 
 describe('accounts', () => {
   afterEach(async () => {
@@ -167,9 +163,7 @@ describe('accounts', () => {
     test(`fail to create account with name that already exists`, async () => {
       expect(typeof rendered.result.current.account.name).toBe('string')
       await act(async () => {
-        expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(
-          `account name '${rendered.result.current.account.name}' already exists in database`
-        )
+        expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(`account name '${rendered.result.current.account.name}' already exists in database`)
       })
     })
 
@@ -241,9 +235,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[2].name).toBe('Account 3')
       expect(rendered.result.current.accounts[3].name).toBe('custom name')
       await act(async () => {
-        expect(() =>
-          rendered.result.current.setAccountsOrder(['wrong account name', 'Account 3', 'Account 2', 'Account 1'])
-        ).rejects.toThrow()
+        expect(() => rendered.result.current.setAccountsOrder(['wrong account name', 'Account 3', 'Account 2', 'Account 1'])).rejects.toThrow()
         await rendered.result.current.setAccountsOrder(['custom name', 'Account 3', 'Account 2', 'Account 1'])
       })
       expect(rendered.result.current.accounts[0].name).toBe('custom name')
@@ -297,7 +289,7 @@ describe('accounts', () => {
       test('publish comment', async () => {
         const publishCommentOptions = {
           subplebbitAddress: 'Qm...',
-          parentCommentCid: 'Qm...', 
+          parentCommentCid: 'Qm...',
           content: 'some content',
           onChallenge,
           onChallengeVerification,
@@ -318,7 +310,7 @@ describe('accounts', () => {
         const challenge = onChallenge.mock.calls[0][0]
         comment = onChallenge.mock.calls[0][1]
         expect(challenge.type).toBe('CHALLENGE')
-        expect(challenge.challenges[0]).toEqual({challenge: '2+2=?', type: 'text'})
+        expect(challenge.challenges[0]).toEqual({ challenge: '2+2=?', type: 'text' })
         expect(typeof comment.publishChallengeAnswer).toBe('function')
       })
 
@@ -342,7 +334,7 @@ describe('accounts', () => {
         const publishVoteOptions = {
           subplebbitAddress: 'Qm...',
           commentCid: 'Qm...',
-          vote: 1, 
+          vote: 1,
           onChallenge,
           onChallengeVerification,
         }
@@ -362,7 +354,7 @@ describe('accounts', () => {
         const challenge = onChallenge.mock.calls[0][0]
         vote = onChallenge.mock.calls[0][1]
         expect(challenge.type).toBe('CHALLENGE')
-        expect(challenge.challenges[0]).toEqual({challenge: '2+2=?', type: 'text'})
+        expect(challenge.challenges[0]).toEqual({ challenge: '2+2=?', type: 'text' })
         expect(typeof vote.publishChallengeAnswer).toBe('function')
       })
 
@@ -388,7 +380,7 @@ describe('accounts', () => {
     beforeEach(async () => {
       onChallenge = jest.fn()
       onChallengeVerification = jest.fn()
-      publishOptions = {onChallenge, onChallengeVerification}
+      publishOptions = { onChallenge, onChallengeVerification }
       rendered = renderHook<any, any>(
         (props: any) => {
           const useAccountCommentsOptions: UseAccountCommentsOptions = {
@@ -398,8 +390,8 @@ describe('accounts', () => {
               postCids: props?.postCid && [props?.postCid],
               subplebbitAddresses: props?.subplebbitAddress && [props?.subplebbitAddress],
               parentCommentCids: props?.parentCommentCid && [props?.parentCommentCid],
-              hasParentCommentCid: props?.hasParentCommentCid
-            }
+              hasParentCommentCid: props?.hasParentCommentCid,
+            },
           }
           const account = useAccount(props?.accountName)
           const accountsActions = useAccountsActions()
@@ -410,29 +402,49 @@ describe('accounts', () => {
         },
         { wrapper: PlebbitProvider }
       )
-      await rendered.waitForNextUpdate()      
+      await rendered.waitForNextUpdate()
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.publishComment).toBe('function')
       expect(typeof rendered.result.current.publishVote).toBe('function')
 
       await act(async () => {
         await rendered.result.current.publishComment({
-          ...publishOptions, title: 'title 1', content: 'content 1', parentCommentCid: 'parent comment cid 1', postCid: 'post cid 1', subplebbitAddress: 'subplebbit address 1'
+          ...publishOptions,
+          title: 'title 1',
+          content: 'content 1',
+          parentCommentCid: 'parent comment cid 1',
+          postCid: 'post cid 1',
+          subplebbitAddress: 'subplebbit address 1',
         })
         await rendered.result.current.publishComment({
-          ...publishOptions, title: 'title 2', content: 'content 2', subplebbitAddress: 'subplebbit address 1'
+          ...publishOptions,
+          title: 'title 2',
+          content: 'content 2',
+          subplebbitAddress: 'subplebbit address 1',
         })
         await rendered.result.current.publishComment({
-          ...publishOptions, title: 'title 3', content: 'content 3', subplebbitAddress: 'subplebbit address 2'
+          ...publishOptions,
+          title: 'title 3',
+          content: 'content 3',
+          subplebbitAddress: 'subplebbit address 2',
         })
         await rendered.result.current.publishVote({
-          ...publishOptions, vote: 1, commentCid: 'comment cid 1', subplebbitAddress: 'subplebbit address 1'
+          ...publishOptions,
+          vote: 1,
+          commentCid: 'comment cid 1',
+          subplebbitAddress: 'subplebbit address 1',
         })
         await rendered.result.current.publishVote({
-          ...publishOptions, vote: 1, commentCid: 'comment cid 2', subplebbitAddress: 'subplebbit address 1'
+          ...publishOptions,
+          vote: 1,
+          commentCid: 'comment cid 2',
+          subplebbitAddress: 'subplebbit address 1',
         })
         await rendered.result.current.publishVote({
-          ...publishOptions, vote: 1, commentCid: 'comment cid 3', subplebbitAddress: 'subplebbit address 2'
+          ...publishOptions,
+          vote: 1,
+          commentCid: 'comment cid 3',
+          subplebbitAddress: 'subplebbit address 2',
         })
       })
     })
@@ -454,7 +466,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
       expect(rendered.result.current.accountComments[2].content).toBe('content 3')
       // wait for all on challenge to be called
-      await rendered.waitFor(() =>  onChallenge.mock.calls.length === 6)
+      await rendered.waitFor(() => onChallenge.mock.calls.length === 6)
       // publish challenge answers for comment 1 and 2
       onChallenge.mock.calls[0][1].publishChallengeAnswer(['4'])
       onChallenge.mock.calls[1][1].publishChallengeAnswer(['4'])
@@ -469,9 +481,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
 
       // check if cids are in database after getting a new context
-      const rendered2 = renderHook<any, any>(() => useAccountComments(),
-        { wrapper: PlebbitProvider }
-      )
+      const rendered2 = renderHook<any, any>(() => useAccountComments(), { wrapper: PlebbitProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.length).toBe(3)
       expect(rendered2.result.current[0].content).toBe('content 1')
@@ -483,11 +493,14 @@ describe('accounts', () => {
     })
 
     test(`cid gets added to account comment after fetched in useComment`, async () => {
-      const rendered = renderHook<any, any>((commentCid) => {
-        const accountComments = useAccountComments()
-        const comment = useComment(commentCid)
-        return accountComments
-      }, { wrapper: PlebbitProvider })
+      const rendered = renderHook<any, any>(
+        (commentCid) => {
+          const accountComments = useAccountComments()
+          const comment = useComment(commentCid)
+          return accountComments
+        },
+        { wrapper: PlebbitProvider }
+      )
       await rendered.waitForNextUpdate()
       expect(rendered.result.current[0].content).toBe('content 1')
       expect(rendered.result.current[1].content).toBe('content 2')
@@ -500,7 +513,7 @@ describe('accounts', () => {
       Plebbit.prototype.commentToGet = () => ({
         author: rendered.result.current[0].author,
         timestamp: rendered.result.current[0].timestamp,
-        content: rendered.result.current[0].content
+        content: rendered.result.current[0].content,
       })
 
       rendered.rerender('content 1 cid')
@@ -514,7 +527,7 @@ describe('accounts', () => {
       Plebbit.prototype.commentToGet = () => ({
         author: rendered.result.current[1].author,
         timestamp: rendered.result.current[1].timestamp,
-        content: rendered.result.current[1].content
+        content: rendered.result.current[1].content,
       })
 
       rendered.rerender('content 2 cid')
@@ -528,9 +541,7 @@ describe('accounts', () => {
       Plebbit.prototype.commentToGet = commentToGet
 
       // check if cids are still in database after new context
-      const rendered2 = renderHook<any, any>(() => useAccountComments(),
-        { wrapper: PlebbitProvider }
-      )
+      const rendered2 = renderHook<any, any>(() => useAccountComments(), { wrapper: PlebbitProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current[0].cid).toBe('content 1 cid')
       expect(rendered2.result.current[1].cid).toBe('content 2 cid')
@@ -539,9 +550,7 @@ describe('accounts', () => {
 
     test(`account comments are stored to database`, async () => {
       // render with new context to see if still in database
-      const rendered2 = renderHook<any, any>(() => useAccountComments(),
-        { wrapper: PlebbitProvider }
-      )
+      const rendered2 = renderHook<any, any>(() => useAccountComments(), { wrapper: PlebbitProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.length).toBe(3)
       expect(rendered2.result.current[0].content).toBe('content 1')
@@ -558,9 +567,7 @@ describe('accounts', () => {
 
     test(`account votes are stored to database`, async () => {
       // render with new context to see if still in database
-      const rendered2 = renderHook<any, any>(() => useAccountVotes(),
-        { wrapper: PlebbitProvider }
-      )
+      const rendered2 = renderHook<any, any>(() => useAccountVotes(), { wrapper: PlebbitProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.length).toBe(3)
       expect(rendered2.result.current[0].commentCid).toBe('comment cid 1')
@@ -573,10 +580,16 @@ describe('accounts', () => {
         await rendered.result.current.createAccount()
         await rendered.result.current.setActiveAccount('Account 2')
         await rendered.result.current.publishComment({
-          ...publishOptions, title: 'account 2 title 1', content: 'account 2 content 1', subplebbitAddress: 'account 2 subplebbit address 1'
+          ...publishOptions,
+          title: 'account 2 title 1',
+          content: 'account 2 content 1',
+          subplebbitAddress: 'account 2 subplebbit address 1',
         })
         await rendered.result.current.publishVote({
-          ...publishOptions, vote: 1, commentCid: 'account 2 comment cid 1', subplebbitAddress: 'account 2 subplebbit address 1'
+          ...publishOptions,
+          vote: 1,
+          commentCid: 'account 2 comment cid 1',
+          subplebbitAddress: 'account 2 subplebbit address 1',
         })
       })
       expect(rendered.result.current.accountComments.length).toBe(1)
@@ -592,11 +605,12 @@ describe('accounts', () => {
       expect(rendered.result.current.accountVotes.length).toBe(3)
 
       // render with new context to see if still in database
-      const rendered2 = renderHook<any, any>(() => {
-        const accountComments = useAccountComments({accountName: 'Account 2'})
-        const accountVotes = useAccountVotes({accountName: 'Account 2'})
-        return {accountComments, accountVotes}
-      },
+      const rendered2 = renderHook<any, any>(
+        () => {
+          const accountComments = useAccountComments({ accountName: 'Account 2' })
+          const accountVotes = useAccountVotes({ accountName: 'Account 2' })
+          return { accountComments, accountVotes }
+        },
         { wrapper: PlebbitProvider }
       )
       await rendered2.waitForNextUpdate()
@@ -607,28 +621,28 @@ describe('accounts', () => {
     })
 
     test(`get account comments in a post`, () => {
-      rendered.rerender({postCid: 'post cid 1'})
+      rendered.rerender({ postCid: 'post cid 1' })
       expect(rendered.result.current.accountComments.length).toBe(1)
       expect(rendered.result.current.accountVotes.length).toBe(0)
       expect(rendered.result.current.accountComments[0].postCid).toBe('post cid 1')
     })
 
     test(`get account replies to a comment`, () => {
-      rendered.rerender({parentCommentCid: 'parent comment cid 1'})
+      rendered.rerender({ parentCommentCid: 'parent comment cid 1' })
       expect(rendered.result.current.accountComments.length).toBe(1)
       expect(rendered.result.current.accountVotes.length).toBe(0)
       expect(rendered.result.current.accountComments[0].parentCommentCid).toBe('parent comment cid 1')
     })
 
     test(`get account posts in a subplebbit`, () => {
-      rendered.rerender({subplebbitAddress: 'subplebbit address 1', hasParentCommentCid: false})
+      rendered.rerender({ subplebbitAddress: 'subplebbit address 1', hasParentCommentCid: false })
       expect(rendered.result.current.accountComments.length).toBe(1)
       expect(rendered.result.current.accountVotes.length).toBe(2)
       expect(rendered.result.current.accountComments[0].parentCommentCid).toBe(undefined)
     })
 
     test(`get account posts and comments in a subplebbit`, () => {
-      rendered.rerender({subplebbitAddress: 'subplebbit address 1'})
+      rendered.rerender({ subplebbitAddress: 'subplebbit address 1' })
       expect(rendered.result.current.accountComments.length).toBe(2)
       expect(rendered.result.current.accountVotes.length).toBe(2)
       expect(rendered.result.current.accountComments[0].parentCommentCid).toBe('parent comment cid 1')
@@ -636,7 +650,7 @@ describe('accounts', () => {
     })
 
     test(`get all account posts`, () => {
-      rendered.rerender({hasParentCommentCid: false})
+      rendered.rerender({ hasParentCommentCid: false })
       expect(rendered.result.current.accountComments.length).toBe(2)
       expect(rendered.result.current.accountVotes.length).toBe(3)
       expect(rendered.result.current.accountComments[0].parentCommentCid).toBe(undefined)
@@ -644,7 +658,7 @@ describe('accounts', () => {
     })
 
     test(`get account vote on a specific comment`, () => {
-      rendered.rerender({commentCid: 'comment cid 3'})
+      rendered.rerender({ commentCid: 'comment cid 3' })
       expect(rendered.result.current.accountComments.length).toBe(0)
       expect(rendered.result.current.accountVotes.length).toBe(1)
       expect(rendered.result.current.accountVotes[0].commentCid).toBe('comment cid 3')

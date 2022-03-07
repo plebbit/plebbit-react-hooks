@@ -2,14 +2,10 @@ import localForage from 'localforage'
 
 function createInstance(localForageLruOptions: any): any {
   if (typeof localForageLruOptions?.name !== 'string') {
-    throw Error(
-      `LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`
-    )
+    throw Error(`LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`)
   }
   if (typeof localForageLruOptions?.size !== 'number') {
-    throw Error(
-      `LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`
-    )
+    throw Error(`LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`)
   }
   const localForageOptions = { ...localForageLruOptions }
   delete localForageOptions.size
@@ -20,17 +16,14 @@ function createInstance(localForageLruOptions: any): any {
 
   ;(async () => {
     const localForage1 = localForage.createInstance({
-     ...localForageOptions, 
-     name: localForageLruOptions.name 
-   })
-    const localForage2 = localForage.createInstance({
-      ...localForageOptions, 
-      name: localForageLruOptions.name + '2'
+      ...localForageOptions,
+      name: localForageLruOptions.name,
     })
-    const [localForage1Size, localForage2Size] = await Promise.all([
-      localForage1.length(),
-      localForage2.length()
-    ])
+    const localForage2 = localForage.createInstance({
+      ...localForageOptions,
+      name: localForageLruOptions.name + '2',
+    })
+    const [localForage1Size, localForage2Size] = await Promise.all([localForage1.length(), localForage2.length()])
     if (localForage1Size > localForage2Size) {
       database2 = localForage1
       database1 = localForage2

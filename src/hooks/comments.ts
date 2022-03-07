@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useContext } from 'react'
-import {useAccount} from './accounts'
+import { useAccount } from './accounts'
 import { CommentsContext } from '../providers/CommentsProvider'
 import PlebbitJs from '../lib/plebbit-js'
 import validator from '../lib/validator'
@@ -28,7 +28,7 @@ export function useComment(commentCid?: string, accountName?: string) {
     }
   }, [commentCid, account])
 
-  debug('useComment', {commentsContext: commentsContext.comments, comment, account})
+  debug('useComment', { commentsContext: commentsContext.comments, comment, account })
   return comment
 }
 
@@ -59,6 +59,6 @@ export function useComments(commentCids?: string[], accountName?: string) {
     }
   }, [commentCids, account])
 
-  debug('useComments', {commentsContext: commentsContext.comments, comments, account})
+  debug('useComments', { commentsContext: commentsContext.comments, comments, account })
   return comments
 }

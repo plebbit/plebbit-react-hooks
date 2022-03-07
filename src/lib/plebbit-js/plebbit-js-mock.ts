@@ -1,10 +1,10 @@
 import EventEmitter from 'events'
-export {mockPlebbitJs as mockPlebbitJs} from '.'
+export { mockPlebbitJs as mockPlebbitJs } from '.'
 
 // TODO: make load time changeable with env variable
 // so the frontend can test with latency
 const loadTime = 10
-const waitForLoad = () => new Promise(r => setTimeout(r, loadTime))
+const waitForLoad = () => new Promise((r) => setTimeout(r, loadTime))
 
 export class Plebbit {
   createComment(createCommentOptions: any) {
@@ -17,9 +17,9 @@ export class Plebbit {
   async getComment(commentCid: string) {
     await waitForLoad()
     const createCommentOptions = {
-      cid: commentCid, 
+      cid: commentCid,
       ipnsName: commentCid + ' ipns name',
-      ...this.commentToGet()
+      ...this.commentToGet(),
     }
     return new Comment(createCommentOptions)
   }
@@ -50,11 +50,11 @@ class Publication extends EventEmitter {
   }
 
   simulateChallengeEvent() {
-    const challenge = {type: 'text', challenge: '2+2=?'}
+    const challenge = { type: 'text', challenge: '2+2=?' }
     const challengeMessage = {
       type: 'CHALLENGE',
       challengeRequestId: this.challengeRequestId,
-      challenges: [challenge]
+      challenges: [challenge],
     }
     this.emit('challenge', challengeMessage, this)
   }
@@ -67,14 +67,14 @@ class Publication extends EventEmitter {
   simulateChallengeVerificationEvent() {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
     this.cid = this.content && `${this.content} cid`
-    const publication = this.cid && {cid: this.cid}
+    const publication = this.cid && { cid: this.cid }
 
     const challengeVerificationMessage = {
       type: 'CHALLENGEVERIFICATION',
       challengeRequestId: this.challengeRequestId,
       challengeAnswerId: this.challengeAnswerId,
       challengeAnswerIsVerified: true,
-      publication
+      publication,
     }
     this.emit('challengeverification', challengeVerificationMessage, this)
   }
@@ -115,6 +115,6 @@ export class Comment extends Publication {
 
 class Vote extends Publication {}
 
-export default function() {
+export default function () {
   return new Plebbit()
 }
