@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import {AccountsContext} from './AccountsProvider'
 import validator from '../lib/validator'
 import assert from 'assert'
 import localForage from 'localforage'
@@ -35,6 +36,7 @@ export const CommentsContext = React.createContext<CommentsContext | undefined>(
 const plebbitGetCommentPending: {[key: string]: boolean} = {}
 
 export default function CommentsProvider(props: Props): JSX.Element | null {
+  const accountsContext = useContext(AccountsContext)
   const [comments, setComments] = useState<Comments>({})
 
   const commentsActions: any = {}
@@ -65,6 +67,13 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
       debug('commentsContext comment update', {commentId, comment, account})
       setComments(previousComments => ({...previousComments, [commentId]: clone(updatedComment)}))
     })
+
+    // when publishing a comment, you don't yet know its CID
+    // so when a new comment is fetched, check to see if it's your own
+    // comment, and if yes, add the CID to your account comments database
+    if (accountsContext?.addCidToAccountComment) {
+      await accountsContext.addCidToAccountComment(comment)
+    }
   }
 
   if (!props.children) {

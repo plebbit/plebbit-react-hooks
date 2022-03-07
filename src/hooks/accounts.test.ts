@@ -1,9 +1,8 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions } from '../index'
+import { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions, useComment } from '../index'
 import localForage from 'localforage'
-import PlebbitMock from '../lib/plebbit-js/plebbit-js-mock'
-import { mockPlebbitJs } from '../lib/plebbit-js'
-mockPlebbitJs(PlebbitMock)
+import PlebbitJsMock, {mockPlebbitJs, Plebbit} from '../lib/plebbit-js/plebbit-js-mock'
+mockPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
   Promise.all([
@@ -481,6 +480,52 @@ describe('accounts', () => {
       expect(rendered2.result.current[0].cid).toBe('content 1 cid')
       expect(rendered2.result.current[1].cid).toBe('content 2 cid')
       expect(rendered2.result.current[2].cid).toBe(undefined)
+    })
+
+    test(`cid gets added to account comment after fetched in useComment`, async () => {
+      const rendered = renderHook<any, any>((commentCid) => {
+        const accountComments = useAccountComments()
+        const comment = useComment(commentCid)
+        return accountComments
+      }, { wrapper: PlebbitProvider })
+      await rendered.waitForNextUpdate()
+      expect(rendered.result.current[0].content).toBe('content 1')
+      expect(rendered.result.current[1].content).toBe('content 2')
+      expect(rendered.result.current[0].cid).toBe(undefined)
+      expect(rendered.result.current[1].cid).toBe(undefined)
+
+      // mock the comment to get from plebbit.getComment()
+      // to simulate getting a comment that the account published
+      const commentToGet = Plebbit.prototype.commentToGet
+      Plebbit.prototype.commentToGet = () => ({
+        author: rendered.result.current[0].author,
+        timestamp: rendered.result.current[0].timestamp,
+        content: rendered.result.current[0].content
+      })
+
+      rendered.rerender('content 1 cid')
+      await rendered.waitFor(() => !!rendered.result.current[0].cid)
+      expect(rendered.result.current[0].content).toBe('content 1')
+      expect(rendered.result.current[1].content).toBe('content 2')
+      expect(rendered.result.current[0].cid).toBe('content 1 cid')
+      expect(rendered.result.current[1].cid).toBe(undefined)
+
+      // mock the second comment to get from plebbit.getComment()
+      Plebbit.prototype.commentToGet = () => ({
+        author: rendered.result.current[1].author,
+        timestamp: rendered.result.current[1].timestamp,
+        content: rendered.result.current[1].content
+      })
+
+      rendered.rerender('content 2 cid')
+      await rendered.waitFor(() => !!rendered.result.current[1].cid)
+      expect(rendered.result.current[0].content).toBe('content 1')
+      expect(rendered.result.current[1].content).toBe('content 2')
+      expect(rendered.result.current[0].cid).toBe('content 1 cid')
+      expect(rendered.result.current[1].cid).toBe('content 2 cid')
+
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
     })
 
     test(`account comments are stored to database`, async () => {

@@ -2,9 +2,8 @@ import { act, renderHook, suppressErrorOutput } from '@testing-library/react-hoo
 import { useComment, useComments } from '../index'
 import PlebbitProvider from '../providers/PlebbitProvider'
 import localForage from 'localforage'
-import PlebbitMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
-import { mockPlebbitJs } from '../lib/plebbit-js'
-mockPlebbitJs(PlebbitMock)
+import PlebbitJsMock, {mockPlebbitJs, Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
+mockPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
   Promise.all([

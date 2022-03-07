@@ -60,6 +60,7 @@ useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export
 useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
 useAccounts(): Account[]
 useAccountsActions(): AccountsActions
+useNotifications(accountName | undefined): Notification[]
 ```
 #### Comments Hooks
 ```

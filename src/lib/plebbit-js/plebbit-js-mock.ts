@@ -1,4 +1,5 @@
 import EventEmitter from 'events'
+export {mockPlebbitJs as mockPlebbitJs} from '.'
 
 // TODO: make load time changeable with env variable
 // so the frontend can test with latency
@@ -17,9 +18,19 @@ export class Plebbit {
     await waitForLoad()
     const createCommentOptions = {
       cid: commentCid, 
-      ipnsName: commentCid + ' ipns name'
+      ipnsName: commentCid + ' ipns name',
+      ...this.commentToGet()
     }
     return new Comment(createCommentOptions)
+  }
+
+  // mock this method to get a comment with different content, timestamp, address, etc
+  commentToGet() {
+    return {
+      // content: 'mock some content'
+      // author: {address: 'mock some address'},
+      // timestamp: 1234
+    }
   }
 }
 
@@ -27,6 +38,7 @@ let challengeRequestCount = 0
 let challengeAnswerCount = 0
 
 class Publication extends EventEmitter {
+  timestamp: number | undefined
   content: string | undefined
   cid: string | undefined
   challengeRequestId = `r${++challengeRequestCount}`
@@ -69,6 +81,7 @@ class Publication extends EventEmitter {
 }
 
 export class Comment extends Publication {
+  author: any
   ipnsName: string | undefined
   upvoteCount: number | undefined
   downvoteCount: number | undefined
@@ -81,6 +94,8 @@ export class Comment extends Publication {
     this.upvoteCount = createCommentOptions?.upvoteCount
     this.downvoteCount = createCommentOptions?.downvoteCount
     this.content = createCommentOptions?.content
+    this.author = createCommentOptions?.author
+    this.timestamp = createCommentOptions?.timestamp
 
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (this.ipnsName) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import PlebbitJs from '../lib/plebbit-js'
 import validator from '../lib/validator'
 import assert from 'assert'
@@ -22,6 +22,7 @@ type Challenge = any
 type ChallengeVerification = any
 type CreateCommentOptions = any
 type CreateVoteOptions = any
+type Comment = any
 
 const getAccountsFromDatabase = async (accountIds: string[]) => {
   validator.validateAccountsProviderGetAccountsFromDatabaseArguments(accountIds)
@@ -243,6 +244,35 @@ const getNextAvailableDefaultAccountName = async () => {
 
 export const AccountsContext = React.createContext<AccountsContext | undefined>(undefined)
 
+const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: any) => {
+  const accountsCommentsWithoutCids = useMemo(() => {
+    const accountsCommentsWithoutCids: any = {}
+    if (!accounts || !accountsComments) {
+      return accountsCommentsWithoutCids
+    }
+    for (const accountId in accountsComments) {
+      const accountComments = accountsComments[accountId]
+      const account = accounts[accountId]
+      for (const accountCommentIndex in accountComments) {
+        const comment = accountComments[accountCommentIndex]
+        if (!comment.cid) {
+          const authorAddress = account?.author?.address
+          if (!authorAddress) {
+            continue
+          }
+          if (!accountsCommentsWithoutCids[authorAddress]) {
+            accountsCommentsWithoutCids[authorAddress] = []
+          }
+          const commentWithAccountCommentData = {...comment, accountId: account.id, index: Number(accountCommentIndex)}
+          accountsCommentsWithoutCids[authorAddress].push(commentWithAccountCommentData)
+        }
+      }
+    }
+    return accountsCommentsWithoutCids
+  }, [accountsComments])
+  return accountsCommentsWithoutCids
+}
+
 export default function AccountsProvider(props: Props): JSX.Element | null {
   const [accounts, setAccounts] = useState<any>(undefined)
   const [accountIds, setAccountIds] = useState<any>(undefined)
@@ -250,6 +280,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const [accountNamesToAccountIds, setAccountNamesToAccountIds] = useState<any>(undefined)
   const [accountsComments, setAccountsComments] = useState<any>([])
   const [accountsVotes, setAccountsVotes] = useState<any>({})
+  const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments)
 
   const accountsActions: AccountsActions = {}
 
@@ -399,6 +430,34 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     })
   }
 
+  // internal accounts action: the comment CID is not known at the time of publishing, so every time
+  // we fetch a new comment, check if its our own, and attempt to add the CID
+  const addCidToAccountComment = async (comment: Comment) => {
+    const accountCommentsWithoutCids = accountsCommentsWithoutCids[comment?.author?.address]
+    if (!accountCommentsWithoutCids) {
+      return
+    }
+    for (const accountComment of accountCommentsWithoutCids) {
+      // if author address and timestamp is the same, we assume it's the right comment
+      if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
+        const commentWithCid = {...accountComment}
+        for (const i in comment) {
+          if (comment[i] !== undefined && comment[i] !== null) {
+            commentWithCid[i] = comment[i]
+          }
+        }
+        await addAccountCommentToDatabase(accountComment.accountId, commentWithCid, accountComment.index)
+        // @ts-ignore
+        setAccountsComments(previousAccounsComments => {
+          const updatedAccountComments = [...previousAccounsComments[accountComment.accountId]]
+          updatedAccountComments[accountComment.index] = commentWithCid
+          return {...previousAccounsComments, [accountComment.accountId]: updatedAccountComments}
+        })
+        break
+      }
+    }
+  }
+
   accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {
     let account = accounts[activeAccountId]
     if (accountName) {
@@ -493,6 +552,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountsActions,
       accountsComments,
       accountsVotes,
+      // internal accounts actions
+      addCidToAccountComment
     }
   }
 
@@ -504,6 +565,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountNamesToAccountIds,
       accountsComments,
       accountsVotes,
+      accountsCommentsWithoutCids
     },
   })
   return <AccountsContext.Provider value={accountsContext}>{props.children}</AccountsContext.Provider>
