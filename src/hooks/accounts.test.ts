@@ -381,12 +381,15 @@ describe('accounts', () => {
   })
 
   describe('multiple comments and votes in database', () => {
-    const onChallenge = jest.fn()
-    const onChallengeVerification = jest.fn()
-    const publishOptions = {onChallenge, onChallengeVerification}
+    let onChallenge: any
+    let onChallengeVerification: any
+    let publishOptions: any
     let rendered: any
 
     beforeEach(async () => {
+      onChallenge = jest.fn()
+      onChallengeVerification = jest.fn()
+      publishOptions = {onChallenge, onChallengeVerification}
       rendered = renderHook<any, any>(
         (props: any) => {
           const useAccountCommentsOptions: UseAccountCommentsOptions = {
@@ -444,6 +447,40 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
       expect(rendered.result.current.accountComments[2].content).toBe('content 3')
+    })
+
+    test(`get account comment and add cid to it when receive challengeVerification`, async () => {
+      expect(rendered.result.current.accountComments.length).toBe(3)
+      expect(rendered.result.current.accountComments[0].content).toBe('content 1')
+      expect(rendered.result.current.accountComments[1].content).toBe('content 2')
+      expect(rendered.result.current.accountComments[2].content).toBe('content 3')
+      // wait for all on challenge to be called
+      await rendered.waitFor(() =>  onChallenge.mock.calls.length === 6)
+      // publish challenge answers for comment 1 and 2
+      onChallenge.mock.calls[0][1].publishChallengeAnswer(['4'])
+      onChallenge.mock.calls[1][1].publishChallengeAnswer(['4'])
+      // wait for all on challengeverification to be called
+      await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 2)
+      expect(rendered.result.current.accountComments.length).toBe(3)
+      expect(rendered.result.current.accountComments[0].content).toBe('content 1')
+      expect(rendered.result.current.accountComments[1].content).toBe('content 2')
+      expect(rendered.result.current.accountComments[2].content).toBe('content 3')
+      expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
+      expect(rendered.result.current.accountComments[1].cid).toBe('content 2 cid')
+      expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
+
+      // check if cids are in database after getting a new context
+      const rendered2 = renderHook<any, any>(() => useAccountComments(),
+        { wrapper: PlebbitProvider }
+      )
+      await rendered2.waitForNextUpdate()
+      expect(rendered2.result.current.length).toBe(3)
+      expect(rendered2.result.current[0].content).toBe('content 1')
+      expect(rendered2.result.current[1].content).toBe('content 2')
+      expect(rendered2.result.current[2].content).toBe('content 3')
+      expect(rendered2.result.current[0].cid).toBe('content 1 cid')
+      expect(rendered2.result.current[1].cid).toBe('content 2 cid')
+      expect(rendered2.result.current[2].cid).toBe(undefined)
     })
 
     test(`account comments are stored to database`, async () => {

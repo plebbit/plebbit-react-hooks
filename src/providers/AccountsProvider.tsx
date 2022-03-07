@@ -94,14 +94,20 @@ const getAccountCommentsDatabase = (accountId: string) => {
   return accountsCommentsDatabases[accountId]
 }
 
-const addAccountCommentToDatabase = async (accountId: string, createCommentOptions: CreateCommentOptions) => {
+const addAccountCommentToDatabase = async (accountId: string, createCommentOptions: CreateCommentOptions, accountCommentIndex?: number) => {
   const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
   const length = (await accountCommentsDatabase.getItem('length')) || 0
   const comment = {...createCommentOptions, signer: undefined}
-  await Promise.all([
-    accountCommentsDatabase.setItem(String(length), comment),
-    accountCommentsDatabase.setItem('length', length + 1)
-  ])
+  if (typeof accountCommentIndex === 'number') {
+    assert(accountCommentIndex < length, `addAccountCommentToDatabase cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`)
+    await accountCommentsDatabase.setItem(String(accountCommentIndex), comment)
+  }
+  else {
+    await Promise.all([
+      accountCommentsDatabase.setItem(String(length), comment),
+      accountCommentsDatabase.setItem('length', length + 1)
+    ])
+  }
 }
 
 const getAccountCommentsFromDatabase = async (accountId: string) => {
@@ -351,6 +357,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       signer: account.signer
     }
 
+    let accountCommentIndex: number
     let comment = account.plebbit.createComment(createCommentOptions)
     const publishAndRetryFailedChallengeVerification = () => {
       comment.once('challenge', async (challenge: Challenge) => {
@@ -363,6 +370,20 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           comment = account.plebbit.createComment(createCommentOptions)
           publishAndRetryFailedChallengeVerification()
         }
+        else {
+          // the challengeverification message of a comment publication should in theory send back the CID
+          // of the published comment which is needed to resolve it for replies, upvotes, etc
+          if (challengeVerification?.publication?.cid) {
+            const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
+            await addAccountCommentToDatabase(account.id, commentWithCid, accountCommentIndex)
+            // @ts-ignore
+            setAccountsComments(previousAccounsComments => {
+              const updatedAccountComments = [...previousAccounsComments[account.id]]
+              updatedAccountComments[accountCommentIndex] = commentWithCid
+              return {...previousAccounsComments, [account.id]: updatedAccountComments}
+            })
+          }
+        }
       })
       comment.publish()
     }
@@ -370,8 +391,12 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     publishAndRetryFailedChallengeVerification()
     await addAccountCommentToDatabase(account.id, createCommentOptions)
     debug('accountsActions.publishComment', { createCommentOptions })
-    setAccountsComments({...accountsComments, [account.id]: [...accountsComments[account.id], createCommentOptions]})
-    return comment
+    // @ts-ignore
+    setAccountsComments(previousAccounsComments => {
+      // save account comment index to update the comment later
+      accountCommentIndex = previousAccounsComments[account.id].length
+      return {...previousAccounsComments, [account.id]: [...previousAccounsComments[account.id], createCommentOptions]}
+    })
   }
 
   accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {
