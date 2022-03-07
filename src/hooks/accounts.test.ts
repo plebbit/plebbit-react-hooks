@@ -1,10 +1,24 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, UseAccountCommentsOptions, useComment } from '../index'
+import {
+  PlebbitProvider,
+  useAccount,
+  useAccounts,
+  useAccountsActions,
+  useAccountComments,
+  useAccountVotes,
+  useAccountVote,
+  UseAccountCommentsOptions,
+  useComment,
+} from '../index'
 import localForage from 'localforage'
 import PlebbitJsMock, { mockPlebbitJs, Plebbit } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()])
+const deleteDatabases = () =>
+  Promise.all([
+    localForage.createInstance({ name: 'accountsMetadata' }).clear(),
+    localForage.createInstance({ name: 'accounts' }).clear(),
+  ])
 
 describe('accounts', () => {
   afterEach(async () => {
@@ -163,7 +177,9 @@ describe('accounts', () => {
     test(`fail to create account with name that already exists`, async () => {
       expect(typeof rendered.result.current.account.name).toBe('string')
       await act(async () => {
-        expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(`account name '${rendered.result.current.account.name}' already exists in database`)
+        expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(
+          `account name '${rendered.result.current.account.name}' already exists in database`
+        )
       })
     })
 
@@ -213,7 +229,9 @@ describe('accounts', () => {
       newAccount.author.displayName = 'display name john'
       newAccount.id = 'something incorrect'
       await act(async () => {
-        expect(rendered.result.current.setAccount(newAccount)).rejects.toThrow(`cannot set account with account.id 'something incorrect' id does not exist in database`)
+        expect(rendered.result.current.setAccount(newAccount)).rejects.toThrow(
+          `cannot set account with account.id 'something incorrect' id does not exist in database`
+        )
       })
     })
 
@@ -235,7 +253,9 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[2].name).toBe('Account 3')
       expect(rendered.result.current.accounts[3].name).toBe('custom name')
       await act(async () => {
-        expect(() => rendered.result.current.setAccountsOrder(['wrong account name', 'Account 3', 'Account 2', 'Account 1'])).rejects.toThrow()
+        expect(() =>
+          rendered.result.current.setAccountsOrder(['wrong account name', 'Account 3', 'Account 2', 'Account 1'])
+        ).rejects.toThrow()
         await rendered.result.current.setAccountsOrder(['custom name', 'Account 3', 'Account 2', 'Account 1'])
       })
       expect(rendered.result.current.accounts[0].name).toBe('custom name')

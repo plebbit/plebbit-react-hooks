@@ -1,17 +1,39 @@
 import assert from 'assert'
 
-export const validateAccountsActionsPublishCommentArguments = ({ publishCommentOptions, accountName, account }: any) => {
+export const validateAccountsActionsPublishCommentArguments = ({
+  publishCommentOptions,
+  accountName,
+  account,
+}: any) => {
   assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
   assert(accountName !== '', `publishComment accountName argument is empty string`)
   assert(!accountName || account, `publishComment no account with name '${accountName}' in AccountsContext`)
-  assert(publishCommentOptions && typeof publishCommentOptions === 'object', 'publishComment publishCommentOptions not an object')
-  assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function')
-  assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function')
-  assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string')
-  assert(!publishCommentOptions.parentCommentCid || typeof publishCommentOptions.parentCommentCid === 'string', 'publishComment publishCommentOptions.parentCommentCid not a string')
+  assert(
+    publishCommentOptions && typeof publishCommentOptions === 'object',
+    'publishComment publishCommentOptions not an object'
+  )
+  assert(
+    typeof publishCommentOptions.onChallenge === 'function',
+    'publishComment publishCommentOptions.onChallenge not a function'
+  )
+  assert(
+    typeof publishCommentOptions.onChallengeVerification === 'function',
+    'publishComment publishCommentOptions.onChallengeVerification not a function'
+  )
+  assert(
+    typeof publishCommentOptions.subplebbitAddress === 'string',
+    'publishComment publishCommentOptions.subplebbitAddress not a string'
+  )
+  assert(
+    !publishCommentOptions.parentCommentCid || typeof publishCommentOptions.parentCommentCid === 'string',
+    'publishComment publishCommentOptions.parentCommentCid not a string'
+  )
   assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string')
   assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string')
-  assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number')
+  assert(
+    !publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number',
+    'publishComment publishCommentOptions.timestamp is not a number'
+  )
 }
 
 export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions, accountName, account }: any) => {
@@ -19,12 +41,27 @@ export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions
   assert(accountName !== '', `publishVote accountName argument is empty string`)
   assert(!accountName || account, `publishVote no account with name '${accountName}' in AccountsContext`)
   assert(publishVoteOptions && typeof publishVoteOptions === 'object', 'publishVote publishVoteOptions not an object')
-  assert(typeof publishVoteOptions.onChallenge === 'function', 'publishVote publishVoteOptions.onChallenge not a function')
-  assert(typeof publishVoteOptions.onChallengeVerification === 'function', 'publishVote publishVoteOptions.onChallengeVerification not a function')
-  assert(typeof publishVoteOptions.subplebbitAddress === 'string', 'publishVote publishVoteOptions.subplebbitAddress not a string')
+  assert(
+    typeof publishVoteOptions.onChallenge === 'function',
+    'publishVote publishVoteOptions.onChallenge not a function'
+  )
+  assert(
+    typeof publishVoteOptions.onChallengeVerification === 'function',
+    'publishVote publishVoteOptions.onChallengeVerification not a function'
+  )
+  assert(
+    typeof publishVoteOptions.subplebbitAddress === 'string',
+    'publishVote publishVoteOptions.subplebbitAddress not a string'
+  )
   assert(typeof publishVoteOptions.commentCid === 'string', 'publishVote publishVoteOptions.commentCid not a string')
-  assert(publishVoteOptions.vote === 1 || publishVoteOptions.vote === 0 || publishVoteOptions.vote === -1, 'publishVote publishVoteOptions.vote not 1, 0 or -1')
-  assert(!publishVoteOptions.timestamp || typeof publishVoteOptions.timestamp === 'number', 'publishVote publishVoteOptions.timestamp is not a number')
+  assert(
+    publishVoteOptions.vote === 1 || publishVoteOptions.vote === 0 || publishVoteOptions.vote === -1,
+    'publishVote publishVoteOptions.vote not 1, 0 or -1'
+  )
+  assert(
+    !publishVoteOptions.timestamp || typeof publishVoteOptions.timestamp === 'number',
+    'publishVote publishVoteOptions.timestamp is not a number'
+  )
 }
 
 export const validateAccountsActionsExportAccountArguments = (accountName: any) => {
@@ -33,7 +70,10 @@ export const validateAccountsActionsExportAccountArguments = (accountName: any) 
 }
 
 export const validateAccountsActionsSetAccountsOrderArguments = (newOrderedAccountNames: any, accountNames: any) => {
-  assert(JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()), `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`)
+  assert(
+    JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()),
+    `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`
+  )
 }
 
 export const validateAccountsActionsSetAccountArguments = (account: any) => {
@@ -53,37 +93,61 @@ export const validateAccountsProviderGetAccountsFromDatabaseArguments = (account
   assert(Array.isArray(accountIds), `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' not an array`)
   assert(accountIds.length > 0, `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' is empty`)
   for (const accountId of accountIds) {
-    assert(typeof accountId === 'string', `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' accountId '${accountId}' not a string`)
-    assert(accountId !== '', `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' an accountId argument is empty string`)
+    assert(
+      typeof accountId === 'string',
+      `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' accountId '${accountId}' not a string`
+    )
+    assert(
+      accountId !== '',
+      `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' an accountId argument is empty string`
+    )
   }
 }
 
 export const validateAccountsProviderAccountNames = (accountNames: any) => {
   assert(Array.isArray(accountNames), `AccountsProviders accountNames '${accountNames}' not an array`)
   for (const accountName of accountNames) {
-    assert(typeof accountName === 'string', `AccountsProviders accountNames '${accountNames}' accountName '${accountName}' not a string`)
+    assert(
+      typeof accountName === 'string',
+      `AccountsProviders accountNames '${accountNames}' accountName '${accountName}' not a string`
+    )
   }
 }
 
 export const validateAccountsProviderAddAccountToDatabaseArguments = (account: any) => {
   assert(account && typeof account === 'object', `AccountsProvider addAccountToDatabase '${account}' not an object`)
-  assert(typeof account.name === 'string', `AccountsProvider addAccountToDatabase account.name '${account.name}' not a string`)
+  assert(
+    typeof account.name === 'string',
+    `AccountsProvider addAccountToDatabase account.name '${account.name}' not a string`
+  )
   assert(account.name !== '', `AccountsProvider addAccountToDatabase account.name is empty string`)
-  assert(typeof account.id === 'string', `AccountsProvider addAccountToDatabase account.id '${account.id}' not a string`)
+  assert(
+    typeof account.id === 'string',
+    `AccountsProvider addAccountToDatabase account.id '${account.id}' not a string`
+  )
   assert(account.id !== '', `AccountsProvider addAccountToDatabase account.id is empty string`)
 }
 
 export const validateUseCommentArguments = (commentCid: any, account: any) => {
   assert(typeof commentCid === 'string', `useComment commentCid '${commentCid}' not a string`)
-  assert(account?.plebbit && typeof account?.plebbit === 'object', `useComment account.plebbit '${account?.plebbit}' not an object`)
+  assert(
+    account?.plebbit && typeof account?.plebbit === 'object',
+    `useComment account.plebbit '${account?.plebbit}' not an object`
+  )
 }
 
 export const validateUseCommentsArguments = (commentCids: any, account: any) => {
   assert(Array.isArray(commentCids), 'useComment commentCids not an array')
   for (const commentCid of commentCids) {
-    assert(typeof commentCid === 'string', `useComments commentCids '${commentCids}' commentCid '${commentCid}' not a string`)
+    assert(
+      typeof commentCid === 'string',
+      `useComments commentCids '${commentCids}' commentCid '${commentCid}' not a string`
+    )
   }
-  assert(account?.plebbit && typeof account?.plebbit === 'object', `useComment account.plebbit '${account?.plebbit}' not an object`)
+  assert(
+    account?.plebbit && typeof account?.plebbit === 'object',
+    `useComment account.plebbit '${account?.plebbit}' not an object`
+  )
 }
 
 const validator = {

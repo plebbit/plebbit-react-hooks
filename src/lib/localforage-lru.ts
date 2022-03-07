@@ -2,10 +2,14 @@ import localForage from 'localforage'
 
 function createInstance(localForageLruOptions: any): any {
   if (typeof localForageLruOptions?.name !== 'string') {
-    throw Error(`LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`)
+    throw Error(
+      `LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`
+    )
   }
   if (typeof localForageLruOptions?.size !== 'number') {
-    throw Error(`LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`)
+    throw Error(
+      `LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`
+    )
   }
   const localForageOptions = { ...localForageLruOptions }
   delete localForageOptions.size

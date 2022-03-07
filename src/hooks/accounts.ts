@@ -140,13 +140,22 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
     assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`)
   }
   for (const subplebbitAddress of filter.subplebbitAddresses || []) {
-    assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountCommentsFilter subplebbitAddress '${subplebbitAddress}' not a string`)
+    assert(
+      subplebbitAddress && typeof subplebbitAddress === 'string',
+      `accountCommentsFilter subplebbitAddress '${subplebbitAddress}' not a string`
+    )
   }
   for (const commentCid of filter.commentCids || []) {
-    assert(commentCid && typeof commentCid === 'string', `accountCommentsFilter commentCid '${commentCid}' not a string`)
+    assert(
+      commentCid && typeof commentCid === 'string',
+      `accountCommentsFilter commentCid '${commentCid}' not a string`
+    )
   }
   for (const parentCommentCid of filter.parentCommentCids || []) {
-    assert(parentCommentCid && typeof parentCommentCid === 'string', `accountCommentsFilter parentCommentCid '${parentCommentCid}' not a string`)
+    assert(
+      parentCommentCid && typeof parentCommentCid === 'string',
+      `accountCommentsFilter parentCommentCid '${parentCommentCid}' not a string`
+    )
   }
   const filteredPublications = []
   for (const publication of publications) {
@@ -163,7 +172,10 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
     if (filter.parentCommentCids?.length && !filter.parentCommentCids.includes(publication.parentCommentCid)) {
       isFilteredOut = true
     }
-    if (typeof filter.hasParentCommentCid === 'boolean' && filter.hasParentCommentCid !== Boolean(publication.parentCommentCid)) {
+    if (
+      typeof filter.hasParentCommentCid === 'boolean' &&
+      filter.hasParentCommentCid !== Boolean(publication.parentCommentCid)
+    ) {
       isFilteredOut = true
     }
     if (!isFilteredOut) {

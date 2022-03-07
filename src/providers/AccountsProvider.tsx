@@ -64,7 +64,9 @@ const addAccountToDatabase = async (account: Account) => {
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
 
   // handle updating accountNamesToAccountIds database
-  let accountNamesToAccountIds: AccountNamesToAccountIds | null = await accountsMetadataDatabase.getItem('accountNamesToAccountIds')
+  let accountNamesToAccountIds: AccountNamesToAccountIds | null = await accountsMetadataDatabase.getItem(
+    'accountNamesToAccountIds'
+  )
   if (!accountNamesToAccountIds) {
     accountNamesToAccountIds = {}
   }
@@ -95,15 +97,25 @@ const getAccountCommentsDatabase = (accountId: string) => {
   return accountsCommentsDatabases[accountId]
 }
 
-const addAccountCommentToDatabase = async (accountId: string, createCommentOptions: CreateCommentOptions, accountCommentIndex?: number) => {
+const addAccountCommentToDatabase = async (
+  accountId: string,
+  createCommentOptions: CreateCommentOptions,
+  accountCommentIndex?: number
+) => {
   const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
   const length = (await accountCommentsDatabase.getItem('length')) || 0
   const comment = { ...createCommentOptions, signer: undefined }
   if (typeof accountCommentIndex === 'number') {
-    assert(accountCommentIndex < length, `addAccountCommentToDatabase cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`)
+    assert(
+      accountCommentIndex < length,
+      `addAccountCommentToDatabase cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`
+    )
     await accountCommentsDatabase.setItem(String(accountCommentIndex), comment)
   } else {
-    await Promise.all([accountCommentsDatabase.setItem(String(length), comment), accountCommentsDatabase.setItem('length', length + 1)])
+    await Promise.all([
+      accountCommentsDatabase.setItem(String(length), comment),
+      accountCommentsDatabase.setItem('length', length + 1),
+    ])
   }
 }
 
@@ -145,11 +157,18 @@ const getAccountVotesDatabase = (accountId: string) => {
 }
 
 const addAccountVoteToDatabase = async (accountId: string, createVoteOptions: CreateCommentOptions) => {
-  assert(createVoteOptions.commentCid && typeof createVoteOptions.commentCid === 'string', `addAccountVoteToDatabase '${createVoteOptions.commentCid}' not a string`)
+  assert(
+    createVoteOptions.commentCid && typeof createVoteOptions.commentCid === 'string',
+    `addAccountVoteToDatabase '${createVoteOptions.commentCid}' not a string`
+  )
   const accountVotesDatabase = getAccountVotesDatabase(accountId)
   const length = (await accountVotesDatabase.getItem('length')) || 0
   const vote = { ...createVoteOptions, signer: undefined, author: undefined }
-  await Promise.all([accountVotesDatabase.setItem(vote.commentCid, vote), accountVotesDatabase.setItem(String(length), vote), accountVotesDatabase.setItem('length', length + 1)])
+  await Promise.all([
+    accountVotesDatabase.setItem(vote.commentCid, vote),
+    accountVotesDatabase.setItem(String(length), vote),
+    accountVotesDatabase.setItem('length', length + 1),
+  ])
 }
 
 const getAccountVotesFromDatabase = async (accountId: string) => {
@@ -255,7 +274,11 @@ const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: 
           if (!accountsCommentsWithoutCids[authorAddress]) {
             accountsCommentsWithoutCids[authorAddress] = []
           }
-          const commentWithAccountCommentData = { ...comment, accountId: account.id, index: Number(accountCommentIndex) }
+          const commentWithAccountCommentData = {
+            ...comment,
+            accountId: account.id,
+            index: Number(accountCommentIndex),
+          }
           accountsCommentsWithoutCids[authorAddress].push(commentWithAccountCommentData)
         }
       }
@@ -324,7 +347,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     await addAccountToDatabase(newAccount)
     const newAccounts = { ...accounts, [newAccount.id]: newAccount }
-    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([accountsMetadataDatabase.getItem('accountIds'), accountsMetadataDatabase.getItem('activeAccountId'), accountsMetadataDatabase.getItem('accountNamesToAccountIds')])
+    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
+      accountsMetadataDatabase.getItem('accountIds'),
+      accountsMetadataDatabase.getItem('activeAccountId'),
+      accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+    ])
     debug('accountsActions.createAccount', { accountName, account: newAccount })
     setAccounts(newAccounts)
     setAccountIds(newAccountIds)
@@ -413,7 +440,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     setAccountsComments((previousAccounsComments) => {
       // save account comment index to update the comment later
       accountCommentIndex = previousAccounsComments[account.id].length
-      return { ...previousAccounsComments, [account.id]: [...previousAccounsComments[account.id], createCommentOptions] }
+      return {
+        ...previousAccounsComments,
+        [account.id]: [...previousAccounsComments[account.id], createCommentOptions],
+      }
     })
   }
 
@@ -481,25 +511,39 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     publishAndRetryFailedChallengeVerification()
     await addAccountVoteToDatabase(account.id, createVoteOptions)
     debug('accountsActions.publishVote', { createVoteOptions })
-    setAccountsVotes({ ...accountsVotes, [account.id]: { ...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions } })
+    setAccountsVotes({
+      ...accountsVotes,
+      [account.id]: { ...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions },
+    })
     return vote
   }
 
   // load accounts from database once on load
   useEffect(() => {
     ;(async () => {
-      let accountIds: string[] | null, activeAccountId: string | null, accounts: Accounts, accountNamesToAccountIds: AccountNamesToAccountIds | null
+      let accountIds: string[] | null,
+        activeAccountId: string | null,
+        accounts: Accounts,
+        accountNamesToAccountIds: AccountNamesToAccountIds | null
       accountIds = await accountsMetadataDatabase.getItem('accountIds')
       // get accounts from database if any
       if (accountIds?.length) {
-        ;[activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all<any>([accountsMetadataDatabase.getItem('activeAccountId'), getAccountsFromDatabase(accountIds), accountsMetadataDatabase.getItem('accountNamesToAccountIds')])
+        ;[activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all<any>([
+          accountsMetadataDatabase.getItem('activeAccountId'),
+          getAccountsFromDatabase(accountIds),
+          accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+        ])
       }
       // no accounts in database, create a default account
       else {
         const defaultAccount = await generateDefaultAccount()
         await addAccountToDatabase(defaultAccount)
         accounts = { [defaultAccount.id]: defaultAccount }
-        ;[accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all<any>([accountsMetadataDatabase.getItem('accountIds'), accountsMetadataDatabase.getItem('activeAccountId'), accountsMetadataDatabase.getItem('accountNamesToAccountIds')])
+        ;[accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all<any>([
+          accountsMetadataDatabase.getItem('accountIds'),
+          accountsMetadataDatabase.getItem('activeAccountId'),
+          accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+        ])
       }
       const [accountsComments, accountsVotes] = await Promise.all<any>([
         // @ts-ignore
