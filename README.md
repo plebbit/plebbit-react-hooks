@@ -94,7 +94,7 @@ AccountsActions {
   publishComment(comment: Comment, accountName: string | undefined),
   publishCommentEdit(comment: Comment, accountName: string | undefined),
   publishVote(vote: Vote, accountName: string | undefined),
-  deleteComment(accountCommentIndex: number, accountName: string | undefined)
+  deleteComment(commentCidOrAccountCommentIndex: strin | number, accountName: string | undefined)
 }
 Account {
   id: string, // random immutable string

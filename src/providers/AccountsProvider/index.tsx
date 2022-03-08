@@ -12,14 +12,15 @@ import {
   Account, 
   Accounts, 
   AccountsActions,
-  PublishCommentOptions, 
+  PublishCommentOptions,
+  PublishCommentEditOptions,
   PublishVoteOptions,
   Challenge,
   ChallengeVerification,
   CreateCommentOptions,
   CreateVoteOptions,
   Comment,
-  AccountComment
+  AccountComment,
 } from '../../types'
 
 type AccountsContext = any
@@ -188,6 +189,14 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         [account.id]: [...previousAccounsComments[account.id], createdAccountComment],
       }
     })
+  }
+
+  accountsActions.publishCommentEdit = async (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string) => {
+    throw Error('TODO: not implemented')
+  }
+
+  accountsActions.deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
+    throw Error('TODO: not implemented')
   }
 
   accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {
