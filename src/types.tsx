@@ -4,6 +4,10 @@ export type Props = { children?: React.ReactChild }
 export type AccountNamesToAccountIds = { [key: string]: string }
 export type Comments = { [key: string]: Comment }
 export type Accounts = { [key: string]: Account }
+export interface AccountComment extends Comment {
+  index: number,
+  accountId: string
+}
 
 // TODO: define types
 export type Account = any

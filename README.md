@@ -103,7 +103,19 @@ Account {
   plebbitOptions: PlebbitOptions,
   subscriptions: subplebbitAddress[],
   addressesLimits: {[key: address]: addressLimits}, // TODO: not sure about this name, used to block/limit authors/subplebbits
-  theme: 'light' | 'dark
+  theme: 'light' | 'dark,
+  karma: Karma
+}
+Karma {
+  commentUpvoteCount,
+  commentDownvoteCount,
+  commentScore,
+  linkUpvoteCount,
+  linkDownvoteCount,
+  linkScore,
+  upvoteCount,
+  downvoteCount,
+  score
 }
 AccountComment {
   ...Comment,
@@ -341,7 +353,7 @@ DEBUG=* yarn test file-name
 // replace
 await rendered.waitForNextUpdate() // will not always wait the same amount of time depending on env
 // with
-await rendered.waitFor(() => rendered.result.current.cid === 'comment cid 2')
+await rendered.waitFor(() => typeof rendered.result.current.cid === 'string') // best to use broad matching like typeof because doens't give specific error line when timing out
 expect(rendered.result.current.cid).toBe('comment cid 2')
 ```
 

@@ -7,25 +7,9 @@ const commentsDatabase = localForageLru.createInstance({ name: 'comments', size:
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:commentsprovider')
 import {Props, Comment, Comments, Account} from '../types'
+import commentUtils from '../lib/comment-utils'
 
 type CommentsContext = any
-
-const getCommentFromDatabase = async (commentId: string, account: Account) => {
-  const commentData: any = await commentsDatabase.getItem(commentId)
-  if (!commentData) {
-    return
-  }
-  const comment = account.plebbit.createComment(commentData)
-  // add potential missing data from the database onto the comment instance
-  for (const prop in commentData) {
-    if (comment[prop] === undefined || comment[prop] === null) {
-      if (commentData[prop] !== undefined && commentData[prop] !== null) comment[prop] = commentData[prop]
-    }
-  }
-  return comment
-}
-
-const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
 export const CommentsContext = React.createContext<CommentsContext | undefined>(undefined)
 
@@ -51,17 +35,18 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
     if (!comment) {
       plebbitGetCommentPending[commentId + account.id] = true
       comment = await account.plebbit.getComment(commentId)
-      await commentsDatabase.setItem(commentId, comment)
+      await commentsDatabase.setItem(commentId, commentUtils.clone(comment))
     }
     debug('commentsActions.addComment', { commentId, comment, account })
-    setComments((previousComments) => ({ ...previousComments, [commentId]: clone(comment) }))
+    setComments((previousComments) => ({ ...previousComments, [commentId]: commentUtils.clone(comment) }))
     plebbitGetCommentPending[commentId + account.id] = false
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
     comment.on('update', async (updatedComment: Comment) => {
+      updatedComment = commentUtils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
       debug('commentsContext comment update', { commentId, comment, account })
-      setComments((previousComments) => ({ ...previousComments, [commentId]: clone(updatedComment) }))
+      setComments((previousComments) => ({ ...previousComments, [commentId]: updatedComment }))
     })
 
     // when publishing a comment, you don't yet know its CID
@@ -83,4 +68,19 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
 
   debug({ commentsContext: comments })
   return <CommentsContext.Provider value={commentsContext}>{props.children}</CommentsContext.Provider>
+}
+
+const getCommentFromDatabase = async (commentId: string, account: Account) => {
+  const commentData: any = await commentsDatabase.getItem(commentId)
+  if (!commentData) {
+    return
+  }
+  const comment = account.plebbit.createComment(commentData)
+  // add potential missing data from the database onto the comment instance
+  for (const prop in commentData) {
+    if (comment[prop] === undefined || comment[prop] === null) {
+      if (commentData[prop] !== undefined && commentData[prop] !== null) comment[prop] = commentData[prop]
+    }
+  }
+  return comment
 }

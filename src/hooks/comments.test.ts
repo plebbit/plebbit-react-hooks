@@ -26,34 +26,28 @@ describe('comments', () => {
       const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), { wrapper: PlebbitProvider })
       expect(rendered.result.current).toBe(undefined)
       rendered.rerender('comment cid 1')
-      // wait to get account loaded
-      await rendered.waitForNextUpdate()
-      // wait for addCommentToContext action
-      await rendered.waitForNextUpdate()
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
       expect(rendered.result.current.cid).toBe('comment cid 1')
-      expect(rendered.result.current.upvoteCount).toBe(undefined)
       // wait for comment.on('update') to fetch the ipns
-      await rendered.waitFor(() => rendered.result.current.cid === 'comment cid 1'
-        && rendered.result.current.upvoteCount === 1
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string'
+        && typeof rendered.result.current.upvoteCount === 'number'
       )
       expect(rendered.result.current.cid).toBe('comment cid 1')
-      expect(rendered.result.current.upvoteCount).toBe(1)
+      expect(rendered.result.current.upvoteCount).toBe(3)
 
       rendered.rerender('comment cid 2')
       // wait for addCommentToContext action
-      // await rendered.waitForNextUpdate()
-      await rendered.waitFor(() => rendered.result.current.cid === 'comment cid 2')
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
       expect(rendered.result.current.cid).toBe('comment cid 2')
-      expect(rendered.result.current.upvoteCount).toBe(undefined)
       // wait for comment.on('update') to fetch the ipns
       await rendered.waitForNextUpdate()
       expect(rendered.result.current.cid).toBe('comment cid 2')
-      expect(rendered.result.current.upvoteCount).toBe(1)
+      expect(rendered.result.current.upvoteCount).toBe(3)
 
       // get comment 1 again, no need to wait for any updates
       rendered.rerender('comment cid 1')
       expect(rendered.result.current.cid).toBe('comment cid 1')
-      expect(rendered.result.current.upvoteCount).toBe(1)
+      expect(rendered.result.current.upvoteCount).toBe(3)
 
       // make sure comments are still in database
       const getComment = Plebbit.prototype.getComment
@@ -79,19 +73,19 @@ describe('comments', () => {
       // wait to get account loaded
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.cid).toBe('comment cid 1')
-      expect(rendered2.result.current.upvoteCount).toBe(1)
+      expect(rendered2.result.current.upvoteCount).toBe(3)
 
       rendered2.rerender('comment cid 2')
       // wait for addCommentToContext action
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.cid).toBe('comment cid 2')
-      expect(rendered2.result.current.upvoteCount).toBe(1)
+      expect(rendered2.result.current.upvoteCount).toBe(3)
 
       // get comment 1 again from context, should not trigger any comment updates
       throwOnCommentUpdateEvent = true
       rendered2.rerender('comment cid 1')
       expect(rendered2.result.current.cid).toBe('comment cid 1')
-      expect(rendered2.result.current.upvoteCount).toBe(1)
+      expect(rendered2.result.current.upvoteCount).toBe(3)
 
       // restore mock
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
@@ -103,20 +97,20 @@ describe('comments', () => {
       expect(rendered.result.current).toEqual([])
       rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
       expect(rendered.result.current).toEqual([undefined, undefined, undefined])
-      await rendered.waitFor(() => rendered.result.current[0].cid === 'comment cid 1' 
-        && rendered.result.current[1].cid === 'comment cid 2'
-        && rendered.result.current[2].cid === 'comment cid 3'
+      await rendered.waitFor(() => typeof rendered.result.current[0].cid === 'string' 
+        && typeof rendered.result.current[1].cid === 'string'
+        && typeof rendered.result.current[2].cid === 'string'
       )
       expect(rendered.result.current[0].cid).toBe('comment cid 1')
       expect(rendered.result.current[1].cid).toBe('comment cid 2')
       expect(rendered.result.current[2].cid).toBe('comment cid 3')
-      await rendered.waitFor(() => rendered.result.current[0].upvoteCount === 1
-        && rendered.result.current[1].upvoteCount === 1
-        && rendered.result.current[2].upvoteCount === 1
+      await rendered.waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number'
+        && typeof rendered.result.current[1].upvoteCount === 'number'
+        && typeof rendered.result.current[2].upvoteCount === 'number'
       )
-      expect(rendered.result.current[0].upvoteCount).toBe(1)
-      expect(rendered.result.current[1].upvoteCount).toBe(1)
-      expect(rendered.result.current[2].upvoteCount).toBe(1)
+      expect(rendered.result.current[0].upvoteCount).toBe(3)
+      expect(rendered.result.current[1].upvoteCount).toBe(3)
+      expect(rendered.result.current[2].upvoteCount).toBe(3)
     })
   })
 })

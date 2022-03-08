@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
-const debug = Debug('plebbitreacthooks:providers:accountsprovider:index')
+const debug = Debug('plebbitreacthooks:providers:accountsprovider')
 import accountsDatabase from './accountsDatabase'
 import accountGenerator from './accountGenerator'
+import commentUtils from '../../lib/comment-utils'
 import {
   Props, 
   AccountNamesToAccountIds, 
@@ -17,7 +18,8 @@ import {
   ChallengeVerification,
   CreateCommentOptions,
   CreateVoteOptions,
-  Comment
+  Comment,
+  AccountComment
 } from '../../types'
 
 type AccountsContext = any
@@ -165,6 +167,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
               updatedAccountComments[accountCommentIndex] = updatedAccountComment
               return { ...previousAccounsComments, [account.id]: updatedAccountComments }
             })
+
+            startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
           }
         }
       })
@@ -239,12 +243,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     for (const accountComment of accountCommentsWithoutCids) {
       // if author address and timestamp is the same, we assume it's the right comment
       if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
-        const commentWithCid = { ...accountComment }
-        for (const i in comment) {
-          if (comment[i] !== undefined && comment[i] !== null) {
-            commentWithCid[i] = comment[i]
-          }
-        }
+        const commentWithCid = commentUtils.merge(accountComment, comment)
         await accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index)
         // @ts-ignore
         setAccountsComments((previousAccounsComments) => {
@@ -255,6 +254,41 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         break
       }
     }
+  }
+
+  // TODO: we currently subscribe to updates for every single comment
+  // in the user's account history. This probably does not scale, we
+  // need to eventually schedule and queue older comments to look 
+  // for updates at a lower priority.
+  const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: Comment, account: Account, accountCommentIndex: number) => {
+    assert(typeof accountCommentIndex === 'number', `startUpdatingAccountCommentOnCommentUpdateEvents accountCommentIndex '${accountCommentIndex}' not a number`)
+    assert(typeof account?.id === 'string', `startUpdatingAccountCommentOnCommentUpdateEvents account '${account}' account.id '${account?.id}' not a string`)
+    const commentArgument = comment
+    if (!comment.ipnsName) {
+      if (!comment.cid) {
+        // comment doesn't have an ipns name yet, so can't receive updates
+        // and doesn't have a cid, so has no way to know the ipns name
+        return
+      }
+      comment = await account.plebbit.getComment(comment.cid)
+    }
+    // comment is not a `Comment` instance
+    if (!comment.on) {
+      comment = account.plebbit.createComment(comment)
+    }
+    comment.on('update', async (updatedComment: Comment) => {
+      // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
+      updatedComment = commentUtils.merge(commentArgument, comment, updatedComment)
+      await accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex)
+      // @ts-ignore
+      setAccountsComments((previousAccounsComments) => {
+        const updatedAccountComments = [...previousAccounsComments[account.id]]
+        const previousComment = updatedAccountComments[accountCommentIndex]
+        const updatedAccountComment = commentUtils.clone({...updatedComment, index: accountCommentIndex, accountId: account.id})
+        updatedAccountComments[accountCommentIndex] = updatedAccountComment
+        return { ...previousAccounsComments, [account.id]: updatedAccountComments }
+      })
+    })
   }
 
   // load accounts from database once on load
@@ -296,6 +330,13 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       setAccountNamesToAccountIds(accountNamesToAccountIds)
       setAccountsComments(accountsComments)
       setAccountsVotes(accountsVotes)
+
+      // start looking for updates for all accounts comments in database
+      for (const accountId in accountsComments) {
+        for (const accountComment of accountsComments[accountId]) {
+          startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
+        }
+      }
     })()
   }, [])
 
@@ -377,31 +418,35 @@ const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsCommen
       if (!accountComments || !account) {
         continue
       }
-      const linkKarma = {upvoteCount: 0, downvoteCount: 0, score: 0}
-      const commentKarma = {upvoteCount: 0, downvoteCount: 0, score: 0}
-      for (const comment of accountComments) {
-        if (comment.parentCommentCid && comment.downvoteCount) {
-          linkKarma.downvoteCount += comment.downvoteCount
-        }
-        if (comment.parentCommentCid && comment.upvoteCount) {
-          linkKarma.upvoteCount += comment.upvoteCount
-        }
-        if (!comment.parentCommentCid && comment.upvoteCount) {
-          commentKarma.downvoteCount += comment.downvoteCount
-        }
-        if (!comment.parentCommentCid && comment.upvoteCount) {
-          commentKarma.upvoteCount += comment.upvoteCount
-        }
-      }
-      linkKarma.score = linkKarma.upvoteCount - linkKarma.downvoteCount
-      commentKarma.score = commentKarma.upvoteCount - commentKarma.downvoteCount
       const karma = {
-        link: linkKarma, 
-        comment: commentKarma, 
-        upvoteCount: linkKarma.upvoteCount + commentKarma.upvoteCount,
-        downvoteCount: linkKarma.upvoteCount + commentKarma.upvoteCount,
+        commentUpvoteCount: 0,
+        commentDownvoteCount: 0,
+        commentScore: 0,
+        linkUpvoteCount: 0,
+        linkDownvoteCount: 0,
+        linkScore: 0,
+        upvoteCount: 0,
+        downvoteCount: 0,
         score: 0
       }
+      for (const comment of accountComments) {
+        if (comment.parentCommentCid && comment.upvoteCount) {
+          karma.commentUpvoteCount += comment.upvoteCount
+        }
+        if (comment.parentCommentCid && comment.downvoteCount) {
+          karma.commentDownvoteCount += comment.downvoteCount
+        }
+        if (!comment.parentCommentCid && comment.upvoteCount) {
+          karma.linkUpvoteCount += comment.upvoteCount
+        }
+        if (!comment.parentCommentCid && comment.downvoteCount) {
+          karma.linkDownvoteCount += comment.downvoteCount
+        }
+      }
+      karma.commentScore = karma.commentUpvoteCount - karma.commentDownvoteCount
+      karma.linkScore = karma.linkUpvoteCount - karma.linkDownvoteCount
+      karma.upvoteCount = karma.commentUpvoteCount + karma.linkUpvoteCount
+      karma.downvoteCount = karma.commentDownvoteCount + karma.linkDownvoteCount
       karma.score = karma.upvoteCount - karma.downvoteCount
       const accountWithCalculatedProperties = {...account, karma}
       accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties

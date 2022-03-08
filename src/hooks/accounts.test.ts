@@ -610,15 +610,49 @@ describe('accounts', () => {
       expect(rendered.result.current.account.karma.score).toBe(0)
       expect(rendered.result.current.account.karma.upvoteCount).toBe(0)
       expect(rendered.result.current.account.karma.downvoteCount).toBe(0)
-      expect(rendered.result.current.account.karma.comment.score).toBe(0)
-      expect(rendered.result.current.account.karma.comment.upvoteCount).toBe(0)
-      expect(rendered.result.current.account.karma.comment.downvoteCount).toBe(0)
-      expect(rendered.result.current.account.karma.link.score).toBe(0)
-      expect(rendered.result.current.account.karma.link.upvoteCount).toBe(0)
-      expect(rendered.result.current.account.karma.link.downvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.commentScore).toBe(0)
+      expect(rendered.result.current.account.karma.commentUpvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.commentDownvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.linkScore).toBe(0)
+      expect(rendered.result.current.account.karma.linkUpvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.linkDownvoteCount).toBe(0)
     })
 
-    test.todo(`account has karma after comments are published`)
+    test(`account has karma after comments are published`, async () => {
+      await rendered.waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
+      // answer challenges to get the comments published
+      onChallenge.mock.calls[0][1].publishChallengeAnswer(['4'])
+      onChallenge.mock.calls[1][1].publishChallengeAnswer(['4'])
+      onChallenge.mock.calls[2][1].publishChallengeAnswer(['4'])
+
+      await rendered.waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9) 
+      expect(rendered.result.current.account.karma.score).toBe(6)
+      expect(rendered.result.current.account.karma.upvoteCount).toBe(9)
+      expect(rendered.result.current.account.karma.downvoteCount).toBe(3)
+      expect(rendered.result.current.account.karma.commentScore).toBe(2)
+      expect(rendered.result.current.account.karma.commentUpvoteCount).toBe(3)
+      expect(rendered.result.current.account.karma.commentDownvoteCount).toBe(1)
+      expect(rendered.result.current.account.karma.linkScore).toBe(4)
+      expect(rendered.result.current.account.karma.linkUpvoteCount).toBe(6)
+      expect(rendered.result.current.account.karma.linkDownvoteCount).toBe(2)
+
+      // get the karma from database by created new context
+      const rendered2 = renderHook<any, any>(() => {
+        const account = useAccount()
+        const accountComments = useAccountComments()
+        return {account, accountComments}
+      }, { wrapper: PlebbitProvider })
+      await rendered2.waitFor(() => rendered2.result.current.account.karma.upvoteCount >= 9) 
+      expect(rendered2.result.current.account.karma.score).toBe(6)
+      expect(rendered2.result.current.account.karma.upvoteCount).toBe(9)
+      expect(rendered2.result.current.account.karma.downvoteCount).toBe(3)
+      expect(rendered2.result.current.account.karma.commentScore).toBe(2)
+      expect(rendered2.result.current.account.karma.commentUpvoteCount).toBe(3)
+      expect(rendered2.result.current.account.karma.commentDownvoteCount).toBe(1)
+      expect(rendered2.result.current.account.karma.linkScore).toBe(4)
+      expect(rendered2.result.current.account.karma.linkUpvoteCount).toBe(6)
+      expect(rendered2.result.current.account.karma.linkDownvoteCount).toBe(2)
+    })
 
     test(`get all account votes`, async () => {
       expect(rendered.result.current.accountVotes.length).toBe(3)

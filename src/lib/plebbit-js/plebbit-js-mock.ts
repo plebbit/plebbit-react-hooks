@@ -86,6 +86,7 @@ export class Comment extends Publication {
   upvoteCount: number | undefined
   downvoteCount: number | undefined
   content: string | undefined
+  parentCommentCid: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -96,6 +97,7 @@ export class Comment extends Publication {
     this.content = createCommentOptions?.content
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
+    this.parentCommentCid = createCommentOptions?.parentCommentCid
 
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (this.ipnsName) {
@@ -107,8 +109,8 @@ export class Comment extends Publication {
 
   simulateUpdateEvent() {
     // simulate finding vote counts on an IPNS record
-    this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 1
-    this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 0
+    this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+    this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
     this.emit('update', this)
   }
 }
