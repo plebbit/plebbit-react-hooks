@@ -335,9 +335,9 @@ DEBUG=* yarn test
 DEBUG=* yarn test file-name
 ```
 
-> Note: some async tests might fail randomly in different environments because of timing, it can be fixed by waiting for something specific like below:
+> Note: some async tests might fail randomly in different environments because of timing, it can be fixed by waiting for something specific:
 
-```
+```js
 // replace
 await rendered.waitForNextUpdate() // will not always wait the same amount of time depending on env
 // with

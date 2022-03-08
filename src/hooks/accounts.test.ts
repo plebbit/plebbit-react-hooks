@@ -480,11 +480,24 @@ describe('accounts', () => {
       await deleteDatabases()
     })
 
+    const expectAccountCommentsToHaveIndexAndAccountId = (accountComments: any[], accountId?: string) => {
+      for (const [i, accountComment] of accountComments.entries()) {
+        expect(accountComment.index).toBe(i)
+        if (accountId) {
+          expect(accountComment.accountId).toBe(accountId)
+        }
+        else {
+          expect(typeof accountComment.accountId).toBe('string')
+        }
+      }
+    }
+
     test(`get all account comments`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
       expect(rendered.result.current.accountComments[2].content).toBe('content 3')
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
     })
 
     test(`get account comment and add cid to it when receive challengeVerification`, async () => {
@@ -506,8 +519,10 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
       expect(rendered.result.current.accountComments[1].cid).toBe('content 2 cid')
       expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
 
       // check if cids are in database after getting a new context
+      const activeAccountId = rendered.result.current.account.id
       const rendered2 = renderHook<any, any>(() => useAccountComments(), { wrapper: PlebbitProvider })
       await rendered2.waitForNextUpdate()
       expect(rendered2.result.current.length).toBe(3)
@@ -517,6 +532,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[0].cid).toBe('content 1 cid')
       expect(rendered2.result.current[1].cid).toBe('content 2 cid')
       expect(rendered2.result.current[2].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current, activeAccountId)
     })
 
     test(`cid gets added to account comment after fetched in useComment`, async () => {
@@ -533,6 +549,7 @@ describe('accounts', () => {
       expect(rendered.result.current[1].content).toBe('content 2')
       expect(rendered.result.current[0].cid).toBe(undefined)
       expect(rendered.result.current[1].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
       // mock the comment to get from plebbit.getComment()
       // to simulate getting a comment that the account published
@@ -549,6 +566,7 @@ describe('accounts', () => {
       expect(rendered.result.current[1].content).toBe('content 2')
       expect(rendered.result.current[0].cid).toBe('content 1 cid')
       expect(rendered.result.current[1].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
       // mock the second comment to get from plebbit.getComment()
       Plebbit.prototype.commentToGet = () => ({
@@ -563,6 +581,7 @@ describe('accounts', () => {
       expect(rendered.result.current[1].content).toBe('content 2')
       expect(rendered.result.current[0].cid).toBe('content 1 cid')
       expect(rendered.result.current[1].cid).toBe('content 2 cid')
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
       // restore mock
       Plebbit.prototype.commentToGet = commentToGet
@@ -573,6 +592,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[0].cid).toBe('content 1 cid')
       expect(rendered2.result.current[1].cid).toBe('content 2 cid')
       expect(rendered2.result.current[2].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
     })
 
     test(`account comments are stored to database`, async () => {
@@ -583,6 +603,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[0].content).toBe('content 1')
       expect(rendered2.result.current[1].content).toBe('content 2')
       expect(rendered2.result.current[2].content).toBe('content 3')
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
     })
 
     test(`account has no karma before comments are published`, async () => {
