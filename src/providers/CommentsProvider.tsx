@@ -6,12 +6,9 @@ import localForageLru from '../lib/localforage-lru'
 const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 })
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:commentsprovider')
+import {Props, Comment, Comments, Account} from '../types'
 
-type Props = { children?: React.ReactChild }
-type Comment = any
-type Comments = { [key: string]: Comment }
 type CommentsContext = any
-type Account = any
 
 const getCommentFromDatabase = async (commentId: string, account: Account) => {
   const commentData: any = await commentsDatabase.getItem(commentId)

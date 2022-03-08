@@ -89,17 +89,17 @@ export const validateAccountsActionsSetActiveAccountArguments = (accountName: an
   assert(accountName !== '', `setActiveAccountName accountName argument is empty string`)
 }
 
-export const validateAccountsProviderGetAccountsFromDatabaseArguments = (accountIds: any) => {
-  assert(Array.isArray(accountIds), `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' not an array`)
-  assert(accountIds.length > 0, `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' is empty`)
+export const validateAccountsDatabaseGetAccountsArguments = (accountIds: any) => {
+  assert(Array.isArray(accountIds), `accountsDatabase.getAccounts accountIds '${accountIds}' not an array`)
+  assert(accountIds.length > 0, `accountsDatabase.getAccounts accountIds '${accountIds}' is empty`)
   for (const accountId of accountIds) {
     assert(
       typeof accountId === 'string',
-      `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' accountId '${accountId}' not a string`
+      `accountsDatabase.getAccountsaccountIds '${accountIds}' accountId '${accountId}' not a string`
     )
     assert(
       accountId !== '',
-      `AccountsProvider getAccountsFromDatabase accountIds '${accountIds}' an accountId argument is empty string`
+      `accountsDatabase.getAccounts accountIds '${accountIds}' an accountId argument is empty string`
     )
   }
 }
@@ -114,18 +114,18 @@ export const validateAccountsProviderAccountNames = (accountNames: any) => {
   }
 }
 
-export const validateAccountsProviderAddAccountToDatabaseArguments = (account: any) => {
-  assert(account && typeof account === 'object', `AccountsProvider addAccountToDatabase '${account}' not an object`)
+export const validateAccountsDatabaseAddAccountArguments = (account: any) => {
+  assert(account && typeof account === 'object', `accountsDatabase.addAccount '${account}' not an object`)
   assert(
     typeof account.name === 'string',
-    `AccountsProvider addAccountToDatabase account.name '${account.name}' not a string`
+    `accountsDatabase.addAccount account.name '${account.name}' not a string`
   )
-  assert(account.name !== '', `AccountsProvider addAccountToDatabase account.name is empty string`)
+  assert(account.name !== '', `accountsDatabase.addAccount account.name is empty string`)
   assert(
     typeof account.id === 'string',
-    `AccountsProvider addAccountToDatabase account.id '${account.id}' not a string`
+    `accountsDatabase.addAccount account.id '${account.id}' not a string`
   )
-  assert(account.id !== '', `AccountsProvider addAccountToDatabase account.id is empty string`)
+  assert(account.id !== '', `accountsDatabase.addAccount account.id is empty string`)
 }
 
 export const validateUseCommentArguments = (commentCid: any, account: any) => {
@@ -157,8 +157,8 @@ const validator = {
   validateAccountsActionsSetAccountsOrderArguments,
   validateAccountsActionsSetAccountArguments,
   validateAccountsActionsSetActiveAccountArguments,
-  validateAccountsProviderGetAccountsFromDatabaseArguments,
-  validateAccountsProviderAddAccountToDatabaseArguments,
+  validateAccountsDatabaseAddAccountArguments,
+  validateAccountsDatabaseGetAccountsArguments,
   validateAccountsProviderAccountNames,
   validateUseCommentArguments,
   validateUseCommentsArguments,

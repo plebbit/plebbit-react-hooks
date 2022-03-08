@@ -33,7 +33,9 @@ describe('comments', () => {
       expect(rendered.result.current.cid).toBe('comment cid 1')
       expect(rendered.result.current.upvoteCount).toBe(undefined)
       // wait for comment.on('update') to fetch the ipns
-      await rendered.waitForNextUpdate()
+      await rendered.waitFor(() => rendered.result.current.cid === 'comment cid 1'
+        && rendered.result.current.upvoteCount === 1
+      )
       expect(rendered.result.current.cid).toBe('comment cid 1')
       expect(rendered.result.current.upvoteCount).toBe(1)
 
