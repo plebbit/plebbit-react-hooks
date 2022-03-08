@@ -1,13 +1,21 @@
 import { act, renderHook, suppressErrorOutput } from '@testing-library/react-hooks'
+import testUtils from '../lib/test-utils'
 import { useComment, useComments } from '../index'
 import PlebbitProvider from '../providers/PlebbitProvider'
-import localForage from 'localforage'
+import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForage.createInstance({ name: 'comments' }).clear()])
+const deleteDatabases = () => Promise.all([localForageLru.createInstance({ name: 'comments' }).clear()])
 
 describe('comments', () => {
+  beforeAll(() => {
+    testUtils.silenceUpdateUnmountedComponentWarning()
+  })
+  afterAll(() => {
+    testUtils.restoreAll()
+  })
+
   afterEach(async () => {
     await deleteDatabases()
   })
@@ -31,7 +39,8 @@ describe('comments', () => {
 
       rendered.rerender('comment cid 2')
       // wait for addCommentToContext action
-      await rendered.waitForNextUpdate()
+      // await rendered.waitForNextUpdate()
+      await rendered.waitFor(() => rendered.result.current.cid === 'comment cid 2')
       expect(rendered.result.current.cid).toBe('comment cid 2')
       expect(rendered.result.current.upvoteCount).toBe(undefined)
       // wait for comment.on('update') to fetch the ipns
@@ -92,14 +101,17 @@ describe('comments', () => {
       expect(rendered.result.current).toEqual([])
       rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
       expect(rendered.result.current).toEqual([undefined, undefined, undefined])
-      await rendered.waitFor(() => rendered.result.current[2].cid === 'comment cid 3')
+      await rendered.waitFor(() => rendered.result.current[0].cid === 'comment cid 1' 
+        && rendered.result.current[1].cid === 'comment cid 2'
+        && rendered.result.current[2].cid === 'comment cid 3'
+      )
       expect(rendered.result.current[0].cid).toBe('comment cid 1')
       expect(rendered.result.current[1].cid).toBe('comment cid 2')
       expect(rendered.result.current[2].cid).toBe('comment cid 3')
-      expect(rendered.result.current[0].upvoteCount).toBe(undefined)
-      expect(rendered.result.current[1].upvoteCount).toBe(undefined)
-      expect(rendered.result.current[2].upvoteCount).toBe(undefined)
-      await rendered.waitFor(() => rendered.result.current[2].upvoteCount === 1)
+      await rendered.waitFor(() => rendered.result.current[0].upvoteCount === 1
+        && rendered.result.current[1].upvoteCount === 1
+        && rendered.result.current[2].upvoteCount === 1
+      )
       expect(rendered.result.current[0].upvoteCount).toBe(1)
       expect(rendered.result.current[1].upvoteCount).toBe(1)
       expect(rendered.result.current[2].upvoteCount).toBe(1)

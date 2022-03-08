@@ -131,6 +131,11 @@ const getAccountCommentsFromDatabase = async (accountId: string) => {
     promises.push(accountCommentsDatabase.getItem(String(i++)))
   }
   const comments = await Promise.all(promises)
+  // add index and account id to account comments for easier updating
+  for (const i in comments) {
+    comments[i].index = Number(i)
+    comments[i].accountId = accountId
+  }
   return comments
 }
 
@@ -265,8 +270,8 @@ const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: 
       const accountComments = accountsComments[accountId]
       const account = accounts[accountId]
       for (const accountCommentIndex in accountComments) {
-        const comment = accountComments[accountCommentIndex]
-        if (!comment.cid) {
+        const accountComment = accountComments[accountCommentIndex]
+        if (!accountComment.cid) {
           const authorAddress = account?.author?.address
           if (!authorAddress) {
             continue
@@ -274,18 +279,63 @@ const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: 
           if (!accountsCommentsWithoutCids[authorAddress]) {
             accountsCommentsWithoutCids[authorAddress] = []
           }
-          const commentWithAccountCommentData = {
-            ...comment,
-            accountId: account.id,
-            index: Number(accountCommentIndex),
-          }
-          accountsCommentsWithoutCids[authorAddress].push(commentWithAccountCommentData)
+          accountsCommentsWithoutCids[authorAddress].push(accountComment)
         }
       }
     }
     return accountsCommentsWithoutCids
   }, [accountsComments])
   return accountsCommentsWithoutCids
+}
+
+// add calculated properties to accounts, like karma
+const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: any) => {
+  return useMemo(() => {
+    if (!accounts) {
+      return
+    }
+    if (!accountsComments) {
+      return accounts
+    }
+    const accountsWithCalculatedProperties = {...accounts}
+    for (const accountId in accountsComments) {
+      const account = accounts[accountId]
+      const accountComments = accountsComments[accountId]
+      if (!accountComments || !account) {
+        continue
+      }
+      const linkKarma = {upvoteCount: 0, downvoteCount: 0, score: 0}
+      const commentKarma = {upvoteCount: 0, downvoteCount: 0, score: 0}
+      for (const comment of accountComments) {
+        if (comment.parentCommentCid && comment.downvoteCount) {
+          linkKarma.downvoteCount += comment.downvoteCount
+        }
+        if (comment.parentCommentCid && comment.upvoteCount) {
+          linkKarma.upvoteCount += comment.upvoteCount
+        }
+        if (!comment.parentCommentCid && comment.upvoteCount) {
+          commentKarma.downvoteCount += comment.downvoteCount
+        }
+        if (!comment.parentCommentCid && comment.upvoteCount) {
+          commentKarma.upvoteCount += comment.upvoteCount
+        }
+      }
+      linkKarma.score = linkKarma.upvoteCount - linkKarma.downvoteCount
+      commentKarma.score = commentKarma.upvoteCount - commentKarma.downvoteCount
+      const karma = {
+        link: linkKarma, 
+        comment: commentKarma, 
+        upvoteCount: linkKarma.upvoteCount + commentKarma.upvoteCount,
+        downvoteCount: linkKarma.upvoteCount + commentKarma.upvoteCount,
+        score: 0
+      }
+      karma.score = karma.upvoteCount - karma.downvoteCount
+      const accountWithCalculatedProperties = {...account, karma}
+      accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties
+    }
+
+    return accountsWithCalculatedProperties
+  }, [accounts, accountsComments])
 }
 
 export default function AccountsProvider(props: Props): JSX.Element | null {
@@ -296,6 +346,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const [accountsComments, setAccountsComments] = useState<any>([])
   const [accountsVotes, setAccountsVotes] = useState<any>({})
   const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments)
+  const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments)
 
   const accountsActions: AccountsActions = {}
 
@@ -424,7 +475,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
             // @ts-ignore
             setAccountsComments((previousAccounsComments) => {
               const updatedAccountComments = [...previousAccounsComments[account.id]]
-              updatedAccountComments[accountCommentIndex] = commentWithCid
+              const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
+              updatedAccountComments[accountCommentIndex] = updatedAccountComment
               return { ...previousAccounsComments, [account.id]: updatedAccountComments }
             })
           }
@@ -440,9 +492,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     setAccountsComments((previousAccounsComments) => {
       // save account comment index to update the comment later
       accountCommentIndex = previousAccounsComments[account.id].length
+      const createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
       return {
         ...previousAccounsComments,
-        [account.id]: [...previousAccounsComments[account.id], createCommentOptions],
+        [account.id]: [...previousAccounsComments[account.id], createdAccountComment],
       }
     })
   }
@@ -568,7 +621,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   let accountsContext: AccountsContext
   if (accountIds && accounts && accountNamesToAccountIds) {
     accountsContext = {
-      accounts,
+      accounts: accountsWithCalculatedProperties,
       accountIds,
       activeAccountId,
       accountNamesToAccountIds,
@@ -582,7 +635,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
   debug({
     accountsContext: accountsContext && {
-      accounts,
+      accounts: accountsWithCalculatedProperties,
       accountIds,
       activeAccountId,
       accountNamesToAccountIds,

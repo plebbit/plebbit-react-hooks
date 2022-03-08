@@ -1,11 +1,6 @@
 import localForage from 'localforage'
 
-function createInstance(localForageLruOptions: any): any {
-  if (typeof localForageLruOptions?.name !== 'string') {
-    throw Error(
-      `LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`
-    )
-  }
+function createLocalForageInstance(localForageLruOptions: any): any {
   if (typeof localForageLruOptions?.size !== 'number') {
     throw Error(
       `LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`
@@ -101,6 +96,26 @@ function createInstance(localForageLruOptions: any): any {
     await new Promise((r) => setTimeout(r, 10))
     await initialization()
   }
+}
+
+const instances: any = {}
+
+const createInstance = (localForageLruOptions: any) => {
+  if (typeof localForageLruOptions?.name !== 'string') {
+    throw Error(
+      `LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`
+    )
+  }
+  if (instances[localForageLruOptions.name]) {
+    if (localForageLruOptions.size) {
+      throw Error(
+        `LocalForageLru.createInstance with name '${localForageLruOptions.name}' already created, remove localForageLruOptions.size, size cannot be changed`
+      )
+    }
+    return instances[localForageLruOptions.name]
+  }
+  instances[localForageLruOptions.name] = createLocalForageInstance(localForageLruOptions)
+  return instances[localForageLruOptions.name]
 }
 
 export default { createInstance }

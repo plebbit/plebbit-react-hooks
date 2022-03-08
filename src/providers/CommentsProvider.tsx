@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext } from 'react'
 import { AccountsContext } from './AccountsProvider'
 import validator from '../lib/validator'
 import assert from 'assert'
-import localForage from '../lib/localforage-lru'
-const commentsDatabase = localForage.createInstance({ name: 'comments', size: 5000 })
+import localForageLru from '../lib/localforage-lru'
+const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 })
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:commentsprovider')
 

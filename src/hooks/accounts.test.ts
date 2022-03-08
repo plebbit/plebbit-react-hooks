@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks'
+import testUtils from '../lib/test-utils'
 import {
   PlebbitProvider,
   useAccount,
@@ -21,6 +22,12 @@ const deleteDatabases = () =>
   ])
 
 describe('accounts', () => {
+  beforeAll(() => {
+    testUtils.silenceUpdateUnmountedComponentWarning()
+  })
+  afterAll(() => {
+    testUtils.restoreAll()
+  })
   afterEach(async () => {
     await deleteDatabases()
   })
@@ -577,6 +584,20 @@ describe('accounts', () => {
       expect(rendered2.result.current[1].content).toBe('content 2')
       expect(rendered2.result.current[2].content).toBe('content 3')
     })
+
+    test(`account has no karma before comments are published`, async () => {
+      expect(rendered.result.current.account.karma.score).toBe(0)
+      expect(rendered.result.current.account.karma.upvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.downvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.comment.score).toBe(0)
+      expect(rendered.result.current.account.karma.comment.upvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.comment.downvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.link.score).toBe(0)
+      expect(rendered.result.current.account.karma.link.upvoteCount).toBe(0)
+      expect(rendered.result.current.account.karma.link.downvoteCount).toBe(0)
+    })
+
+    test.todo(`account has karma after comments are published`)
 
     test(`get all account votes`, async () => {
       expect(rendered.result.current.accountVotes.length).toBe(3)

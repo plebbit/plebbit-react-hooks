@@ -107,8 +107,8 @@ export class Comment extends Publication {
 
   simulateUpdateEvent() {
     // simulate finding vote counts on an IPNS record
-    this.upvoteCount = 1
-    this.downvoteCount = 0
+    this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 1
+    this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 0
     this.emit('update', this)
   }
 }
