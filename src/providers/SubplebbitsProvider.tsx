@@ -6,7 +6,7 @@ const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits',
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:subplebbitsprovider')
 import {Props, Subplebbit, Subplebbits, Account} from '../types'
-import commentUtils from '../lib/comment-utils'
+import utils from '../lib/utils'
 
 type SubplebbitsContext = any
 
@@ -33,16 +33,16 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
     if (!subplebbit) {
       plebbitGetSubplebbitPending[subplebbitAddress + account.id] = true
       subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress)
-      await subplebbitsDatabase.setItem(subplebbitAddress, commentUtils.clone(subplebbit))
+      await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
     }
     debug('subplebbitsActions.addSubplebbitToContext', { subplebbitAddress, subplebbit, account })
     // @ts-ignore
-    setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: commentUtils.clone(subplebbit) }))
+    setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: utils.clone(subplebbit) }))
     plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
 
     // the subplebbit has published new posts
     subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
-      updatedSubplebbit = commentUtils.clone(updatedSubplebbit)
+      updatedSubplebbit = utils.clone(updatedSubplebbit)
       await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
       debug('subplebbitsContext subplebbit update', { subplebbitAddress, updatedSubplebbit, account })
       // @ts-ignore

@@ -5,7 +5,7 @@ import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:accountsprovider')
 import accountsDatabase from './accountsDatabase'
 import accountGenerator from './accountGenerator'
-import commentUtils from '../../lib/comment-utils'
+import utils from '../../lib/utils'
 import {
   Props, 
   AccountNamesToAccountIds, 
@@ -252,7 +252,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     for (const accountComment of accountCommentsWithoutCids) {
       // if author address and timestamp is the same, we assume it's the right comment
       if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
-        const commentWithCid = commentUtils.merge(accountComment, comment)
+        const commentWithCid = utils.merge(accountComment, comment)
         await accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index)
         // @ts-ignore
         setAccountsComments((previousAccounsComments) => {
@@ -287,13 +287,13 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     comment.on('update', async (updatedComment: Comment) => {
       // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
-      updatedComment = commentUtils.merge(commentArgument, comment, updatedComment)
+      updatedComment = utils.merge(commentArgument, comment, updatedComment)
       await accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex)
       // @ts-ignore
       setAccountsComments((previousAccounsComments) => {
         const updatedAccountComments = [...previousAccounsComments[account.id]]
         const previousComment = updatedAccountComments[accountCommentIndex]
-        const updatedAccountComment = commentUtils.clone({...updatedComment, index: accountCommentIndex, accountId: account.id})
+        const updatedAccountComment = utils.clone({...updatedComment, index: accountCommentIndex, accountId: account.id})
         updatedAccountComments[accountCommentIndex] = updatedAccountComment
         return { ...previousAccounsComments, [account.id]: updatedAccountComments }
       })

@@ -7,7 +7,7 @@ const commentsDatabase = localForageLru.createInstance({ name: 'comments', size:
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:commentsprovider')
 import {Props, Comment, Comments, Account} from '../types'
-import commentUtils from '../lib/comment-utils'
+import utils from '../lib/utils'
 
 type CommentsContext = any
 
@@ -35,15 +35,15 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
     if (!comment) {
       plebbitGetCommentPending[commentId + account.id] = true
       comment = await account.plebbit.getComment(commentId)
-      await commentsDatabase.setItem(commentId, commentUtils.clone(comment))
+      await commentsDatabase.setItem(commentId, utils.clone(comment))
     }
     debug('commentsActions.addCommentToContext', { commentId, comment, account })
-    setComments((previousComments) => ({ ...previousComments, [commentId]: commentUtils.clone(comment) }))
+    setComments((previousComments) => ({ ...previousComments, [commentId]: utils.clone(comment) }))
     plebbitGetCommentPending[commentId + account.id] = false
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
     comment.on('update', async (updatedComment: Comment) => {
-      updatedComment = commentUtils.clone(updatedComment)
+      updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
       debug('commentsContext comment update', { commentId, updatedComment, account })
       setComments((previousComments) => ({ ...previousComments, [commentId]: updatedComment }))

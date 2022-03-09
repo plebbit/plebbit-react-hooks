@@ -5,7 +5,7 @@ import localForage from 'localforage'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
 import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment} from '../../types'
-import commentUtils from '../../lib/comment-utils'
+import utils from '../../lib/utils'
 
 const getAccounts = async (accountIds: string[]) => {
   validator.validateAccountsDatabaseGetAccountsArguments(accountIds)
@@ -87,7 +87,7 @@ const addAccountComment = async (
 ) => {
   const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
   const length = (await accountCommentsDatabase.getItem('length')) || 0
-  comment = commentUtils.clone({ ...comment, signer: undefined })
+  comment = utils.clone({ ...comment, signer: undefined })
   if (typeof accountCommentIndex === 'number') {
     assert(
       accountCommentIndex < length,
