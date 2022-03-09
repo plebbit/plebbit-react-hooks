@@ -568,6 +568,10 @@ describe('accounts', () => {
       expect(rendered.result.current[1].cid).toBe(undefined)
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
+      // make sure the account comment starts updating by checking if it received upvotes
+      await rendered.waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
+      expect(rendered.result.current[0].upvoteCount).toBe(3)
+
       // mock the second comment to get from plebbit.getComment()
       Plebbit.prototype.commentToGet = () => ({
         author: rendered.result.current[1].author,

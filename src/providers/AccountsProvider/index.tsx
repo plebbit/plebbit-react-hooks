@@ -264,6 +264,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           updatedAccountComments[accountComment.index] = commentWithCid
           return { ...previousAccounsComments, [accountComment.accountId]: updatedAccountComments }
         })
+
+        startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index)
         break
       }
     }
