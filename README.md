@@ -16,6 +16,9 @@
   AccountsComments (each database named accountComments-[accountId]) {
     [key: commentIndex]: AccountComment // store in array because cid is still unknown
   }
+  AccountsCommentsReplies (each database named accountCommentsReplies-[accountId]) {
+    [key: commentCid]: AccountCommentReply // keep replies to own account comments in a separate last recently used database because they should be cached for a different amount of time than regular comments and account comments
+  }
   AccountsVotes (each database named accountVotes-[accountId]) {
     [key: commentCid]: AccountVote
   }
@@ -60,7 +63,7 @@ useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export
 useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
 useAccounts(): Account[]
 useAccountsActions(): AccountsActions
-useNotifications(accountName | undefined): Notification[]
+useAccountNotifications(accountName | undefined): Notification[]
 ```
 #### Comments Hooks
 ```
@@ -104,9 +107,10 @@ Account {
   plebbit: Plebbit,
   plebbitOptions: PlebbitOptions,
   subscriptions: subplebbitAddress[],
-  addressesLimits: {[key: address]: addressLimits}, // TODO: not sure about this name, used to block/limit authors/subplebbits
+  addressesLimits: {[key: address]: AddressLimits}, // TODO: not sure about this name, used to block/limit authors/subplebbits
   theme: 'light' | 'dark,
-  karma: Karma
+  karma: Karma,
+  unreadNotificationCount: number
 }
 Karma {
   commentUpvoteCount,
@@ -121,7 +125,13 @@ Karma {
 }
 AccountComment {
   ...Comment,
-  previousAccountCommentCid: string // needed to scroll to every comment an account has published
+  index: number, // the index of the comment in the AccountComments array and database
+  accountId: string,
+  upvoteCountMarkedAsRead: number // upvote count the last time the user read it, needed for upvote notifications
+}
+AccountCommentReply {
+  ...Comment,
+  markedAsRead: boolean // has the user read this reply, needed for reply notifications
 }
 UseAccountsCommentsOptions {
   accountName?: string,
@@ -146,7 +156,7 @@ Signer {
   privateKey: string | buffer | undefined,
   type: 'plebbit1'
 }
-addressLimits { // TODO: not sure about this name, used to block/limit authors/subplebbits
+AddressLimits { // TODO: not sure about this name, used to block/limit authors/subplebbits
   feed: number,
   notifications: number,
   crossposts: number
@@ -319,6 +329,17 @@ const myVoteOnSomeComment = useAccountVote(commentCid, 'Account 2') // to get ac
 const account = useAccount()
 const comment = useComment(commentCid)
 const isMyOwnComment = account?.author.address === comment?.author.address
+```
+
+#### Get account notifications
+
+```js
+const notifications = useAccountNotifications()
+const johnsNotifications = useAccountNotifications('John')
+
+// get the unread notification counts for all accounts
+const accounts = useAccounts()
+const accountsUnreadNotificationCounts = accounts?.map(account => account.unreadNotificationsCount)
 ```
 
 ### Install
