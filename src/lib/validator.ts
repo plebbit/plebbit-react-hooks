@@ -146,7 +146,29 @@ export const validateUseCommentsArguments = (commentCids: any, account: any) => 
   }
   assert(
     account?.plebbit && typeof account?.plebbit === 'object',
-    `useComment account.plebbit '${account?.plebbit}' not an object`
+    `useComments account.plebbit '${account?.plebbit}' not an object`
+  )
+}
+
+export const validateUseSubplebbitArguments = (subplebbitAddress: any, account: any) => {
+  assert(typeof subplebbitAddress === 'string', `useSubplebbit subplebbitAddress '${subplebbitAddress}' not a string`)
+  assert(
+    account?.plebbit && typeof account?.plebbit === 'object',
+    `useSubplebbit account.plebbit '${account?.plebbit}' not an object`
+  )
+}
+
+export const validateUseSubplebbitsArguments = (subplebbitAddresses: any, account: any) => {
+  assert(Array.isArray(subplebbitAddresses), 'useSubplebbit subplebbitAddresses not an array')
+  for (const subplebbitAddress of subplebbitAddresses) {
+    assert(
+      typeof subplebbitAddress === 'string',
+      `useSubplebbits subplebbitAddresses '${subplebbitAddresses}' subplebbitAddress '${subplebbitAddress}' not a string`
+    )
+  }
+  assert(
+    account?.plebbit && typeof account?.plebbit === 'object',
+    `useSubplebbit account.plebbit '${account?.plebbit}' not an object`
   )
 }
 
@@ -162,6 +184,8 @@ const validator = {
   validateAccountsProviderAccountNames,
   validateUseCommentArguments,
   validateUseCommentsArguments,
+  validateUseSubplebbitArguments,
+  validateUseSubplebbitsArguments
 }
 
 export default validator

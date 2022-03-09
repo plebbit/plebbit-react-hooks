@@ -21,3 +21,5 @@ export type CreateCommentOptions = any
 export type CreateVoteOptions = any
 export type Comment = any
 export type CommentsContext = any
+export type Subplebbit = any
+export type Subplebbits = any

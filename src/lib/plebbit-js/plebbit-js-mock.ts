@@ -10,9 +10,6 @@ export class Plebbit {
   createComment(createCommentOptions: any) {
     return new Comment(createCommentOptions)
   }
-  createVote() {
-    return new Vote()
-  }
 
   async getComment(commentCid: string) {
     await waitForLoad()
@@ -31,6 +28,62 @@ export class Plebbit {
       // author: {address: 'mock some address'},
       // timestamp: 1234
     }
+  }
+
+  createVote() {
+    return new Vote()
+  }
+
+  createSubplebbit(createSubplebbitOptions: any) {
+    return new Subplebbit(createSubplebbitOptions)
+  }
+
+  async getSubplebbit(subplebbitAddress: string) {
+    await waitForLoad()
+    const createSubplebbitOptions = {
+      address: subplebbitAddress
+    }
+    const subplebbit: any = new Subplebbit(createSubplebbitOptions)
+    // mock properties of subplebbitToGet unto the subplebbit instance
+    for (const prop in this.subplebbitToGet(subplebbit)) {
+      subplebbit[prop] = this.subplebbitToGet(subplebbit)[prop]
+    }
+    return subplebbit
+  }
+
+  // mock this method to get a subplebbit with different title, posts, address, etc
+  subplebbitToGet(subplebbit?: any): any {
+    if (subplebbit) {
+      return {
+        title: subplebbit.address + ' title'
+      }
+    }
+    return {}
+  }
+}
+
+export class Subplebbit extends EventEmitter {
+  address: string | undefined
+  title: string | undefined
+  description: string | undefined
+  sortedPosts: any
+  sortedPostsCids: any
+
+  constructor(createSubplebbitOptions?: any) {
+    super()
+    this.address = createSubplebbitOptions?.address
+
+    // is ipnsName is known, look for updates and emit updates immediately after creation
+    if (this.address) {
+      waitForLoad().then(() => {
+        this.simulateUpdateEvent()
+      })
+    }
+  }
+
+  simulateUpdateEvent() {
+    this.description = this.address + ' description updated'
+    this.emit('update', this)
   }
 }
 
@@ -115,7 +168,7 @@ export class Comment extends Publication {
   }
 }
 
-class Vote extends Publication {}
+export class Vote extends Publication {}
 
 export default function () {
   return new Plebbit()

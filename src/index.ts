@@ -13,6 +13,7 @@ import {
 } from './hooks/accounts'
 
 import { useComment, useComments } from './hooks/comments'
+import { useSubplebbit, useSubplebbits } from './hooks/subplebbits'
 
 const hooks = {
   PlebbitProvider,
@@ -23,6 +24,8 @@ const hooks = {
   useAccountVotes,
   useAccountVote,
   useComment,
+  useSubplebbit, 
+  useSubplebbits
 }
 
 export {
@@ -35,6 +38,8 @@ export {
   useAccountVote,
   useComment,
   useComments,
+  useSubplebbit, 
+  useSubplebbits,
   // types
   UseAccountCommentsOptions,
   UseAccountCommentsFilter,

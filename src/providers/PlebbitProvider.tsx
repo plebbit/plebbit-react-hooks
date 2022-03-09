@@ -1,6 +1,7 @@
 import React from 'react'
 import AccountsProvider from './AccountsProvider'
 import CommentsProvider from './CommentsProvider'
+import SubplebbitsProvider from './SubplebbitsProvider'
 import {Props} from '../types'
 
 export default function PlebbitProvider(props: Props): JSX.Element | null {
@@ -10,7 +11,9 @@ export default function PlebbitProvider(props: Props): JSX.Element | null {
 
   return (
     <AccountsProvider>
-      <CommentsProvider>{props.children}</CommentsProvider>
+      <SubplebbitsProvider>
+        <CommentsProvider>{props.children}</CommentsProvider>
+      </SubplebbitsProvider>
     </AccountsProvider>
   )
 }

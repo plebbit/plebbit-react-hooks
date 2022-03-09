@@ -362,12 +362,15 @@ yarn test
 
 ```
 DEBUG=* yarn test
+DEBUG=plebbitreacthooks:* yarn test
+DEBUG=plebbitreacthooks:hooks:* yarn test
+DEBUG=plebbitreacthooks:hooks:accounts yarn test
 ```
 
 #### Test single file
 
 ```
-DEBUG=* yarn test file-name
+yarn test file-name
 ```
 
 > Note: some async tests might fail randomly in different environments because of timing, it can be fixed by waiting for something specific:

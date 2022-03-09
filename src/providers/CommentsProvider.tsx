@@ -37,7 +37,7 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
       comment = await account.plebbit.getComment(commentId)
       await commentsDatabase.setItem(commentId, commentUtils.clone(comment))
     }
-    debug('commentsActions.addComment', { commentId, comment, account })
+    debug('commentsActions.addCommentToContext', { commentId, comment, account })
     setComments((previousComments) => ({ ...previousComments, [commentId]: commentUtils.clone(comment) }))
     plebbitGetCommentPending[commentId + account.id] = false
 
@@ -45,7 +45,7 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
     comment.on('update', async (updatedComment: Comment) => {
       updatedComment = commentUtils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
-      debug('commentsContext comment update', { commentId, comment, account })
+      debug('commentsContext comment update', { commentId, updatedComment, account })
       setComments((previousComments) => ({ ...previousComments, [commentId]: updatedComment }))
     })
 
@@ -77,9 +77,11 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
   }
   const comment = account.plebbit.createComment(commentData)
   // add potential missing data from the database onto the comment instance
+  // should not be necessary if Plebbit.createComment is implemented properly
   for (const prop in commentData) {
     if (comment[prop] === undefined || comment[prop] === null) {
-      if (commentData[prop] !== undefined && commentData[prop] !== null) comment[prop] = commentData[prop]
+      if (commentData[prop] !== undefined && commentData[prop] !== null) 
+        comment[prop] = commentData[prop]
     }
   }
   return comment

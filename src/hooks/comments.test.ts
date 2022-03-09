@@ -1,4 +1,4 @@
-import { act, renderHook, suppressErrorOutput } from '@testing-library/react-hooks'
+import { act, renderHook } from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import { useComment, useComments } from '../index'
 import PlebbitProvider from '../providers/PlebbitProvider'
