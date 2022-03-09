@@ -24,7 +24,7 @@ export const generateDefaultAccount = async () => {
     plebbit: PlebbitJs.Plebbit(plebbitOptions),
     plebbitOptions,
     subscriptions: [],
-    addressesLimits: {},
+    blockedAddresses: {},
   }
   return account
 }

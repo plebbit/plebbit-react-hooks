@@ -242,6 +242,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     return vote
   }
 
+  accountsActions.blockAddress = async (address: string | number, accountName?: string) => {
+    throw Error('TODO: not implemented')
+  }
+
   // internal accounts action: the comment CID is not known at the time of publishing, so every time
   // we fetch a new comment, check if its our own, and attempt to add the CID
   const addCidToAccountComment = async (comment: Comment) => {

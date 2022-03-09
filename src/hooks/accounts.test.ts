@@ -45,7 +45,7 @@ describe('accounts', () => {
       expect(account.author.displayName).toBe(null)
       expect(typeof account.author.address).toBe('string')
       expect(Array.isArray(account.subscriptions)).toBe(true)
-      expect(account.addressesLimits && typeof account.addressesLimits === 'object').toBe(true)
+      expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').toBe(true)
       expect(account.plebbit && typeof account.plebbit === 'object').toBe(true)
       expect(account.plebbitOptions.ipfsGatewayUrl).toBe('https://cloudflare-ipfs')
       expect(account.plebbitOptions.ipfsApiUrl).toBe('http://localhost:8080')
