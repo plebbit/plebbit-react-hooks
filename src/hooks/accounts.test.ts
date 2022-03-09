@@ -338,12 +338,12 @@ describe('accounts', () => {
         comment = onChallenge.mock.calls[0][1]
         expect(challenge.type).toBe('CHALLENGE')
         expect(challenge.challenges[0]).toEqual({ challenge: '2+2=?', type: 'text' })
-        expect(typeof comment.publishChallengeAnswer).toBe('function')
+        expect(typeof comment.publishChallengeAnswers).toBe('function')
       })
 
       test('onChallengeVerification gets called', async () => {
         // publish challenge answer and wait for verification
-        comment.publishChallengeAnswer(['4'])
+        comment.publishChallengeAnswers(['4'])
         await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
         expect(onChallengeVerification.mock.calls.length).toBe(1)
         const challengeVerification = onChallengeVerification.mock.calls[0][0]
@@ -382,12 +382,12 @@ describe('accounts', () => {
         vote = onChallenge.mock.calls[0][1]
         expect(challenge.type).toBe('CHALLENGE')
         expect(challenge.challenges[0]).toEqual({ challenge: '2+2=?', type: 'text' })
-        expect(typeof vote.publishChallengeAnswer).toBe('function')
+        expect(typeof vote.publishChallengeAnswers).toBe('function')
       })
 
       test('onChallengeVerification gets called', async () => {
         // publish challenge answer and wait for verification
-        vote.publishChallengeAnswer(['4'])
+        vote.publishChallengeAnswers(['4'])
         await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
         expect(onChallengeVerification.mock.calls.length).toBe(1)
         const challengeVerification = onChallengeVerification.mock.calls[0][0]
@@ -508,8 +508,8 @@ describe('accounts', () => {
       // wait for all on challenge to be called
       await rendered.waitFor(() => onChallenge.mock.calls.length === 6)
       // publish challenge answers for comment 1 and 2
-      onChallenge.mock.calls[0][1].publishChallengeAnswer(['4'])
-      onChallenge.mock.calls[1][1].publishChallengeAnswer(['4'])
+      onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
+      onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
       // wait for all on challengeverification to be called
       await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 2)
       expect(rendered.result.current.accountComments.length).toBe(3)
@@ -621,9 +621,9 @@ describe('accounts', () => {
     test(`account has karma after comments are published`, async () => {
       await rendered.waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
       // answer challenges to get the comments published
-      onChallenge.mock.calls[0][1].publishChallengeAnswer(['4'])
-      onChallenge.mock.calls[1][1].publishChallengeAnswer(['4'])
-      onChallenge.mock.calls[2][1].publishChallengeAnswer(['4'])
+      onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
+      onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
+      onChallenge.mock.calls[2][1].publishChallengeAnswers(['4'])
 
       await rendered.waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9) 
       expect(rendered.result.current.account.karma.score).toBe(6)

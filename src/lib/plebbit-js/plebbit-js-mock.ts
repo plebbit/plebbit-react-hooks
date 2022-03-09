@@ -7,33 +7,6 @@ const loadTime = 10
 const waitForLoad = () => new Promise((r) => setTimeout(r, loadTime))
 
 export class Plebbit {
-  createComment(createCommentOptions: any) {
-    return new Comment(createCommentOptions)
-  }
-
-  async getComment(commentCid: string) {
-    await waitForLoad()
-    const createCommentOptions = {
-      cid: commentCid,
-      ipnsName: commentCid + ' ipns name',
-      ...this.commentToGet(),
-    }
-    return new Comment(createCommentOptions)
-  }
-
-  // mock this method to get a comment with different content, timestamp, address, etc
-  commentToGet() {
-    return {
-      // content: 'mock some content'
-      // author: {address: 'mock some address'},
-      // timestamp: 1234
-    }
-  }
-
-  createVote() {
-    return new Vote()
-  }
-
   createSubplebbit(createSubplebbitOptions: any) {
     return new Subplebbit(createSubplebbitOptions)
   }
@@ -59,6 +32,33 @@ export class Plebbit {
       }
     }
     return {}
+  }
+
+  createComment(createCommentOptions: any) {
+    return new Comment(createCommentOptions)
+  }
+
+  async getComment(commentCid: string) {
+    await waitForLoad()
+    const createCommentOptions = {
+      cid: commentCid,
+      ipnsName: commentCid + ' ipns name',
+      ...this.commentToGet(),
+    }
+    return new Comment(createCommentOptions)
+  }
+
+  // mock this method to get a comment with different content, timestamp, address, etc
+  commentToGet() {
+    return {
+      // content: 'mock some content'
+      // author: {address: 'mock some address'},
+      // timestamp: 1234
+    }
+  }
+
+  createVote() {
+    return new Vote()
   }
 }
 
@@ -112,7 +112,7 @@ class Publication extends EventEmitter {
     this.emit('challenge', challengeMessage, this)
   }
 
-  async publishChallengeAnswer(challengeAnswers: string[]) {
+  async publishChallengeAnswers(challengeAnswers: string[]) {
     await waitForLoad()
     this.simulateChallengeVerificationEvent()
   }
