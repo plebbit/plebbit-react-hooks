@@ -3,8 +3,8 @@ export { mockPlebbitJs as mockPlebbitJs } from '.'
 
 // TODO: make load time changeable with env variable
 // so the frontend can test with latency
-const loadTime = 10
-const waitForLoad = () => new Promise((r) => setTimeout(r, loadTime))
+const loadingTime = 10
+const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
 export class Plebbit {
   createSubplebbit(createSubplebbitOptions: any) {
@@ -12,7 +12,7 @@ export class Plebbit {
   }
 
   async getSubplebbit(subplebbitAddress: string) {
-    await waitForLoad()
+    await simulateLoadingTime()
     const createSubplebbitOptions = {
       address: subplebbitAddress
     }
@@ -27,8 +27,13 @@ export class Plebbit {
   // mock this method to get a subplebbit with different title, posts, address, etc
   subplebbitToGet(subplebbit?: any): any {
     if (subplebbit) {
+      const sortedPostsByHot = {
+        nextSortedCommentsCid: 'Qm...', 
+        comments: [new Comment({cid: subplebbit.address + ' sorted post cid 1'})]
+      }
       return {
-        title: subplebbit.address + ' title'
+        title: subplebbit.address + ' title',
+        sortedPosts: {hot: sortedPostsByHot}
       }
     }
     return {}
@@ -39,7 +44,7 @@ export class Plebbit {
   }
 
   async getComment(commentCid: string) {
-    await waitForLoad()
+    await simulateLoadingTime()
     const createCommentOptions = {
       cid: commentCid,
       ipnsName: commentCid + ' ipns name',
@@ -75,7 +80,7 @@ export class Subplebbit extends EventEmitter {
 
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (this.address) {
-      waitForLoad().then(() => {
+      simulateLoadingTime().then(() => {
         this.simulateUpdateEvent()
       })
     }
@@ -98,7 +103,7 @@ class Publication extends EventEmitter {
   challengeAnswerId = `a${++challengeAnswerCount}`
 
   async publish() {
-    await waitForLoad()
+    await simulateLoadingTime()
     this.simulateChallengeEvent()
   }
 
@@ -113,7 +118,7 @@ class Publication extends EventEmitter {
   }
 
   async publishChallengeAnswers(challengeAnswers: string[]) {
-    await waitForLoad()
+    await simulateLoadingTime()
     this.simulateChallengeVerificationEvent()
   }
 
@@ -154,7 +159,7 @@ export class Comment extends Publication {
 
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (this.ipnsName) {
-      waitForLoad().then(() => {
+      simulateLoadingTime().then(() => {
         this.simulateUpdateEvent()
       })
     }

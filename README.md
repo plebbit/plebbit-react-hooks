@@ -28,6 +28,9 @@
   Comments {
     [key: commentCid]: Comment // last recently used database, delete oldest data, different from AccountsComments that never expire
   }
+  Feeds {
+    [key: feedName]: FeedItem[] // last recently used database, delete oldest data
+  }
 ```
 
 ### Contexts
@@ -161,6 +164,9 @@ Challenge {
   type: 'image' | 'text' | 'audio' | 'video' | 'html', // tells the client how to display the challenge, start with implementing image and text only first
   challenge: buffer // data required to complete the challenge, could be html, png, etc.
 }
+FeedItem {
+  cid?: string // Currently feeds are used to reference comments, but might reference other stuff later
+}
 ```
 
 #### Getting started
@@ -277,6 +283,21 @@ publishComment({
 
 #### Get feed
 
+```js
+import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
+const {feed, hasMore, loadMore} = useFeed(subplebbitAddress)
+const posts = feed.map(post => <Post post={post} />)
+
+<InfiniteScroll
+  pageStart={0}
+  loadMore={loadMore}
+  hasMore={hasMore}
+  loader={<div>Loading...</div>}
+>
+  {posts}
+</InfiniteScroll>
+```
+
 #### Edit an account
 
 ```js
@@ -365,6 +386,7 @@ DEBUG=* yarn test
 DEBUG=plebbitreacthooks:* yarn test
 DEBUG=plebbitreacthooks:hooks:* yarn test
 DEBUG=plebbitreacthooks:hooks:accounts yarn test
+DEBUG=plebbitreacthooks:hooks:accounts DEBUG_DEPTH=6 yarn test feeds
 ```
 
 #### Test single file

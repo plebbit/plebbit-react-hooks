@@ -1,3 +1,8 @@
+// fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
+if (process?.env?.DEBUG_DEPTH) {
+  require("util").inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
+}
+
 import PlebbitProvider from './providers/PlebbitProvider'
 import {
   useAccount,
@@ -14,6 +19,7 @@ import {
 
 import { useComment, useComments } from './hooks/comments'
 import { useSubplebbit, useSubplebbits } from './hooks/subplebbits'
+import { useFeed } from './hooks/feeds'
 
 const hooks = {
   PlebbitProvider,
@@ -25,7 +31,8 @@ const hooks = {
   useAccountVote,
   useComment,
   useSubplebbit, 
-  useSubplebbits
+  useSubplebbits,
+  useFeed
 }
 
 export {
@@ -40,6 +47,7 @@ export {
   useComments,
   useSubplebbit, 
   useSubplebbits,
+  useFeed,
   // types
   UseAccountCommentsOptions,
   UseAccountCommentsFilter,
