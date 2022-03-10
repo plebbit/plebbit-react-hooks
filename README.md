@@ -44,15 +44,23 @@ AccountsContext (store in indexeddb permanently) {
   accountsComments: {[key: accountName]: AccountComment[]}, // cid of comment unknown at time of posting, so store it in array
   accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}},
   accountsActions: AccountsActions
+  // internal
+  addCidToAccountComment(comment: Comment) // TODO: add to function to every post fetched by Feeds and Subplebbits context
 }
 CommentsContext (store in indexeddb last recently used) {
   comments: {[key: commentCid]: Comment}
+  // internal
+  addCommentToContext(commentCid)
 }
 SubplebbitsContext (store in indexeddb last recently used) {
-  comments: {[key: commentCid]: Comment}
+  subplebbits: {[key: subplebbitAddress]: Subplebbit}
+  // internal
+  addSubplebbitToContext(subplebbitAddress)
 }
 FeedsContext (no persistant storage, can be rebuilt from subplebbits and comments persistant storage) {
-  // TODO
+  feeds: {[key: feedName]: Feed}
+  // internal
+  addFeedToContext(feedName, subplebbitAddresses, sortedBy, account)
 }
 ```
 
