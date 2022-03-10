@@ -29,22 +29,13 @@
     [key: commentCid]: Comment // last recently used database, delete oldest data, different from AccountsComments that never expire
   }
   Feeds {
-    [key: feedName]: FeedItem[] // last recently used database, delete oldest data
+    [key: feedName]: FeedItem[] // last recently used database, delete oldest data?
   }
 ```
 
 ### Contexts
 
 ```
-SubplebbitsContext (store in indexeddb last recently used) {
-  // TODO
-}
-FeedsContext (no persistant storage, can be rebuilt from subplebbits and comments persistant storage) {
-  // TODO
-}
-CommentsContext (store in indexeddb last recently used) {
-  comments: {[key: commentCid]: Comment},
-}
 AccountsContext (store in indexeddb permanently) {
   accounts: {[key: accountName]: Account}
   accountNames: string[], 
@@ -53,6 +44,15 @@ AccountsContext (store in indexeddb permanently) {
   accountsComments: {[key: accountName]: AccountComment[]}, // cid of comment unknown at time of posting, so store it in array
   accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}},
   accountsActions: AccountsActions
+}
+CommentsContext (store in indexeddb last recently used) {
+  comments: {[key: commentCid]: Comment}
+}
+SubplebbitsContext (store in indexeddb last recently used) {
+  comments: {[key: commentCid]: Comment}
+}
+FeedsContext (no persistant storage, can be rebuilt from subplebbits and comments persistant storage) {
+  // TODO
 }
 ```
 
@@ -211,7 +211,6 @@ console.log(account.name) // 'Account 1'
 
 // you are now publishing from 'Account 3' because it is the active one
 await publishComment(comment)
-
 ```
 
 #### Get a post
@@ -360,8 +359,31 @@ const accountsUnreadNotificationCounts = accounts?.map(account => account.unread
 
 #### Create a subplebbit
 
+```
+```
+
 #### Edit your subplebbit settings
 
+```
+```
+
+### Algorithms
+
+#### Account notifications and own comment updates
+
+On startup, and every time a comment is created, it is added to the AccountsComments context and database. On the comment challengeverification event, the comment CID is received from the subplebbit owner, and we can start listening to comment update events, and update the context and database every time. Sometimes the user closes the page and the challengeverification event is never received, so every time a comment, subplebbit or sortedComments is fetched, we awkwardly check to see if it has one of our own comment with a missing CID, and update it if found. 
+
+AccountsCommentsReplies are found on the comment update events and are stored in a last rencently used database and have the field "markedAsRead" once read.
+
+#### Feed pages and infinite scrolling
+
+#### Comments trees and infinite scrolling
+
+Currently not implemented. Only uses the preloaded replies to a post.
+
+#### Accounts settings persistance, export, import and caching
+
+All accounts settings, accounts comments and accounts votes are stored permanently in the various IndexedDb databases. Import from file and export to file are possible but not yet implemented. Ephemeral data like random subplebbits, comments and feeds are stored in last recently used IndexedDb databases, and eventually erased.
 
 ### Install
 
