@@ -27,16 +27,45 @@ export class Plebbit {
   // mock this method to get a subplebbit with different title, posts, address, etc
   subplebbitToGet(subplebbit?: any): any {
     if (subplebbit) {
-      const sortedPostsByHot = {
-        nextSortedCommentsCid: 'Qm...', 
-        comments: [new Comment({cid: subplebbit.address + ' sorted post cid 1'})]
-      }
       return {
         title: subplebbit.address + ' title',
-        sortedPosts: {hot: sortedPostsByHot}
+        sortedPosts: {hot: this.sortedCommentsToGet({subplebbit})},
+        sortedPostsCids: {
+          hot: subplebbit.address + ' sorted posts cid hot',
+          top: subplebbit.address + ' sorted posts cid top',
+          old: subplebbit.address + ' sorted posts cid old'
+        }
       }
     }
     return {}
+  }
+
+  async getSortedComments(sortedCommentsCid: string) {
+    return this.sortedCommentsToGet({sortedCommentsCid})
+  }
+
+  // mock this method to get a different result from plebbit.getSortedComments
+  sortedCommentsToGet(options?: any) {
+    let commentCidPrefix = ''
+    let nextSortedCommentsCidPrefix = ''
+    if (options?.subplebbit?.address) {
+      commentCidPrefix += options.subplebbit.address + ' '
+      nextSortedCommentsCidPrefix += options.subplebbit.address + ' '
+    }
+    if (options?.sortedCommentsCid) {
+      commentCidPrefix += options.sortedCommentsCid + ' '
+      nextSortedCommentsCidPrefix += options.sortedCommentsCid + ' '
+    }
+    const sortedComments: any = {
+      nextSortedCommentsCid: nextSortedCommentsCidPrefix + 'next sorted comments cid', 
+      comments: []
+    }
+    const postCount = 100
+    let index = 0
+    while (index++ < postCount) {
+      sortedComments.comments.push({cid: commentCidPrefix + 'sorted comment cid ' + index})
+    }
+    return sortedComments
   }
 
   createComment(createCommentOptions: any) {

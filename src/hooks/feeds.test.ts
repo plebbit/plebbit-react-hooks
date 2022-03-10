@@ -40,7 +40,7 @@ describe('feeds', () => {
       expect(typeof rendered.result.current.loadMore).toBe('function')
     })
 
-    test('get feed with 1 subplebbit', async () => {
+    test.only('get feed page 1 with 1 subplebbit ', async () => {
       // get feed with 1 sub
       rendered.rerender(['subplebbit address 1'])
       // initial state
@@ -53,17 +53,53 @@ describe('feeds', () => {
 
       // wait for posts to be added
       await rendered.waitFor(() => rendered.result.current.feed.length > 0)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted post cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot sorted comment cid 1')
+      // reddit pages are 25
+      expect(rendered.result.current.feed.length).toBe(25)
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
       const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1']), { wrapper: PlebbitProvider })
       expect(rendered2.result.current.feed).toBe(undefined)
       // only wait for 1 render because subplebbit is stored in db
       await rendered2.waitForNextUpdate()
-      expect(rendered2.result.current.feed[0].cid).toBe('subplebbit address 1 sorted post cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot sorted comment cid 1')
+      expect(rendered.result.current.feed.length).toBe(25)
     })
 
+    // test('get feed page 1 with multiple subplebbits', async () => {
+    //   // get feed with 3 subs
+    //   rendered.rerender(['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'])
+    //   // initial state
+    //   expect(typeof rendered.result.current.hasMore).toBe('boolean')
+    //   expect(typeof rendered.result.current.loadMore).toBe('function')
+
+    //   // wait for feed array to render
+    //   await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))
+    //   expect(rendered.result.current.feed).toEqual([])
+
+    //   // wait for posts to be added
+    //   await rendered.waitFor(() => rendered.result.current.feed.length >= 3)
+    //   expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted comment cid 1')
+    //   expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 sorted comment cid 1')
+    //   expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 sorted comment cid 1')
+
+    //   // get feed again from database, only wait for 1 render because subplebbit is stored in db
+    //   const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']), { wrapper: PlebbitProvider })
+    //   expect(rendered2.result.current.feed).toBe(undefined)
+    //   // only wait for 1 render because subplebbit is stored in db
+    //   await rendered2.waitForNextUpdate()
+    //   expect(rendered2.result.current.feed[0].cid).toBe('subplebbit address 1 sorted comment cid 1')
+    //   expect(rendered2.result.current.feed[1].cid).toBe('subplebbit address 2 sorted comment cid 1')
+    //   expect(rendered2.result.current.feed[2].cid).toBe('subplebbit address 3 sorted comment cid 1')
+    // })
+
     test.todo('get feed sorted by top')
+
+    test.todo('get feed using a different account')
+
+    test.todo('get feed and scroll to multiple pages')
+
+    test.todo('get feed and scroll to multiple pages, multiple subplebbits with different page sizes')
 
     test.todo(`fail to get feed sorted by something that doesn't exist`)
   })

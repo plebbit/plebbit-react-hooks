@@ -8,13 +8,19 @@ import {Props, Feed, Feeds, Account} from '../types'
 
 type FeedsContext = any
 
+// reddit loads approximately 25 posts per page
+// while infinite scrolling
+const postsPerPage = 25
+
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
   const [feedsOptions, setFeedsOptions] = useState({})
 
   const subplebbits = useSubplebbits(feedsOptions)
-  const feeds = useFeeds(feedsOptions, subplebbits)
+  const sortedPostsInfo = useSortedPostsInfo(feedsOptions, subplebbits)
+  const sortedPosts = useSortedPosts(sortedPostsInfo)
+  const feeds = useFeeds(feedsOptions, sortedPostsInfo, sortedPosts)
 
   const feedsActions: any = {}
 
@@ -38,30 +44,95 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     feedsActions,
   }
 
-  debug({ feedsContext: feeds, feedsOptions, subplebbits })
+  debug({ feedsContext: feeds, feedsOptions, sortedPostsInfo, sortedPosts })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
 }
 
-function useFeeds(feedsOptions: any, subplebbits: any) {
+function useSortedPosts(sortedPostsInfo: any) {
+  const [sortedPosts, setSortedPosts] = useState({})
+
+  const pending: any = {}
+
+  useEffect(() => {
+    for (const sortedPostsCid in sortedPostsInfo) {
+      const account = sortedPostsInfo[sortedPostsCid].account
+      // sorted posts already fetched or fetching
+      // @ts-ignore
+      if (sortedPosts[sortedPostsCid] || pending[account.id + sortedPostsCid]) {
+        continue
+      }
+
+      pending[account.id + sortedPostsCid] = true
+      // @ts-ignore
+      account.plebbit.getSortedComments(sortedPostsCid).then((fetchedSortedPosts) => {
+        setSortedPosts(previousSortedPosts => ({...previousSortedPosts, [sortedPostsCid]: fetchedSortedPosts}))
+        pending[account.id + sortedPostsCid] = false
+      })
+    }
+  }, [sortedPostsInfo])
+
+  return sortedPosts
+}
+
+function useSortedPostsInfo(feedsOptions: any, subplebbits: any) {
+  return useMemo(() => {
+    const sortedPostsInfo: any = {}
+    for (const feedName in feedsOptions) {
+      const {subplebbitAddresses, sortedBy, account} = feedsOptions[feedName]
+      for (const subplebbitAddress of subplebbitAddresses) {
+        const subplebbit = subplebbits[subplebbitAddress]
+        const sortedPostsCid = subplebbit?.sortedPostsCids?.[sortedBy]
+        if (sortedPostsCid) {
+          sortedPostsInfo[sortedPostsCid] = {
+            sortedPostsCid, 
+            account, 
+            subplebbitAddress, 
+            sortedBy
+          }
+        }
+      }
+    }
+    return sortedPostsInfo
+  }, [feedsOptions, subplebbits])
+}
+
+function useFeeds(feedsOptions: any, sortedPostsInfo: any, sortedPosts: any) {
   return useMemo(() => {
     const feeds: any = {}
     for (const feedName in feedsOptions) {
       const {subplebbitAddresses, sortedBy} = feedsOptions[feedName]
-      const feedPosts = []
+
+      // find all sorted posts cids that match the subplebbit addresses and sorted by
+      const sortedPostsCids = []
       for (const subplebbitAddress of subplebbitAddresses) {
-        const subplebbit = subplebbits[subplebbitAddress]
-        const sortedPosts = subplebbit?.sortedPosts?.[sortedBy]?.comments
-        if (!subplebbit || !sortedPosts) {
-          continue
+        for (const sortedPostsCid in sortedPostsInfo) {
+          const info = sortedPostsInfo[sortedPostsCid]
+          if (info.sortedBy !== sortedBy) {
+            continue
+          }
+          if (info.subplebbitAddress !== subplebbitAddress) {
+            continue
+          }
+          sortedPostsCids.push(sortedPostsCid)
         }
-        for (const post of sortedPosts) {
-          feedPosts.push(post)
+      }
+
+      // find all fetched posts
+      const feedPosts = []
+      for (const sortedPostsCid of sortedPostsCids) {
+        if (sortedPosts[sortedPostsCid]?.comments) {
+          feedPosts.push(...sortedPosts[sortedPostsCid].comments)
         }
+      }
+
+      // only deliver the current page
+      if (feedPosts.length > postsPerPage) {
+        feedPosts.length = postsPerPage
       }
       feeds[feedName] = feedPosts
     }
     return feeds
-  }, [feedsOptions, subplebbits])
+  }, [feedsOptions, sortedPostsInfo, sortedPosts])
 }
 
 function useSubplebbits(feedsOptions: any) {
@@ -81,7 +152,7 @@ function useSubplebbits(feedsOptions: any) {
     }
   }, [subplebbitAddressesAndAccounts])
 
-  debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits })
+  // debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits })
   return subplebbits
 }
 
