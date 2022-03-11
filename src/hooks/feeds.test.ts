@@ -23,6 +23,9 @@ describe('feeds', () => {
   })
 
   describe('get feed sorted by default', () => {
+    // reddit infinite scrolling posts per pages are 25
+    const postsPerPage = 25
+
     let rendered: any
     beforeEach(async () => {
       // @ts-ignore
@@ -40,7 +43,7 @@ describe('feeds', () => {
       expect(typeof rendered.result.current.loadMore).toBe('function')
     })
 
-    test.only('get feed page 1 with 1 subplebbit ', async () => {
+    test('get feed page 1 with 1 subplebbit ', async () => {
       // get feed with 1 sub
       rendered.rerender(['subplebbit address 1'])
       // initial state
@@ -51,11 +54,10 @@ describe('feeds', () => {
       await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))
       expect(rendered.result.current.feed).toEqual([])
 
-      // wait for posts to be added
+      // wait for posts to be added, should get full first page
       await rendered.waitFor(() => rendered.result.current.feed.length > 0)
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot sorted comment cid 1')
-      // reddit pages are 25
-      expect(rendered.result.current.feed.length).toBe(25)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
       const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1']), { wrapper: PlebbitProvider })
@@ -63,7 +65,25 @@ describe('feeds', () => {
       // only wait for 1 render because subplebbit is stored in db
       await rendered2.waitForNextUpdate()
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot sorted comment cid 1')
-      expect(rendered.result.current.feed.length).toBe(25)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+    })
+
+    test('get feed and scroll to multiple pages', async () => {
+      const restore = testUtils.silenceTestWasNotWrappedInActWarning()
+      // get feed with 1 sub
+      rendered.rerender(['subplebbit address 1'])
+      let pages = 20
+      let currentPage = 1
+      while (currentPage++ < pages) {
+        // load 25 more posts
+        rendered.result.current.loadMore()
+        try {
+          await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage * currentPage)
+        }
+        catch (e) {}
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * currentPage)
+      }
+      restore()
     })
 
     // test('get feed page 1 with multiple subplebbits', async () => {
@@ -102,5 +122,7 @@ describe('feeds', () => {
     test.todo('get feed and scroll to multiple pages, multiple subplebbits with different page sizes')
 
     test.todo(`fail to get feed sorted by something that doesn't exist`)
+
+    test.todo(`scroll to end of feed, hasMore becomes false`)
   })
 })

@@ -11,28 +11,44 @@ type FeedsContext = any
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 const postsPerPage = 25
+// keep large buffer because fetching cids is slow
+const subplebbitPostsLeftBeforeNextPage = 50
 
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
   const [feedsOptions, setFeedsOptions] = useState({})
+  const [feeds, setFeeds] = useState({})
 
+  // fetch subplebbits, sorted posts and next pages whenever feeds buffer gets too low
   const subplebbits = useSubplebbits(feedsOptions)
-  const sortedPostsInfo = useSortedPostsInfo(feedsOptions, subplebbits)
-  const sortedPosts = useSortedPosts(sortedPostsInfo)
-  const feeds = useFeeds(feedsOptions, sortedPostsInfo, sortedPosts)
+  const feedsSortedPostsInfo = useFeedsSortedPostsInfo(feedsOptions, subplebbits, feeds)
+  const feedsSortedPostsPages = useFeedsSortedPostsPages(feedsSortedPostsInfo)
+  const paginatedFeeds = usePaginatedFeeds(feedsOptions, feeds)
+  updateFeeds(feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, setFeeds)
 
   const feedsActions: any = {}
 
-  feedsActions.addFeedToContext = async (feedName: string, subplebbitAddresses: string[], sortedBy: string, account: Account) => {
+  feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortedBy: string, account: Account) => {
     // feed is in context already, do nothing
     // @ts-ignore
     if (feedsOptions[feedName]) {
       return
     }
-    const feedOptions = {subplebbitAddresses, sortedBy, account}
+    const feedOptions = {subplebbitAddresses, sortedBy, account, pageNumber: 1}
     debug('feedsActions.addFeedToContext', feedOptions)
     setFeedsOptions(previousFeedsOptions => ({...previousFeedsOptions, [feedName]: feedOptions}))
+  }
+
+  feedsActions.incrementFeedPageNumber = async (feedName: string) => {
+    // @ts-ignore
+    assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
+    debug('feedsActions.incrementFeedPageNumber', {feedName})
+    setFeedsOptions(previousFeedsOptions => {
+      // @ts-ignore
+      const feedOptions = {...previousFeedsOptions[feedName], pageNumber: previousFeedsOptions[feedName].pageNumber + 1}
+      return {...previousFeedsOptions, [feedName]: feedOptions}
+    })
   }
 
   if (!props.children) {
@@ -41,98 +57,212 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
 
   const feedsContext: FeedsContext = {
     feeds,
+    paginatedFeeds,
     feedsActions,
   }
 
-  debug({ feedsContext: feeds, feedsOptions, sortedPostsInfo, sortedPosts })
+  debug({ feedsContext: feeds, paginatedFeeds, feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
 }
 
-function useSortedPosts(sortedPostsInfo: any) {
-  const [sortedPosts, setSortedPosts] = useState({})
-
-  const pending: any = {}
-
-  useEffect(() => {
-    for (const sortedPostsCid in sortedPostsInfo) {
-      const account = sortedPostsInfo[sortedPostsCid].account
-      // sorted posts already fetched or fetching
-      // @ts-ignore
-      if (sortedPosts[sortedPostsCid] || pending[account.id + sortedPostsCid]) {
-        continue
-      }
-
-      pending[account.id + sortedPostsCid] = true
-      // @ts-ignore
-      account.plebbit.getSortedComments(sortedPostsCid).then((fetchedSortedPosts) => {
-        setSortedPosts(previousSortedPosts => ({...previousSortedPosts, [sortedPostsCid]: fetchedSortedPosts}))
-        pending[account.id + sortedPostsCid] = false
-      })
-    }
-  }, [sortedPostsInfo])
-
-  return sortedPosts
-}
-
-function useSortedPostsInfo(feedsOptions: any, subplebbits: any) {
+// calculate feeds, paginatedFeeds is same as feeds but only contains posts up to feedOptions.pageNumber
+function updateFeeds(feedsOptions: any, feedsSortedPostsInfo: any, feedsSortedPostsPages: any, setFeeds: Function) {
   return useMemo(() => {
-    const sortedPostsInfo: any = {}
+    const newFeeds: any = {}
     for (const feedName in feedsOptions) {
-      const {subplebbitAddresses, sortedBy, account} = feedsOptions[feedName]
-      for (const subplebbitAddress of subplebbitAddresses) {
-        const subplebbit = subplebbits[subplebbitAddress]
-        const sortedPostsCid = subplebbit?.sortedPostsCids?.[sortedBy]
-        if (sortedPostsCid) {
-          sortedPostsInfo[sortedPostsCid] = {
-            sortedPostsCid, 
-            account, 
-            subplebbitAddress, 
-            sortedBy
-          }
-        }
-      }
-    }
-    return sortedPostsInfo
-  }, [feedsOptions, subplebbits])
-}
-
-function useFeeds(feedsOptions: any, sortedPostsInfo: any, sortedPosts: any) {
-  return useMemo(() => {
-    const feeds: any = {}
-    for (const feedName in feedsOptions) {
+      // @ts-ignore
       const {subplebbitAddresses, sortedBy} = feedsOptions[feedName]
 
-      // find all sorted posts cids that match the subplebbit addresses and sorted by
-      const sortedPostsCids = []
+      // find all fetched posts
+      const feedPosts = []
+
+      // start by finding all sortedPostsCids
       for (const subplebbitAddress of subplebbitAddresses) {
-        for (const sortedPostsCid in sortedPostsInfo) {
-          const info = sortedPostsInfo[sortedPostsCid]
+        for (const infoName in feedsSortedPostsInfo) {
+          const info = feedsSortedPostsInfo[infoName]
           if (info.sortedBy !== sortedBy) {
             continue
           }
           if (info.subplebbitAddress !== subplebbitAddress) {
             continue
           }
-          sortedPostsCids.push(sortedPostsCid)
+
+          // found an info that matches the sub address and sorted by
+          // get all the pages for it from feedsSortedPostsPages
+          const sortedPostsPages = getAllSortedPostsPages(info.firstPageSortedPostsCid, feedsSortedPostsPages)
+
+          // add each comment from each page
+          for (const sortedPostsPage of sortedPostsPages) {
+            for (let comment of sortedPostsPage?.comments || []) {
+              if (comment.subplebbitAddress !== subplebbitAddress) {
+                // in case plebbit-js forgets to validate comment.subplebbitAddress in getSortedComments()
+                // debug(`FeedsProvider comment.subplebbitAddress '${comment.subplebbitAddress}' !== '${subplebbitAddress}', plebbit-js should validate this`)
+                // forced to override here even if it could be malicious because too difficult to mock plebbit.getSortedComments() for tests in plebbit-mock
+                // TODO: fix this when plebbit-js api changes
+                comment = {...comment, subplebbitAddress}
+              }
+              feedPosts.push(comment)
+            }
+          }
         }
+      }
+      newFeeds[feedName] = feedPosts
+    }
+    setFeeds(newFeeds)
+  }, [feedsOptions, feedsSortedPostsPages])
+}
+
+function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
+  const [sortedPostsPages, setSortedPostsPages] = useState({})
+
+  // set the info necessary to fetch each page recursively
+  // if feedPostsLeftCount is less than subplebbitPostsLeftBeforeNextPage
+  const sortedPostsPagesInfo = useMemo(() => {
+    const newSortedPostsPagesInfo: any = {}
+    for (const infoName in feedsSortedPostsInfo) {
+      const {firstPageSortedPostsCid, account, subplebbitAddress, sortedBy, feedPostsLeftCount} = feedsSortedPostsInfo[infoName]
+      // add first page
+      const sortedPostsFirstPageInfo = {sortedPostsCid: firstPageSortedPostsCid, account, subplebbitAddress, sortedBy}
+      newSortedPostsPagesInfo[firstPageSortedPostsCid + infoName] = sortedPostsFirstPageInfo
+
+      // add all next pages if needed and if available
+      if (feedPostsLeftCount <= subplebbitPostsLeftBeforeNextPage) {
+        const allPages = getAllSortedPostsPages(firstPageSortedPostsCid, sortedPostsPages)
+        for (const page of allPages) {
+          if (page.nextSortedCommentsCid) {
+            const sortedPostsNextPageInfo = {sortedPostsCid: page.nextSortedCommentsCid, account, subplebbitAddress, sortedBy}
+            newSortedPostsPagesInfo[page.nextSortedCommentsCid + infoName] = sortedPostsNextPageInfo
+          }
+        }
+      }
+    }
+    return newSortedPostsPagesInfo
+  }, [feedsSortedPostsInfo, sortedPostsPages])
+
+  // fetch sorted posts pages if needed
+  const pending: any = {}
+  useEffect(() => {
+    for (const infoName in sortedPostsPagesInfo) {
+      // @ts-ignore
+      const {sortedPostsCid, account} = sortedPostsPagesInfo[infoName]
+      // sorted posts already fetched or fetching
+      // @ts-ignore
+      if (sortedPostsPages[sortedPostsCid] || pending[account.id + sortedPostsCid]) {
+        continue
       }
 
-      // find all fetched posts
-      const feedPosts = []
-      for (const sortedPostsCid of sortedPostsCids) {
-        if (sortedPosts[sortedPostsCid]?.comments) {
-          feedPosts.push(...sortedPosts[sortedPostsCid].comments)
+      pending[account.id + sortedPostsCid] = true
+      // @ts-ignore
+      account.plebbit.getSortedComments(sortedPostsCid).then((fetchedSortedPostsPage) => {
+        debug('FeedsProvider useFeedsSortedPostsPages getSortedComments', {sortedPostsCid, infoName, fetchedSortedPostsPage})
+        setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
+        pending[account.id + sortedPostsCid] = false
+      })
+    }
+  }, [sortedPostsPagesInfo])
+
+  return sortedPostsPages
+}
+
+const getAllSortedPostsPages = (firstPageSortedPostsCid: string, feedsSortedPostsPages: any) => {
+  const pages: any = []
+  const firstPage = feedsSortedPostsPages[firstPageSortedPostsCid]
+  if (!firstPage) {
+    return pages
+  }
+  pages.push(firstPage)
+  while (true) {
+    const nextSortedCommentsCid = pages[pages.length - 1]?.nextSortedCommentsCid
+    const sortedPostsPage = feedsSortedPostsPages[nextSortedCommentsCid]
+    if (!sortedPostsPage) {
+      return pages
+    }
+    pages.push(sortedPostsPage)
+  }
+}
+
+function useFeedsSortedPostsInfo(feedsOptions: any, subplebbits: any, feeds: any) {
+  const feedsSubplebbitsPostsLeftCounts = useFeedsSubplebbitsPostsLeftCounts(feedsOptions, feeds)
+  return useMemo(() => {
+    const feedsSortedPostsInfo: any = {}
+    for (const feedName in feedsOptions) {
+      const {subplebbitAddresses, sortedBy, account} = feedsOptions[feedName]
+      for (const subplebbitAddress of subplebbitAddresses) {
+        const subplebbit = subplebbits[subplebbitAddress]
+        const sortedPostsCid = subplebbit?.sortedPostsCids?.[sortedBy]
+        if (!sortedPostsCid) {
+          continue
         }
+        const feedSortedPostsInfo = {
+          firstPageSortedPostsCid: sortedPostsCid,
+          account, 
+          subplebbitAddress, 
+          sortedBy,
+          feedPostsLeftCount: feedsSubplebbitsPostsLeftCounts?.[feedName]?.[subplebbitAddress]
+        }
+        feedsSortedPostsInfo[account.id + subplebbitAddress + sortedBy] = feedSortedPostsInfo
       }
+    }
+    return feedsSortedPostsInfo
+  }, [feedsOptions, subplebbits])
+}
+
+function useFeedsSubplebbitsPostsLeftCounts(feedsOptions: any, feeds: any) {
+  const paginatedFeeds = usePaginatedFeeds(feedsOptions, feeds) // same as feeds but only contains posts up to feedOptions.pageNumber
+  const feedsSubplebbitsPostCounts = useFeedsSubplebbitsPostCounts(feeds)
+  const paginatedFeedsSubbplebbitsPostCounts = useFeedsSubplebbitsPostCounts(paginatedFeeds)
+  return useMemo(() => {
+    const feedsSubplebbitsPostsLeftCounts: any = {}
+    for (const feedName in feedsSubplebbitsPostCounts) {
+      for (const subplebbitAddress in feedsSubplebbitsPostCounts[feedName]) {
+        const postsLeftCount = feedsSubplebbitsPostCounts[feedName][subplebbitAddress] - paginatedFeedsSubbplebbitsPostCounts[feedName][subplebbitAddress]
+        if (!feedsSubplebbitsPostsLeftCounts[feedName]) {
+          feedsSubplebbitsPostsLeftCounts[feedName] = {}
+        }
+        feedsSubplebbitsPostsLeftCounts[feedName][subplebbitAddress] = postsLeftCount
+      }
+    }
+    return feedsSubplebbitsPostsLeftCounts
+  }, [feedsSubplebbitsPostCounts, paginatedFeedsSubbplebbitsPostCounts])
+}
+
+function useFeedsSubplebbitsPostCounts(feeds: any) {
+  return useMemo(() => {
+    const feedsSubplebbitsPostCounts: any = {}
+    for (const feedName in feeds) {
+      const subplebbitsPostCounts: any = {}
+      for (const comment of feeds[feedName]) {
+        if (!subplebbitsPostCounts[comment.subplebbitAddress]) {
+          subplebbitsPostCounts[comment.subplebbitAddress] = 0
+        }
+        subplebbitsPostCounts[comment.subplebbitAddress]++
+      }
+      feedsSubplebbitsPostCounts[feedName] = subplebbitsPostCounts
+    }
+    return feedsSubplebbitsPostCounts
+  }, [feeds])
+}
+
+// same as feeds but only contains posts up to feedOptions.pageNumber
+function usePaginatedFeeds(feedsOptions: any, feeds: any) {
+  return useMemo(() => {
+    const paginatedFeeds: any = {}
+    for (const feedName in feedsOptions) {
+      if (!feeds[feedName]) {
+        continue
+      }
+      const {pageNumber} = feedsOptions[feedName]
 
       // only deliver the current page
-      if (feedPosts.length > postsPerPage) {
-        feedPosts.length = postsPerPage
+      const paginatedFeedPosts = [...feeds[feedName]]
+      const pagePostCount = pageNumber * postsPerPage
+      if (paginatedFeedPosts.length > pagePostCount) {
+        paginatedFeedPosts.length = pagePostCount
       }
-      feeds[feedName] = feedPosts
+      paginatedFeeds[feedName] = paginatedFeedPosts
     }
-    return feeds
-  }, [feedsOptions, sortedPostsInfo, sortedPosts])
+    return paginatedFeeds
+  }, [feeds, feedsOptions])
 }
 
 function useSubplebbits(feedsOptions: any) {

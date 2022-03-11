@@ -385,6 +385,12 @@ AccountsCommentsReplies are found on the comment update events and are stored in
 
 #### Feed pages and infinite scrolling
 
+A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(arguments)`, a feed with those arguments settings is added to the FeedsContext. After a feed is added to context, its subplebbits are fetched, then the first page of the SortedComments are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `FeedsSortedPostsInfo` which keeps track of `feedPostsLeftCount` for each combination of subplebbit and sort type. When `feedPostsLeftCount` gets below 50, the next page for the subplebbit and sort is fetched.
+
+When a new post page is received from IPFS, the feed not already shown to the user is recalculated, so the next page he receives will include new posts.
+
+TODO: what happens when a subplebbit updates?
+
 #### Comments trees and infinite scrolling
 
 Currently not implemented. Only uses the preloaded replies to a post.

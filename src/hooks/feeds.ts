@@ -36,7 +36,7 @@ export function useFeed(subplebbitAddresses?: string[], sortedBy = 'hot', accoun
 
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
   const feedName = useStringified([account?.id, sortedBy, uniqueSubplebbitAddresses])
-  const feed = feedName && feedsContext.feeds[feedName]
+  const feed = feedName && feedsContext.paginatedFeeds[feedName]
 
   useEffect(() => {
     if (!uniqueSubplebbitAddresses || !account) {
@@ -49,8 +49,13 @@ export function useFeed(subplebbitAddresses?: string[], sortedBy = 'hot', accoun
   }, [feedName, uniqueSubplebbitAddresses, account])
 
   const hasMore = true
-  const loadMore = () => {}
+  const loadMore = () => {
+    if (!uniqueSubplebbitAddresses || !account) {
+      return
+    }
+    feedsContext.feedsActions.incrementFeedPageNumber(feedName)
+  }
 
-  debug('useFeed', { feedsContext: feedsContext.feeds, feed, hasMore })
+  debug('useFeed', { feedsContext: feedsContext.paginatedFeeds, feed, hasMore })
   return {feed, hasMore, loadMore}
 }

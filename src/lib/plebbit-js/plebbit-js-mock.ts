@@ -46,15 +46,20 @@ export class Plebbit {
 
   // mock this method to get a different result from plebbit.getSortedComments
   sortedCommentsToGet(options?: any) {
+    let subplebbitAddress
     let commentCidPrefix = ''
     let nextSortedCommentsCidPrefix = ''
     if (options?.subplebbit?.address) {
       commentCidPrefix += options.subplebbit.address + ' '
       nextSortedCommentsCidPrefix += options.subplebbit.address + ' '
+      subplebbitAddress = options.subplebbit.address
     }
     if (options?.sortedCommentsCid) {
       commentCidPrefix += options.sortedCommentsCid + ' '
       nextSortedCommentsCidPrefix += options.sortedCommentsCid + ' '
+    }
+    if (nextSortedCommentsCidPrefix) {
+      nextSortedCommentsCidPrefix += '- '
     }
     const sortedComments: any = {
       nextSortedCommentsCid: nextSortedCommentsCidPrefix + 'next sorted comments cid', 
@@ -63,7 +68,7 @@ export class Plebbit {
     const postCount = 100
     let index = 0
     while (index++ < postCount) {
-      sortedComments.comments.push({cid: commentCidPrefix + 'sorted comment cid ' + index})
+      sortedComments.comments.push({cid: commentCidPrefix + 'sorted comment cid ' + index, subplebbitAddress})
     }
     return sortedComments
   }
