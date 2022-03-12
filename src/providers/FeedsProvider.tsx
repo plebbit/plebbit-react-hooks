@@ -65,7 +65,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
 }
 
-// calculate feeds, paginatedFeeds is same as feeds but only contains posts up to feedOptions.pageNumber
+// calculate the feeds contexts and update them
 function updateFeeds(feedsOptions: any, feedsSortedPostsInfo: any, feedsSortedPostsPages: any, setFeeds: Function) {
   return useMemo(() => {
     const newFeeds: any = {}
@@ -111,6 +111,11 @@ function updateFeeds(feedsOptions: any, feedsSortedPostsInfo: any, feedsSortedPo
   }, [feedsOptions, feedsSortedPostsPages])
 }
 
+/**
+ * Use the `feedSortedPostsInfo` objects to fetch the first page of all subplebbit/sorts
+ * if the `feedSortedPostsInfo.feedPostsLeftCount` gets too low, start fetching the next page.
+ * Once a next page is added, it is never removed.
+ */
 function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
   const [sortedPostsPages, setSortedPostsPages] = useState({})
 
@@ -139,6 +144,7 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
   }, [feedsSortedPostsInfo, sortedPostsPages])
 
   // fetch sorted posts pages if needed
+  // once a page is added, it's never removed
   const pending: any = {}
   useEffect(() => {
     for (const infoName in sortedPostsPagesInfo) {
@@ -164,6 +170,10 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
   return sortedPostsPages
 }
 
+/**
+ * Util function to gather in an array all loaded `SortedComments` pages of a subplebbit/sort 
+ * using `SortedComments.nextSortedCommentsCid`
+ */
 const getAllSortedPostsPages = (firstPageSortedPostsCid: string, feedsSortedPostsPages: any) => {
   const pages: any = []
   const firstPage = feedsSortedPostsPages[firstPageSortedPostsCid]
@@ -181,6 +191,10 @@ const getAllSortedPostsPages = (firstPageSortedPostsCid: string, feedsSortedPost
   }
 }
 
+/**
+ * Generate a list of `feedSortedPostsInfo` objects which contain the information required
+ * to initiate fetching the pages of each subplebbit/sort/account/feed
+ */
 function useFeedsSortedPostsInfo(feedsOptions: any, subplebbits: any, feeds: any) {
   const feedsSubplebbitsPostsLeftCounts = useFeedsSubplebbitsPostsLeftCounts(feedsOptions, feeds)
   return useMemo(() => {
@@ -207,6 +221,10 @@ function useFeedsSortedPostsInfo(feedsOptions: any, subplebbits: any, feeds: any
   }, [feedsOptions, subplebbits])
 }
 
+/**
+ * This convoluted hook is required to keep track of how many posts are left buffered in each subplebbit,
+ * each sort, and each feed. If the amount gets too low, a new page can be fetched in advance.
+ */
 function useFeedsSubplebbitsPostsLeftCounts(feedsOptions: any, feeds: any) {
   const paginatedFeeds = usePaginatedFeeds(feedsOptions, feeds) // same as feeds but only contains posts up to feedOptions.pageNumber
   const feedsSubplebbitsPostCounts = useFeedsSubplebbitsPostCounts(feeds)
@@ -226,6 +244,10 @@ function useFeedsSubplebbitsPostsLeftCounts(feedsOptions: any, feeds: any) {
   }, [feedsSubplebbitsPostCounts, paginatedFeedsSubbplebbitsPostCounts])
 }
 
+/**
+ * This convoluted hook is required to keep track of how many posts are left buffered in each subplebbit,
+ * each sort, and each feed. If the amount gets too low, a new page can be fetched in advance.
+ */
 function useFeedsSubplebbitsPostCounts(feeds: any) {
   return useMemo(() => {
     const feedsSubplebbitsPostCounts: any = {}
@@ -243,7 +265,9 @@ function useFeedsSubplebbitsPostCounts(feeds: any) {
   }, [feeds])
 }
 
-// same as feeds but only contains posts up to feedOptions.pageNumber
+/**
+ * Same as feeds but only contains posts up to feedOptions.pageNumber
+ */
 function usePaginatedFeeds(feedsOptions: any, feeds: any) {
   return useMemo(() => {
     const paginatedFeeds: any = {}
@@ -265,6 +289,9 @@ function usePaginatedFeeds(feedsOptions: any, feeds: any) {
   }, [feeds, feedsOptions])
 }
 
+/**
+ * Add subplebbits to SubplebbitsContext as they are needed, and return them as an object
+ */
 function useSubplebbits(feedsOptions: any) {
   const subplebbitAddressesAndAccounts = useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions)
   const subplebbitsContext = useContext(SubplebbitsContext)
@@ -286,6 +313,9 @@ function useSubplebbits(feedsOptions: any) {
   return subplebbits
 }
 
+/**
+ * Util function of useSubplebbits to not rerender unnecessarily 
+ */
 function useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions: any) {
   return useMemo(() => {
     const accounts: any = {}
