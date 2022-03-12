@@ -247,6 +247,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     throw Error('TODO: not implemented')
   }
 
+  accountsActions.limitAddress = async (address: string | number, limitPercent: number, accountName?: string) => {
+    // limit how many times per feed page an address can appear, limitPercent 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
+    throw Error('TODO: not implemented')
+  }
+
   // internal accounts action: the comment CID is not known at the time of publishing, so every time
   // we fetch a new comment, check if its our own, and attempt to add the CID
   const addCidToAccountComment = async (comment: Comment) => {

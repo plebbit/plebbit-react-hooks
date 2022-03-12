@@ -30,11 +30,11 @@ export class Plebbit {
     if (subplebbit) {
       return {
         title: subplebbit.address + ' title',
-        sortedPosts: {hot: this.sortedPostsToGet({subplebbit, sortedPostsCid})},
+        sortedPosts: {hot: this.subplebbitToGetSortedPosts({subplebbit, sortedPostsCid})},
         sortedPostsCids: {
           hot: sortedPostsCid,
           top: subplebbit.address + ' sorted posts cid top',
-          old: subplebbit.address + ' sorted posts cid old'
+          new: subplebbit.address + ' sorted posts cid new'
         }
       }
     }
@@ -42,17 +42,17 @@ export class Plebbit {
   }
 
   // mock this method to get a different result from plebbit.getSubplebbit subplebbit.sortedPosts
-  sortedPostsToGet(options?: any) {
+  subplebbitToGetSortedPosts(options?: any) {
     let subplebbitAddress
     let commentCidPrefix = ''
     let nextSortedCommentsCidPrefix = ''
     if (options?.subplebbit?.address) {
-      commentCidPrefix += options.subplebbit.address + ' '
+      commentCidPrefix += options.subplebbit.address + ' - '
       nextSortedCommentsCidPrefix += options.subplebbit.address + ' '
       subplebbitAddress = options.subplebbit.address
     }
     if (options?.sortedPostsCid) {
-      commentCidPrefix += options.sortedPostsCid + ' '
+      commentCidPrefix += options.sortedPostsCid + ' - '
       nextSortedCommentsCidPrefix += options.sortedPostsCid + ' '
     }
     if (nextSortedCommentsCidPrefix) {
@@ -65,7 +65,11 @@ export class Plebbit {
     const postCount = 100
     let index = 0
     while (index++ < postCount) {
-      sortedComments.comments.push({cid: commentCidPrefix + 'sorted comment cid ' + index, subplebbitAddress})
+      sortedComments.comments.push({
+        timestamp: index,
+        cid: commentCidPrefix + 'sorted comment cid ' + index, 
+        subplebbitAddress
+      })
     }
     return sortedComments
   }
@@ -123,16 +127,17 @@ export class Subplebbit extends EventEmitter {
   }
 
   async getSortedPosts(sortedPostsCid: string) {
+    console.log({sortedPostsCid})
     await simulateLoadingTime()
     return this.sortedPostsToGet({sortedPostsCid})
   }
 
   // mock this method to get a different result from subplebbit.getSortedPosts
   sortedPostsToGet(options?: any) {
-    let commentCidPrefix = this.address + ' '
+    let commentCidPrefix = this.address + ' - '
     let nextSortedCommentsCidPrefix = this.address + ' '
     if (options?.sortedPostsCid) {
-      commentCidPrefix += options.sortedPostsCid + ' '
+      commentCidPrefix += options.sortedPostsCid + ' - '
       nextSortedCommentsCidPrefix += options.sortedPostsCid + ' '
     }
     nextSortedCommentsCidPrefix += '- '
@@ -143,7 +148,11 @@ export class Subplebbit extends EventEmitter {
     const postCount = 100
     let index = 0
     while (index++ < postCount) {
-      sortedComments.comments.push({cid: commentCidPrefix + 'sorted comment cid ' + index, subplebbitAddress: this.address})
+      sortedComments.comments.push({
+        timestamp: index,
+        cid: commentCidPrefix + 'sorted comment cid ' + index, 
+        subplebbitAddress: this.address
+      })
     }
     return sortedComments
   }

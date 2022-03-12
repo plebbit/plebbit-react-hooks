@@ -26,17 +26,17 @@ function useStringified(obj?: any) {
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
- * @param sortedBy - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'
+ * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useFeed(subplebbitAddresses?: string[], sortedBy = 'hot', accountName?: string) {
+export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accountName?: string) {
   const account = useAccount(accountName)
   const feedsContext = useContext(FeedsContext)
 
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
-  const feedName = useStringified([account?.id, sortedBy, uniqueSubplebbitAddresses])
-  const feed = feedName && feedsContext.paginatedFeeds[feedName]
+  const feedName = useStringified([account?.id, sortType, uniqueSubplebbitAddresses])
+  const feed = feedName && feedsContext.loadedFeeds[feedName]
 
   useEffect(() => {
     if (!uniqueSubplebbitAddresses || !account) {
@@ -44,7 +44,7 @@ export function useFeed(subplebbitAddresses?: string[], sortedBy = 'hot', accoun
     }
     if (!feed) {
       // if feed isn't already in context, add it
-      feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortedBy, account)
+      feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account)
     }
   }, [feedName, uniqueSubplebbitAddresses, account])
 
@@ -56,6 +56,23 @@ export function useFeed(subplebbitAddresses?: string[], sortedBy = 'hot', accoun
     feedsContext.feedsActions.incrementFeedPageNumber(feedName)
   }
 
-  debug('useFeed', { feedsContext: feedsContext.paginatedFeeds, feed, hasMore })
+  debug('useFeed', { feedsContext: feedsContext.loadedFeeds, feed, hasMore })
   return {feed, hasMore, loadMore}
+}
+
+type FeedOptions = {
+  subplebbitAddresses: string[]
+  sortType?: string
+}
+
+/**
+ * Use useBufferedFeeds to buffer multiple feeds in the background so what when
+ * they are called by useFeed later, they are already preloaded.
+ * 
+ * @param feedOptions - The options of the feed
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+export function useBufferedFeeds(feedsOptions?: FeedOptions[], accountName?: string) {
+
 }

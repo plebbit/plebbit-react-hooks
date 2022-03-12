@@ -119,7 +119,8 @@ Account {
   plebbit: Plebbit,
   plebbitOptions: PlebbitOptions,
   subscriptions: subplebbitAddress[],
-  blockedAddresses: {[key: address]: boolean},
+  blockedAddresses: {[key: address]: boolean}, // hide address from feed and notifications
+  limitedAddresses: {[key: address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
   theme: 'light' | 'dark,
   karma: Karma,
   unreadNotificationCount: number
@@ -385,9 +386,9 @@ AccountsCommentsReplies are found on the comment update events and are stored in
 
 #### Feed pages and infinite scrolling
 
-A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(arguments)`, a feed with those arguments settings is added to the FeedsContext. After a feed is added to context, its subplebbits are fetched, then the first page of the SortedComments are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `FeedsSortedPostsInfo` which keeps track of `feedPostsLeftCount` for each combination of subplebbit and sort type. When `feedPostsLeftCount` gets below 50, the next page for the subplebbit and sort is fetched.
+A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(arguments)`, a feed with those arguments settings is added to the FeedsContext. After a feed is added to context, its subplebbits are fetched, then the first page of the SortedComments are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `FeedsSortedPostsInfo` which keeps track of `FeedsSortedPostsInfo.bufferedPostCount` for each combination of subplebbit and sort type. When `FeedsSortedPostsInfo.bufferedPostCount` gets below 50, the next page for the subplebbit and sort type is fetched.
 
-When a new post page is received from IPFS, the feed not already shown to the user is recalculated, so the next page he receives will include new posts.
+When a new post page is received from IPFS, the `FeedsContext.bufferedFeeds` are recalculated, but the `FeedsContext.loadedFeeds` (which are displayed to the user) are not, new posts fetched will only be displayed to the user the next time he calls `loadMore`. If we detect that a `loadedFeed` is stale, we can prompt the user to load more posts, like Reddit/Facebook/Twitter do. 
 
 TODO: what happens when a subplebbit updates?
 
