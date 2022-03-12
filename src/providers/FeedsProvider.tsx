@@ -95,11 +95,10 @@ function updateFeeds(feedsOptions: any, feedsSortedPostsInfo: any, feedsSortedPo
           for (const sortedPostsPage of sortedPostsPages) {
             for (let comment of sortedPostsPage?.comments || []) {
               if (comment.subplebbitAddress !== subplebbitAddress) {
+                // do not include comments from incorrect subs
                 // in case plebbit-js forgets to validate comment.subplebbitAddress in getSortedComments()
-                // debug(`FeedsProvider comment.subplebbitAddress '${comment.subplebbitAddress}' !== '${subplebbitAddress}', plebbit-js should validate this`)
-                // forced to override here even if it could be malicious because too difficult to mock plebbit.getSortedComments() for tests in plebbit-mock
-                // TODO: fix this when plebbit-js api changes
-                comment = {...comment, subplebbitAddress}
+                console.error(`FeedsProvider comment.subplebbitAddress '${comment.subplebbitAddress}' !== '${subplebbitAddress}', plebbit-js should validate this`)
+                continue
               }
               feedPosts.push(comment)
             }
@@ -144,7 +143,7 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
   useEffect(() => {
     for (const infoName in sortedPostsPagesInfo) {
       // @ts-ignore
-      const {sortedPostsCid, account} = sortedPostsPagesInfo[infoName]
+      const {sortedPostsCid, account, subplebbitAddress} = sortedPostsPagesInfo[infoName]
       // sorted posts already fetched or fetching
       // @ts-ignore
       if (sortedPostsPages[sortedPostsCid] || pending[account.id + sortedPostsCid]) {
@@ -152,9 +151,10 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
       }
 
       pending[account.id + sortedPostsCid] = true
+      const subplebbit = account.plebbit.createSubplebbit({address: subplebbitAddress})
       // @ts-ignore
-      account.plebbit.getSortedComments(sortedPostsCid).then((fetchedSortedPostsPage) => {
-        debug('FeedsProvider useFeedsSortedPostsPages getSortedComments', {sortedPostsCid, infoName, fetchedSortedPostsPage})
+      subplebbit.getSortedPosts(sortedPostsCid).then((fetchedSortedPostsPage) => {
+        debug('FeedsProvider useFeedsSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, fetchedSortedPostsPage})
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
         pending[account.id + sortedPostsCid] = false
       })

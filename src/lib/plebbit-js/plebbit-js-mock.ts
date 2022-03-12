@@ -26,12 +26,13 @@ export class Plebbit {
 
   // mock this method to get a subplebbit with different title, posts, address, etc
   subplebbitToGet(subplebbit?: any): any {
+    const sortedPostsCid = subplebbit.address + ' sorted posts cid hot'
     if (subplebbit) {
       return {
         title: subplebbit.address + ' title',
-        sortedPosts: {hot: this.sortedCommentsToGet({subplebbit})},
+        sortedPosts: {hot: this.sortedPostsToGet({subplebbit, sortedPostsCid})},
         sortedPostsCids: {
-          hot: subplebbit.address + ' sorted posts cid hot',
+          hot: sortedPostsCid,
           top: subplebbit.address + ' sorted posts cid top',
           old: subplebbit.address + ' sorted posts cid old'
         }
@@ -40,12 +41,8 @@ export class Plebbit {
     return {}
   }
 
-  async getSortedComments(sortedCommentsCid: string) {
-    return this.sortedCommentsToGet({sortedCommentsCid})
-  }
-
-  // mock this method to get a different result from plebbit.getSortedComments
-  sortedCommentsToGet(options?: any) {
+  // mock this method to get a different result from plebbit.getSubplebbit subplebbit.sortedPosts
+  sortedPostsToGet(options?: any) {
     let subplebbitAddress
     let commentCidPrefix = ''
     let nextSortedCommentsCidPrefix = ''
@@ -54,9 +51,9 @@ export class Plebbit {
       nextSortedCommentsCidPrefix += options.subplebbit.address + ' '
       subplebbitAddress = options.subplebbit.address
     }
-    if (options?.sortedCommentsCid) {
-      commentCidPrefix += options.sortedCommentsCid + ' '
-      nextSortedCommentsCidPrefix += options.sortedCommentsCid + ' '
+    if (options?.sortedPostsCid) {
+      commentCidPrefix += options.sortedPostsCid + ' '
+      nextSortedCommentsCidPrefix += options.sortedPostsCid + ' '
     }
     if (nextSortedCommentsCidPrefix) {
       nextSortedCommentsCidPrefix += '- '
@@ -123,6 +120,32 @@ export class Subplebbit extends EventEmitter {
   simulateUpdateEvent() {
     this.description = this.address + ' description updated'
     this.emit('update', this)
+  }
+
+  async getSortedPosts(sortedPostsCid: string) {
+    await simulateLoadingTime()
+    return this.sortedPostsToGet({sortedPostsCid})
+  }
+
+  // mock this method to get a different result from subplebbit.getSortedPosts
+  sortedPostsToGet(options?: any) {
+    let commentCidPrefix = this.address + ' '
+    let nextSortedCommentsCidPrefix = this.address + ' '
+    if (options?.sortedPostsCid) {
+      commentCidPrefix += options.sortedPostsCid + ' '
+      nextSortedCommentsCidPrefix += options.sortedPostsCid + ' '
+    }
+    nextSortedCommentsCidPrefix += '- '
+    const sortedComments: any = {
+      nextSortedCommentsCid: nextSortedCommentsCidPrefix + 'next sorted comments cid', 
+      comments: []
+    }
+    const postCount = 100
+    let index = 0
+    while (index++ < postCount) {
+      sortedComments.comments.push({cid: commentCidPrefix + 'sorted comment cid ' + index, subplebbitAddress: this.address})
+    }
+    return sortedComments
   }
 }
 

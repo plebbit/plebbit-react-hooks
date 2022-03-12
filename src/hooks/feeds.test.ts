@@ -56,7 +56,7 @@ describe('feeds', () => {
 
       // wait for posts to be added, should get full first page
       await rendered.waitFor(() => rendered.result.current.feed.length > 0)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot sorted comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 subplebbit address 1 sorted posts cid hot sorted comment cid 1')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
@@ -64,7 +64,7 @@ describe('feeds', () => {
       expect(rendered2.result.current.feed).toBe(undefined)
       // only wait for 1 render because subplebbit is stored in db
       await rendered2.waitForNextUpdate()
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot sorted comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 subplebbit address 1 sorted posts cid hot sorted comment cid 1')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
