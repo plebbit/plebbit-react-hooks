@@ -132,13 +132,13 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account })
 
-    const createCommentOptions = {
+    let createCommentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
       parentCommentCid: publishCommentOptions.parentCommentCid,
       postCid: publishCommentOptions.postCid, // not used by plebbit-js, but used to store in local database
       content: publishCommentOptions.content,
       title: publishCommentOptions.title,
-      timestamp: publishCommentOptions.timestamp || Math.round(Date.now() / 1000),
+      timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
     }
@@ -153,6 +153,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         publishCommentOptions.onChallengeVerification(challengeVerification, comment)
         if (!challengeVerification.challengeAnswerIsVerified) {
           // publish again automatically on fail
+          createCommentOptions = {...createCommentOptions, timestamp: Math.round(Date.now() / 1000)}
           comment = account.plebbit.createComment(createCommentOptions)
           publishAndRetryFailedChallengeVerification()
         } else {
