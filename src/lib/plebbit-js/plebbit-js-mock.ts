@@ -4,7 +4,7 @@ export { mockPlebbitJs as mockPlebbitJs } from '.'
 // TODO: make load time changeable with env variable
 // so the frontend can test with latency
 const loadingTime = 10
-const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
+export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
 export class Plebbit {
   createSubplebbit(createSubplebbitOptions: any) {
@@ -17,6 +17,14 @@ export class Plebbit {
       address: subplebbitAddress
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
+    subplebbit.title = subplebbit.address + ' title'
+    const hotSortedPostsCid = subplebbit.address + ' sorted posts cid hot'
+    subplebbit.sortedPosts = {hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit)}
+    subplebbit.sortedPostsCids = {
+      hot: hotSortedPostsCid,
+      top: subplebbit.address + ' sorted posts cid top',
+      new: subplebbit.address + ' sorted posts cid new'
+    }
     // mock properties of subplebbitToGet unto the subplebbit instance
     for (const prop in this.subplebbitToGet(subplebbit)) {
       subplebbit[prop] = this.subplebbitToGet(subplebbit)[prop]
@@ -25,53 +33,10 @@ export class Plebbit {
   }
 
   // mock this method to get a subplebbit with different title, posts, address, etc
-  subplebbitToGet(subplebbit?: any): any {
-    const sortedPostsCid = subplebbit.address + ' sorted posts cid hot'
-    if (subplebbit) {
-      return {
-        title: subplebbit.address + ' title',
-        sortedPosts: {hot: this.subplebbitToGetSortedPosts({subplebbit, sortedPostsCid})},
-        sortedPostsCids: {
-          hot: sortedPostsCid,
-          top: subplebbit.address + ' sorted posts cid top',
-          new: subplebbit.address + ' sorted posts cid new'
-        }
-      }
+  subplebbitToGet(subplebbit: any): any {
+    return {
+      // title: 'some title'
     }
-    return {}
-  }
-
-  // mock this method to get a different result from plebbit.getSubplebbit subplebbit.sortedPosts
-  subplebbitToGetSortedPosts(options?: any) {
-    let subplebbitAddress
-    let commentCidPrefix = ''
-    let nextSortedCommentsCidPrefix = ''
-    if (options?.subplebbit?.address) {
-      commentCidPrefix += options.subplebbit.address + ' - '
-      nextSortedCommentsCidPrefix += options.subplebbit.address + ' '
-      subplebbitAddress = options.subplebbit.address
-    }
-    if (options?.sortedPostsCid) {
-      commentCidPrefix += options.sortedPostsCid + ' - '
-      nextSortedCommentsCidPrefix += options.sortedPostsCid + ' '
-    }
-    if (nextSortedCommentsCidPrefix) {
-      nextSortedCommentsCidPrefix += '- '
-    }
-    const sortedComments: any = {
-      nextSortedCommentsCid: nextSortedCommentsCidPrefix + 'next sorted comments cid', 
-      comments: []
-    }
-    const postCount = 100
-    let index = 0
-    while (index++ < postCount) {
-      sortedComments.comments.push({
-        timestamp: index,
-        cid: commentCidPrefix + 'sorted comment cid ' + index, 
-        subplebbitAddress
-      })
-    }
-    return sortedComments
   }
 
   createComment(createCommentOptions: any) {
@@ -127,35 +92,27 @@ export class Subplebbit extends EventEmitter {
   }
 
   async getSortedPosts(sortedPostsCid: string) {
-    console.log({sortedPostsCid})
     await simulateLoadingTime()
-    return this.sortedPostsToGet({sortedPostsCid})
+    return subplebbitGetSortedPosts(sortedPostsCid, this)
   }
+}
 
-  // mock this method to get a different result from subplebbit.getSortedPosts
-  sortedPostsToGet(options?: any) {
-    let commentCidPrefix = this.address + ' - '
-    let nextSortedCommentsCidPrefix = this.address + ' '
-    if (options?.sortedPostsCid) {
-      commentCidPrefix += options.sortedPostsCid + ' - '
-      nextSortedCommentsCidPrefix += options.sortedPostsCid + ' '
-    }
-    nextSortedCommentsCidPrefix += '- '
+// define it here because also used it plebbit.getSubplebbit()
+const subplebbitGetSortedPosts = (sortedPostsCid: string, subplebbit: any) => {
     const sortedComments: any = {
-      nextSortedCommentsCid: nextSortedCommentsCidPrefix + 'next sorted comments cid', 
-      comments: []
-    }
-    const postCount = 100
-    let index = 0
-    while (index++ < postCount) {
-      sortedComments.comments.push({
-        timestamp: index,
-        cid: commentCidPrefix + 'sorted comment cid ' + index, 
-        subplebbitAddress: this.address
-      })
-    }
-    return sortedComments
+    nextSortedCommentsCid: sortedPostsCid + ' - next sorted comments cid', 
+    comments: []
   }
+  const postCount = 100
+  let index = 0
+  while (index++ < postCount) {
+    sortedComments.comments.push({
+      timestamp: index,
+      cid: sortedPostsCid + ' comment cid ' + index, 
+      subplebbitAddress: subplebbit.address
+    })
+  }
+  return sortedComments
 }
 
 let challengeRequestCount = 0

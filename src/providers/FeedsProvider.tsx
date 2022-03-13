@@ -29,6 +29,10 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
 
   // handle buffered feeds
   useEffect(() => {
+    // don't rerender if there are no feeds
+    if (Object.keys(calculatedBufferedFeeds).length === 0) {
+      return
+    }
     setBufferedFeeds(calculatedBufferedFeeds)
   }, [calculatedBufferedFeeds])
 
@@ -42,10 +46,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       // @ts-ignore
       const currentLoadedFeed = loadedFeeds[feedName] || []
       const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
-      // the current loaded feed doesn't need new posts
-      if (missingPostsCount < 1) {
-        continue
-      }
+
       // get new posts from buffered feed
       // @ts-ignore
       const bufferedFeed = bufferedFeeds[feedName] || []
@@ -53,7 +54,17 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       if (missingPosts.length > missingPostsCount) {
         missingPosts.length = missingPostsCount
       }
+
+      // the current loaded feed already exist and doesn't need new posts
+      // @ts-ignore
+      if (missingPosts.length === 0 && loadedFeeds[feedName]) {
+        continue
+      }
       loadedFeedsMissingPosts[feedName] = missingPosts
+    }
+    // don't rerender if there are no missing posts
+    if (Object.keys(loadedFeedsMissingPosts).length === 0) {
+      return
     }
     setLoadedFeeds(previousLoadedFeeds => {
       const newLoadedFeeds: any = {}
@@ -101,8 +112,18 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     feedsActions,
   }
 
-  // debug({ feedsContext: feeds, loadedFeeds, feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages })
-  debug({ feedsOptions, feedsSortedPostsInfo })
+  // const bufferedFeedsLengths: any = {}
+  // const loadedFeedsLengths: any = {}
+  // // @ts-ignore
+  // for (const feedName in feedsOptions) {
+  //   // @ts-ignore
+  //   bufferedFeedsLengths[feedName] = bufferedFeeds[feedName]?.length
+  //   // @ts-ignore
+  //   loadedFeedsLengths[feedName] = loadedFeeds[feedName]?.length
+  // }
+
+  // debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, subplebbits, bufferedFeeds, loadedFeeds })
+  // debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
 }
 
@@ -171,7 +192,7 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
       newBufferedFeeds[feedName] = sortFeed(sortType, bufferedFeedPosts)
     }
     return newBufferedFeeds
-  }, [feedsOptions, feedsSortedPostsPages])
+  }, [feedsOptions, feedsSortedPostsPages, loadedFeeds])
 }
 
 function sortFeed (sortType: string, feed: any[]) {
@@ -229,7 +250,7 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
       const subplebbit = account.plebbit.createSubplebbit({address: subplebbitAddress})
       // @ts-ignore
       subplebbit.getSortedPosts(sortedPostsCid).then((fetchedSortedPostsPage) => {
-        debug('FeedsProvider useFeedsSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, fetchedSortedPostsPage})
+        debug('FeedsProvider useFeedsSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length}})
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
         getSortedPostsPending[account.id + sortedPostsCid] = false
       })

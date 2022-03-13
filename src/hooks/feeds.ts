@@ -56,7 +56,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     feedsContext.feedsActions.incrementFeedPageNumber(feedName)
   }
 
-  debug('useFeed', { feedsContext: feedsContext.loadedFeeds, feed, hasMore })
+  debug('useFeed', { feed, hasMore })
   return {feed, hasMore, loadMore}
 }
 
