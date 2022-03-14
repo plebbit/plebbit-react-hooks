@@ -112,18 +112,18 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     feedsActions,
   }
 
-  // const bufferedFeedsLengths: any = {}
-  // const loadedFeedsLengths: any = {}
-  // // @ts-ignore
-  // for (const feedName in feedsOptions) {
-  //   // @ts-ignore
-  //   bufferedFeedsLengths[feedName] = bufferedFeeds[feedName]?.length
-  //   // @ts-ignore
-  //   loadedFeedsLengths[feedName] = loadedFeeds[feedName]?.length
-  // }
+  const bufferedFeedsLengths: any = {}
+  const loadedFeedsLengths: any = {}
+  // @ts-ignore
+  for (const feedName in feedsOptions) {
+    // @ts-ignore
+    bufferedFeedsLengths[feedName] = bufferedFeeds[feedName]?.length
+    // @ts-ignore
+    loadedFeedsLengths[feedName] = loadedFeeds[feedName]?.length
+  }
 
   // debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, subplebbits, bufferedFeeds, loadedFeeds })
-  // debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
+  debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
 }
 
@@ -250,7 +250,7 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
       const subplebbit = account.plebbit.createSubplebbit({address: subplebbitAddress})
       // @ts-ignore
       subplebbit.getSortedPosts(sortedPostsCid).then((fetchedSortedPostsPage) => {
-        debug('FeedsProvider useFeedsSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length}})
+        debug('FeedsProvider useFeedsSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo}})
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
         getSortedPostsPending[account.id + sortedPostsCid] = false
       })
