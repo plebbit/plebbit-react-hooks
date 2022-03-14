@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react'
-import {SubplebbitsContext} from './SubplebbitsProvider'
-import validator from '../lib/validator'
+import {SubplebbitsContext} from '../SubplebbitsProvider'
+import validator from '../../lib/validator'
+import feedSorter from './feedSorter'
 import assert from 'assert'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:feedsprovider')
-import {Props, Feed, Feeds, Account} from '../types'
+import {Props, Feed, Feeds, Account} from '../../types'
 
 type FeedsContext = any
 
@@ -189,17 +190,10 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
           }
         }
       }
-      newBufferedFeeds[feedName] = sortFeed(sortType, bufferedFeedPosts)
+      newBufferedFeeds[feedName] = feedSorter.sort(sortType, bufferedFeedPosts)
     }
     return newBufferedFeeds
   }, [feedsOptions, feedsSortedPostsPages, loadedFeeds])
-}
-
-function sortFeed (sortType: string, feed: any[]) {
-  if (sortType === 'new') {
-    return feed.sort((a, b) => b.timestamp - a.timestamp)
-  }
-  return feed
 }
 
 /**

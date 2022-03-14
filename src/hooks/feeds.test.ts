@@ -66,7 +66,7 @@ describe('feeds', () => {
 
       // wait for posts to be added, should get full first page
       await rendered.waitFor(() => rendered.result.current.feed.length > 0)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 100')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
@@ -74,7 +74,7 @@ describe('feeds', () => {
       expect(rendered2.result.current.feed).toBe(undefined)
       // only wait for 1 render because subplebbit is stored in db
       try {await rendered2.waitForNextUpdate()} catch (e) {console.error(e)}
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 100')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
@@ -255,11 +255,7 @@ describe('feeds', () => {
 
     test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
 
-    test.todo('get feed sorted by top')
-
     test.todo('get feed using a different account')
-
-    test.todo('get feed and scroll to multiple pages')
 
     test.todo('get feed and scroll to multiple pages, multiple subplebbits with different page sizes')
 
@@ -269,6 +265,10 @@ describe('feeds', () => {
 
     test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`)
 
-    test.todo(`buffered feeds can fetched multiple subs before delivering the first page`)
+    test.todo(`subplebbit updates while we are scrolling`)
+
+    test.todo(`useBufferedFeeds can fetch multiple subs in the background before delivering the first page`)
+
+    test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`)
   })
 })
