@@ -68,6 +68,8 @@ export class Plebbit {
 }
 
 export class Subplebbit extends EventEmitter {
+  updateCalledTimes = 0
+  updating = false
   address: string | undefined
   title: string | undefined
   description: string | undefined
@@ -77,13 +79,25 @@ export class Subplebbit extends EventEmitter {
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
+  }
 
-    // is ipnsName is known, look for updates and emit updates immediately after creation
-    if (this.address) {
-      simulateLoadingTime().then(() => {
-        this.simulateUpdateEvent()
-      })
+  update() {
+    this.updateCalledTimes++
+    if (this.updateCalledTimes > 1) {
+      throw Error('with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times')
     }
+    // is ipnsName is known, look for updates and emit updates immediately after creation
+    if (!this.address) {
+      throw Error(`can't update without subplebbit.address`)
+    }
+    // don't update twice
+    if (this.updating) {
+      return
+    }
+    this.updating = true
+    simulateLoadingTime().then(() => {
+      this.simulateUpdateEvent()
+    })
   }
 
   simulateUpdateEvent() {
@@ -162,6 +176,8 @@ class Publication extends EventEmitter {
 }
 
 export class Comment extends Publication {
+  updateCalledTimes = 0
+  updating = false
   author: any
   ipnsName: string | undefined
   upvoteCount: number | undefined
@@ -179,13 +195,25 @@ export class Comment extends Publication {
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
     this.parentCommentCid = createCommentOptions?.parentCommentCid
+  }
 
-    // is ipnsName is known, look for updates and emit updates immediately after creation
-    if (this.ipnsName) {
-      simulateLoadingTime().then(() => {
-        this.simulateUpdateEvent()
-      })
+  update() {
+    this.updateCalledTimes++
+    if (this.updateCalledTimes > 2) {
+      throw Error('with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times')
     }
+    // is ipnsName is known, look for updates and emit updates immediately after creation
+    if (!this.ipnsName) {
+      throw Error(`can't update without comment.ipnsName`)
+    }
+    // don't update twice
+    if (this.updating) {
+      return
+    }
+    this.updating = true
+    simulateLoadingTime().then(() => {
+      this.simulateUpdateEvent()
+    })
   }
 
   simulateUpdateEvent() {

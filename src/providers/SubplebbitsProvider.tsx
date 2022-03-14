@@ -48,6 +48,7 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       // @ts-ignore
       setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: updatedSubplebbit }))
     })
+    subplebbit.update()
   }
 
   if (!props.children) {

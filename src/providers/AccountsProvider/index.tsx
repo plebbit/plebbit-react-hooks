@@ -281,6 +281,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   // in the user's account history. This probably does not scale, we
   // need to eventually schedule and queue older comments to look 
   // for updates at a lower priority.
+  const [alreadyUpdatingAccountsComments, setAlreadyUpdatingAccountsComments]: any[] = useState({})
   const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: Comment, account: Account, accountCommentIndex: number) => {
     assert(typeof accountCommentIndex === 'number', `startUpdatingAccountCommentOnCommentUpdateEvents accountCommentIndex '${accountCommentIndex}' not a number`)
     assert(typeof account?.id === 'string', `startUpdatingAccountCommentOnCommentUpdateEvents account '${account}' account.id '${account?.id}' not a string`)
@@ -293,10 +294,16 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       }
       comment = await account.plebbit.getComment(comment.cid)
     }
+    // account comment already updating
+    if (alreadyUpdatingAccountsComments[comment.cid]) {
+      return
+    }
     // comment is not a `Comment` instance
     if (!comment.on) {
       comment = account.plebbit.createComment(comment)
     }
+    // @ts-ignore
+    setAlreadyUpdatingAccountsComments(prev => ({...prev, [comment.cid]: true}))
     comment.on('update', async (updatedComment: Comment) => {
       // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
       updatedComment = utils.merge(commentArgument, comment, updatedComment)
@@ -310,6 +317,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         return { ...previousAccounsComments, [account.id]: updatedAccountComments }
       })
     })
+    comment.update()
   }
 
   // load accounts from database once on load

@@ -48,6 +48,7 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
       debug('commentsContext comment update', { commentId, updatedComment, account })
       setComments((previousComments) => ({ ...previousComments, [commentId]: updatedComment }))
     })
+    comment.update()
 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
