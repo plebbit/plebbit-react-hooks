@@ -172,6 +172,11 @@ export const validateUseSubplebbitsArguments = (subplebbitAddresses: any, accoun
   )
 }
 
+const feedSortTypes = new Set(['hot', 'new', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'controversialHour', 'controversialDay', 'controversialWeek', 'controversialMonth', 'controversialYear', 'controversialAll'])
+export const validateFeedSortType = (sortType: any) => {
+  assert(feedSortTypes.has(sortType), `invalid feed sort type '${sortType}'`)
+}
+
 const validator = {
   validateAccountsActionsPublishCommentArguments,
   validateAccountsActionsPublishVoteArguments,
@@ -185,7 +190,8 @@ const validator = {
   validateUseCommentArguments,
   validateUseCommentsArguments,
   validateUseSubplebbitArguments,
-  validateUseSubplebbitsArguments
+  validateUseSubplebbitsArguments,
+  validateFeedSortType
 }
 
 export default validator

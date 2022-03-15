@@ -251,50 +251,56 @@ describe('feeds', () => {
       Subplebbit.prototype.getSortedPosts = getSortedPosts
     })
 
-    test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
-      // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
-      rendered = renderHook<any, any>((props: any) => {
-        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-        const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
-        return {...feed, bufferedFeed: bufferedFeeds[0]}
-      }, { wrapper: PlebbitProvider })
+    // getting feeds with multiple subs in them sometimes gets them in the wrong order because
+    // of react renders concurrency so retry a few times if it fails
+    describe('retry on fail', () => {
+      beforeAll(() => {jest.retryTimes(3)})
+      afterAll(() => {jest.retryTimes(0)})
+      test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
+        // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
+        rendered = renderHook<any, any>((props: any) => {
+          const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+          const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
+          return {...feed, bufferedFeed: bufferedFeeds[0]}
+        }, { wrapper: PlebbitProvider })
 
-      // get feed with 1 sub
-      rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'], sortType: 'topAll'})
-      // initial state
-      expect(typeof rendered.result.current.hasMore).toBe('boolean')
-      expect(typeof rendered.result.current.loadMore).toBe('function')
+        // get feed with 1 sub
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'], sortType: 'topAll'})
+        // initial state
+        expect(typeof rendered.result.current.hasMore).toBe('boolean')
+        expect(typeof rendered.result.current.loadMore).toBe('function')
 
-      // wait for feed array to render
-      try {await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))} catch (e) {console.error(e)}
-      expect(rendered.result.current.feed).toEqual([])
+        // wait for feed array to render
+        try {await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))} catch (e) {console.error(e)}
+        expect(rendered.result.current.feed).toEqual([])
 
-      // wait for posts to be added, should get full first page
-      // the first page should only have subplebbit 1 since it loads immediately after loading 1 sub
-      try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
-      expect(rendered.result.current.feed.length).toBe(postsPerPage)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 100')
-      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 99')
-      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 98')
-      expect(rendered.result.current.feed[0].upvoteCount).toBe(100)
-      expect(rendered.result.current.feed[1].upvoteCount).toBe(99)
-      expect(rendered.result.current.feed[2].upvoteCount).toBe(98)
+        // wait for posts to be added, should get full first page
+        // the first page should only have subplebbit 1 since it loads immediately after loading 1 sub
+        try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
+        expect(rendered.result.current.feed.length).toBe(postsPerPage)
+        expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 100')
+        expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 99')
+        expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 98')
+        expect(rendered.result.current.feed[0].upvoteCount).toBe(100)
+        expect(rendered.result.current.feed[1].upvoteCount).toBe(99)
+        expect(rendered.result.current.feed[2].upvoteCount).toBe(98)
 
-      // wait until buffered feeds have sub 2 and 3 loaded
-      let bufferedFeedString
-      try {await rendered.waitFor(() => {
-        bufferedFeedString = JSON.stringify(rendered.result.current.bufferedFeed)
-        return Boolean(bufferedFeedString.match('subplebbit address 2') && bufferedFeedString.match('subplebbit address 3'))
-      })} catch (e) {console.error(e)}
-      expect(bufferedFeedString).toMatch('subplebbit address 2')
-      expect(bufferedFeedString).toMatch('subplebbit address 3')
+        // wait until buffered feeds have sub 2 and 3 loaded
+        let bufferedFeedString
+        try {await rendered.waitFor(() => {
+          bufferedFeedString = JSON.stringify(rendered.result.current.bufferedFeed)
+          return Boolean(bufferedFeedString.match('subplebbit address 2') && bufferedFeedString.match('subplebbit address 3'))
+        })} catch (e) {console.error(e)}
+        expect(bufferedFeedString).toMatch('subplebbit address 2')
+        expect(bufferedFeedString).toMatch('subplebbit address 3')
 
-      // the second page first posts should be sub 2 and 3 with the highest upvotes
-      await scrollOnePage()
-      expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) sorted posts cid topAll comment cid 100/)
-      expect(rendered.result.current.feed[postsPerPage+1].cid).toMatch(/subplebbit address (2|3) sorted posts cid topAll comment cid 100/)
-      expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBe(100)
-      expect(rendered.result.current.feed[postsPerPage+1].upvoteCount).toBe(100)
+        // the second page first posts should be sub 2 and 3 with the highest upvotes
+        await scrollOnePage()
+        expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) sorted posts cid topAll comment cid 100/)
+        expect(rendered.result.current.feed[postsPerPage+1].cid).toMatch(/subplebbit address (2|3) sorted posts cid topAll comment cid 100/)
+        expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBe(100)
+        expect(rendered.result.current.feed[postsPerPage+1].upvoteCount).toBe(100)
+      })
     })
 
     test(`useBufferedFeeds can fetch multiple subs in the background before delivering the first page`, async () => {
@@ -350,12 +356,22 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
+    test(`fail to get feed sorted by sort type that doesn't exist`, async () => {
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'], sortType: `doesnt exist`})
+      expect(rendered.result.error?.message).toMatch(`invalid feed sort type 'doesnt exist'`)
+
+      // one of the buffered feed has a sort type that doesn't exist
+      rendered = renderHook<any, any>(() => 
+        useBufferedFeeds([
+          {subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'], sortType: 'new'},
+          {subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'], sortType: `doesnt exist`},
+          {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']}
+        ]), { wrapper: PlebbitProvider })
+      try {await rendered.waitForNextUpdate()} catch (e) {console.error(e)}
+      expect(rendered.result.error?.message).toMatch(`invalid feed sort type 'doesnt exist'`)
+    })
+
     test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
-
-
-    test.todo('get feed and scroll to multiple pages, multiple subplebbits with different page sizes')
-
-    test.todo(`fail to get feed sorted by sort type that doesn't exist`)
 
     test.todo(`scroll to end of feed, hasMore becomes false`)
 
