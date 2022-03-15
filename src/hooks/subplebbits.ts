@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useContext } from 'react'
 import { useAccount } from './accounts'
-import { SubplebbitsContext } from '../providers/SubplebbitsProvider'
+import { SubplebbitsContext } from '../providers/subplebbits-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:subplebbits')

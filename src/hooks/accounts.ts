@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useContext } from 'react'
-import { AccountsContext } from '../providers/AccountsProvider'
+import { AccountsContext } from '../providers/accounts-provider'
 import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:accounts')

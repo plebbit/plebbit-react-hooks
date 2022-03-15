@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { AccountsContext } from './AccountsProvider'
+import { AccountsContext } from './accounts-provider'
 import validator from '../lib/validator'
 import assert from 'assert'
 import localForageLru from '../lib/localforage-lru'

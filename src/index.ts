@@ -3,7 +3,7 @@ if (process?.env?.DEBUG_DEPTH) {
   require("util").inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
 }
 
-import PlebbitProvider from './providers/PlebbitProvider'
+import PlebbitProvider from './providers/plebbit-provider'
 import {
   useAccount,
   useAccounts,

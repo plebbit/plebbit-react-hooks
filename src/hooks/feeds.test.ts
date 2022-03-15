@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import { useFeed } from '../index'
-import PlebbitProvider from '../providers/PlebbitProvider'
+import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
 import localForage from 'localforage'
 import PlebbitJsMock, { mockPlebbitJs, Plebbit, Subplebbit, simulateLoadingTime } from '../lib/plebbit-js/plebbit-js-mock'

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useContext } from 'react'
 import { useAccount } from './accounts'
-import { CommentsContext } from '../providers/CommentsProvider'
+import { CommentsContext } from '../providers/comments-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:comments')

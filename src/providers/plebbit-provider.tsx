@@ -1,8 +1,8 @@
 import React from 'react'
-import AccountsProvider from './AccountsProvider'
-import CommentsProvider from './CommentsProvider'
-import SubplebbitsProvider from './SubplebbitsProvider'
-import FeedsProvider from './FeedsProvider'
+import AccountsProvider from './accounts-provider'
+import CommentsProvider from './comments-provider'
+import SubplebbitsProvider from './subplebbits-provider'
+import FeedsProvider from './feeds-provider'
 import {Props} from '../types'
 
 export default function PlebbitProvider(props: Props): JSX.Element | null {

@@ -1,4 +1,4 @@
-import feedSorter from './feedSorter'
+import feedSorter from './feed-sorter'
 
 const feed: any[] = [
   {timestamp: 100, upvoteCount: 100, downvoteCount: 10, subplebbitAddress: 'sub1'},

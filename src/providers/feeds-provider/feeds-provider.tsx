@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react'
-import {SubplebbitsContext} from '../SubplebbitsProvider'
+import {SubplebbitsContext} from '../subplebbits-provider'
 import validator from '../../lib/validator'
-import feedSorter from './feedSorter'
+import feedSorter from './feed-sorter'
 import assert from 'assert'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:feedsprovider')

@@ -3,8 +3,8 @@ import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:accountsprovider')
-import accountsDatabase from './accountsDatabase'
-import accountGenerator from './accountGenerator'
+import accountsDatabase from './accounts-database'
+import accountGenerator from './account-generator'
 import utils from '../../lib/utils'
 import {
   Props, 

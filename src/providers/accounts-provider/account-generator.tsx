@@ -1,7 +1,7 @@
 import PlebbitJs from '../../lib/plebbit-js'
 import validator from '../../lib/validator'
 import { v4 as uuid } from 'uuid'
-import accountsDatabase from './accountsDatabase'
+import accountsDatabase from './accounts-database'
 import {Accounts} from '../../types'
 
 export const generateDefaultAccount = async () => {
