@@ -4,7 +4,7 @@ import assert from 'assert'
 import localForage from 'localforage'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
-import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment} from '../../types'
+import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments} from '../../types'
 import utils from '../../lib/utils'
 
 const getAccounts = async (accountIds: string[]) => {
@@ -128,7 +128,7 @@ const getAccountsComments = async (accountIds: string[]) => {
     promises.push(getAccountComments(accountId))
   }
   const accountsCommentsArray = await Promise.all(promises)
-  const accountsComments: any = {}
+  const accountsComments: AccountsComments = {}
   for (const [i, accountId] of accountIds.entries()) {
     accountsComments[accountId] = accountsCommentsArray[i]
   }

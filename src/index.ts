@@ -11,29 +11,13 @@ import {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
-
-  // types
-  UseAccountCommentsOptions,
-  UseAccountCommentsFilter,
 } from './hooks/accounts'
 
 import { useComment, useComments } from './hooks/comments'
 import { useSubplebbit, useSubplebbits } from './hooks/subplebbits'
-import { useFeed } from './hooks/feeds'
+import { useFeed, useBufferedFeeds } from './hooks/feeds'
 
-const hooks = {
-  PlebbitProvider,
-  useAccount,
-  useAccounts,
-  useAccountsActions,
-  useAccountComments,
-  useAccountVotes,
-  useAccountVote,
-  useComment,
-  useSubplebbit, 
-  useSubplebbits,
-  useFeed
-}
+export * from './types'
 
 export {
   PlebbitProvider,
@@ -48,9 +32,22 @@ export {
   useSubplebbit, 
   useSubplebbits,
   useFeed,
-  // types
-  UseAccountCommentsOptions,
-  UseAccountCommentsFilter,
+  useBufferedFeeds
+}
+
+const hooks = {
+  PlebbitProvider,
+  useAccount,
+  useAccounts,
+  useAccountsActions,
+  useAccountComments,
+  useAccountVotes,
+  useAccountVote,
+  useComment,
+  useSubplebbit, 
+  useSubplebbits,
+  useFeed,
+  useBufferedFeeds
 }
 
 export default hooks

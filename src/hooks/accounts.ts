@@ -4,6 +4,7 @@ import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:accounts')
 import assert from 'assert'
+import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments} from '../types'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -64,7 +65,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
   const accountsContext = useContext(AccountsContext)
 
-  let accountComments: any
+  let accountComments: AccountComments | undefined
   if (accountId && accountsContext) {
     accountComments = accountsContext.accountsComments[accountId]
   }
@@ -120,19 +121,6 @@ export function useAccountVote(commentCid?: string, accountName?: string) {
   }
   const accountVotes = useAccountVotes(useAccountVotesOptions)
   return accountVotes && accountVotes[0]
-}
-
-export type UseAccountCommentsFilter = {
-  subplebbitAddresses?: string[]
-  postCids?: string[]
-  commentCids?: string[]
-  parentCommentCids?: string[]
-  hasParentCommentCid?: boolean
-}
-
-export type UseAccountCommentsOptions = {
-  accountName?: string
-  filter?: UseAccountCommentsFilter
 }
 
 const filterPublications = (publications: any, filter: UseAccountCommentsFilter) => {

@@ -5,6 +5,7 @@ import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:comments')
 import assert from 'assert'
+import {Comment} from '../types'
 
 /**
  * @param commentCid - The IPFS CID of the comment to get
@@ -39,7 +40,7 @@ export function useComment(commentCid?: string, accountName?: string) {
 export function useComments(commentCids?: string[], accountName?: string) {
   const account = useAccount(accountName)
   const commentsContext = useContext(CommentsContext)
-  const comments: any[] = []
+  const comments: Comment[] = []
   for (const commentCid of commentCids || []) {
     comments.push(commentsContext.comments[commentCid])
   }

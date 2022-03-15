@@ -21,6 +21,7 @@ import {
   CreateVoteOptions,
   Comment,
   AccountComment,
+  AccountsComments
 } from '../../types'
 
 type AccountsContext = any
@@ -28,11 +29,11 @@ type AccountsContext = any
 export const AccountsContext = React.createContext<AccountsContext | undefined>(undefined)
 
 export default function AccountsProvider(props: Props): JSX.Element | null {
-  const [accounts, setAccounts] = useState<any>(undefined)
-  const [accountIds, setAccountIds] = useState<any>(undefined)
-  const [activeAccountId, setActiveAccountId] = useState<any>(undefined)
-  const [accountNamesToAccountIds, setAccountNamesToAccountIds] = useState<any>(undefined)
-  const [accountsComments, setAccountsComments] = useState<any>([])
+  const [accounts, setAccounts] = useState<Accounts | undefined>(undefined)
+  const [accountIds, setAccountIds] = useState<string[] | undefined>(undefined)
+  const [activeAccountId, setActiveAccountId] = useState<string | undefined>(undefined)
+  const [accountNamesToAccountIds, setAccountNamesToAccountIds] = useState<AccountNamesToAccountIds | undefined>(undefined)
+  const [accountsComments, setAccountsComments] = useState<AccountsComments>({})
   const [accountsVotes, setAccountsVotes] = useState<any>({})
   const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments)
   const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments)
@@ -40,6 +41,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const accountsActions: AccountsActions = {}
 
   accountsActions.setActiveAccount = async (accountName: string) => {
+    assert(accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`)
     validator.validateAccountsActionsSetActiveAccountArguments(accountName)
     const accountId = accountNamesToAccountIds[accountName]
     await accountsDatabase.accountsMetadataDatabase.setItem('activeAccountId', accountId)
@@ -49,10 +51,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
   accountsActions.setAccount = async (account: Account) => {
     validator.validateAccountsActionsSetAccountArguments(account)
-    assert(accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`)
+    assert(accounts?.[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`)
     // use this function to serialize and update all databases
     await accountsDatabase.addAccount(account)
-    const [newAccount, accountNamesToAccountIds] = await Promise.all([
+    const [newAccount, accountNamesToAccountIds] = await Promise.all<any>([
       // use this function to deserialize
       accountsDatabase.getAccount(account.id),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
@@ -64,6 +66,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.setAccountsOrder = async (newOrderedAccountNames: string[]) => {
+    assert(accounts && accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`)
     const accountIds = []
     const accountNames = []
     for (const accountName of newOrderedAccountNames) {
@@ -87,7 +90,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     await accountsDatabase.addAccount(newAccount)
     const newAccounts = { ...accounts, [newAccount.id]: newAccount }
-    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
+    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all<any>([
       accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
       accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
@@ -125,6 +128,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
     let account = accounts[activeAccountId]
     if (accountName) {
       const accountId = accountNamesToAccountIds[accountName]
@@ -162,7 +166,6 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           if (challengeVerification?.publication?.cid) {
             const commentWithCid = { ...createCommentOptions, cid: challengeVerification.publication.cid }
             await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
-            // @ts-ignore
             setAccountsComments((previousAccounsComments) => {
               const updatedAccountComments = [...previousAccounsComments[account.id]]
               const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
@@ -180,7 +183,6 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     publishAndRetryFailedChallengeVerification()
     await accountsDatabase.addAccountComment(account.id, createCommentOptions)
     debug('accountsActions.publishComment', { createCommentOptions })
-    // @ts-ignore
     setAccountsComments((previousAccounsComments) => {
       // save account comment index to update the comment later
       accountCommentIndex = previousAccounsComments[account.id].length
@@ -201,6 +203,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
     let account = accounts[activeAccountId]
     if (accountName) {
       const accountId = accountNamesToAccountIds[accountName]
@@ -255,6 +258,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   // internal accounts action: the comment CID is not known at the time of publishing, so every time
   // we fetch a new comment, check if its our own, and attempt to add the CID
   const addCidToAccountComment = async (comment: Comment) => {
+    assert(accounts, `can't use AccountContext.accountActions before initialized`)
     const accountCommentsWithoutCids = accountsCommentsWithoutCids[comment?.author?.address]
     if (!accountCommentsWithoutCids) {
       return
@@ -264,7 +268,6 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
         const commentWithCid = utils.merge(accountComment, comment)
         await accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index)
-        // @ts-ignore
         setAccountsComments((previousAccounsComments) => {
           const updatedAccountComments = [...previousAccounsComments[accountComment.accountId]]
           updatedAccountComments[accountComment.index] = commentWithCid
@@ -308,7 +311,6 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
       updatedComment = utils.merge(commentArgument, comment, updatedComment)
       await accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex)
-      // @ts-ignore
       setAccountsComments((previousAccounsComments) => {
         const updatedAccountComments = [...previousAccounsComments[account.id]]
         const previousComment = updatedAccountComments[accountCommentIndex]
@@ -323,11 +325,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   // load accounts from database once on load
   useEffect(() => {
     ;(async () => {
-      let accountIds: string[] | null,
-        activeAccountId: string | null,
+      let accountIds: string[] | undefined,
+        activeAccountId: string | undefined,
         accounts: Accounts,
-        accountNamesToAccountIds: AccountNamesToAccountIds | null
-      accountIds = await accountsDatabase.accountsMetadataDatabase.getItem('accountIds')
+        accountNamesToAccountIds: AccountNamesToAccountIds | undefined
+      accountIds = (await accountsDatabase.accountsMetadataDatabase.getItem('accountIds')) || undefined
       // get accounts from database if any
       if (accountIds?.length) {
         ;[activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all<any>([
@@ -403,9 +405,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   return <AccountsContext.Provider value={accountsContext}>{props.children}</AccountsContext.Provider>
 }
 
-const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: any) => {
+const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: AccountsComments) => {
   const accountsCommentsWithoutCids = useMemo(() => {
-    const accountsCommentsWithoutCids: any = {}
+    const accountsCommentsWithoutCids: AccountsComments = {}
     if (!accounts || !accountsComments) {
       return accountsCommentsWithoutCids
     }
@@ -432,7 +434,7 @@ const useAccountsCommentsWithoutCids = (accounts?: Accounts, accountsComments?: 
 }
 
 // add calculated properties to accounts, like karma
-const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: any) => {
+const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: AccountsComments) => {
   return useMemo(() => {
     if (!accounts) {
       return

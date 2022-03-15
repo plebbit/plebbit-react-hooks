@@ -5,7 +5,7 @@ import feedSorter from './feed-sorter'
 import assert from 'assert'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:feedsprovider')
-import {Props, Feed, Feeds, Account} from '../../types'
+import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SortedPostsPages, SortedPostsPagesInfo, FeedsSortedPostsInfo, FeedsOptions, SortedComments} from '../../types'
 
 type FeedsContext = any
 
@@ -18,15 +18,15 @@ const subplebbitPostsLeftBeforeNextPage = 50
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
-  const [feedsOptions, setFeedsOptions] = useState({})
-  const [bufferedFeeds, setBufferedFeeds] = useState({})
-  const [loadedFeeds, setLoadedFeeds] = useState({})
+  const [feedsOptions, setFeedsOptions] = useState<FeedsOptions>({})
+  const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
+  const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
 
   // fetch subplebbits, sorted posts and next pages whenever bufferedFeeds gets too low
   const subplebbits = useSubplebbits(feedsOptions)
   const feedsSortedPostsInfo = useFeedsSortedPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
-  const feedsSortedPostsPages = useFeedsSortedPostsPages(feedsSortedPostsInfo)
-  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, loadedFeeds)
+  const sortedPostsPages = useSortedPostsPages(feedsSortedPostsInfo)
+  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPostsPages, loadedFeeds)
 
   // handle buffered feeds
   useEffect(() => {
@@ -39,17 +39,14 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
 
   // handle loaded feeds
   useEffect(() => {
-    const loadedFeedsMissingPosts: any = {}
+    const loadedFeedsMissingPosts: Feeds = {}
     for (const feedName in feedsOptions) {
-      // @ts-ignore
       const {pageNumber} = feedsOptions[feedName]
       const loadedFeedPostCount = pageNumber * postsPerPage
-      // @ts-ignore
       const currentLoadedFeed = loadedFeeds[feedName] || []
       const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
 
       // get new posts from buffered feed
-      // @ts-ignore
       const bufferedFeed = bufferedFeeds[feedName] || []
       const missingPosts = [...bufferedFeed]
       if (missingPosts.length > missingPostsCount) {
@@ -57,7 +54,6 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       }
 
       // the current loaded feed already exist and doesn't need new posts
-      // @ts-ignore
       if (missingPosts.length === 0 && loadedFeeds[feedName]) {
         continue
       }
@@ -68,36 +64,38 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       return
     }
     setLoadedFeeds(previousLoadedFeeds => {
-      const newLoadedFeeds: any = {}
+      const newLoadedFeeds: Feeds = {}
       for (const feedName in loadedFeedsMissingPosts) {
-        // @ts-ignore
         newLoadedFeeds[feedName] = [...previousLoadedFeeds[feedName] || [], ...loadedFeedsMissingPosts[feedName]]
       }
       return {...previousLoadedFeeds, ...newLoadedFeeds}
     })
   }, [bufferedFeeds, feedsOptions])
 
-  const feedsActions: any = {}
+  const feedsActions: {[key: string]: Function} = {}
 
   feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) => {
     // feed is in context already, do nothing
     // if the feed already exist but is at page 1, reset it to page 1
-    // @ts-ignore
-    if (feedsOptions[feedName] && feedsOptions[feedName].page !== 0) {
+    if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
       return
     }
     // to add a buffered feed, add a feed with pageNumber 0
     const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
     debug('feedsActions.addFeedToContext', feedOptions)
-    setFeedsOptions(previousFeedsOptions => ({...previousFeedsOptions, [feedName]: feedOptions}))
+    setFeedsOptions(previousFeedsOptions => {
+      // make sure to never overwrite a feed already added
+      if (previousFeedsOptions[feedName]) {
+        return previousFeedsOptions
+      }
+      return {...previousFeedsOptions, [feedName]: feedOptions}
+    })
   }
 
   feedsActions.incrementFeedPageNumber = async (feedName: string) => {
-    // @ts-ignore
     assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
     debug('feedsActions.incrementFeedPageNumber', {feedName})
     setFeedsOptions(previousFeedsOptions => {
-      // @ts-ignore
       const feedOptions = {...previousFeedsOptions[feedName], pageNumber: previousFeedsOptions[feedName].pageNumber + 1}
       return {...previousFeedsOptions, [feedName]: feedOptions}
     })
@@ -123,8 +121,8 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     loadedFeedsLengths[feedName] = loadedFeeds[feedName]?.length
   }
 
-  // debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, subplebbits, bufferedFeeds, loadedFeeds })
-  debug({ feedsOptions, feedsSortedPostsInfo, feedsSortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
+  // debug({ feedsOptions, feedsSortedPostsInfo, sortedPostsPages, subplebbits, bufferedFeeds, loadedFeeds })
+  debug({ feedsOptions, feedsSortedPostsInfo, sortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
 }
 
@@ -132,10 +130,10 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
  * Calculate the final buffered feeds from all the loaded sorted posts pages, sort them, 
  * and remove the posts already loaded in loadedFeeds
  */
-function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any, feedsSortedPostsPages: any, loadedFeeds: any) {
+function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, feedsSortedPostsInfo: FeedsSortedPostsInfo, sortedPostsPages: SortedPostsPages, loadedFeeds: Feeds) {
   return useMemo(() => {
     // contruct a list of posts already loaded to remove them from buffered feeds
-    const loadedFeedsPosts: any = {}
+    const loadedFeedsPosts: Feeds = {}
     for (const feedName in loadedFeeds) {
       loadedFeedsPosts[feedName] = new Set()
       for (const post of loadedFeeds[feedName]) {
@@ -144,9 +142,8 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
     }
 
     // calculate each feed
-    let newBufferedFeeds: any = {}
+    let newBufferedFeeds: Feeds = {}
     for (const feedName in feedsOptions) {
-      // @ts-ignore
       const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
 
       // find all fetched posts
@@ -164,11 +161,11 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
           }
 
           // found an info that matches the sub address and sorted by
-          // get all the pages for it from feedsSortedPostsPages
-          const sortedPostsPages = getAllSortedPostsPages(info.firstPageSortedPostsCid, feedsSortedPostsPages)
+          // get all the pages for it from sortedPostsPages
+          const subplebbitSortedPostsPages = getSubplebbitSortedPostsPages(info.firstPageSortedPostsCid, sortedPostsPages)
 
           // add each comment from each page, do not filter at this stage, filter after sorting
-          for (const sortedPostsPage of sortedPostsPages) {
+          for (const sortedPostsPage of subplebbitSortedPostsPages) {
             if (sortedPostsPage?.comments) {
               bufferedFeedPosts.push(...sortedPostsPage.comments)
             }
@@ -198,7 +195,7 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
       newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts
     }
     return newBufferedFeeds
-  }, [feedsOptions, feedsSortedPostsPages, loadedFeeds])
+  }, [feedsOptions, sortedPostsPages, loadedFeeds])
 }
 
 /**
@@ -206,13 +203,13 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
  * if the `feedSortedPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
  * Once a next page is added, it is never removed.
  */
-function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
-  const [sortedPostsPages, setSortedPostsPages] = useState({})
+function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo) {
+  const [sortedPostsPages, setSortedPostsPages] = useState<SortedPostsPages>({})
 
   // set the info necessary to fetch each page recursively
   // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage
   const sortedPostsPagesInfo = useMemo(() => {
-    const newSortedPostsPagesInfo: any = {}
+    const newSortedPostsPagesInfo: SortedPostsPagesInfo = {}
     for (const infoName in feedsSortedPostsInfo) {
       const {firstPageSortedPostsCid, account, subplebbitAddress, sortType, bufferedPostCount} = feedsSortedPostsInfo[infoName]
       // add first page
@@ -221,8 +218,8 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
 
       // add all next pages if needed and if available
       if (bufferedPostCount <= subplebbitPostsLeftBeforeNextPage) {
-        const allPages = getAllSortedPostsPages(firstPageSortedPostsCid, sortedPostsPages)
-        for (const page of allPages) {
+        const subplebbitPages = getSubplebbitSortedPostsPages(firstPageSortedPostsCid, sortedPostsPages)
+        for (const page of subplebbitPages) {
           if (page.nextSortedCommentsCid) {
             const sortedPostsNextPageInfo = {sortedPostsCid: page.nextSortedCommentsCid, account, subplebbitAddress, sortType}
             newSortedPostsPagesInfo[page.nextSortedCommentsCid + infoName] = sortedPostsNextPageInfo
@@ -237,10 +234,8 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
   // once a page is added, it's never removed
   useEffect(() => {
     for (const infoName in sortedPostsPagesInfo) {
-      // @ts-ignore
       const {sortedPostsCid, account, subplebbitAddress} = sortedPostsPagesInfo[infoName]
       // sorted posts already fetched or fetching
-      // @ts-ignore
       if (sortedPostsPages[sortedPostsCid] || getSortedPostsPending[account.id + sortedPostsCid]) {
         continue
       }
@@ -249,7 +244,7 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
       const subplebbit = account.plebbit.createSubplebbit({address: subplebbitAddress})
       // @ts-ignore
       subplebbit.getSortedPosts(sortedPostsCid).then((fetchedSortedPostsPage) => {
-        debug('FeedsProvider useFeedsSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo}})
+        debug('FeedsProvider useSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo}})
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
         getSortedPostsPending[account.id + sortedPostsCid] = false
       })
@@ -258,22 +253,22 @@ function useFeedsSortedPostsPages(feedsSortedPostsInfo: any) {
 
   return sortedPostsPages
 }
-const getSortedPostsPending: any = {}
+const getSortedPostsPending: {[key:string]: boolean} = {}
 
 /**
  * Util function to gather in an array all loaded `SortedComments` pages of a subplebbit/sort 
  * using `SortedComments.nextSortedCommentsCid`
  */
-const getAllSortedPostsPages = (firstPageSortedPostsCid: string, feedsSortedPostsPages: any) => {
-  const pages: any = []
-  const firstPage = feedsSortedPostsPages[firstPageSortedPostsCid]
+const getSubplebbitSortedPostsPages = (firstPageSortedPostsCid: string, sortedPostsPages: SortedPostsPages) => {
+  const pages: SortedComments[] = []
+  const firstPage = sortedPostsPages[firstPageSortedPostsCid]
   if (!firstPage) {
     return pages
   }
   pages.push(firstPage)
   while (true) {
     const nextSortedCommentsCid = pages[pages.length - 1]?.nextSortedCommentsCid
-    const sortedPostsPage = feedsSortedPostsPages[nextSortedCommentsCid]
+    const sortedPostsPage = sortedPostsPages[nextSortedCommentsCid]
     if (!sortedPostsPage) {
       return pages
     }
@@ -285,10 +280,10 @@ const getAllSortedPostsPages = (firstPageSortedPostsCid: string, feedsSortedPost
  * Generate a list of `feedSortedPostsInfo` objects which contain the information required
  * to initiate fetching the pages of each subplebbit/sort/account/feed
  */
-function useFeedsSortedPostsInfo(feedsOptions: any, subplebbits: any, bufferedFeeds: any) {
+function useFeedsSortedPostsInfo(feedsOptions: FeedsOptions, subplebbits: Subplebbits, bufferedFeeds: Feeds) {
   const bufferedFeedsSubplebbitsPostCounts = useBufferedFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
   return useMemo(() => {
-    const feedsSortedPostsInfo: any = {}
+    const feedsSortedPostsInfo: FeedsSortedPostsInfo = {}
     for (const feedName in feedsOptions) {
       const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
       for (const subplebbitAddress of subplebbitAddresses) {
@@ -316,7 +311,7 @@ function useFeedsSortedPostsInfo(feedsOptions: any, subplebbits: any, bufferedFe
  * This convoluted hook is required to keep track of how many posts are left buffered in each subplebbit,
  * each sort, and each feed. If the amount gets too low, a new page can be fetched in advance.
  */
-function useBufferedFeedsSubplebbitsPostCounts(feedsOptions: any, bufferedFeeds: any) {
+function useBufferedFeedsSubplebbitsPostCounts(feedsOptions: FeedsOptions, bufferedFeeds: Feeds) {
   return useMemo(() => {
     const feedsSubplebbitsPostCounts: any = {}
     for (const feedName in feedsOptions) {
@@ -335,10 +330,10 @@ function useBufferedFeedsSubplebbitsPostCounts(feedsOptions: any, bufferedFeeds:
 /**
  * Add subplebbits to SubplebbitsContext as they are needed, and return them as an object
  */
-function useSubplebbits(feedsOptions: any) {
+function useSubplebbits(feedsOptions: FeedsOptions) {
   const subplebbitAddressesAndAccounts = useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions)
   const subplebbitsContext = useContext(SubplebbitsContext)
-  const subplebbits: any = {}
+  const subplebbits: Subplebbits = {}
   for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
     subplebbits[subplebbitAddress] = subplebbitsContext.subplebbits[subplebbitAddress]
   }
@@ -359,10 +354,10 @@ function useSubplebbits(feedsOptions: any) {
 /**
  * Util function of useSubplebbits to not rerender unnecessarily 
  */
-function useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions: any) {
+function useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions: FeedsOptions): [string, string][]{
   return useMemo(() => {
-    const accounts: any = {}
-    const subplebbitAddressesAndAccountsStrings = []
+    const accounts: Accounts = {}
+    const subplebbitAddressesAndAccountsStrings: string[] = []
     for (const feedName in feedsOptions) {
       const feedOptions = feedsOptions[feedName]
       accounts[feedOptions.account.id] = feedOptions.account
@@ -370,8 +365,8 @@ function useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions: any) {
         subplebbitAddressesAndAccountsStrings.push(JSON.stringify([subplebbitAddress, feedOptions.account.id]))
       }
     }
-    const uniqueSortedStrings = [...new Set(subplebbitAddressesAndAccountsStrings.sort())]
-    const uniqueSorted = uniqueSortedStrings.map(string => JSON.parse(string))
+    const uniqueSortedStrings: string[] = [...new Set(subplebbitAddressesAndAccountsStrings.sort())]
+    const uniqueSorted: string[] = uniqueSortedStrings.map(string => JSON.parse(string))
     return uniqueSorted.map(([subplebbitAddress, accountId]) => [subplebbitAddress, accounts[accountId]])
   }, [feedsOptions])
 }

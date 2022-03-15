@@ -22,7 +22,7 @@ export class Plebbit {
     subplebbit.sortedPosts = {hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit)}
     subplebbit.sortedPostsCids = {
       hot: hotSortedPostsCid,
-      top: subplebbit.address + ' sorted posts cid top',
+      topAll: subplebbit.address + ' sorted posts cid topAll',
       new: subplebbit.address + ' sorted posts cid new'
     }
     // mock properties of subplebbitToGet unto the subplebbit instance
@@ -106,6 +106,7 @@ export class Subplebbit extends EventEmitter {
   }
 
   async getSortedPosts(sortedPostsCid: string) {
+    // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
     return subplebbitGetSortedPosts(sortedPostsCid, this)
   }
@@ -123,7 +124,9 @@ const subplebbitGetSortedPosts = (sortedPostsCid: string, subplebbit: any) => {
     sortedComments.comments.push({
       timestamp: index,
       cid: sortedPostsCid + ' comment cid ' + index, 
-      subplebbitAddress: subplebbit.address
+      subplebbitAddress: subplebbit.address,
+      upvoteCount: index,
+      downvoteCount: 10
     })
   }
   return sortedComments

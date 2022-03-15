@@ -19,7 +19,7 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
   const accountsContext = useContext(AccountsContext)
   const [comments, setComments] = useState<Comments>({})
 
-  const commentsActions: any = {}
+  const commentsActions: {[key: string]: Function} = {}
 
   commentsActions.addCommentToContext = async (commentId: string, account: Account) => {
     // comment is in context already, do nothing

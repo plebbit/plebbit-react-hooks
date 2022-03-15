@@ -59,6 +59,7 @@ const sortByControversial = (feed: any[]) => {
 /**
  * Sort by hot is made using relative score, to encourage small communities to grow
  * and to not incentivize communities to inflate their vote counts
+ * Note: a sub with not many posts will be given very high priority
  */
 const sortByHot = (feed: any[]) => {
   const subplebbitScores: {[key: string]: number} = {}
@@ -97,14 +98,14 @@ export const sort = (sortType: string, feed: any[]) => {
   if (sortType === 'new') {
     return feed.sort((a, b) => b.timestamp - a.timestamp)
   }
-  else if (sortType.match('top')) {
+  if (sortType === 'hot') {
+    return sortByHot(feed)
+  }
+  if (sortType.match('top')) {
     return sortByTop(feed)
   }
-  else if (sortType.match('controversial')) {
+  if (sortType.match('controversial')) {
     return sortByControversial(feed)
-  }
-  else if (sortType.match('hot')) {
-    return sortByHot(feed)
   }
   throw Error(`FeedsProvider feedSorter sort type '${sortType}' doesn't exist`)
 }

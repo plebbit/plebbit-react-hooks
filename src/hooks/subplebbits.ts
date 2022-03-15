@@ -5,6 +5,7 @@ import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:subplebbits')
 import assert from 'assert'
+import {Subplebbit} from '../types'
 
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
@@ -39,7 +40,7 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
 export function useSubplebbits(subplebbitAddresses?: string[], accountName?: string) {
   const account = useAccount(accountName)
   const subplebbitsContext = useContext(SubplebbitsContext)
-  const subplebbits: any[] = []
+  const subplebbits: Subplebbit[] = []
   for (const subplebbitAddress of subplebbitAddresses || []) {
     subplebbits.push(subplebbitsContext.subplebbits[subplebbitAddress])
   }

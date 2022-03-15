@@ -5,24 +5,7 @@ import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:feeds')
 import assert from 'assert'
-
-function useUniqueSorted(strings?: string[]) {
-  return useMemo(() => {
-    if (!strings) {
-      return
-    }
-    return [...new Set(strings.sort())]
-  }, [strings])
-}
-
-function useStringified(obj?: any) {
-  return useMemo(() => {
-    if (obj === undefined) {
-      return
-    }
-    return JSON.stringify(obj)
-  }, [obj])
-}
+import {Feed, UseBufferedFeedOptions} from '../types'
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
@@ -34,8 +17,8 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   const account = useAccount(accountName)
   const feedsContext = useContext(FeedsContext)
 
-  const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
-  const feedName = useStringified([account?.id, sortType, uniqueSubplebbitAddresses])
+  const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses])
+  const [feedName] = useStringified([[account?.id, sortType, uniqueSubplebbitAddresses]])
   const feed = feedName && feedsContext.loadedFeeds[feedName]
 
   useEffect(() => {
@@ -60,11 +43,6 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   return {feed, hasMore, loadMore}
 }
 
-type FeedOptions = {
-  subplebbitAddresses: string[]
-  sortType?: string
-}
-
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when
  * they are called by useFeed later, they are already preloaded.
@@ -73,6 +51,80 @@ type FeedOptions = {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useBufferedFeeds(feedsOptions?: FeedOptions[], accountName?: string) {
+export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], accountName?: string) {
+  const account = useAccount(accountName)
+  const feedsContext = useContext(FeedsContext)
 
+  // do a bunch of calculations to get feedsOptionsFlattened and feedNames
+  const subplebbitAddressesArrays = []
+  const sortTypes = []
+  for (const feedOptions of feedsOptions) {
+    subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses)
+    sortTypes.push(feedOptions.sortType)
+  }
+  const uniqueSubplebbitAddressesArrays = useUniqueSorted(subplebbitAddressesArrays)
+  const feedsOptionsFlattened: any = []
+  for (const i in feedsOptions) {
+    feedsOptionsFlattened[i] = [account?.id, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]]
+  }
+  const feedNames = useStringified(feedsOptionsFlattened)
+  
+  // only give to the user the buffered feeds he requested
+  const bufferedFeeds: Feed[] = []
+  for (const feedName of feedNames) {
+    bufferedFeeds.push(feedsContext.bufferedFeeds[feedName || ''] || [])
+  }
+
+  useEffect(() => {
+    for (const i in feedsOptionsFlattened) {
+      const [accountId, sortType, uniqueSubplebbitAddresses] = feedsOptionsFlattened[Number(i)]
+      const feedName = feedNames[Number(i)]
+      if (!uniqueSubplebbitAddresses || !account) {
+        return
+      }
+      if (!feedsContext.bufferedFeeds[feedName || '']) {
+        const isBufferedFeed = true
+        feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed)
+      }
+    }
+  }, [feedNames])
+
+  debug('useBufferedFeeds', { bufferedFeeds })
+  return bufferedFeeds
+}
+
+/**
+ * Util to find unique and sorted subplebbit addresses for multiple feed options
+ */
+function useUniqueSorted(stringsArrays?: (string[]|undefined)[]) {
+  return useMemo(() => {
+    const uniqueSorted = []
+    for (const stringsArray of stringsArrays || []) {
+      if (!stringsArray) {
+        uniqueSorted.push(undefined)
+      }
+      else {
+        uniqueSorted.push([...new Set(stringsArray.sort())])
+      }
+    }
+    return uniqueSorted
+  }, [stringsArrays])
+}
+
+/**
+ * Util to stringify multiple objects or return undefineds
+ */
+function useStringified(objs?: any[]) {
+  return useMemo(() => {
+    const stringified = []
+    for (const obj of objs || []) {
+      if (obj === undefined) {
+        stringified.push(undefined)
+      }
+      else {
+        stringified.push(JSON.stringify(obj))
+      }
+    }
+    return stringified
+  }, [objs])
 }

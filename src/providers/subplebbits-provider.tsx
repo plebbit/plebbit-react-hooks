@@ -17,7 +17,7 @@ const plebbitGetSubplebbitPending: { [key: string]: boolean } = {}
 export default function SubplebbitsProvider(props: Props): JSX.Element | null {
   const [subplebbits, setSubplebbits] = useState<Subplebbits>({})
 
-  const subplebbitsActions: any = {}
+  const subplebbitsActions: {[key: string]: Function} = {}
 
   subplebbitsActions.addSubplebbitToContext = async (subplebbitAddress: string, account: Account) => {
     // subplebbit is in context already, do nothing
@@ -36,7 +36,6 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
     }
     debug('subplebbitsActions.addSubplebbitToContext', { subplebbitAddress, subplebbit, account })
-    // @ts-ignore
     setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: utils.clone(subplebbit) }))
     plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
 
@@ -45,7 +44,6 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       updatedSubplebbit = utils.clone(updatedSubplebbit)
       await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
       debug('subplebbitsContext subplebbit update', { subplebbitAddress, updatedSubplebbit, account })
-      // @ts-ignore
       setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: updatedSubplebbit }))
     })
     subplebbit.update()
