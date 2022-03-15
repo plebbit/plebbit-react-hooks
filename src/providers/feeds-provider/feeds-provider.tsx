@@ -143,7 +143,8 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
       }
     }
 
-    const newBufferedFeeds: any = {}
+    // calculate each feed
+    let newBufferedFeeds: any = {}
     for (const feedName in feedsOptions) {
       // @ts-ignore
       const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
@@ -166,31 +167,35 @@ function useCalculatedBufferedFeeds(feedsOptions: any, feedsSortedPostsInfo: any
           // get all the pages for it from feedsSortedPostsPages
           const sortedPostsPages = getAllSortedPostsPages(info.firstPageSortedPostsCid, feedsSortedPostsPages)
 
-          // add each comment from each page
+          // add each comment from each page, do not filter at this stage, filter after sorting
           for (const sortedPostsPage of sortedPostsPages) {
-            for (let comment of sortedPostsPage?.comments || []) {
-              // don't add posts already loaded in loaded feeds
-              if (loadedFeedsPosts[feedName].has(comment.cid)) {
-                continue
-              }
-
-              // TODO: filter blocked addresses
-              // if (account.blockedAddresses[comment.subplebbitAddress] || account.blockedAddresses[comment.author.address]) {
-              //   continue
-              // }
-
-              if (comment.subplebbitAddress !== subplebbitAddress) {
-                // do not include comments from incorrect subs
-                // in case plebbit-js forgets to validate comment.subplebbitAddress in getSortedComments()
-                console.error(`FeedsProvider comment.subplebbitAddress '${comment.subplebbitAddress}' !== '${subplebbitAddress}', plebbit-js should validate this`)
-                continue
-              }
-              bufferedFeedPosts.push(comment)
+            if (sortedPostsPage?.comments) {
+              bufferedFeedPosts.push(...sortedPostsPage.comments)
             }
           }
         }
       }
-      newBufferedFeeds[feedName] = feedSorter.sort(sortType, bufferedFeedPosts)
+
+      // sort the feed before filtering to get more accurate results
+      const sortedBufferedFeedPosts = feedSorter.sort(sortType, bufferedFeedPosts)
+
+      // filter the feed
+      const filteredSortedBufferedFeedPosts = []
+      for (const post of sortedBufferedFeedPosts) {
+        // don't add posts already loaded in loaded feeds
+        if (loadedFeedsPosts[feedName].has(post.cid)) {
+          continue
+        }
+
+        // TODO: filter blocked addresses
+        // if (account.blockedAddresses[post.subplebbitAddress] || account.blockedAddresses[post.author.address]) {
+        //   continue
+        // }
+
+        filteredSortedBufferedFeedPosts.push(post)
+      }
+
+      newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts
     }
     return newBufferedFeeds
   }, [feedsOptions, feedsSortedPostsPages, loadedFeeds])
