@@ -297,7 +297,27 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[postsPerPage+1].upvoteCount).toBe(100)
     })
 
-    test.todo(`useBufferedFeeds can fetch multiple subs in the background before delivering the first page`)
+    test(`useBufferedFeeds can fetch multiple subs in the background before delivering the first page`, async () => {
+      const rendered = renderHook<any, any>(() => 
+        useBufferedFeeds([
+          {subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'], sortType: 'new'},
+          {subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'], sortType: 'topAll'},
+          {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']}
+        ]), { wrapper: PlebbitProvider })
+
+      // should get empty arrays after 1 render
+      try {await rendered.waitForNextUpdate()} catch (e) {console.error(e)}
+      expect(rendered.result.current).toEqual([[],[],[]])
+
+      // should eventually buffer posts for all feeds
+      try {await rendered.waitFor(() => rendered.result.current[0].length > 299
+        && rendered.result.current[1].length > 299
+        && rendered.result.current[2].length > 299
+      )} catch (e) {console.error(e)}
+      expect(rendered.result.current[0].length).toBeGreaterThan(299)
+      expect(rendered.result.current[1].length).toBeGreaterThan(299)
+      expect(rendered.result.current[2].length).toBeGreaterThan(299)
+    })
 
     test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
 

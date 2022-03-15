@@ -181,7 +181,7 @@ FeedItem {
 #### Getting started
 
 ```js
-import {PlebbitProvider, useComment, useAccount} from '@plebbit/plebbit-react-hooks'
+import {PlebbitProvider, useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
 
 // wrap your app with the PlebbitProvider
 // ...
@@ -190,7 +190,6 @@ return <PlebbitProvider><App/></PlebbitProvider>
 // then use the hooks anywhere in your app
 const account = useAccount()
 const comment = useComment(commentCid)
-
 ```
 
 #### Get the active account, if none exist in browser database, a default account is generated
@@ -293,7 +292,7 @@ publishComment({
 
 ```js
 import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
-const {feed, hasMore, loadMore} = useFeed(subplebbitAddress)
+const {feed, hasMore, loadMore} = useFeed(['memes.eth', 'Qm...', 'Qm...'], 'topAll')
 const posts = feed.map(post => <Post post={post} />)
 
 <InfiniteScroll
@@ -304,6 +303,14 @@ const posts = feed.map(post => <Post post={post} />)
 >
   {posts}
 </InfiniteScroll>
+
+// you probably will want to buffer some feeds in the background so they are already loaded
+// when you need them
+useBufferedFeeds([
+  {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
+  {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
+  {subplebbitAddresses: ['Qm...', 'Qm...', 'Qm...', 'Qm...'], sortType: 'hot'}
+])
 ```
 
 #### Edit an account
