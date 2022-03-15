@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import { useFeed, useBufferedFeeds } from '../index'
+import { useFeed, useBufferedFeeds, useAccountsActions } from '../index'
 import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
 import localForage from 'localforage'
@@ -319,9 +319,39 @@ describe('feeds', () => {
       expect(rendered.result.current[2].length).toBeGreaterThan(299)
     })
 
+    test('get feed using a different account', async () => {
+      rendered = renderHook<any, any>((props: any) => {
+        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+        const { createAccount } = useAccountsActions()
+        return {...feed, createAccount}
+      }, { wrapper: PlebbitProvider })
+
+      // wait for createAccount to render
+      expect(rendered.result.current.createAccount).toBe(undefined)
+      try {await rendered.waitForNextUpdate()} catch (e) {console.error(e)}
+      expect(typeof rendered.result.current.createAccount).toBe('function')
+
+      // create account
+      await act(async () => {
+        await rendered.result.current.createAccount('custom name')
+      })
+
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new', accountName: 'custom name'})
+      expect(typeof rendered.result.current.hasMore).toBe('boolean')
+      expect(typeof rendered.result.current.loadMore).toBe('function')
+
+      // wait for feed array to render
+      try {await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))} catch (e) {console.error(e)}
+      expect(rendered.result.current.feed).toEqual([])
+
+      // wait for posts to be added, should get full first page
+      await rendered.waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 100')
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+    })
+
     test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
 
-    test.todo('get feed using a different account')
 
     test.todo('get feed and scroll to multiple pages, multiple subplebbits with different page sizes')
 
