@@ -25,7 +25,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   // fetch subplebbits, sorted posts and next pages whenever bufferedFeeds gets too low
   const subplebbits = useSubplebbits(feedsOptions)
   const feedsSortedPostsInfo = useFeedsSortedPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
-  const sortedPostsPages = useSortedPostsPages(feedsSortedPostsInfo)
+  const sortedPostsPages = useSortedPostsPages(feedsSortedPostsInfo, subplebbits)
   const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPostsPages, loadedFeeds)
   const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, sortedPostsPages, bufferedFeeds)
 
@@ -115,19 +115,26 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     feedsHaveMore
   }
 
-  const bufferedFeedsLengths: any = {}
-  const loadedFeedsLengths: any = {}
-  // @ts-ignore
-  for (const feedName in feedsOptions) {
-    // @ts-ignore
-    bufferedFeedsLengths[feedName] = bufferedFeeds[feedName]?.length
-    // @ts-ignore
-    loadedFeedsLengths[feedName] = loadedFeeds[feedName]?.length
-  }
-
-  // debug({ feedsOptions, feedsSortedPostsInfo, sortedPostsPages, subplebbits, bufferedFeeds, loadedFeeds })
+  // debug util
+  const bufferedFeedsLengths = useFeedsLengths(bufferedFeeds)
+  const loadedFeedsLengths = useFeedsLengths(loadedFeeds)
   debug({ feedsOptions, feedsHaveMore, feedsSortedPostsInfo, sortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
+}
+
+/**
+ * Debug util
+ */
+function useFeedsLengths(feeds: Feeds) {
+  return useMemo(() => {
+    const feedsLengths: {[key: string]: number} = {}
+    for (const feedName in feeds) {
+      if (feeds[feedName]) {
+        feedsLengths[feedName] = feeds[feedName].length || 0
+      }
+    }
+    return feedsLengths
+  }, [feeds])
 }
 
 /**
@@ -256,7 +263,7 @@ function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, feedsSortedPosts
  * if the `feedSortedPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
  * Once a next page is added, it is never removed.
  */
-function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo) {
+function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo, subplebbits: Subplebbits) {
   const [sortedPostsPages, setSortedPostsPages] = useState<SortedPostsPages>({})
 
   // set the info necessary to fetch each page recursively
@@ -266,7 +273,10 @@ function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo) {
     for (const infoName in feedsSortedPostsInfo) {
       const {firstPageSortedPostsCid, account, subplebbitAddress, sortType, bufferedPostCount} = feedsSortedPostsInfo[infoName]
       // add first page
-      const sortedPostsFirstPageInfo = {sortedPostsCid: firstPageSortedPostsCid, account, subplebbitAddress, sortType}
+      const sortedPostsFirstPageInfo = {sortedPostsCid: firstPageSortedPostsCid, account, subplebbitAddress, sortType,
+        // add preloaded sorted posts if any
+        sortedPosts: subplebbits?.[subplebbitAddress]?.sortedPosts?.[sortType]
+      }
       newSortedPostsPagesInfo[firstPageSortedPostsCid + infoName] = sortedPostsFirstPageInfo
 
       // add all next pages if needed and if available
@@ -287,9 +297,15 @@ function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo) {
   // once a page is added, it's never removed
   useEffect(() => {
     for (const infoName in sortedPostsPagesInfo) {
-      const {sortedPostsCid, account, subplebbitAddress} = sortedPostsPagesInfo[infoName]
+      const {sortedPostsCid, account, subplebbitAddress, sortedPosts} = sortedPostsPagesInfo[infoName]
       // sorted posts already fetched or fetching
       if (sortedPostsPages[sortedPostsCid] || getSortedPostsPending[account.id + sortedPostsCid]) {
+        continue
+      }
+
+      // the sorted post page was already preloaded in the subplebbit IPNS record
+      if (sortedPosts) {
+        setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: sortedPosts}))
         continue
       }
 

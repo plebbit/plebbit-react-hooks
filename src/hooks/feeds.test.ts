@@ -395,7 +395,7 @@ describe('feeds', () => {
         Subplebbit.prototype.getSortedPosts = getSortedPosts
       })
       test(`1 subplebbit, scroll to end of feed, hasMore becomes false`, async () => {
-        rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
         // hasMore should be true before the feed is loaded
         expect(rendered.result.current.hasMore).toBe(true)
         expect(typeof rendered.result.current.loadMore).toBe('function')
@@ -428,7 +428,7 @@ describe('feeds', () => {
       })
 
       test(`multiple subplebbits, scroll to end of feed, hasMore becomes false`, async () => {
-        rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']})
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'], sortType: 'new'})
         // hasMore should be true before the feed is loaded
         expect(rendered.result.current.hasMore).toBe(true)
         expect(typeof rendered.result.current.loadMore).toBe('function')
@@ -488,9 +488,28 @@ describe('feeds', () => {
       })
     })
 
-    test.todo(`subplebbit updates while we are scrolling`)
+    describe('getSortedPosts never gets called', () => {
+      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+      beforeEach(() => {
+        Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
+          // it can get called with a next cid to fetch the second page
+          if (!sortedPostsCid.match('next')) {
+            throw Error(`subplebbit.getSortedPosts() was called with argument '${sortedPostsCid}', should not get called at all on first page of sort type 'hot'`)
+          }
+          return {nextSortedCommentsCid: null, comments: []}
+        }
+      })
+      afterEach(() => {
+        Subplebbit.prototype.getSortedPosts = getSortedPosts
+      })
+      test(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included in IPNS record`, async () => {
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
+        try {await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage)} catch (e) {console.error(e)}
+        expect(rendered.result.current.feed?.length).toBe(postsPerPage)
+      })
+    })
 
-    test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
+    test.todo(`subplebbit updates while we are scrolling`)
 
     test.todo(`store sorted posts pages in database`)
 

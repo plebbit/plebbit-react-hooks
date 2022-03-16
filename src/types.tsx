@@ -48,6 +48,7 @@ export type FeedSortedPostsInfo = {
 export type FeedsSortedPostsInfo = {[key: string]: FeedSortedPostsInfo}
 export type SortedPostsPageInfo = {
   sortedPostsCid: string
+  sortedPosts?: SortedComments
   account: Account
   subplebbitAddress: string
   sortType: string

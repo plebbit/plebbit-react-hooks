@@ -114,7 +114,7 @@ export class Subplebbit extends EventEmitter {
 
 // define it here because also used it plebbit.getSubplebbit()
 const subplebbitGetSortedPosts = (sortedPostsCid: string, subplebbit: any) => {
-    const sortedComments: any = {
+  const sortedComments: any = {
     nextSortedCommentsCid: subplebbit.address + ' ' + sortedPostsCid + ' - next sorted comments cid', 
     comments: []
   }
