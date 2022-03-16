@@ -65,7 +65,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed).toEqual([])
 
       // wait for posts to be added, should get full first page
-      await rendered.waitFor(() => rendered.result.current.feed.length > 0)
+      try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
       // NOTE: the 'hot' sort type uses timestamps and bugs out with timestamp '1-100' so this is why we get cid 1
       // with low upvote count first
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 1')
@@ -351,8 +351,8 @@ describe('feeds', () => {
       expect(rendered.result.current.feed).toEqual([])
 
       // wait for posts to be added, should get full first page
-      await rendered.waitFor(() => rendered.result.current.feed.length > 0)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 100')
+      try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
+      expect(typeof rendered.result.current.feed[0].cid).toBe('string')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
@@ -371,9 +371,63 @@ describe('feeds', () => {
       expect(rendered.result.error?.message).toMatch(`invalid feed sort type 'doesnt exist'`)
     })
 
-    test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
+    describe('getSortedPosts only has 1 page', () => {
+      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+      beforeEach(() => {
+        // mock getSortedPosts to only give 1 or 2 pages
+        Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
+          // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
+          await simulateLoadingTime()
+          await simulateLoadingTime()
+          const sortedComments: any = {nextSortedCommentsCid: null, comments: []}
+          const postCount = 100
+          let index = 0
+          while (index++ < postCount) {
+            sortedComments.comments.push({timestamp: index, cid: sortedPostsCid + ' comment cid ' + index, subplebbitAddress: this.address})
+          }
+          return sortedComments
+        }
+      })
+      afterEach(() => {
+        Subplebbit.prototype.getSortedPosts = getSortedPosts
+      })
+      test(`1 subplebbit, scroll to end of feed, hasMore becomes false`, async () => {
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+        // hasMore should be true before the feed is loaded
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(typeof rendered.result.current.loadMore).toBe('function')
 
-    test.todo(`scroll to end of feed, hasMore becomes false`)
+        // wait for feed array to render
+        try {await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))} catch (e) {console.error(e)}
+        expect(rendered.result.current.feed).toEqual([])
+        // hasMore should be true before the feed is loaded
+        expect(rendered.result.current.hasMore).toBe(true)
+
+        try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
+        // hasMore should be true because there are still buffered feeds
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+        await scrollOnePage()
+        // hasMore should be true because there are still buffered feeds
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+
+        await scrollOnePage()
+        // hasMore should be true because there are still buffered feeds
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 3)
+
+        await scrollOnePage()
+        // there are no bufferedFeed and pages left so hasMore should be false
+        expect(rendered.result.current.hasMore).toBe(false)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 4)
+      })
+
+      test.todo(`multiple subplebbits, scroll to end of feed, hasMore becomes false`)
+    })
+
+    test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
 
     test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`)
 

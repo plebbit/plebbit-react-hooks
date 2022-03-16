@@ -27,6 +27,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   const feedsSortedPostsInfo = useFeedsSortedPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
   const sortedPostsPages = useSortedPostsPages(feedsSortedPostsInfo)
   const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPostsPages, loadedFeeds)
+  const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, sortedPostsPages, bufferedFeeds)
 
   // handle buffered feeds
   useEffect(() => {
@@ -109,6 +110,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     bufferedFeeds,
     loadedFeeds,
     feedsActions,
+    feedsHaveMore
   }
 
   const bufferedFeedsLengths: any = {}
@@ -122,8 +124,57 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   }
 
   // debug({ feedsOptions, feedsSortedPostsInfo, sortedPostsPages, subplebbits, bufferedFeeds, loadedFeeds })
-  debug({ feedsOptions, feedsSortedPostsInfo, sortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
+  debug({ feedsOptions, feedsHaveMore, feedsSortedPostsInfo, sortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths })
   return <FeedsContext.Provider value={feedsContext}>{props.children}</FeedsContext.Provider>
+}
+
+/**
+ * Generate a list of `feedSortedPostsInfo` objects which contain the information required
+ * to initiate fetching the pages of each subplebbit/sort/account/feed
+ */
+function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, sortedPostsPages: SortedPostsPages, bufferedFeeds: Feeds) {
+  return useMemo(() => {
+    const feedsHaveMore: {[key: string]: boolean} = {}
+    feedsLoop: for (const feedName in feedsOptions) {
+      // if the feed still has buffered posts, then it still has more
+      if (bufferedFeeds[feedName]?.length) {
+        feedsHaveMore[feedName] = true
+        continue
+      }
+
+      const {subplebbitAddresses, sortType} = feedsOptions[feedName]
+      for (const subplebbitAddress of subplebbitAddresses) {
+        const subplebbit = subplebbits[subplebbitAddress]
+        // if at least 1 subplebbit hasn't loaded yet, then the feed still has more
+        if (!subplebbit) {
+          feedsHaveMore[feedName] = true
+          continue feedsLoop
+        }
+        const firstPageSortedPostsCid = subplebbit.sortedPostsCids?.[sortType]
+        // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
+        // should we try to use another sort type by default, like 'hot', or should we just ignore it?
+        // 'continue' to ignore it for now
+        if (!firstPageSortedPostsCid) {
+          continue
+        }
+        const pages = getSubplebbitSortedPostsPages(firstPageSortedPostsCid, sortedPostsPages)
+        // if first page isn't loaded yet, then the feed still has more
+        if (!pages.length) {
+          feedsHaveMore[feedName] = true
+          continue feedsLoop
+        }
+        const lastPage = pages[pages.length - 1]
+        if (lastPage.nextSortedCommentsCid) {
+          feedsHaveMore[feedName] = true
+          continue feedsLoop
+        }
+      }
+
+      // if buffered feeds are empty and no last page of any subplebbit has a next page, then has more is false
+      feedsHaveMore[feedName] = false
+    }
+    return feedsHaveMore
+  }, [feedsOptions, bufferedFeeds, subplebbits, sortedPostsPages])
 }
 
 /**

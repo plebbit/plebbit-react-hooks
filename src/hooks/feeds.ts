@@ -32,7 +32,12 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     }
   }, [feedName, uniqueSubplebbitAddresses, account])
 
-  const hasMore = true
+  let hasMore = feedName && feedsContext.feedsHaveMore[feedName]
+  // if the feed is not yet defined, then it has more
+  if (!feedName || typeof feedsContext.feedsHaveMore[feedName] !== 'boolean') {
+    hasMore = true
+  }
+
   const loadMore = () => {
     if (!uniqueSubplebbitAddresses || !account) {
       return

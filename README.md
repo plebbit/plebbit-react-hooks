@@ -449,13 +449,14 @@ await rendered.waitFor(() => typeof rendered.result.current.cid === 'string') //
 expect(rendered.result.current.cid).toBe('comment cid 2')
 ```
 
-> Note: if a `waitForNextUpdate()` or `waitFor()` is followed by an `expect`, it should be wrapped in try/catch because `waitFor` timeouts don't tell the line number and are annoying to debug:
+> Note: `waitForNextUpdate()` and `waitFor()` should always be wrapped in try/catch because `waitFor` timeouts don't tell error line numbers and are annoying to debug. They should also be followed by an `expect` statement.
 
 ```js
 // replace 
 await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
 // with
 try {await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')} catch (e) {console.error(e)}
+expect(typeof rendered.result.current.cid).toBe('string')
 ````
 
 #### Before commit
