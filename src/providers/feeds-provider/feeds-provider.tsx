@@ -3,9 +3,12 @@ import {SubplebbitsContext} from '../subplebbits-provider'
 import validator from '../../lib/validator'
 import feedSorter from './feed-sorter'
 import assert from 'assert'
+import localForageLru from '../../lib/localforage-lru'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:feedsprovider')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SortedPostsPages, SortedPostsPagesInfo, FeedsSortedPostsInfo, FeedsOptions, SortedComments} from '../../types'
+
+const sortedPostsDatabase = localForageLru.createInstance({ name: 'sortedPosts', size: 500 })
 
 type FeedsContext = any
 
@@ -303,20 +306,28 @@ function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo, subpleb
         continue
       }
 
-      // the sorted post page was already preloaded in the subplebbit IPNS record
+      // the sorted posts page was already preloaded in the subplebbit IPNS record
       if (sortedPosts) {
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: sortedPosts}))
         continue
       }
 
-      getSortedPostsPending[account.id + sortedPostsCid] = true
-      const subplebbit = account.plebbit.createSubplebbit({address: subplebbitAddress})
-      // @ts-ignore
-      subplebbit.getSortedPosts(sortedPostsCid).then((fetchedSortedPostsPage) => {
+      ;(async () => {
+        // sorted posts page is cached
+        const cachedSortedPostsPage = await sortedPostsDatabase.getItem(sortedPostsCid)
+        if (cachedSortedPostsPage) {
+          setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: cachedSortedPostsPage}))
+          return
+        }
+
+        getSortedPostsPending[account.id + sortedPostsCid] = true
+        const subplebbit = account.plebbit.createSubplebbit({address: subplebbitAddress})
+        const fetchedSortedPostsPage = await subplebbit.getSortedPosts(sortedPostsCid)
+        await sortedPostsDatabase.setItem(sortedPostsCid, fetchedSortedPostsPage)
         debug('FeedsProvider useSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo}})
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
         getSortedPostsPending[account.id + sortedPostsCid] = false
-      })
+      })()
     }
   }, [sortedPostsPagesInfo])
 

@@ -28,8 +28,8 @@
   Comments {
     [key: commentCid]: Comment // last recently used database, delete oldest data, different from AccountsComments that never expire
   }
-  Feeds {
-    [key: feedName]: FeedItem[] // last recently used database, delete oldest data?
+  SortedPosts {
+    [key: sortedPostsCid]: SortedComments // last recently used database, delete oldest data
   }
 ```
 
@@ -57,8 +57,10 @@ SubplebbitsContext (store in indexeddb last recently used) {
   // internal
   addSubplebbitToContext(subplebbitAddress)
 }
-FeedsContext (no persistant storage, can be rebuilt from subplebbits and comments persistant storage) {
-  feeds: {[key: feedName]: Feed}
+FeedsContext (no persistant storage, can be rebuilt from Subplebbits and SortedPosts databases) {
+  bufferedFeeds: {[key: feedName]: Comment[]}
+  loadedFeeds: {[key: feedName]: Comment[]}
+  feedsHaveMore: {[key: feedName]: boolean}
   // internal
   addFeedToContext(feedName, subplebbitAddresses, sortedBy, account)
 }
@@ -383,6 +385,11 @@ const accountsUnreadNotificationCounts = accounts?.map(account => account.unread
 ```
 ```
 
+#### Edit a comment
+
+```
+```
+
 ### Algorithms
 
 #### Account notifications and own comment updates
@@ -393,11 +400,13 @@ AccountsCommentsReplies are found on the comment update events and are stored in
 
 #### Feed pages and infinite scrolling
 
-A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(arguments)`, a feed with those arguments settings is added to the FeedsContext. After a feed is added to context, its subplebbits are fetched, then the first page of the SortedComments are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `FeedsSortedPostsInfo` which keeps track of `FeedsSortedPostsInfo.bufferedPostCount` for each combination of subplebbit and sort type. When `FeedsSortedPostsInfo.bufferedPostCount` gets below 50, the next page for the subplebbit and sort type is fetched.
+A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(useFeedOptions)`, a feed with those options is added to the FeedsContext. After a feed is added to context, its subplebbits are fetched, then the first page of the `SortedComments` are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `FeedsSortedPostsInfo` which keep track of `FeedsSortedPostsInfo.bufferedPostCount` for each combination of subplebbit and sort type. When `FeedsSortedPostsInfo.bufferedPostCount` gets below 50, the next page for the subplebbit and sort type is fetched.
 
 When a new post page is received from IPFS, the `FeedsContext.bufferedFeeds` are recalculated, but the `FeedsContext.loadedFeeds` (which are displayed to the user) are not, new posts fetched will only be displayed to the user the next time he calls `loadMore`. If we detect that a `loadedFeed` is stale, we can prompt the user to load more posts, like Reddit/Facebook/Twitter do. 
 
-TODO: what happens when a subplebbit updates?
+Post pages are cached in IndexedDb for a short time, in case the user reloads the app.
+
+When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies. Emptying the buffered feed needs testing in production, it might be too slow and need some caching.
 
 #### Comments trees and infinite scrolling
 
