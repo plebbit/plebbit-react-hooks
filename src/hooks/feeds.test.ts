@@ -83,6 +83,9 @@ describe('feeds', () => {
     test('get feed with 1 subplebbit and scroll to multiple pages', async () => {
       // get feed with 1 sub
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      // wait for posts to be added, should get full first page
+      try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
+
       let pages = 20
       let currentPage = 1
       while (currentPage++ < pages) {
@@ -463,18 +466,37 @@ describe('feeds', () => {
         expect(rendered.result.current.hasMore).toBe(false)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 12)
       })
+
+      test(`don't increment page number if loaded feed hasn't increased yet`, async () => {
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+        try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
+        expect(rendered.result.current.feed.length).toBe(postsPerPage)
+        expect(typeof rendered.result.current.loadMore).toBe('function')
+        await act(async () => {
+          // should have an error here because we load a page before the previous one finishes loading
+          // use a large loop to try to catch the error because depending on timing it doesn't always trigger
+          await expect(async () => {
+            let attempts = 10000
+            while(attempts) {
+              await simulateLoadingTime()
+              rendered.result.current.loadMore()
+              rendered.result.current.loadMore()
+              rendered.result.current.loadMore()
+            }
+          }).rejects.toThrow('feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded')
+        })
+      })
     })
-
-    test.todo(`don't increment page number if loaded feed hasn't increased yet`)
-
-    test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
-
-    test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`)
 
     test.todo(`subplebbit updates while we are scrolling`)
 
-    test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`)
+    test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
 
     test.todo(`store sorted posts pages in database`)
+
+    test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`)
+
+    // already implemented but no tests for it because difficult to test
+    test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`)
   })
 })

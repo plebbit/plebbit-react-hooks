@@ -93,10 +93,12 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     })
   }
 
-  feedsActions.incrementFeedPageNumber = async (feedName: string) => {
+  feedsActions.incrementFeedPageNumber = (feedName: string) => {
     assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
+    // assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`)
     debug('feedsActions.incrementFeedPageNumber', {feedName})
     setFeedsOptions(previousFeedsOptions => {
+      assert(previousFeedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`)
       const feedOptions = {...previousFeedsOptions[feedName], pageNumber: previousFeedsOptions[feedName].pageNumber + 1}
       return {...previousFeedsOptions, [feedName]: feedOptions}
     })
