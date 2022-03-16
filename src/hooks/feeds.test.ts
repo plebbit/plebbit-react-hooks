@@ -424,8 +424,48 @@ describe('feeds', () => {
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 4)
       })
 
-      test.todo(`multiple subplebbits, scroll to end of feed, hasMore becomes false`)
+      test(`multiple subplebbits, scroll to end of feed, hasMore becomes false`, async () => {
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']})
+        // hasMore should be true before the feed is loaded
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(typeof rendered.result.current.loadMore).toBe('function')
+
+        // wait for feed array to render
+        try {await rendered.waitFor(() => Array.isArray(rendered.result.current.feed))} catch (e) {console.error(e)}
+        expect(rendered.result.current.feed).toEqual([])
+        // hasMore should be true before the feed is loaded
+        expect(rendered.result.current.hasMore).toBe(true)
+
+        try {await rendered.waitFor(() => rendered.result.current.feed.length > 0)} catch (e) {console.error(e)}
+        // hasMore should be true because there are still buffered feeds
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+        await scrollOnePage()
+        // hasMore should be true because there are still buffered feeds
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+
+        // scroll to end of all pages
+        await scrollOnePage()
+        await scrollOnePage()
+        await scrollOnePage()
+        await scrollOnePage()
+        await scrollOnePage()
+        await scrollOnePage()
+        expect(rendered.result.current.hasMore).toBe(true)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 8)
+        await scrollOnePage()
+        await scrollOnePage()
+        await scrollOnePage()
+        await scrollOnePage()
+        // there are no bufferedFeed and pages left so hasMore should be false
+        expect(rendered.result.current.hasMore).toBe(false)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 12)
+      })
     })
+
+    test.todo(`don't increment page number if loaded feed hasn't increased yet`)
 
     test.todo(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included`)
 
