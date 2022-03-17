@@ -113,7 +113,7 @@ AccountsActions {
   publishComment(comment: Comment, accountName: string | undefined),
   publishCommentEdit(comment: Comment, accountName: string | undefined),
   publishVote(vote: Vote, accountName: string | undefined),
-  deleteComment(commentCidOrAccountCommentIndex: strin | number, accountName: string | undefined),
+  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName: string | undefined),
   blockAddress(address: string) // block a subplebbit address or author address from showing on your feed
 }
 Account {
