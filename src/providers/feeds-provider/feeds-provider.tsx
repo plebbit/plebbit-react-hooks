@@ -196,7 +196,7 @@ function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, 
 function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, feedsSortedPostsInfo: FeedsSortedPostsInfo, sortedPostsPages: SortedPostsPages, loadedFeeds: Feeds) {
   return useMemo(() => {
     // contruct a list of posts already loaded to remove them from buffered feeds
-    const loadedFeedsPosts: Feeds = {}
+    const loadedFeedsPosts: {[key: string]: Set<string>} = {}
     for (const feedName in loadedFeeds) {
       loadedFeedsPosts[feedName] = new Set()
       for (const post of loadedFeeds[feedName]) {

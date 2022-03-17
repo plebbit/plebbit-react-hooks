@@ -11,6 +11,7 @@ import {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountNotifications
 } from './hooks/accounts'
 
 import { useComment, useComments } from './hooks/comments'
@@ -27,6 +28,7 @@ export {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountNotifications,
   useComment,
   useComments,
   useSubplebbit, 
@@ -43,6 +45,7 @@ const hooks = {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountNotifications,
   useComment,
   useSubplebbit, 
   useSubplebbits,

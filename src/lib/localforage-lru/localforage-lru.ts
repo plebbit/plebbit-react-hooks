@@ -71,7 +71,11 @@ function createLocalForageInstance(localForageLruOptions: any): any {
       throw Error('not implemented')
     },
     keys: async function () {
-      throw Error('not implemented')
+      await initialization()
+      return [...new Set([
+        ...(await database1.keys()),
+        ...(await database2.keys())
+      ])]
     },
     length: async function () {
       throw Error('not implemented')

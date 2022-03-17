@@ -1,20 +1,8 @@
 import React from 'react'
 
-export type Props = { children?: React.ReactChild }
-export type AccountNamesToAccountIds = { [key: string]: string }
-export type Comments = { [key: string]: Comment }
-export type Accounts = { [key: string]: Account }
-
-export interface AccountComment extends Comment {
-  index: number,
-  accountId: string
-}
-export type AccountComments = AccountComment[]
-export type AccountsComments = { [key: string]: AccountComments }
-export type Subplebbits = {[key: string]: Subplebbit}
-export type Feeds = {[key: string]: Feed}
-
-// TODO: define these types
+/**
+ * TODO: define these undefined types
+ */
 export type Account = any
 export type AccountsActions = any
 export type PublishCommentOptions = any
@@ -26,11 +14,33 @@ export type CreateCommentOptions = any
 export type CreateVoteOptions = any
 export type Comment = any
 export type Subplebbit = any
-export type Feed = any
+export type AccountNotification = any
+
+/**
+ * Subplebbits and comments provider
+ */
+export type Subplebbits = {[key: string]: Subplebbit}
+export type Comments = { [key: string]: Comment }
+
+/**
+ * Accounts provider
+ */
+export type Accounts = { [key: string]: Account }
+export type AccountNamesToAccountIds = { [key: string]: string }
+export interface AccountComment extends Comment {index: number, accountId: string}
+export type AccountComments = AccountComment[]
+export type AccountsComments = { [key: string]: AccountComments }
+export interface AccountCommentReply extends Comment {markedAsRead: boolean}
+export type AccountCommentsReplies = { [key: string]:  AccountCommentReply }
+export type AccountsCommentsReplies = { [key: string]: AccountCommentsReplies }
+export type AccountNotifications = AccountNotification[]
+export type AccountsNotifications = { [key: string]: AccountNotifications }
 
 /**
  * Feeds provider
  */
+export type Feed = Comment[]
+export type Feeds = {[key: string]: Feed}
 export type FeedOptions = {
   subplebbitAddresses: string[],
   sortType: string
@@ -63,7 +73,7 @@ export type SortedPostsPages = {[key: string]: SortedComments}
 /**
  * Accounts hooks
  */
- export type UseAccountCommentsFilter = {
+export type UseAccountCommentsFilter = {
   subplebbitAddresses?: string[]
   postCids?: string[]
   commentCids?: string[]
@@ -82,3 +92,8 @@ export type UseBufferedFeedOptions = {
   subplebbitAddresses: string[]
   sortType?: string
 }
+
+/**
+ * Utils
+ */
+export type Props = { children?: React.ReactChild }

@@ -2,9 +2,10 @@ import PlebbitJs from '../../lib/plebbit-js'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import localForage from 'localforage'
+import localForageLru from '../../lib/localforage-lru'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
-import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments} from '../../types'
+import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
 
 const getAccounts = async (accountIds: string[]) => {
@@ -191,6 +192,49 @@ const getAccountsVotes = async (accountIds: string[]) => {
   return accountsVotes
 }
 
+const accountsCommentsRepliesDatabases: any = {}
+const getAccountCommentsRepliesDatabase = (accountId: string) => {
+  assert(accountId && typeof accountId === 'string', `getAccountCommentsRepliesDatabase '${accountId}' not a string`)
+  if (!accountsCommentsRepliesDatabases[accountId]) {
+    accountsCommentsRepliesDatabases[accountId] = localForageLru.createInstance({ name: `accountCommentsReplies-${accountId}`, size: 1000 })
+  }
+  return accountsCommentsRepliesDatabases[accountId]
+}
+
+const addAccountCommentReply = async (accountId: string, reply: AccountCommentReply) => {
+  const accountCommentsRepliesDatabase = getAccountCommentsRepliesDatabase(accountId)
+  await accountCommentsRepliesDatabase.setItem(reply.cid, utils.clone(reply))
+}
+
+const getAccountCommentsReplies = async (accountId: string) => {
+  const accountCommentsRepliesDatabase = getAccountCommentsRepliesDatabase(accountId)
+  const replyCids = await accountCommentsRepliesDatabase.keys()
+  const promises = []
+  for (const replyCid of replyCids) {
+    promises.push(accountCommentsRepliesDatabase.getItem(replyCid))
+  }
+  const replyArray = await Promise.all(promises)
+  const replies = {}
+  for (const reply of replyArray) {
+    // @ts-ignore
+    replies[reply.cid] = reply
+  }
+  return replies
+}
+
+const getAccountsCommentsReplies = async (accountIds: string[]) => {
+  const promises = []
+  for (const accountId of accountIds) {
+    promises.push(getAccountCommentsReplies(accountId))
+  }
+  const accountsCommentsRepliesArray = await Promise.all(promises)
+  const accountsCommentsReplies: AccountsCommentsReplies = {}
+  for (const [i, accountId] of accountIds.entries()) {
+    accountsCommentsReplies[accountId] = accountsCommentsRepliesArray[i]
+  }
+  return accountsCommentsReplies
+}
+
 const database = {
   accountsDatabase,
   accountsMetadataDatabase,
@@ -202,7 +246,10 @@ const database = {
   addAccountComment,
   addAccount,
   getAccounts,
-  getAccount
+  getAccount,
+  addAccountCommentReply,
+  getAccountCommentsReplies,
+  getAccountsCommentsReplies
 }
 
 export default database

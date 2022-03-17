@@ -4,7 +4,7 @@ import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:accounts')
 import assert from 'assert'
-import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments} from '../types'
+import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications} from '../types'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -31,7 +31,7 @@ export function useAccount(accountName?: string) {
 }
 
 /**
- * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`
+ * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
 export function useAccounts() {
   const accountsContext = useContext(AccountsContext)
@@ -47,19 +47,48 @@ export function useAccounts() {
   return accounts
 }
 
+/**
+ * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
+ */
 export function useAccountsActions() {
   const accountsContext = useContext(AccountsContext)
   if (accountsContext) {
     return accountsContext.accountsActions
   }
-  // return empty object for deconstructing without errors
+  // return empty object for deconstructing without errors if context isn't ready
   // e.g. const {createAccount} = useAccountsActions()
   // TODO: possibly return functions that throw 'not ready', or promises that wait until ready
   return {}
 }
 
 /**
- * Returns the own user's comments stored locally, even those not yet published by the subplebbit owner
+ * Returns an account's notifications in an array. Unread notifications have a field markedAsRead: false.
+ * 
+ * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
+ * the active account's notifications.
+ */
+export function useAccountNotifications(accountName?: string) {
+  const accountsContext = useContext(AccountsContext)
+  const accountId = useAccountId(accountName)
+  const account = accountsContext?.accounts[accountId]
+  let notifications: AccountNotifications | undefined
+  if (account) {
+    notifications = accountsContext?.accountsNotifications[accountId]
+  }
+  const markAsRead = () => {
+    if (!account) {
+      throw Error('useAccountNotifications cannot mark as read accounts not initalized yet')
+      
+    }
+    accountsContext?.markAccountNotificationsAsRead(account)
+  }
+  debug('useAccountNotifications', { notifications })
+  return {notifications, markAsRead}
+}
+
+/**
+ * Returns the own user's comments stored locally, even those not yet published by the subplebbit owner.
+ * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
 export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
@@ -85,7 +114,8 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
 }
 
 /**
- * Returns the own user's votes stored locally, even those not yet published by the subplebbit owner
+ * Returns the own user's votes stored locally, even those not yet published by the subplebbit owner.
+ * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
 export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountVotesOptions?.accountName)
@@ -114,6 +144,9 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
   return filteredAccountVotesArray
 }
 
+/**
+ * Returns an account's single vote on a comment, e.g. to know if you already voted on a comment.
+ */
 export function useAccountVote(commentCid?: string, accountName?: string) {
   const useAccountVotesOptions: UseAccountCommentsOptions = { accountName }
   if (commentCid) {
@@ -123,6 +156,10 @@ export function useAccountVote(commentCid?: string, accountName?: string) {
   return accountVotes && accountVotes[0]
 }
 
+/**
+ * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
+ * Check UseAccountCommentsFilter type in types.tsx for more information, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
+ */
 const filterPublications = (publications: any, filter: UseAccountCommentsFilter) => {
   for (const postCid of filter.postCids || []) {
     assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`)

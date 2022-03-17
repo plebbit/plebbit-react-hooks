@@ -367,12 +367,21 @@ const isMyOwnComment = account?.author.address === comment?.author.address
 #### Get account notifications
 
 ```js
-const notifications = useAccountNotifications()
+const {notifications, markAsRead} = useAccountNotifications()
+for (const notification of notifications) {
+  console.log(notification)
+}
+await markAsRead()
+
 const johnsNotifications = useAccountNotifications('John')
+for (const notification of johnsNotifications.notifications) {
+  console.log(notification)
+}
+await johnsNotifications.markAsRead()
 
 // get the unread notification counts for all accounts
 const accounts = useAccounts()
-const accountsUnreadNotificationCounts = accounts?.map(account => account.unreadNotificationsCount)
+const accountsUnreadNotificationsCounts = accounts?.map(account => account.unreadNotificationCount)
 ```
 
 #### Create a subplebbit
@@ -396,7 +405,7 @@ const accountsUnreadNotificationCounts = accounts?.map(account => account.unread
 
 On startup, and every time a comment is created, it is added to the AccountsComments context and database. On the comment challengeverification event, the comment CID is received from the subplebbit owner, and we can start listening to comment update events, and update the context and database every time. Sometimes the user closes the page and the challengeverification event is never received, so every time a comment, subplebbit or sortedComments is fetched, we awkwardly check to see if it has one of our own comment with a missing CID, and update it if found. 
 
-AccountsCommentsReplies are found on the comment update events and are stored in a last rencently used database and have the field "markedAsRead" once read.
+AccountsCommentsReplies are found on the comment update events and are stored in a last rencently used database and have the field "markedAsRead" once read. `useAccountNotifications` uses the AccountsCommentsReplies to compile the read/unread notifications. TODO: add notifications for upvotes e.g. "Your comment has 10 upvotes".
 
 #### Feed pages and infinite scrolling
 

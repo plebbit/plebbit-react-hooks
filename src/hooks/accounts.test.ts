@@ -10,9 +10,10 @@ import {
   useAccountVote,
   UseAccountCommentsOptions,
   useComment,
+  useAccountNotifications
 } from '../index'
 import localForage from 'localforage'
-import PlebbitJsMock, { mockPlebbitJs, Plebbit } from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
@@ -762,6 +763,141 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments.length).toBe(0)
       expect(rendered.result.current.accountVotes.length).toBe(1)
       expect(rendered.result.current.accountVotes[0].commentCid).toBe('comment cid 3')
+    })
+  })
+
+  describe('one comment in database', () => {
+    let rendered: any
+    const updatingComments: any = []
+    const commentUpdate = Comment.prototype.update
+
+    beforeEach(async () => {
+      // mock the comment update to get able to access the comment from test
+      Comment.prototype.update = function() {
+        updatingComments.push(this)
+        return commentUpdate.bind(this)()
+      }
+
+      rendered = renderHook<any, any>(
+        (props?: any) => {
+          const account = useAccount(props?.accountName)
+          const {notifications, markAsRead} = useAccountNotifications(props?.accountName)
+          const {publishComment} = useAccountsActions()
+          return { account, notifications, markAsRead, publishComment }
+        },
+        { wrapper: PlebbitProvider }
+      )
+      try {await rendered.waitForNextUpdate()} catch (e) {console.error(e)}
+      expect(rendered.result.current.account?.name).toBe('Account 1')
+      expect(rendered.result.current.notifications).toEqual([])
+      expect(typeof rendered.result.current.markAsRead).toBe('function')
+      expect(typeof rendered.result.current.publishComment).toBe('function')
+
+      await act(async () => {
+        await rendered.result.current.publishComment({
+          title: 'title 1',
+          content: 'content 1',
+          parentCommentCid: 'parent comment cid 1',
+          postCid: 'post cid 1',
+          subplebbitAddress: 'subplebbit address 1',
+          // @ts-ignore
+          onChallenge: (challenge, comment) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => {},
+        })
+      })
+    })
+
+    afterEach(async () => {
+      Comment.prototype.update = commentUpdate
+      await deleteDatabases()
+    })
+
+    test('get notifications', async () => {      
+      try {await rendered.waitFor(() => updatingComments.length > 0)} catch (e) {console.error(e)}
+      // we should have published 1 comment and it should be updating at this point
+      expect(updatingComments.length).toBe(1)
+      const comment = updatingComments[0]
+      expect(rendered.result.current.notifications).toEqual([])
+      expect(rendered.result.current.account.unreadNotificationCount).toBe(0)
+
+      act(() => {
+        // update the comment with replies to see get notifications
+        comment.sortedReplies = {
+          topAll: {
+            nextSortedCommentsCid: null,
+            comments: [
+              {cid: 'reply cid 1', timestamp: 1}, 
+              {cid: 'reply cid 2', timestamp: 2}, 
+              {cid: 'reply cid 3', timestamp: 3}
+            ]
+          }
+        }
+        comment.emit('update', comment)
+      })
+
+      // wait for notifications, should be sorted by highest/newest timestamp
+      try {await rendered.waitFor(() => rendered.result.current.notifications.length > 0)} catch (e) {console.error(e)}
+      expect(rendered.result.current.notifications.length).toBe(3)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 1')
+      expect(rendered.result.current.notifications[0].markedAsRead).toBe(false)
+      expect(rendered.result.current.notifications[1].markedAsRead).toBe(false)
+      expect(rendered.result.current.notifications[2].markedAsRead).toBe(false)
+      expect(rendered.result.current.account.unreadNotificationCount).toBe(3)
+
+      act(() => {
+        // mark te notifications as read
+        rendered.result.current.markAsRead()
+      })
+
+      // should be marked as read
+      try {await rendered.waitFor(() => rendered.result.current.notifications[0].markedAsRead === true)} catch (e) {console.error(e)}
+      expect(rendered.result.current.notifications.length).toBe(3)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 1')
+      expect(rendered.result.current.notifications[0].markedAsRead).toBe(true)
+      expect(rendered.result.current.notifications[1].markedAsRead).toBe(true)
+      expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
+      expect(rendered.result.current.account.unreadNotificationCount).toBe(0)
+
+      act(() => {
+        // update the comment with one unread reply and one read reply
+        comment.sortedReplies = {
+          topAll: {
+            nextSortedCommentsCid: null,
+            comments: [{cid: 'reply cid 3',  timestamp: 3}, {cid: 'reply cid 4',  timestamp: 4}]
+          }
+        }
+        comment.emit('update', comment)
+      })
+
+      // comment 3 should be marked as read, comment 4 should not
+      try {await rendered.waitFor(() => rendered.result.current.notifications.length >= 4)} catch (e) {console.error(e)}
+      expect(rendered.result.current.notifications.length).toBe(4)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[3].cid).toBe('reply cid 1')
+      expect(rendered.result.current.notifications[0].markedAsRead).toBe(false)
+      expect(rendered.result.current.notifications[1].markedAsRead).toBe(true)
+      expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
+      expect(rendered.result.current.notifications[3].markedAsRead).toBe(true)
+      expect(rendered.result.current.account.unreadNotificationCount).toBe(1)
+
+      // check to see if in database after refreshing with a new context
+      const rendered2 = renderHook<any, any>(() => useAccountNotifications(), { wrapper: PlebbitProvider })
+      try {await rendered2.waitFor(() => rendered2.result.current.notifications.length >= 4)} catch (e) {console.error(e)}
+      expect(rendered2.result.current.notifications.length).toBe(4)
+      expect(rendered2.result.current.notifications[0].cid).toBe('reply cid 4')
+      expect(rendered2.result.current.notifications[1].cid).toBe('reply cid 3')
+      expect(rendered2.result.current.notifications[2].cid).toBe('reply cid 2')
+      expect(rendered2.result.current.notifications[3].cid).toBe('reply cid 1')
+      expect(rendered2.result.current.notifications[0].markedAsRead).toBe(false)
+      expect(rendered2.result.current.notifications[1].markedAsRead).toBe(true)
+      expect(rendered2.result.current.notifications[2].markedAsRead).toBe(true)
+      expect(rendered2.result.current.notifications[3].markedAsRead).toBe(true)
     })
   })
 })
