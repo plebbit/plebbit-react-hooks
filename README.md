@@ -38,14 +38,17 @@
 ```
 AccountsContext (store in indexeddb permanently) {
   accounts: {[key: accountName]: Account}
-  accountNames: string[], 
-  activeAccountName: string,
-  accountNamesToAccountIds: {[key: accountName]: accountId},
-  accountsComments: {[key: accountName]: AccountComment[]}, // cid of comment unknown at time of posting, so store it in array
-  accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}},
+  accountNames: string[]
+  activeAccountName: string
+  accountNamesToAccountIds: {[key: accountName]: accountId}
+  accountsComments: {[key: accountName]: AccountComment[]} // cid of comment unknown at time of posting, so store it in array
+  accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}}
+  accountsCommentsReplies: {[key: accountName]: {[key: replyCid]: AccountCommentReply}}
   accountsActions: AccountsActions
   // internal
   addCidToAccountComment(comment: Comment) // TODO: add to function to every post fetched by Feeds and Subplebbits context
+  // internal
+  markAccountNotificationsAsRead(account: Account)
 }
 CommentsContext (store in indexeddb last recently used) {
   comments: {[key: commentCid]: Comment}
