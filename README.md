@@ -428,6 +428,10 @@ Currently not implemented. Only uses the preloaded replies to a post.
 
 All accounts settings, accounts comments and accounts votes are stored permanently in the various IndexedDb databases. Import from file and export to file are possible but not yet implemented. Ephemeral data like random subplebbits, comments and feeds are stored in last recently used IndexedDb databases, and eventually erased.
 
+#### Editing account.plebbitOptions and replacing the account.plebbit instance
+
+Not implemented, but the easiest method would be to force a page reload, which will reset setting up all the comments and subplebbit listeners.
+
 ### Install
 
 ```
