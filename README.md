@@ -46,7 +46,7 @@ AccountsContext (store in indexeddb permanently) {
   accountsCommentsReplies: {[key: accountName]: {[key: replyCid]: AccountCommentReply}}
   accountsActions: AccountsActions
   // internal
-  addCidToAccountComment(comment: Comment) // TODO: add to function to every post fetched by Feeds and Subplebbits context
+  addCidToAccountComment(comment: Comment)
   // internal
   markAccountNotificationsAsRead(account: Account)
 }

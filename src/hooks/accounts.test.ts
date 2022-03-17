@@ -10,10 +10,11 @@ import {
   useAccountVote,
   UseAccountCommentsOptions,
   useComment,
-  useAccountNotifications
+  useAccountNotifications,
+  useFeed
 } from '../index'
 import localForage from 'localforage'
-import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment } from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment, Subplebbit } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
@@ -598,6 +599,46 @@ describe('accounts', () => {
       expect(rendered2.result.current[1].cid).toBe('content 2 cid')
       expect(rendered2.result.current[2].cid).toBe(undefined)
       expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+    })
+
+    test(`cid gets added to account comment after feed is fetched`, async () => {
+      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+
+      const rendered = renderHook<any, any>(
+        (props?) => {
+          const {feed} = useFeed(props?.subplebbitAddresses, 'new')
+          const accountComments = useAccountComments()
+          return {accountComments, feed}
+        },
+        { wrapper: PlebbitProvider }
+      )
+      // wait for account comments to render
+      try {await rendered.waitFor(() => rendered.result.current.accountComments?.length > 0)} catch (e) {console.error(e)}
+      
+      // get feed page with our timestamp and author address in it
+      const accountCommentTimestamp = rendered.result.current.accountComments[0].timestamp
+      const accountCommentAuthor = rendered.result.current.accountComments[0].author
+      const accountCommentSubplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      Subplebbit.prototype.getSortedPosts = async () => ({
+        comments: [{
+          cid: 'cid from feed',
+          timestamp: accountCommentTimestamp,
+          author: accountCommentAuthor,
+          subplebbitAddress: accountCommentSubplebbitAddress
+        }],
+        nextSortedCommentsCid: null
+      })
+      rendered.rerender({subplebbitAddresses: [accountCommentSubplebbitAddress]})
+
+      // wait for feed to load
+      try {await rendered.waitFor(() => rendered.result.current.feed?.length > 0)} catch (e) {console.error(e)}
+
+      // wait for cid from feed to have been added to account comments
+      try {await rendered.waitFor(() => rendered.result.current.accountComments[0].cid === 'cid from feed')} catch (e) {console.error(e)}
+      expect(rendered.result.current.accountComments[0].cid).toBe('cid from feed')
+
+      // restore mock
+      Subplebbit.prototype.getSortedPosts = getSortedPosts
     })
 
     test(`account comments are stored to database`, async () => {

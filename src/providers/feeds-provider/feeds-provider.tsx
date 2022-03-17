@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react'
+import { AccountsContext } from '../accounts-provider'
 import {SubplebbitsContext} from '../subplebbits-provider'
 import validator from '../../lib/validator'
 import feedSorter from './feed-sorter'
 import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
+import utils from '../../lib/utils'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:feedsprovider')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SortedPostsPages, SortedPostsPagesInfo, FeedsSortedPostsInfo, FeedsOptions, SortedComments} from '../../types'
@@ -267,6 +269,7 @@ function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, feedsSortedPosts
  * Once a next page is added, it is never removed.
  */
 function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo, subplebbits: Subplebbits) {
+  const accountsContext = useContext(AccountsContext)
   const [sortedPostsPages, setSortedPostsPages] = useState<SortedPostsPages>({})
 
   // set the info necessary to fetch each page recursively
@@ -327,6 +330,16 @@ function useSortedPostsPages(feedsSortedPostsInfo: FeedsSortedPostsInfo, subpleb
         debug('FeedsProvider useSortedPostsPages subplebbit.getSortedPosts', {sortedPostsCid, infoName, sortedPosts: {nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo}})
         setSortedPostsPages(previousSortedPostsPages => ({...previousSortedPostsPages, [sortedPostsCid]: fetchedSortedPostsPage}))
         getSortedPostsPending[account.id + sortedPostsCid] = false
+
+        // when publishing a comment, you don't yet know its CID
+        // so when a new comment is fetched, check to see if it's your own
+        // comment, and if yes, add the CID to your account comments database
+        if (accountsContext?.addCidToAccountComment) {
+          const flattenedReplies = utils.flattenSortedComments(fetchedSortedPostsPage)
+          for (const comment of flattenedReplies) {
+            accountsContext.addCidToAccountComment(comment)
+          }
+        }
       })()
     }
   }, [sortedPostsPagesInfo])
