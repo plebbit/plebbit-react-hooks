@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import { useFeed, useBufferedFeeds, useAccountsActions } from '../index'
+import { useFeed, useBufferedFeeds, useAccountsActions } from '..'
 import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
 import localForage from 'localforage'
