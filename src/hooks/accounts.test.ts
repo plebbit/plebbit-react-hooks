@@ -14,7 +14,7 @@ import {
   useFeed
 } from '..'
 import localForage from 'localforage'
-import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment, Subplebbit } from '../lib/plebbit-js'
+import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment, Subplebbit } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
