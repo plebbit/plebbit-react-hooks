@@ -258,7 +258,7 @@ describe('feeds', () => {
     // getting feeds with multiple subs in them sometimes gets them in the wrong order because
     // of react renders concurrency so retry a few times if it fails
     describe('retry on fail', () => {
-      beforeAll(() => {jest.retryTimes(3)})
+      beforeAll(() => {jest.retryTimes(5)})
       afterAll(() => {jest.retryTimes(0)})
       test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
         // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2

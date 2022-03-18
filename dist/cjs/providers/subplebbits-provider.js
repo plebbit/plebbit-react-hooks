@@ -18,6 +18,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -34,32 +43,32 @@ const plebbitGetSubplebbitPending = {};
 function SubplebbitsProvider(props) {
     const [subplebbits, setSubplebbits] = (0, react_1.useState)({});
     const subplebbitsActions = {};
-    subplebbitsActions.addSubplebbitToContext = async (subplebbitAddress, account) => {
+    subplebbitsActions.addSubplebbitToContext = (subplebbitAddress, account) => __awaiter(this, void 0, void 0, function* () {
         // subplebbit is in context already, do nothing
         let subplebbit = subplebbits[subplebbitAddress];
         if (subplebbit || plebbitGetSubplebbitPending[subplebbitAddress + account.id]) {
             return;
         }
         // try to find subplebbit in database
-        subplebbit = await getSubplebbitFromDatabase(subplebbitAddress, account);
+        subplebbit = yield getSubplebbitFromDatabase(subplebbitAddress, account);
         // subplebbit not in database, fetch from plebbit-js
         if (!subplebbit) {
             plebbitGetSubplebbitPending[subplebbitAddress + account.id] = true;
-            subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress);
-            await subplebbitsDatabase.setItem(subplebbitAddress, utils_1.default.clone(subplebbit));
+            subplebbit = yield account.plebbit.getSubplebbit(subplebbitAddress);
+            yield subplebbitsDatabase.setItem(subplebbitAddress, utils_1.default.clone(subplebbit));
         }
         debug('subplebbitsActions.addSubplebbitToContext', { subplebbitAddress, subplebbit, account });
         setSubplebbits((previousSubplebbits) => (Object.assign(Object.assign({}, previousSubplebbits), { [subplebbitAddress]: utils_1.default.clone(subplebbit) })));
         plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false;
         // the subplebbit has published new posts
-        subplebbit.on('update', async (updatedSubplebbit) => {
+        subplebbit.on('update', (updatedSubplebbit) => __awaiter(this, void 0, void 0, function* () {
             updatedSubplebbit = utils_1.default.clone(updatedSubplebbit);
-            await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit);
+            yield subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit);
             debug('subplebbitsContext subplebbit update', { subplebbitAddress, updatedSubplebbit, account });
             setSubplebbits((previousSubplebbits) => (Object.assign(Object.assign({}, previousSubplebbits), { [subplebbitAddress]: updatedSubplebbit })));
-        });
+        }));
         subplebbit.update();
-    };
+    });
     if (!props.children) {
         return null;
     }
@@ -71,8 +80,8 @@ function SubplebbitsProvider(props) {
     return react_1.default.createElement(exports.SubplebbitsContext.Provider, { value: subplebbitsContext }, props.children);
 }
 exports.default = SubplebbitsProvider;
-const getSubplebbitFromDatabase = async (subplebbitAddress, account) => {
-    const subplebbitData = await subplebbitsDatabase.getItem(subplebbitAddress);
+const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
+    const subplebbitData = yield subplebbitsDatabase.getItem(subplebbitAddress);
     if (!subplebbitData) {
         return;
     }
@@ -85,4 +94,4 @@ const getSubplebbitFromDatabase = async (subplebbitAddress, account) => {
         }
     }
     return subplebbit;
-};
+});

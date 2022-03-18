@@ -1,14 +1,8 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.flattenSortedComments = void 0;
-const assert_1 = __importDefault(require("assert"));
+import assert from 'assert';
 const merge = (...args) => {
     // @ts-ignore
     const clonedArgs = args.map((arg) => {
-        (0, assert_1.default)(arg && typeof arg === 'object', `utils.merge argument '${arg}' not an object`);
+        assert(arg && typeof arg === 'object', `utils.merge argument '${arg}' not an object`);
         return clone(arg);
     });
     const mergedObj = {};
@@ -24,7 +18,7 @@ const merge = (...args) => {
     return mergedObj;
 };
 const clone = (obj) => {
-    (0, assert_1.default)(obj && typeof obj === 'object', `utils.clone argument '${obj}' not an object`);
+    assert(obj && typeof obj === 'object', `utils.clone argument '${obj}' not an object`);
     const clonedObj = {};
     for (const i in obj) {
         // remove functions
@@ -43,7 +37,7 @@ const clone = (obj) => {
     return JSON.parse(JSON.stringify(clonedObj));
 };
 const sortTypes = ['hot', 'new', 'old', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'controversialHour', 'controversialDay', 'controversialWeek', 'controversialMonth', 'controversialYear', 'controversialAll'];
-const flattenSortedComments = (sortedCommentsOrSortedCommentsObject) => {
+export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject) => {
     var _a;
     const flattenedComments = [];
     // if is SortedComments
@@ -51,14 +45,14 @@ const flattenSortedComments = (sortedCommentsOrSortedCommentsObject) => {
         flattenedComments.push(reply);
         for (const sortType of sortTypes) {
             if ((_a = reply === null || reply === void 0 ? void 0 : reply.sortedReplies) === null || _a === void 0 ? void 0 : _a[sortType]) {
-                flattenedComments.push(...(0, exports.flattenSortedComments)(reply.sortedReplies[sortType]));
+                flattenedComments.push(...flattenSortedComments(reply.sortedReplies[sortType]));
             }
         }
     }
     // if is SortedCommentsObject
     for (const sortType of sortTypes) {
         if (sortedCommentsOrSortedCommentsObject === null || sortedCommentsOrSortedCommentsObject === void 0 ? void 0 : sortedCommentsOrSortedCommentsObject[sortType]) {
-            flattenedComments.push(...(0, exports.flattenSortedComments)(sortedCommentsOrSortedCommentsObject[sortType]));
+            flattenedComments.push(...flattenSortedComments(sortedCommentsOrSortedCommentsObject[sortType]));
         }
     }
     // remove duplicate comments
@@ -74,10 +68,9 @@ const flattenSortedComments = (sortedCommentsOrSortedCommentsObject) => {
     }
     return uniqueFlattened;
 };
-exports.flattenSortedComments = flattenSortedComments;
 const utils = {
     merge,
     clone,
-    flattenSortedComments: exports.flattenSortedComments
+    flattenSortedComments
 };
-exports.default = utils;
+export default utils;

@@ -1,12 +1,15 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Vote = exports.Comment = exports.Subplebbit = exports.Plebbit = void 0;
-const events_1 = __importDefault(require("events"));
-const crypto_1 = __importDefault(require("crypto"));
-const assert_1 = __importDefault(require("assert"));
+import EventEmitter from 'events';
+import crypto from 'crypto';
+import assert from 'assert';
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 5000);
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
@@ -57,64 +60,64 @@ const urlSuffixes = [
     '?query=string',
     '?query=string&yes=1'
 ];
-const hash = async (string) => {
-    (0, assert_1.default)(string, `cant hash string '${string}'`);
+const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
+    assert(string, `cant hash string '${string}'`);
     if (!window.TextEncoder) {
-        return crypto_1.default.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '');
+        return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '');
     }
     // @ts-ignore
-    const hashBuffer = await crypto_1.default.subtle.digest('SHA-256', new TextEncoder().encode(string));
+    const hashBuffer = yield crypto.subtle.digest('SHA-256', new TextEncoder().encode(string));
     // @ts-ignore
     return btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuffer))).replace(/[^a-zA-Z0-9]/g, '');
-};
-const getNumberBetween = async (min, max, seed) => {
-    const number = Number('0.' + parseInt((await hash(seed)).substring(0, 6), 36));
+});
+const getNumberBetween = (min, max, seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const number = Number('0.' + parseInt((yield hash(seed)).substring(0, 6), 36));
     return Math.floor(number * (max - min + 1) + min);
-};
-const getArrayItem = async (array, seed) => {
-    const index = await getNumberBetween(0, array.length - 1, seed);
+});
+const getArrayItem = (array, seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const index = yield getNumberBetween(0, array.length - 1, seed);
     return array[index];
-};
-const getImageUrl = async (seed) => {
+});
+const getImageUrl = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     const imageUrls = [
         'https://filesamples.com/samples/image/bmp/sample_640%C3%97426.bmp',
         'https://brokensite.xyz/images/dog.png',
         // jpg & webp
-        `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(10, 2000, seed + 2)}/${await getNumberBetween(10, 2000, seed + 3)}.jpg`,
-        `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(10, 2000, seed + 2)}/${await getNumberBetween(10, 2000, seed + 3)}.webp`,
+        `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 1)}/${yield getNumberBetween(10, 2000, seed + 2)}/${yield getNumberBetween(10, 2000, seed + 3)}.jpg`,
+        `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 1)}/${yield getNumberBetween(10, 2000, seed + 2)}/${yield getNumberBetween(10, 2000, seed + 3)}.webp`,
         'https://samplelib.com/lib/preview/png/sample-bumblebee-400x300.png',
         'https://c.tenor.com/WHs8ooxWJUIAAAAM/really-great-example-right-here-echo-gaming.gif', // gif
     ];
-    const imageUrl = await getArrayItem(imageUrls, seed + 'image') + await getArrayItem(urlSuffixes, seed + 'suffix');
+    const imageUrl = (yield getArrayItem(imageUrls, seed + 'image')) + (yield getArrayItem(urlSuffixes, seed + 'suffix'));
     return imageUrl;
-};
-const getPostContent = async (seed) => {
-    const title = await getArrayItem(commentTitles, seed + 'title');
-    const isLinkPost = await getArrayItem([true, false], seed + 'islinkpost');
+});
+const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const title = yield getArrayItem(commentTitles, seed + 'title');
+    const isLinkPost = yield getArrayItem([true, false], seed + 'islinkpost');
     if (isLinkPost) {
-        let link = await getArrayItem(commentLinks, seed + 'link');
-        const linkIsImage = await getArrayItem([true, false], seed + 'linkisimage');
+        let link = yield getArrayItem(commentLinks, seed + 'link');
+        const linkIsImage = yield getArrayItem([true, false], seed + 'linkisimage');
         if (linkIsImage) {
-            link = await getImageUrl(seed + 'linkimage');
+            link = yield getImageUrl(seed + 'linkimage');
         }
-        const hasThumbnail = await getArrayItem([true, true, true, false], seed + 'hasthumbnail');
+        const hasThumbnail = yield getArrayItem([true, true, true, false], seed + 'hasthumbnail');
         if (!linkIsImage && hasThumbnail) {
-            const thumbnail = await getImageUrl(seed + 'thumbnail');
+            const thumbnail = yield getImageUrl(seed + 'thumbnail');
             return { title, link, thumbnail };
         }
         return { title, link };
     }
     // else is text post
-    const content = await getArrayItem(commentContents, seed + 'content');
+    const content = yield getArrayItem(commentContents, seed + 'content');
     return { title, content };
-};
-const getReplyContent = async (parentCommentCid, seed) => {
-    const content = await getArrayItem(commentContents, seed + 'replycontent');
+});
+const getReplyContent = (parentCommentCid, seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const content = yield getArrayItem(commentContents, seed + 'replycontent');
     return { content, parentCommentCid };
-};
-const getSubplebbitContent = async (seed) => {
-    const title = await getArrayItem([undefined, ...subplebbitTitles], seed + 'title');
-    const description = await getArrayItem([undefined, ...subplebbitDescriptions], seed + 'description');
+});
+const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const title = yield getArrayItem([undefined, ...subplebbitTitles], seed + 'title');
+    const description = yield getArrayItem([undefined, ...subplebbitDescriptions], seed + 'description');
     if (!title && !description) {
         return {};
     }
@@ -124,10 +127,10 @@ const getSubplebbitContent = async (seed) => {
     if (!title) {
         return description;
     }
-};
-const getCommentUpdateContent = async (comment) => {
-    const upvotesPerUpdate = await getNumberBetween(1, 1000, comment.cid + 'upvoteupdate');
-    const downvotesPerUpdate = await getNumberBetween(1, 1000, comment.cid + 'downvoteupdate');
+});
+const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, function* () {
+    const upvotesPerUpdate = yield getNumberBetween(1, 1000, comment.cid + 'upvoteupdate');
+    const downvotesPerUpdate = yield getNumberBetween(1, 1000, comment.cid + 'downvoteupdate');
     const commentUpdateContent = {};
     // simulate finding vote counts on an IPNS record
     commentUpdateContent.upvoteCount = typeof comment.upvoteCount === 'number' ? comment.upvoteCount + upvotesPerUpdate : upvotesPerUpdate;
@@ -137,85 +140,88 @@ const getCommentUpdateContent = async (comment) => {
         topAll: {
             nextSortedCommentsCid: null,
             comments: [
-                await getReplyContent(comment.cid, comment.cid + 'replycontent1'),
-                await getReplyContent(comment.cid, comment.cid + 'replycontent2'),
-                await getReplyContent(comment.cid, comment.cid + 'replycontent3'),
-                await getReplyContent(comment.cid, comment.cid + 'replycontent4'),
-                await getReplyContent(comment.cid, comment.cid + 'replycontent5')
+                yield getReplyContent(comment.cid, comment.cid + 'replycontent1'),
+                yield getReplyContent(comment.cid, comment.cid + 'replycontent2'),
+                yield getReplyContent(comment.cid, comment.cid + 'replycontent3'),
+                yield getReplyContent(comment.cid, comment.cid + 'replycontent4'),
+                yield getReplyContent(comment.cid, comment.cid + 'replycontent5')
             ]
         }
     };
     commentUpdateContent.replyCount = 5;
     return commentUpdateContent;
-};
-const subplebbitGetSortedPosts = async (sortedPostsCid, subplebbit) => {
+});
+const subplebbitGetSortedPosts = (sortedPostsCid, subplebbit) => __awaiter(void 0, void 0, void 0, function* () {
     const sortedComments = {
-        nextSortedCommentsCid: await hash(sortedPostsCid + 'next'),
+        nextSortedCommentsCid: yield hash(sortedPostsCid + 'next'),
         comments: []
     };
     const postCount = 100;
     let index = 0;
     while (index++ < postCount) {
         let comment = {
-            timestamp: await getNumberBetween(NOW - DAY * 30, NOW, sortedPostsCid + index),
-            cid: await hash(sortedPostsCid + index),
+            timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, sortedPostsCid + index),
+            cid: yield hash(sortedPostsCid + index),
             subplebbitAddress: subplebbit.address
         };
-        comment = Object.assign(Object.assign(Object.assign({}, comment), (await getPostContent(comment.cid))), (await getCommentUpdateContent(comment)));
+        comment = Object.assign(Object.assign(Object.assign({}, comment), (yield getPostContent(comment.cid))), (yield getCommentUpdateContent(comment)));
         sortedComments.comments.push(comment);
     }
     return sortedComments;
-};
-class Plebbit {
+});
+export class Plebbit {
     createSubplebbit(createSubplebbitOptions) {
         return new Subplebbit(createSubplebbitOptions);
     }
-    async getSubplebbit(subplebbitAddress) {
-        await simulateLoadingTime();
-        const createSubplebbitOptions = {
-            address: subplebbitAddress
-        };
-        const subplebbit = new Subplebbit(createSubplebbitOptions);
-        const hotSortedPostsCid = await hash(subplebbitAddress + 'hot1');
-        subplebbit.sortedPosts = { hot: await subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) };
-        subplebbit.sortedPostsCids = {
-            hot: await hash(subplebbitAddress + 'hot1'),
-            topAll: await hash(subplebbitAddress + 'topAll1'),
-            new: await hash(subplebbitAddress + 'new1')
-        };
-        const subplebbitContent = await getSubplebbitContent(subplebbitAddress);
-        // add extra props
-        for (const prop in subplebbitContent) {
-            subplebbit[prop] = subplebbitContent[prop];
-        }
-        return subplebbit;
+    getSubplebbit(subplebbitAddress) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield simulateLoadingTime();
+            const createSubplebbitOptions = {
+                address: subplebbitAddress
+            };
+            const subplebbit = new Subplebbit(createSubplebbitOptions);
+            const hotSortedPostsCid = yield hash(subplebbitAddress + 'hot1');
+            subplebbit.sortedPosts = { hot: yield subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) };
+            subplebbit.sortedPostsCids = {
+                hot: yield hash(subplebbitAddress + 'hot1'),
+                topAll: yield hash(subplebbitAddress + 'topAll1'),
+                new: yield hash(subplebbitAddress + 'new1')
+            };
+            const subplebbitContent = yield getSubplebbitContent(subplebbitAddress);
+            // add extra props
+            for (const prop in subplebbitContent) {
+                subplebbit[prop] = subplebbitContent[prop];
+            }
+            return subplebbit;
+        });
     }
     createComment(createCommentOptions) {
         return new Comment(createCommentOptions);
     }
-    async getComment(commentCid) {
-        await simulateLoadingTime();
-        let commentContent = await getPostContent(commentCid + 'postcontent');
-        const isReply = await getArrayItem([true, false, false, false], commentCid + 'isreply');
-        if (isReply) {
-            const parentCommentCid = await hash(commentCid + 'parentcid');
-            commentContent = await getReplyContent(parentCommentCid, commentCid + 'replycontent');
-        }
-        const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: await hash(commentCid + 'ipns name'), timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentCid + 'timestamp'), subplebbitAddress: 'memes.eth' }, commentContent);
-        const comment = new Comment(createCommentOptions);
-        // add missing props from createCommentOptions
-        for (const prop in createCommentOptions) {
-            // @ts-ignore
-            comment[prop] = createCommentOptions[prop];
-        }
-        return comment;
+    getComment(commentCid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield simulateLoadingTime();
+            let commentContent = yield getPostContent(commentCid + 'postcontent');
+            const isReply = yield getArrayItem([true, false, false, false], commentCid + 'isreply');
+            if (isReply) {
+                const parentCommentCid = yield hash(commentCid + 'parentcid');
+                commentContent = yield getReplyContent(parentCommentCid, commentCid + 'replycontent');
+            }
+            const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: yield hash(commentCid + 'ipns name'), timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentCid + 'timestamp'), subplebbitAddress: 'memes.eth' }, commentContent);
+            const comment = new Comment(createCommentOptions);
+            // add missing props from createCommentOptions
+            for (const prop in createCommentOptions) {
+                // @ts-ignore
+                comment[prop] = createCommentOptions[prop];
+            }
+            return comment;
+        });
     }
     createVote() {
         return new Vote();
     }
 }
-exports.Plebbit = Plebbit;
-class Subplebbit extends events_1.default {
+export class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
         super();
         this.updating = false;
@@ -239,24 +245,27 @@ class Subplebbit extends events_1.default {
         this.description = this.address + ' description updated';
         this.emit('update', this);
     }
-    async getSortedPosts(sortedPostsCid) {
-        // need to wait twice otherwise react renders too fast and fetches too many pages in advance
-        await simulateLoadingTime();
-        return await subplebbitGetSortedPosts(sortedPostsCid, this);
+    getSortedPosts(sortedPostsCid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // need to wait twice otherwise react renders too fast and fetches too many pages in advance
+            yield simulateLoadingTime();
+            return yield subplebbitGetSortedPosts(sortedPostsCid, this);
+        });
     }
 }
-exports.Subplebbit = Subplebbit;
 let challengeRequestCount = 0;
 let challengeAnswerCount = 0;
-class Publication extends events_1.default {
+class Publication extends EventEmitter {
     constructor() {
         super(...arguments);
         this.challengeRequestId = `r${++challengeRequestCount}`;
         this.challengeAnswerId = `a${++challengeAnswerCount}`;
     }
-    async publish() {
-        await simulateLoadingTime();
-        this.simulateChallengeEvent();
+    publish() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield simulateLoadingTime();
+            this.simulateChallengeEvent();
+        });
     }
     simulateChallengeEvent() {
         const challenge = { type: 'text', challenge: '2+2=?' };
@@ -267,9 +276,11 @@ class Publication extends events_1.default {
         };
         this.emit('challenge', challengeMessage, this);
     }
-    async publishChallengeAnswers(challengeAnswers) {
-        await simulateLoadingTime();
-        this.simulateChallengeVerificationEvent();
+    publishChallengeAnswers(challengeAnswers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield simulateLoadingTime();
+            this.simulateChallengeVerificationEvent();
+        });
     }
     simulateChallengeVerificationEvent() {
         // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
@@ -285,7 +296,7 @@ class Publication extends events_1.default {
         this.emit('challengeverification', challengeVerificationMessage, this);
     }
 }
-class Comment extends Publication {
+export class Comment extends Publication {
     constructor(createCommentOptions) {
         super();
         this.updating = false;
@@ -308,28 +319,27 @@ class Comment extends Publication {
             return;
         }
         this.updating = true;
-        (async () => {
+        (() => __awaiter(this, void 0, void 0, function* () {
             while (true) {
-                await simulateLoadingTime();
+                yield simulateLoadingTime();
                 this.simulateUpdateEvent();
             }
-        })();
+        }))();
     }
-    async simulateUpdateEvent() {
-        (0, assert_1.default)(this.cid, `invalid comment.cid '${this.cid}' can't simulateUpdateEvent`);
-        const commentUpdateContent = await getCommentUpdateContent(this);
-        for (const prop in commentUpdateContent) {
-            // @ts-ignore
-            this[prop] = commentUpdateContent[prop];
-        }
-        this.emit('update', this);
+    simulateUpdateEvent() {
+        return __awaiter(this, void 0, void 0, function* () {
+            assert(this.cid, `invalid comment.cid '${this.cid}' can't simulateUpdateEvent`);
+            const commentUpdateContent = yield getCommentUpdateContent(this);
+            for (const prop in commentUpdateContent) {
+                // @ts-ignore
+                this[prop] = commentUpdateContent[prop];
+            }
+            this.emit('update', this);
+        });
     }
 }
-exports.Comment = Comment;
-class Vote extends Publication {
+export class Vote extends Publication {
 }
-exports.Vote = Vote;
-function default_1() {
+export default function () {
     return new Plebbit();
 }
-exports.default = default_1;

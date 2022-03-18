@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sort = void 0;
 /**
  * Sort by top is made using relative score, to encourage small communities to grow
  * and to not incentivize communities to inflate their vote counts
@@ -93,7 +90,7 @@ const sortByHot = (feed) => {
         .sort((a, b) => b.upvoteCount - a.upvoteCount)
         .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid]);
 };
-const sort = (sortType, feed) => {
+export const sort = (sortType, feed) => {
     feed = [...feed];
     if (sortType === 'new') {
         return feed.sort((a, b) => b.timestamp - a.timestamp);
@@ -109,5 +106,4 @@ const sort = (sortType, feed) => {
     }
     throw Error(`FeedsProvider feedSorter sort type '${sortType}' doesn't exist`);
 };
-exports.sort = sort;
-exports.default = { sort: exports.sort };
+export default { sort };

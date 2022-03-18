@@ -1,9 +1,13 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const localforage_1 = __importDefault(require("localforage"));
+import localForage from 'localforage';
 function createLocalForageInstance(localForageLruOptions) {
     if (typeof (localForageLruOptions === null || localForageLruOptions === void 0 ? void 0 : localForageLruOptions.size) !== 'number') {
         throw Error(`LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions === null || localForageLruOptions === void 0 ? void 0 : localForageLruOptions.size}' not a number`);
@@ -11,10 +15,10 @@ function createLocalForageInstance(localForageLruOptions) {
     const localForageOptions = Object.assign({}, localForageLruOptions);
     delete localForageOptions.size;
     let database1, database2, databaseSize, initialized = false;
-    (async () => {
-        const localForage1 = localforage_1.default.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name }));
-        const localForage2 = localforage_1.default.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name + '2' }));
-        const [localForage1Size, localForage2Size] = await Promise.all([localForage1.length(), localForage2.length()]);
+    (() => __awaiter(this, void 0, void 0, function* () {
+        const localForage1 = localForage.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name }));
+        const localForage2 = localForage.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name + '2' }));
+        const [localForage1Size, localForage2Size] = yield Promise.all([localForage1.length(), localForage2.length()]);
         if (localForage1Size > localForage2Size) {
             database2 = localForage1;
             database1 = localForage2;
@@ -26,71 +30,89 @@ function createLocalForageInstance(localForageLruOptions) {
             databaseSize = localForage2Size;
         }
         initialized = true;
-    })();
+    }))();
     return {
-        getItem: async function (key) {
-            await initialization();
-            const value = await database1.getItem(key);
-            const value2 = await database2.getItem(key);
-            let returnValue = value;
-            if (returnValue !== null && value !== undefined)
-                return returnValue;
-            if ((returnValue = value2) !== null && (returnValue = value2) !== undefined) {
-                await updateDatabases(key, returnValue);
-                return returnValue;
-            }
+        getItem: function (key) {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield initialization();
+                const value = yield database1.getItem(key);
+                const value2 = yield database2.getItem(key);
+                let returnValue = value;
+                if (returnValue !== null && value !== undefined)
+                    return returnValue;
+                if ((returnValue = value2) !== null && (returnValue = value2) !== undefined) {
+                    yield updateDatabases(key, returnValue);
+                    return returnValue;
+                }
+            });
         },
-        setItem: async function (key, value) {
-            await initialization();
-            const databaseValue = await database1.getItem(key);
-            if (databaseValue !== null && databaseValue !== undefined) {
-                await database1.setItem(key, value);
-            }
-            else {
-                await updateDatabases(key, value);
-            }
+        setItem: function (key, value) {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield initialization();
+                const databaseValue = yield database1.getItem(key);
+                if (databaseValue !== null && databaseValue !== undefined) {
+                    yield database1.setItem(key, value);
+                }
+                else {
+                    yield updateDatabases(key, value);
+                }
+            });
         },
-        removeItem: async function (key) {
-            await initialization();
-            await database1.removeItem(key);
-            await database2.removeItem(key);
+        removeItem: function (key) {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield initialization();
+                yield database1.removeItem(key);
+                yield database2.removeItem(key);
+            });
         },
-        clear: async function () {
-            await initialization();
-            await database1.clear();
-            await database2.clear();
+        clear: function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield initialization();
+                yield database1.clear();
+                yield database2.clear();
+            });
         },
-        key: async function (keyIndex) {
-            throw Error('not implemented');
+        key: function (keyIndex) {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw Error('not implemented');
+            });
         },
-        keys: async function () {
-            await initialization();
-            return [...new Set([
-                    ...(await database1.keys()),
-                    ...(await database2.keys())
-                ])];
+        keys: function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield initialization();
+                return [...new Set([
+                        ...(yield database1.keys()),
+                        ...(yield database2.keys())
+                    ])];
+            });
         },
-        length: async function () {
-            throw Error('not implemented');
+        length: function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw Error('not implemented');
+            });
         },
     };
-    async function updateDatabases(key, value) {
-        await database1.setItem(key, value);
-        databaseSize++;
-        if (databaseSize >= localForageLruOptions.size) {
-            databaseSize = 0;
-            const database1Temp = database1;
-            const database2Temp = database2;
-            database2 = database1Temp;
-            database1 = database2Temp;
-            await database1.clear();
-        }
+    function updateDatabases(key, value) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield database1.setItem(key, value);
+            databaseSize++;
+            if (databaseSize >= localForageLruOptions.size) {
+                databaseSize = 0;
+                const database1Temp = database1;
+                const database2Temp = database2;
+                database2 = database1Temp;
+                database1 = database2Temp;
+                yield database1.clear();
+            }
+        });
     }
-    async function initialization() {
-        if (initialized)
-            return;
-        await new Promise((r) => setTimeout(r, 10));
-        await initialization();
+    function initialization() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (initialized)
+                return;
+            yield new Promise((r) => setTimeout(r, 10));
+            yield initialization();
+        });
     }
 }
 const instances = {};
@@ -107,4 +129,4 @@ const createInstance = (localForageLruOptions) => {
     instances[localForageLruOptions.name] = createLocalForageInstance(localForageLruOptions);
     return instances[localForageLruOptions.name];
 };
-exports.default = { createInstance };
+export default { createInstance };

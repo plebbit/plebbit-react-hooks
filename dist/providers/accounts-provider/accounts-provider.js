@@ -1,74 +1,58 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AccountsContext = void 0;
-const react_1 = __importStar(require("react"));
-const validator_1 = __importDefault(require("../../lib/validator"));
-const assert_1 = __importDefault(require("assert"));
-const debug_1 = __importDefault(require("debug"));
-const debug = (0, debug_1.default)('plebbitreacthooks:providers:accountsprovider');
-const accounts_database_1 = __importDefault(require("./accounts-database"));
-const account_generator_1 = __importDefault(require("./account-generator"));
-const utils_1 = __importDefault(require("../../lib/utils"));
-exports.AccountsContext = react_1.default.createContext(undefined);
-function AccountsProvider(props) {
-    const [accounts, setAccounts] = (0, react_1.useState)(undefined);
-    const [accountIds, setAccountIds] = (0, react_1.useState)(undefined);
-    const [activeAccountId, setActiveAccountId] = (0, react_1.useState)(undefined);
-    const [accountNamesToAccountIds, setAccountNamesToAccountIds] = (0, react_1.useState)(undefined);
-    const [accountsComments, setAccountsComments] = (0, react_1.useState)({});
-    const [accountsCommentsReplies, setAccountsCommentsReplies] = (0, react_1.useState)({});
-    const [accountsVotes, setAccountsVotes] = (0, react_1.useState)({});
+import React, { useState, useEffect, useMemo } from 'react';
+import validator from '../../lib/validator';
+import assert from 'assert';
+import Debug from 'debug';
+const debug = Debug('plebbitreacthooks:providers:accountsprovider');
+import accountsDatabase from './accounts-database';
+import accountGenerator from './account-generator';
+import utils from '../../lib/utils';
+export const AccountsContext = React.createContext(undefined);
+export default function AccountsProvider(props) {
+    const [accounts, setAccounts] = useState(undefined);
+    const [accountIds, setAccountIds] = useState(undefined);
+    const [activeAccountId, setActiveAccountId] = useState(undefined);
+    const [accountNamesToAccountIds, setAccountNamesToAccountIds] = useState(undefined);
+    const [accountsComments, setAccountsComments] = useState({});
+    const [accountsCommentsReplies, setAccountsCommentsReplies] = useState({});
+    const [accountsVotes, setAccountsVotes] = useState({});
     const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments);
     const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies);
     const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsNotifications);
     const accountsActions = {};
-    accountsActions.setActiveAccount = async (accountName) => {
-        (0, assert_1.default)(accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
-        validator_1.default.validateAccountsActionsSetActiveAccountArguments(accountName);
+    accountsActions.setActiveAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
+        validator.validateAccountsActionsSetActiveAccountArguments(accountName);
         const accountId = accountNamesToAccountIds[accountName];
-        await accounts_database_1.default.accountsMetadataDatabase.setItem('activeAccountId', accountId);
+        yield accountsDatabase.accountsMetadataDatabase.setItem('activeAccountId', accountId);
         debug('accountsActions.setActiveAccount', { accountName, accountId });
         setActiveAccountId(accountId);
-    };
-    accountsActions.setAccount = async (account) => {
-        validator_1.default.validateAccountsActionsSetAccountArguments(account);
-        (0, assert_1.default)(accounts === null || accounts === void 0 ? void 0 : accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`);
+    });
+    accountsActions.setAccount = (account) => __awaiter(this, void 0, void 0, function* () {
+        validator.validateAccountsActionsSetAccountArguments(account);
+        assert(accounts === null || accounts === void 0 ? void 0 : accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`);
         // use this function to serialize and update all databases
-        await accounts_database_1.default.addAccount(account);
-        const [newAccount, accountNamesToAccountIds] = await Promise.all([
+        yield accountsDatabase.addAccount(account);
+        const [newAccount, accountNamesToAccountIds] = yield Promise.all([
             // use this function to deserialize
-            accounts_database_1.default.getAccount(account.id),
-            accounts_database_1.default.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+            accountsDatabase.getAccount(account.id),
+            accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
         ]);
         const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
         debug('accountsActions.setAccount', { account: newAccount });
         setAccounts(newAccounts);
         setAccountNamesToAccountIds(accountNamesToAccountIds);
-    };
-    accountsActions.setAccountsOrder = async (newOrderedAccountNames) => {
-        (0, assert_1.default)(accounts && accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
+    });
+    accountsActions.setAccountsOrder = (newOrderedAccountNames) => __awaiter(this, void 0, void 0, function* () {
+        assert(accounts && accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
         const accountIds = [];
         const accountNames = [];
         for (const accountName of newOrderedAccountNames) {
@@ -76,25 +60,25 @@ function AccountsProvider(props) {
             accountIds.push(accountId);
             accountNames.push(accounts[accountId].name);
         }
-        validator_1.default.validateAccountsActionsSetAccountsOrderArguments(newOrderedAccountNames, accountNames);
+        validator.validateAccountsActionsSetAccountsOrderArguments(newOrderedAccountNames, accountNames);
         debug('accountsActions.setAccountsOrder', {
             previousAccountNames: accountNames,
             newAccountNames: newOrderedAccountNames,
         });
-        await accounts_database_1.default.accountsMetadataDatabase.setItem('accountIds', accountIds);
+        yield accountsDatabase.accountsMetadataDatabase.setItem('accountIds', accountIds);
         setAccountIds(accountIds);
-    };
-    accountsActions.createAccount = async (accountName) => {
-        const newAccount = await account_generator_1.default.generateDefaultAccount();
+    });
+    accountsActions.createAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
+        const newAccount = yield accountGenerator.generateDefaultAccount();
         if (accountName) {
             newAccount.name = accountName;
         }
-        await accounts_database_1.default.addAccount(newAccount);
+        yield accountsDatabase.addAccount(newAccount);
         const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
-        const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all([
-            accounts_database_1.default.accountsMetadataDatabase.getItem('accountIds'),
-            accounts_database_1.default.accountsMetadataDatabase.getItem('activeAccountId'),
-            accounts_database_1.default.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+        const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = yield Promise.all([
+            accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
+            accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
+            accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
         ]);
         debug('accountsActions.createAccount', { accountName, account: newAccount });
         setAccounts(newAccounts);
@@ -102,36 +86,36 @@ function AccountsProvider(props) {
         setAccountNamesToAccountIds(accountNamesToAccountIds);
         setAccountsComments(Object.assign(Object.assign({}, accountsComments), { [newAccount.id]: [] }));
         setAccountsVotes(Object.assign(Object.assign({}, accountsVotes), { [newAccount.id]: {} }));
-    };
-    accountsActions.deleteAccount = async (accountName) => {
+    });
+    accountsActions.deleteAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
         // TODO: delete account from provider and from persistant storage
         // change active account to another active account
         // handle the edge case of a user deleting all his account and having none
         // warn user to back up his private key or lose his account permanently
-    };
-    accountsActions.importAccount = async (serializedAccount) => {
+    });
+    accountsActions.importAccount = (serializedAccount) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
         // TODO: deserialize account, import account, if account.name already exists, add ' 2', don't overwrite
         // the 'account' will contain AccountComments and AccountVotes
         // TODO: add options to only import private key, account settings, or include all account comments/votes history
-    };
-    accountsActions.exportAccount = async (accountName) => {
+    });
+    accountsActions.exportAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
         // don't allow no account name to avoid catastrophic bugs
-        validator_1.default.validateAccountsActionsExportAccountArguments(accountName);
+        validator.validateAccountsActionsExportAccountArguments(accountName);
         // TODO: return account as serialized JSON string for copy paste or save as file
         // the 'account' will contain AccountComments and AccountVotes
         // TODO: add options to only export private key, account settings, or include all account comments/votes history
-    };
-    accountsActions.publishComment = async (publishCommentOptions, accountName) => {
-        (0, assert_1.default)(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+    });
+    accountsActions.publishComment = (publishCommentOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
         let account = accounts[activeAccountId];
         if (accountName) {
             const accountId = accountNamesToAccountIds[accountName];
             account = accounts[accountId];
         }
-        validator_1.default.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
+        validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
         let createCommentOptions = {
             subplebbitAddress: publishCommentOptions.subplebbitAddress,
             parentCommentCid: publishCommentOptions.parentCommentCid,
@@ -145,10 +129,10 @@ function AccountsProvider(props) {
         let accountCommentIndex;
         let comment = account.plebbit.createComment(createCommentOptions);
         const publishAndRetryFailedChallengeVerification = () => {
-            comment.once('challenge', async (challenge) => {
+            comment.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
                 publishCommentOptions.onChallenge(challenge, comment);
-            });
-            comment.once('challengeverification', async (challengeVerification) => {
+            }));
+            comment.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 publishCommentOptions.onChallengeVerification(challengeVerification, comment);
                 if (!challengeVerification.challengeAnswerIsVerified) {
@@ -162,7 +146,7 @@ function AccountsProvider(props) {
                     // of the published comment which is needed to resolve it for replies, upvotes, etc
                     if ((_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid) {
                         const commentWithCid = Object.assign(Object.assign({}, createCommentOptions), { cid: challengeVerification.publication.cid });
-                        await accounts_database_1.default.addAccountComment(account.id, commentWithCid, accountCommentIndex);
+                        yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
                         setAccountsComments((previousAccountsComments) => {
                             const updatedAccountComments = [...previousAccountsComments[account.id]];
                             const updatedAccountComment = Object.assign(Object.assign({}, commentWithCid), { index: accountCommentIndex, accountId: account.id });
@@ -172,11 +156,11 @@ function AccountsProvider(props) {
                         startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex);
                     }
                 }
-            });
+            }));
             comment.publish();
         };
         publishAndRetryFailedChallengeVerification();
-        await accounts_database_1.default.addAccountComment(account.id, createCommentOptions);
+        yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
         debug('accountsActions.publishComment', { createCommentOptions });
         setAccountsComments((previousAccountsComments) => {
             // save account comment index to update the comment later
@@ -184,21 +168,21 @@ function AccountsProvider(props) {
             const createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
             return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: [...previousAccountsComments[account.id], createdAccountComment] });
         });
-    };
-    accountsActions.publishCommentEdit = async (publishCommentEditOptions, accountName) => {
+    });
+    accountsActions.publishCommentEdit = (publishCommentEditOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
-    };
-    accountsActions.deleteComment = async (commentCidOrAccountCommentIndex, accountName) => {
+    });
+    accountsActions.deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
-    };
-    accountsActions.publishVote = async (publishVoteOptions, accountName) => {
-        (0, assert_1.default)(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+    });
+    accountsActions.publishVote = (publishVoteOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
         let account = accounts[activeAccountId];
         if (accountName) {
             const accountId = accountNamesToAccountIds[accountName];
             account = accounts[accountId];
         }
-        validator_1.default.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
+        validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
         const createVoteOptions = {
             subplebbitAddress: publishVoteOptions.subplebbitAddress,
             vote: publishVoteOptions.vote,
@@ -209,37 +193,37 @@ function AccountsProvider(props) {
         };
         let vote = account.plebbit.createVote(createVoteOptions);
         const publishAndRetryFailedChallengeVerification = () => {
-            vote.once('challenge', async (challenge) => {
+            vote.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
                 publishVoteOptions.onChallenge(challenge, vote);
-            });
-            vote.once('challengeverification', async (challengeVerification) => {
+            }));
+            vote.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
                 publishVoteOptions.onChallengeVerification(challengeVerification, vote);
                 if (!challengeVerification.challengeAnswerIsVerified) {
                     // publish again automatically on fail
                     vote = account.plebbit.createVote(createVoteOptions);
                     publishAndRetryFailedChallengeVerification();
                 }
-            });
+            }));
             vote.publish();
         };
         publishAndRetryFailedChallengeVerification();
-        await accounts_database_1.default.addAccountVote(account.id, createVoteOptions);
+        yield accountsDatabase.addAccountVote(account.id, createVoteOptions);
         debug('accountsActions.publishVote', { createVoteOptions });
         setAccountsVotes(Object.assign(Object.assign({}, accountsVotes), { [account.id]: Object.assign(Object.assign({}, accountsVotes[account.id]), { [createVoteOptions.commentCid]: createVoteOptions }) }));
         return vote;
-    };
-    accountsActions.blockAddress = async (address, accountName) => {
+    });
+    accountsActions.blockAddress = (address, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
-    };
-    accountsActions.limitAddress = async (address, limitPercent, accountName) => {
+    });
+    accountsActions.limitAddress = (address, limitPercent, accountName) => __awaiter(this, void 0, void 0, function* () {
         // limit how many times per feed page an address can appear, limitPercent 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
         throw Error('TODO: not implemented');
-    };
+    });
     // internal accounts action: the comment CID is not known at the time of publishing, so every time
     // we fetch a new comment, check if its our own, and attempt to add the CID
-    const addCidToAccountComment = async (comment) => {
+    const addCidToAccountComment = (comment) => __awaiter(this, void 0, void 0, function* () {
         var _a;
-        (0, assert_1.default)(accounts, `can't use AccountContext.accountActions before initialized`);
+        assert(accounts, `can't use AccountContext.accountActions before initialized`);
         const accountCommentsWithoutCids = accountsCommentsWithoutCids[(_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address];
         if (!accountCommentsWithoutCids) {
             return;
@@ -247,8 +231,8 @@ function AccountsProvider(props) {
         for (const accountComment of accountCommentsWithoutCids) {
             // if author address and timestamp is the same, we assume it's the right comment
             if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
-                const commentWithCid = utils_1.default.merge(accountComment, comment);
-                await accounts_database_1.default.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index);
+                const commentWithCid = utils.merge(accountComment, comment);
+                yield accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index);
                 setAccountsComments((previousAccountsComments) => {
                     const updatedAccountComments = [...previousAccountsComments[accountComment.accountId]];
                     updatedAccountComments[accountComment.index] = commentWithCid;
@@ -258,10 +242,10 @@ function AccountsProvider(props) {
                 break;
             }
         }
-    };
+    });
     // internal accounts action: mark an account's notifications as read
-    const markAccountNotificationsAsRead = async (account) => {
-        (0, assert_1.default)(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `AccountContext.markAccountNotificationsAsRead invalid account argument '${account}'`);
+    const markAccountNotificationsAsRead = (account) => __awaiter(this, void 0, void 0, function* () {
+        assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `AccountContext.markAccountNotificationsAsRead invalid account argument '${account}'`);
         // find all unread replies
         const repliesToMarkAsRead = {};
         for (const replyCid in accountsCommentsReplies[account.id]) {
@@ -272,24 +256,24 @@ function AccountsProvider(props) {
         // add all to database
         const promises = [];
         for (const replyCid in repliesToMarkAsRead) {
-            promises.push(accounts_database_1.default.addAccountCommentReply(account.id, repliesToMarkAsRead[replyCid]));
+            promises.push(accountsDatabase.addAccountCommentReply(account.id, repliesToMarkAsRead[replyCid]));
         }
-        await Promise.all(promises);
+        yield Promise.all(promises);
         // add all to react context
         debug('AccountContext.markAccountNotificationsAsRead', { account, repliesToMarkAsRead });
         setAccountsCommentsReplies(previousAccountsCommentsReplies => {
             const updatedAccountCommentsReplies = Object.assign(Object.assign({}, previousAccountsCommentsReplies[account.id]), repliesToMarkAsRead);
             return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies });
         });
-    };
+    });
     // TODO: we currently subscribe to updates for every single comment
     // in the user's account history. This probably does not scale, we
     // need to eventually schedule and queue older comments to look 
     // for updates at a lower priority.
-    const [alreadyUpdatingAccountsComments, setAlreadyUpdatingAccountsComments] = (0, react_1.useState)({});
-    const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment, account, accountCommentIndex) => {
-        (0, assert_1.default)(typeof accountCommentIndex === 'number', `startUpdatingAccountCommentOnCommentUpdateEvents accountCommentIndex '${accountCommentIndex}' not a number`);
-        (0, assert_1.default)(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `startUpdatingAccountCommentOnCommentUpdateEvents account '${account}' account.id '${account === null || account === void 0 ? void 0 : account.id}' not a string`);
+    const [alreadyUpdatingAccountsComments, setAlreadyUpdatingAccountsComments] = useState({});
+    const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, account, accountCommentIndex) => __awaiter(this, void 0, void 0, function* () {
+        assert(typeof accountCommentIndex === 'number', `startUpdatingAccountCommentOnCommentUpdateEvents accountCommentIndex '${accountCommentIndex}' not a number`);
+        assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `startUpdatingAccountCommentOnCommentUpdateEvents account '${account}' account.id '${account === null || account === void 0 ? void 0 : account.id}' not a string`);
         const commentArgument = comment;
         if (!comment.ipnsName) {
             if (!comment.cid) {
@@ -297,7 +281,7 @@ function AccountsProvider(props) {
                 // and doesn't have a cid, so has no way to know the ipns name
                 return;
             }
-            comment = await account.plebbit.getComment(comment.cid);
+            comment = yield account.plebbit.getComment(comment.cid);
         }
         // account comment already updating
         if (alreadyUpdatingAccountsComments[comment.cid]) {
@@ -309,20 +293,20 @@ function AccountsProvider(props) {
         }
         // @ts-ignore
         setAlreadyUpdatingAccountsComments(prev => (Object.assign(Object.assign({}, prev), { [comment.cid]: true })));
-        comment.on('update', async (updatedComment) => {
-            var _a, _b, _c, _d;
+        comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
+            var _b, _c, _d, _e;
             // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
-            updatedComment = utils_1.default.merge(commentArgument, comment, updatedComment);
-            await accounts_database_1.default.addAccountComment(account.id, updatedComment, accountCommentIndex);
+            updatedComment = utils.merge(commentArgument, comment, updatedComment);
+            yield accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex);
             setAccountsComments((previousAccountsComments) => {
                 const updatedAccountComments = [...previousAccountsComments[account.id]];
                 const previousComment = updatedAccountComments[accountCommentIndex];
-                const updatedAccountComment = utils_1.default.clone(Object.assign(Object.assign({}, updatedComment), { index: accountCommentIndex, accountId: account.id }));
+                const updatedAccountComment = utils.clone(Object.assign(Object.assign({}, updatedComment), { index: accountCommentIndex, accountId: account.id }));
                 updatedAccountComments[accountCommentIndex] = updatedAccountComment;
                 return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: updatedAccountComments });
             });
             // update AccountCommentsReplies with new replies if has any new replies
-            const sortedRepliesArray = [(_a = updatedComment.sortedReplies) === null || _a === void 0 ? void 0 : _a.new, (_b = updatedComment.sortedReplies) === null || _b === void 0 ? void 0 : _b.topAll, (_c = updatedComment.sortedReplies) === null || _c === void 0 ? void 0 : _c.old, (_d = updatedComment.sortedReplies) === null || _d === void 0 ? void 0 : _d.controversialAll];
+            const sortedRepliesArray = [(_b = updatedComment.sortedReplies) === null || _b === void 0 ? void 0 : _b.new, (_c = updatedComment.sortedReplies) === null || _c === void 0 ? void 0 : _c.topAll, (_d = updatedComment.sortedReplies) === null || _d === void 0 ? void 0 : _d.old, (_e = updatedComment.sortedReplies) === null || _e === void 0 ? void 0 : _e.controversialAll];
             const hasReplies = sortedRepliesArray.map(sortedReplies => { var _a; return ((_a = sortedReplies === null || sortedReplies === void 0 ? void 0 : sortedReplies.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
             if (hasReplies) {
                 setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
@@ -338,7 +322,7 @@ function AccountsProvider(props) {
                     // add all to database
                     const promises = [];
                     for (const replyCid in updatedReplies) {
-                        promises.push(accounts_database_1.default.addAccountCommentReply(account.id, updatedReplies[replyCid]));
+                        promises.push(accountsDatabase.addAccountCommentReply(account.id, updatedReplies[replyCid]));
                     }
                     Promise.all(promises);
                     // set new react context
@@ -346,40 +330,40 @@ function AccountsProvider(props) {
                     return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies });
                 });
             }
-        });
+        }));
         comment.update();
-    };
+    });
     // load accounts from database once on load
-    (0, react_1.useEffect)(() => {
+    useEffect(() => {
         ;
-        (async () => {
+        (() => __awaiter(this, void 0, void 0, function* () {
             let accountIds, activeAccountId, accounts, accountNamesToAccountIds;
-            accountIds = (await accounts_database_1.default.accountsMetadataDatabase.getItem('accountIds')) || undefined;
+            accountIds = (yield accountsDatabase.accountsMetadataDatabase.getItem('accountIds')) || undefined;
             // get accounts from database if any
             if (accountIds === null || accountIds === void 0 ? void 0 : accountIds.length) {
                 ;
-                [activeAccountId, accounts, accountNamesToAccountIds] = await Promise.all([
-                    accounts_database_1.default.accountsMetadataDatabase.getItem('activeAccountId'),
-                    accounts_database_1.default.getAccounts(accountIds),
-                    accounts_database_1.default.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+                [activeAccountId, accounts, accountNamesToAccountIds] = yield Promise.all([
+                    accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
+                    accountsDatabase.getAccounts(accountIds),
+                    accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
                 ]);
             }
             // no accounts in database, create a default account
             else {
-                const defaultAccount = await account_generator_1.default.generateDefaultAccount();
-                await accounts_database_1.default.addAccount(defaultAccount);
+                const defaultAccount = yield accountGenerator.generateDefaultAccount();
+                yield accountsDatabase.addAccount(defaultAccount);
                 accounts = { [defaultAccount.id]: defaultAccount };
-                [accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all([
-                    accounts_database_1.default.accountsMetadataDatabase.getItem('accountIds'),
-                    accounts_database_1.default.accountsMetadataDatabase.getItem('activeAccountId'),
-                    accounts_database_1.default.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+                [accountIds, activeAccountId, accountNamesToAccountIds] = yield Promise.all([
+                    accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
+                    accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
+                    accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
                 ]);
-                (0, assert_1.default)(accountIds && activeAccountId && accountNamesToAccountIds, `AccountsProvider error creating a default account during initialization`);
+                assert(accountIds && activeAccountId && accountNamesToAccountIds, `AccountsProvider error creating a default account during initialization`);
             }
-            const [accountsComments, accountsVotes, accountsCommentsReplies] = await Promise.all([
-                accounts_database_1.default.getAccountsComments(accountIds),
-                accounts_database_1.default.getAccountsVotes(accountIds),
-                accounts_database_1.default.getAccountsCommentsReplies(accountIds),
+            const [accountsComments, accountsVotes, accountsCommentsReplies] = yield Promise.all([
+                accountsDatabase.getAccountsComments(accountIds),
+                accountsDatabase.getAccountsVotes(accountIds),
+                accountsDatabase.getAccountsCommentsReplies(accountIds),
             ]);
             setAccounts(accounts);
             setAccountIds(accountIds);
@@ -394,7 +378,7 @@ function AccountsProvider(props) {
                     startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index);
                 }
             }
-        })();
+        }))();
     }, []);
     if (!props.children) {
         return null;
@@ -428,11 +412,10 @@ function AccountsProvider(props) {
             accountsCommentsWithoutCids,
         },
     });
-    return react_1.default.createElement(exports.AccountsContext.Provider, { value: accountsContext }, props.children);
+    return React.createElement(AccountsContext.Provider, { value: accountsContext }, props.children);
 }
-exports.default = AccountsProvider;
 const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
-    return (0, react_1.useMemo)(() => {
+    return useMemo(() => {
         const accountsNotifications = {};
         if (!accountsCommentsReplies) {
             return accountsNotifications;
@@ -455,7 +438,7 @@ const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
     }, [accounts, accountsCommentsReplies]);
 };
 const useAccountsCommentsWithoutCids = (accounts, accountsComments) => {
-    return (0, react_1.useMemo)(() => {
+    return useMemo(() => {
         var _a;
         const accountsCommentsWithoutCids = {};
         if (!accounts || !accountsComments) {
@@ -483,7 +466,7 @@ const useAccountsCommentsWithoutCids = (accounts, accountsComments) => {
 };
 // add calculated properties to accounts, like karma and unreadNotificationCount
 const useAccountsWithCalculatedProperties = (accounts, accountsComments, accountsNotifications) => {
-    return (0, react_1.useMemo)(() => {
+    return useMemo(() => {
         if (!accounts) {
             return;
         }
