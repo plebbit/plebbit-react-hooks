@@ -17,11 +17,10 @@
     "dist"
   ],
   "main": "dist/index.js",
-  "module": "dist/cjs/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
     "prebuild": "rm -rf dist",
-    "build": "tsc && tsc --project tsconfig.cjs.json",
+    "build": "tsc",
     "start": "tsc --watch",
     "lint": "yarn run eslint --fix --ext .ts,.tsx .",
     "prettier": "prettier --write src",
