@@ -18,15 +18,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -45,38 +36,38 @@ function CommentsProvider(props) {
     const accountsContext = (0, react_1.useContext)(accounts_provider_1.AccountsContext);
     const [comments, setComments] = (0, react_1.useState)({});
     const commentsActions = {};
-    commentsActions.addCommentToContext = (commentId, account) => __awaiter(this, void 0, void 0, function* () {
+    commentsActions.addCommentToContext = async (commentId, account) => {
         // comment is in context already, do nothing
         let comment = comments[commentId];
         if (comment || plebbitGetCommentPending[commentId + account.id]) {
             return;
         }
         // try to find comment in database
-        comment = yield getCommentFromDatabase(commentId, account);
+        comment = await getCommentFromDatabase(commentId, account);
         // comment not in database, fetch from plebbit-js
         if (!comment) {
             plebbitGetCommentPending[commentId + account.id] = true;
-            comment = yield account.plebbit.getComment(commentId);
-            yield commentsDatabase.setItem(commentId, utils_1.default.clone(comment));
+            comment = await account.plebbit.getComment(commentId);
+            await commentsDatabase.setItem(commentId, utils_1.default.clone(comment));
         }
         debug('commentsActions.addCommentToContext', { commentId, comment, account });
         setComments((previousComments) => (Object.assign(Object.assign({}, previousComments), { [commentId]: utils_1.default.clone(comment) })));
         plebbitGetCommentPending[commentId + account.id] = false;
         // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
-        comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
+        comment.on('update', async (updatedComment) => {
             updatedComment = utils_1.default.clone(updatedComment);
-            yield commentsDatabase.setItem(commentId, updatedComment);
+            await commentsDatabase.setItem(commentId, updatedComment);
             debug('commentsContext comment update', { commentId, updatedComment, account });
             setComments((previousComments) => (Object.assign(Object.assign({}, previousComments), { [commentId]: updatedComment })));
-        }));
+        });
         comment.update();
         // when publishing a comment, you don't yet know its CID
         // so when a new comment is fetched, check to see if it's your own
         // comment, and if yes, add the CID to your account comments database
         if (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.addCidToAccountComment) {
-            yield accountsContext.addCidToAccountComment(comment);
+            await accountsContext.addCidToAccountComment(comment);
         }
-    });
+    };
     if (!props.children) {
         return null;
     }
@@ -88,8 +79,8 @@ function CommentsProvider(props) {
     return react_1.default.createElement(exports.CommentsContext.Provider, { value: commentsContext }, props.children);
 }
 exports.default = CommentsProvider;
-const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0, void 0, function* () {
-    const commentData = yield commentsDatabase.getItem(commentId);
+const getCommentFromDatabase = async (commentId, account) => {
+    const commentData = await commentsDatabase.getItem(commentId);
     if (!commentData) {
         return;
     }
@@ -103,4 +94,4 @@ const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0,
         }
     }
     return comment;
-});
+};

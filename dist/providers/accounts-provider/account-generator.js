@@ -1,17 +1,14 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-import PlebbitJs from '../../lib/plebbit-js';
-import validator from '../../lib/validator';
-import { v4 as uuid } from 'uuid';
-import accountsDatabase from './accounts-database';
-export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateDefaultAccount = void 0;
+const plebbit_js_1 = __importDefault(require("../../lib/plebbit-js"));
+const validator_1 = __importDefault(require("../../lib/validator"));
+const uuid_1 = require("uuid");
+const accounts_database_1 = __importDefault(require("./accounts-database"));
+const generateDefaultAccount = async () => {
     // TODO: a default account will probably not be exactly like this
     const signer = {}; // TODO: generate new signer
     const author = {
@@ -22,24 +19,25 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         ipfsGatewayUrl: 'https://cloudflare-ipfs',
         ipfsApiUrl: 'http://localhost:8080',
     };
-    const accountName = yield getNextAvailableDefaultAccountName();
+    const accountName = await getNextAvailableDefaultAccountName();
     const account = {
-        id: uuid(),
+        id: (0, uuid_1.v4)(),
         name: accountName,
         author,
         signer,
-        plebbit: PlebbitJs.Plebbit(plebbitOptions),
+        plebbit: plebbit_js_1.default.Plebbit(plebbitOptions),
         plebbitOptions,
         subscriptions: [],
         blockedAddresses: {},
     };
     return account;
-});
-const getNextAvailableDefaultAccountName = () => __awaiter(void 0, void 0, void 0, function* () {
-    const accountIds = yield accountsDatabase.accountsMetadataDatabase.getItem('accountIds');
+};
+exports.generateDefaultAccount = generateDefaultAccount;
+const getNextAvailableDefaultAccountName = async () => {
+    const accountIds = await accounts_database_1.default.accountsMetadataDatabase.getItem('accountIds');
     const accountNames = [];
     if (accountIds) {
-        const accounts = yield accountsDatabase.getAccounts(accountIds);
+        const accounts = await accounts_database_1.default.getAccounts(accountIds);
         for (const accountId of accountIds) {
             accountNames.push(accounts[accountId].name);
         }
@@ -48,7 +46,7 @@ const getNextAvailableDefaultAccountName = () => __awaiter(void 0, void 0, void 
     if (!(accountNames === null || accountNames === void 0 ? void 0 : accountNames.length)) {
         return `Account ${accountNumber}`;
     }
-    validator.validateAccountsProviderAccountNames(accountNames);
+    validator_1.default.validateAccountsProviderAccountNames(accountNames);
     const accountNamesSet = new Set(accountNames);
     while (true) {
         const accountName = `Account ${accountNumber}`;
@@ -57,8 +55,8 @@ const getNextAvailableDefaultAccountName = () => __awaiter(void 0, void 0, void 
         }
         accountNumber++;
     }
-});
-const accountGenerator = {
-    generateDefaultAccount,
 };
-export default accountGenerator;
+const accountGenerator = {
+    generateDefaultAccount: exports.generateDefaultAccount,
+};
+exports.default = accountGenerator;

@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -25,27 +16,25 @@ class Plebbit {
     createSubplebbit(createSubplebbitOptions) {
         return new Subplebbit(createSubplebbitOptions);
     }
-    getSubplebbit(subplebbitAddress) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield (0, exports.simulateLoadingTime)();
-            const createSubplebbitOptions = {
-                address: subplebbitAddress
-            };
-            const subplebbit = new Subplebbit(createSubplebbitOptions);
-            subplebbit.title = subplebbit.address + ' title';
-            const hotSortedPostsCid = subplebbit.address + ' sorted posts cid hot';
-            subplebbit.sortedPosts = { hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) };
-            subplebbit.sortedPostsCids = {
-                hot: hotSortedPostsCid,
-                topAll: subplebbit.address + ' sorted posts cid topAll',
-                new: subplebbit.address + ' sorted posts cid new'
-            };
-            // mock properties of subplebbitToGet unto the subplebbit instance
-            for (const prop in this.subplebbitToGet(subplebbit)) {
-                subplebbit[prop] = this.subplebbitToGet(subplebbit)[prop];
-            }
-            return subplebbit;
-        });
+    async getSubplebbit(subplebbitAddress) {
+        await (0, exports.simulateLoadingTime)();
+        const createSubplebbitOptions = {
+            address: subplebbitAddress
+        };
+        const subplebbit = new Subplebbit(createSubplebbitOptions);
+        subplebbit.title = subplebbit.address + ' title';
+        const hotSortedPostsCid = subplebbit.address + ' sorted posts cid hot';
+        subplebbit.sortedPosts = { hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) };
+        subplebbit.sortedPostsCids = {
+            hot: hotSortedPostsCid,
+            topAll: subplebbit.address + ' sorted posts cid topAll',
+            new: subplebbit.address + ' sorted posts cid new'
+        };
+        // mock properties of subplebbitToGet unto the subplebbit instance
+        for (const prop in this.subplebbitToGet(subplebbit)) {
+            subplebbit[prop] = this.subplebbitToGet(subplebbit)[prop];
+        }
+        return subplebbit;
     }
     // mock this method to get a subplebbit with different title, posts, address, etc
     subplebbitToGet(subplebbit) {
@@ -56,12 +45,10 @@ class Plebbit {
     createComment(createCommentOptions) {
         return new Comment(createCommentOptions);
     }
-    getComment(commentCid) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield (0, exports.simulateLoadingTime)();
-            const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: commentCid + ' ipns name' }, this.commentToGet());
-            return new Comment(createCommentOptions);
-        });
+    async getComment(commentCid) {
+        await (0, exports.simulateLoadingTime)();
+        const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: commentCid + ' ipns name' }, this.commentToGet());
+        return new Comment(createCommentOptions);
     }
     // mock this method to get a comment with different content, timestamp, address, etc
     commentToGet() {
@@ -105,12 +92,10 @@ class Subplebbit extends events_1.default {
         this.description = this.address + ' description updated';
         this.emit('update', this);
     }
-    getSortedPosts(sortedPostsCid) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // need to wait twice otherwise react renders too fast and fetches too many pages in advance
-            yield (0, exports.simulateLoadingTime)();
-            return subplebbitGetSortedPosts(sortedPostsCid, this);
-        });
+    async getSortedPosts(sortedPostsCid) {
+        // need to wait twice otherwise react renders too fast and fetches too many pages in advance
+        await (0, exports.simulateLoadingTime)();
+        return subplebbitGetSortedPosts(sortedPostsCid, this);
     }
 }
 exports.Subplebbit = Subplebbit;
@@ -141,11 +126,9 @@ class Publication extends events_1.default {
         this.challengeRequestId = `r${++challengeRequestCount}`;
         this.challengeAnswerId = `a${++challengeAnswerCount}`;
     }
-    publish() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield (0, exports.simulateLoadingTime)();
-            this.simulateChallengeEvent();
-        });
+    async publish() {
+        await (0, exports.simulateLoadingTime)();
+        this.simulateChallengeEvent();
     }
     simulateChallengeEvent() {
         const challenge = { type: 'text', challenge: '2+2=?' };
@@ -156,11 +139,9 @@ class Publication extends events_1.default {
         };
         this.emit('challenge', challengeMessage, this);
     }
-    publishChallengeAnswers(challengeAnswers) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield (0, exports.simulateLoadingTime)();
-            this.simulateChallengeVerificationEvent();
-        });
+    async publishChallengeAnswers(challengeAnswers) {
+        await (0, exports.simulateLoadingTime)();
+        this.simulateChallengeVerificationEvent();
     }
     simulateChallengeVerificationEvent() {
         // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage

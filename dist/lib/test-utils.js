@@ -1,5 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.silenceTestWasNotWrappedInActWarning = exports.silenceUpdateUnmountedComponentWarning = void 0;
 const restorables = [];
-export const silenceUpdateUnmountedComponentWarning = () => {
+const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
     console.error = (...args) => {
         if (/Can't perform a React state update on an unmounted component/.test(args[0])) {
@@ -13,7 +16,8 @@ export const silenceUpdateUnmountedComponentWarning = () => {
     restorables.push(restore);
     return restore;
 };
-export const silenceTestWasNotWrappedInActWarning = () => {
+exports.silenceUpdateUnmountedComponentWarning = silenceUpdateUnmountedComponentWarning;
+const silenceTestWasNotWrappedInActWarning = () => {
     const originalError = console.error;
     console.error = (...args) => {
         if (/inside a test was not wrapped in act/.test(args[0])) {
@@ -27,14 +31,15 @@ export const silenceTestWasNotWrappedInActWarning = () => {
     restorables.push(restore);
     return restore;
 };
+exports.silenceTestWasNotWrappedInActWarning = silenceTestWasNotWrappedInActWarning;
 const restoreAll = () => {
     for (const restore of restorables) {
         restore();
     }
 };
 const testUtils = {
-    silenceTestWasNotWrappedInActWarning,
-    silenceUpdateUnmountedComponentWarning,
+    silenceTestWasNotWrappedInActWarning: exports.silenceTestWasNotWrappedInActWarning,
+    silenceUpdateUnmountedComponentWarning: exports.silenceUpdateUnmountedComponentWarning,
     restoreAll
 };
-export default testUtils;
+exports.default = testUtils;
