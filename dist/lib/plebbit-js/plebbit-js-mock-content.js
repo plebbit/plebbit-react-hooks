@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import EventEmitter from 'events';
-import crypto from 'crypto';
 import assert from 'assert';
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 5000);
@@ -63,6 +62,7 @@ const urlSuffixes = [
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     assert(string, `cant hash string '${string}'`);
     if (!window.TextEncoder) {
+        const crypto = require('crypto');
         return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '');
     }
     // @ts-ignore

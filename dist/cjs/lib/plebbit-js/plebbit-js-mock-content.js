@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Vote = exports.Comment = exports.Subplebbit = exports.Plebbit = void 0;
 const events_1 = __importDefault(require("events"));
-const crypto_1 = __importDefault(require("crypto"));
 const assert_1 = __importDefault(require("assert"));
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 5000);
@@ -69,10 +68,11 @@ const urlSuffixes = [
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     (0, assert_1.default)(string, `cant hash string '${string}'`);
     if (!window.TextEncoder) {
-        return crypto_1.default.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '');
+        const crypto = require('crypto');
+        return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '');
     }
     // @ts-ignore
-    const hashBuffer = yield crypto_1.default.subtle.digest('SHA-256', new TextEncoder().encode(string));
+    const hashBuffer = yield crypto.subtle.digest('SHA-256', new TextEncoder().encode(string));
     // @ts-ignore
     return btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuffer))).replace(/[^a-zA-Z0-9]/g, '');
 });

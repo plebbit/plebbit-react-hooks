@@ -1,5 +1,4 @@
 import EventEmitter from 'events'
-import crypto from 'crypto'
 import assert from 'assert'
 
 // changeable with env variable so the frontend can test with different latencies
@@ -63,6 +62,7 @@ const urlSuffixes = [
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
   if (!window.TextEncoder) {
+    const crypto = require('crypto')
     return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
   }
   // @ts-ignore
