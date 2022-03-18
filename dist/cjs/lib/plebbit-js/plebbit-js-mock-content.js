@@ -67,10 +67,10 @@ const urlSuffixes = [
 ];
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     (0, assert_1.default)(string, `cant hash string '${string}'`);
-    if (!window.TextEncoder) {
-        const crypto = require('crypto');
-        return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '');
-    }
+    // if (!window.TextEncoder) {
+    //   const crypto = require('crypto')
+    //   return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
+    // }
     // @ts-ignore
     const hashBuffer = yield crypto.subtle.digest('SHA-256', new TextEncoder().encode(string));
     // @ts-ignore
