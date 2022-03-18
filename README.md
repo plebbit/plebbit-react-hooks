@@ -113,7 +113,7 @@ AccountsActions {
   publishComment(comment: Comment, accountName: string | undefined),
   publishCommentEdit(comment: Comment, accountName: string | undefined),
   publishVote(vote: Vote, accountName: string | undefined),
-  deleteComment(commentCidOrAccountCommentIndex: strin | number, accountName: string | undefined),
+  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName: string | undefined),
   blockAddress(address: string) // block a subplebbit address or author address from showing on your feed
 }
 Account {
@@ -427,6 +427,10 @@ Currently not implemented. Only uses the preloaded replies to a post.
 #### Accounts settings persistance, export, import and caching
 
 All accounts settings, accounts comments and accounts votes are stored permanently in the various IndexedDb databases. Import from file and export to file are possible but not yet implemented. Ephemeral data like random subplebbits, comments and feeds are stored in last recently used IndexedDb databases, and eventually erased.
+
+#### Editing account.plebbitOptions and replacing the account.plebbit instance
+
+Not implemented, but the easiest method would be to force a page reload, which will reset setting up all the comments and subplebbit listeners.
 
 ### Install
 
