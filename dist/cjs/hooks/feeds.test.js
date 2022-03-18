@@ -43,7 +43,8 @@ const deleteDatabases = () => Promise.all([
     localforage_1.default.createInstance({ name: 'accountsMetadata' }).clear(),
     localforage_1.default.createInstance({ name: 'accounts' }).clear(),
     localforage_lru_1.default.createInstance({ name: 'subplebbits' }).clear(),
-    localforage_lru_1.default.createInstance({ name: 'comments' }).clear()
+    localforage_lru_1.default.createInstance({ name: 'comments' }).clear(),
+    localforage_lru_1.default.createInstance({ name: 'sortedPosts' }).clear()
 ]);
 describe('feeds', () => {
     beforeAll(() => {
@@ -628,7 +629,14 @@ describe('feeds', () => {
                 expect((_a = rendered.result.current.feed) === null || _a === void 0 ? void 0 : _a.length).toBe(postsPerPage);
             }));
         });
-        test.only(`subplebbit updates while we are scrolling`, () => __awaiter(void 0, void 0, void 0, function* () {
+        test(`subplebbit updates while we are scrolling`, () => __awaiter(void 0, void 0, void 0, function* () {
+            const update = plebbit_js_mock_1.Subplebbit.prototype.update;
+            // mock the update method to be able to have access to the updating subplebbit instances
+            const subplebbits = [];
+            plebbit_js_mock_1.Subplebbit.prototype.update = function () {
+                subplebbits.push(this);
+                return update.bind(this)();
+            };
             rendered = (0, react_hooks_1.renderHook)((props) => {
                 const feed = (0, index_1.useFeed)(props === null || props === void 0 ? void 0 : props.subplebbitAddresses, props === null || props === void 0 ? void 0 : props.sortType, props === null || props === void 0 ? void 0 : props.accountName);
                 const bufferedFeeds = (0, index_1.useBufferedFeeds)([{ subplebbitAddresses: props === null || props === void 0 ? void 0 : props.subplebbitAddresses, sortType: props === null || props === void 0 ? void 0 : props.sortType }], props === null || props === void 0 ? void 0 : props.accountName);
@@ -636,34 +644,81 @@ describe('feeds', () => {
             }, { wrapper: plebbit_provider_1.default });
             // get feed with 1 sub
             rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'topAll' });
-            // initial state
-            expect(typeof rendered.result.current.hasMore).toBe('boolean');
-            expect(typeof rendered.result.current.loadMore).toBe('function');
-            // wait for feed array to render
-            try {
-                yield rendered.waitFor(() => Array.isArray(rendered.result.current.feed));
-            }
-            catch (e) {
-                console.error(e);
-            }
-            expect(rendered.result.current.feed).toEqual([]);
-            // wait for posts to be added, should get full first page
-            // the first page should only have subplebbit 1 since it loads immediately after loading 1 sub
             try {
                 yield rendered.waitFor(() => rendered.result.current.feed.length > 0);
             }
             catch (e) {
                 console.error(e);
             }
+            // the first page of loaded and buffered feeds should have laoded
             expect(rendered.result.current.feed.length).toBe(postsPerPage);
-            expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 100');
-            expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 99');
-            expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 98');
-            expect(rendered.result.current.feed[0].upvoteCount).toBe(100);
-            expect(rendered.result.current.feed[1].upvoteCount).toBe(99);
-            expect(rendered.result.current.feed[2].upvoteCount).toBe(98);
+            expect(rendered.result.current.bufferedFeed.length).toBe(75);
+            // at this point only one subplebbit should have updated a single time
+            expect(subplebbits.length).toBe(1);
+            const [subplebbit] = subplebbits;
+            (0, react_hooks_1.act)(() => {
+                // update the sorted posts cids and send a subplebbit update event and wait for buffered feeds to change
+                subplebbits[0].sortedPostsCids = {
+                    hot: 'updated sorted posts cid hot',
+                    topAll: 'updated sorted posts cid topAll',
+                    new: 'updated sorted posts cid new',
+                };
+                subplebbit.emit('update', subplebbit);
+            });
+            // wait for the buffered feed to empty (because of the update), then to refill with updated sorted posts
+            // more testing in production will have to be done to figure out if emptying the buffered feed while waiting
+            // for new posts causes problems.
+            try {
+                yield rendered.waitFor(() => rendered.result.current.bufferedFeed[0].cid === 'updated sorted posts cid topAll comment cid 100');
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect(rendered.result.current.bufferedFeed[0].cid).toBe('updated sorted posts cid topAll comment cid 100');
+            plebbit_js_mock_1.Subplebbit.prototype.update = update;
         }));
-        test.todo(`store sorted posts pages in database`);
+        describe('getSortedPosts only gets called once per sortedPostsCid', () => {
+            const getSortedPosts = plebbit_js_mock_1.Subplebbit.prototype.getSortedPosts;
+            beforeEach(() => {
+                const usedSortedPostsCids = {};
+                plebbit_js_mock_1.Subplebbit.prototype.getSortedPosts = function (sortedPostsCid) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        if (usedSortedPostsCids[sortedPostsCid]) {
+                            throw Error(`subplebbit.getSortedPosts() already called with argument '${sortedPostsCid}'`);
+                        }
+                        usedSortedPostsCids[sortedPostsCid] = true;
+                        return getSortedPosts.bind(this)(sortedPostsCid);
+                    });
+                };
+            });
+            afterEach(() => {
+                plebbit_js_mock_1.Subplebbit.prototype.getSortedPosts = getSortedPosts;
+            });
+            test(`store sorted posts pages in database`, () => __awaiter(void 0, void 0, void 0, function* () {
+                var _a, _b;
+                rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new' });
+                try {
+                    yield rendered.waitFor(() => { var _a; return ((_a = rendered.result.current.feed) === null || _a === void 0 ? void 0 : _a.length) >= postsPerPage; });
+                }
+                catch (e) {
+                    console.error(e);
+                }
+                expect((_a = rendered.result.current.feed) === null || _a === void 0 ? void 0 : _a.length).toBe(postsPerPage);
+                // render with a fresh empty context to test database persistance
+                const rendered2 = (0, react_hooks_1.renderHook)(() => (0, index_1.useFeed)(['subplebbit address 1'], 'new'), { wrapper: plebbit_provider_1.default });
+                try {
+                    yield rendered2.waitFor(() => { var _a; return ((_a = rendered2.result.current.feed) === null || _a === void 0 ? void 0 : _a.length) >= postsPerPage; });
+                }
+                catch (e) {
+                    console.error(e);
+                }
+                expect((_b = rendered2.result.current.feed) === null || _b === void 0 ? void 0 : _b.length).toBe(postsPerPage);
+            }));
+        });
+        // TODO: not implemented
+        // at the moment a comment already inside a loaded feed will ignore all updates from future pages
+        test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`);
+        // TODO: not implemented
         test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`);
         // already implemented but no tests for it because difficult to test
         test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`);

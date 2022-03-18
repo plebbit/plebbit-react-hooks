@@ -1,4 +1,4 @@
-import { Accounts, CreateCommentOptions, Account, Comment, AccountsComments } from '../../types';
+import { Accounts, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies } from '../../types';
 declare const database: {
     accountsDatabase: LocalForage;
     accountsMetadataDatabase: LocalForage;
@@ -11,5 +11,8 @@ declare const database: {
     addAccount: (account: Account) => Promise<void>;
     getAccounts: (accountIds: string[]) => Promise<Accounts>;
     getAccount: (accountId: string) => Promise<any>;
+    addAccountCommentReply: (accountId: string, reply: AccountCommentReply) => Promise<void>;
+    getAccountCommentsReplies: (accountId: string) => Promise<{}>;
+    getAccountsCommentsReplies: (accountIds: string[]) => Promise<AccountsCommentsReplies>;
 };
 export default database;

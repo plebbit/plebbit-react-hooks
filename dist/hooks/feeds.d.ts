@@ -1,4 +1,4 @@
-import { UseBufferedFeedOptions } from '../types';
+import { Feed, UseBufferedFeedOptions } from '../types';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'
@@ -18,4 +18,4 @@ export declare function useFeed(subplebbitAddresses?: string[], sortType?: strin
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useBufferedFeeds(feedsOptions?: UseBufferedFeedOptions[], accountName?: string): any[];
+export declare function useBufferedFeeds(feedsOptions?: UseBufferedFeedOptions[], accountName?: string): Feed[];

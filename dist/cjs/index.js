@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useBufferedFeeds = exports.useFeed = exports.useSubplebbits = exports.useSubplebbit = exports.useComments = exports.useComment = exports.useAccountVote = exports.useAccountVotes = exports.useAccountComments = exports.useAccountsActions = exports.useAccounts = exports.useAccount = exports.PlebbitProvider = void 0;
+exports.useBufferedFeeds = exports.useFeed = exports.useSubplebbits = exports.useSubplebbit = exports.useComments = exports.useComment = exports.useAccountNotifications = exports.useAccountVote = exports.useAccountVotes = exports.useAccountComments = exports.useAccountsActions = exports.useAccounts = exports.useAccount = exports.PlebbitProvider = void 0;
 // fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
 if ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.DEBUG_DEPTH) {
     require("util").inspect.defaultOptions.depth = process.env.DEBUG_DEPTH;
@@ -28,6 +28,7 @@ Object.defineProperty(exports, "useAccountsActions", { enumerable: true, get: fu
 Object.defineProperty(exports, "useAccountComments", { enumerable: true, get: function () { return accounts_1.useAccountComments; } });
 Object.defineProperty(exports, "useAccountVotes", { enumerable: true, get: function () { return accounts_1.useAccountVotes; } });
 Object.defineProperty(exports, "useAccountVote", { enumerable: true, get: function () { return accounts_1.useAccountVote; } });
+Object.defineProperty(exports, "useAccountNotifications", { enumerable: true, get: function () { return accounts_1.useAccountNotifications; } });
 const comments_1 = require("./hooks/comments");
 Object.defineProperty(exports, "useComment", { enumerable: true, get: function () { return comments_1.useComment; } });
 Object.defineProperty(exports, "useComments", { enumerable: true, get: function () { return comments_1.useComments; } });
@@ -46,6 +47,7 @@ const hooks = {
     useAccountComments: accounts_1.useAccountComments,
     useAccountVotes: accounts_1.useAccountVotes,
     useAccountVote: accounts_1.useAccountVote,
+    useAccountNotifications: accounts_1.useAccountNotifications,
     useComment: comments_1.useComment,
     useSubplebbit: subplebbits_1.useSubplebbit,
     useSubplebbits: subplebbits_1.useSubplebbits,

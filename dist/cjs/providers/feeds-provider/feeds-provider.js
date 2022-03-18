@@ -18,17 +18,30 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FeedsContext = void 0;
 const react_1 = __importStar(require("react"));
+const accounts_provider_1 = require("../accounts-provider");
 const subplebbits_provider_1 = require("../subplebbits-provider");
 const feed_sorter_1 = __importDefault(require("./feed-sorter"));
 const assert_1 = __importDefault(require("assert"));
+const localforage_lru_1 = __importDefault(require("../../lib/localforage-lru"));
+const utils_1 = __importDefault(require("../../lib/utils"));
 const debug_1 = __importDefault(require("debug"));
 const debug = (0, debug_1.default)('plebbitreacthooks:providers:feedsprovider');
+const sortedPostsDatabase = localforage_lru_1.default.createInstance({ name: 'sortedPosts', size: 500 });
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 const postsPerPage = 25;
@@ -257,6 +270,7 @@ function useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPo
  * Once a next page is added, it is never removed.
  */
 function useSortedPostsPages(feedsSortedPostsInfo, subplebbits) {
+    const accountsContext = (0, react_1.useContext)(accounts_provider_1.AccountsContext);
     const [sortedPostsPages, setSortedPostsPages] = (0, react_1.useState)({});
     // set the info necessary to fetch each page recursively
     // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage
@@ -293,19 +307,36 @@ function useSortedPostsPages(feedsSortedPostsInfo, subplebbits) {
             if (sortedPostsPages[sortedPostsCid] || getSortedPostsPending[account.id + sortedPostsCid]) {
                 continue;
             }
-            // the sorted post page was already preloaded in the subplebbit IPNS record
+            // the sorted posts page was already preloaded in the subplebbit IPNS record
             if (sortedPosts) {
                 setSortedPostsPages(previousSortedPostsPages => (Object.assign(Object.assign({}, previousSortedPostsPages), { [sortedPostsCid]: sortedPosts })));
                 continue;
             }
-            getSortedPostsPending[account.id + sortedPostsCid] = true;
-            const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress });
-            // @ts-ignore
-            subplebbit.getSortedPosts(sortedPostsCid).then((fetchedSortedPostsPage) => {
+            ;
+            (() => __awaiter(this, void 0, void 0, function* () {
+                // sorted posts page is cached
+                const cachedSortedPostsPage = yield sortedPostsDatabase.getItem(sortedPostsCid);
+                if (cachedSortedPostsPage) {
+                    setSortedPostsPages(previousSortedPostsPages => (Object.assign(Object.assign({}, previousSortedPostsPages), { [sortedPostsCid]: cachedSortedPostsPage })));
+                    return;
+                }
+                getSortedPostsPending[account.id + sortedPostsCid] = true;
+                const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress });
+                const fetchedSortedPostsPage = yield subplebbit.getSortedPosts(sortedPostsCid);
+                yield sortedPostsDatabase.setItem(sortedPostsCid, fetchedSortedPostsPage);
                 debug('FeedsProvider useSortedPostsPages subplebbit.getSortedPosts', { sortedPostsCid, infoName, sortedPosts: { nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo } });
                 setSortedPostsPages(previousSortedPostsPages => (Object.assign(Object.assign({}, previousSortedPostsPages), { [sortedPostsCid]: fetchedSortedPostsPage })));
                 getSortedPostsPending[account.id + sortedPostsCid] = false;
-            });
+                // when publishing a comment, you don't yet know its CID
+                // so when a new comment is fetched, check to see if it's your own
+                // comment, and if yes, add the CID to your account comments database
+                if (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.addCidToAccountComment) {
+                    const flattenedReplies = utils_1.default.flattenSortedComments(fetchedSortedPostsPage);
+                    for (const comment of flattenedReplies) {
+                        accountsContext.addCidToAccountComment(comment);
+                    }
+                }
+            }))();
         }
     }, [sortedPostsPagesInfo]);
     return sortedPostsPages;

@@ -47,9 +47,11 @@ function AccountsProvider(props) {
     const [activeAccountId, setActiveAccountId] = (0, react_1.useState)(undefined);
     const [accountNamesToAccountIds, setAccountNamesToAccountIds] = (0, react_1.useState)(undefined);
     const [accountsComments, setAccountsComments] = (0, react_1.useState)({});
+    const [accountsCommentsReplies, setAccountsCommentsReplies] = (0, react_1.useState)({});
     const [accountsVotes, setAccountsVotes] = (0, react_1.useState)({});
     const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments);
-    const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments);
+    const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies);
+    const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsNotifications);
     const accountsActions = {};
     accountsActions.setActiveAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
         (0, assert_1.default)(accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
@@ -170,11 +172,11 @@ function AccountsProvider(props) {
                     if ((_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid) {
                         const commentWithCid = Object.assign(Object.assign({}, createCommentOptions), { cid: challengeVerification.publication.cid });
                         yield accounts_database_1.default.addAccountComment(account.id, commentWithCid, accountCommentIndex);
-                        setAccountsComments((previousAccounsComments) => {
-                            const updatedAccountComments = [...previousAccounsComments[account.id]];
+                        setAccountsComments((previousAccountsComments) => {
+                            const updatedAccountComments = [...previousAccountsComments[account.id]];
                             const updatedAccountComment = Object.assign(Object.assign({}, commentWithCid), { index: accountCommentIndex, accountId: account.id });
                             updatedAccountComments[accountCommentIndex] = updatedAccountComment;
-                            return Object.assign(Object.assign({}, previousAccounsComments), { [account.id]: updatedAccountComments });
+                            return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: updatedAccountComments });
                         });
                         startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex);
                     }
@@ -185,11 +187,11 @@ function AccountsProvider(props) {
         publishAndRetryFailedChallengeVerification();
         yield accounts_database_1.default.addAccountComment(account.id, createCommentOptions);
         debug('accountsActions.publishComment', { createCommentOptions });
-        setAccountsComments((previousAccounsComments) => {
+        setAccountsComments((previousAccountsComments) => {
             // save account comment index to update the comment later
-            accountCommentIndex = previousAccounsComments[account.id].length;
+            accountCommentIndex = previousAccountsComments[account.id].length;
             const createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
-            return Object.assign(Object.assign({}, previousAccounsComments), { [account.id]: [...previousAccounsComments[account.id], createdAccountComment] });
+            return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: [...previousAccountsComments[account.id], createdAccountComment] });
         });
     });
     accountsActions.publishCommentEdit = (publishCommentEditOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
@@ -256,15 +258,38 @@ function AccountsProvider(props) {
             if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
                 const commentWithCid = utils_1.default.merge(accountComment, comment);
                 yield accounts_database_1.default.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index);
-                setAccountsComments((previousAccounsComments) => {
-                    const updatedAccountComments = [...previousAccounsComments[accountComment.accountId]];
+                setAccountsComments((previousAccountsComments) => {
+                    const updatedAccountComments = [...previousAccountsComments[accountComment.accountId]];
                     updatedAccountComments[accountComment.index] = commentWithCid;
-                    return Object.assign(Object.assign({}, previousAccounsComments), { [accountComment.accountId]: updatedAccountComments });
+                    return Object.assign(Object.assign({}, previousAccountsComments), { [accountComment.accountId]: updatedAccountComments });
                 });
                 startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index);
                 break;
             }
         }
+    });
+    // internal accounts action: mark an account's notifications as read
+    const markAccountNotificationsAsRead = (account) => __awaiter(this, void 0, void 0, function* () {
+        (0, assert_1.default)(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `AccountContext.markAccountNotificationsAsRead invalid account argument '${account}'`);
+        // find all unread replies
+        const repliesToMarkAsRead = {};
+        for (const replyCid in accountsCommentsReplies[account.id]) {
+            if (!accountsCommentsReplies[account.id][replyCid].markedAsRead) {
+                repliesToMarkAsRead[replyCid] = Object.assign(Object.assign({}, accountsCommentsReplies[account.id][replyCid]), { markedAsRead: true });
+            }
+        }
+        // add all to database
+        const promises = [];
+        for (const replyCid in repliesToMarkAsRead) {
+            promises.push(accounts_database_1.default.addAccountCommentReply(account.id, repliesToMarkAsRead[replyCid]));
+        }
+        yield Promise.all(promises);
+        // add all to react context
+        debug('AccountContext.markAccountNotificationsAsRead', { account, repliesToMarkAsRead });
+        setAccountsCommentsReplies(previousAccountsCommentsReplies => {
+            const updatedAccountCommentsReplies = Object.assign(Object.assign({}, previousAccountsCommentsReplies[account.id]), repliesToMarkAsRead);
+            return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies });
+        });
     });
     // TODO: we currently subscribe to updates for every single comment
     // in the user's account history. This probably does not scale, we
@@ -294,16 +319,42 @@ function AccountsProvider(props) {
         // @ts-ignore
         setAlreadyUpdatingAccountsComments(prev => (Object.assign(Object.assign({}, prev), { [comment.cid]: true })));
         comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
+            var _b, _c, _d, _e;
             // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
             updatedComment = utils_1.default.merge(commentArgument, comment, updatedComment);
             yield accounts_database_1.default.addAccountComment(account.id, updatedComment, accountCommentIndex);
-            setAccountsComments((previousAccounsComments) => {
-                const updatedAccountComments = [...previousAccounsComments[account.id]];
+            setAccountsComments((previousAccountsComments) => {
+                const updatedAccountComments = [...previousAccountsComments[account.id]];
                 const previousComment = updatedAccountComments[accountCommentIndex];
                 const updatedAccountComment = utils_1.default.clone(Object.assign(Object.assign({}, updatedComment), { index: accountCommentIndex, accountId: account.id }));
                 updatedAccountComments[accountCommentIndex] = updatedAccountComment;
-                return Object.assign(Object.assign({}, previousAccounsComments), { [account.id]: updatedAccountComments });
+                return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: updatedAccountComments });
             });
+            // update AccountCommentsReplies with new replies if has any new replies
+            const sortedRepliesArray = [(_b = updatedComment.sortedReplies) === null || _b === void 0 ? void 0 : _b.new, (_c = updatedComment.sortedReplies) === null || _c === void 0 ? void 0 : _c.topAll, (_d = updatedComment.sortedReplies) === null || _d === void 0 ? void 0 : _d.old, (_e = updatedComment.sortedReplies) === null || _e === void 0 ? void 0 : _e.controversialAll];
+            const hasReplies = sortedRepliesArray.map(sortedReplies => { var _a; return ((_a = sortedReplies === null || sortedReplies === void 0 ? void 0 : sortedReplies.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
+            if (hasReplies) {
+                setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
+                    var _a, _b;
+                    // check which ones are read or not
+                    const updatedReplies = {};
+                    for (const sortedReplies of sortedRepliesArray) {
+                        for (const sortedReply of (sortedReplies === null || sortedReplies === void 0 ? void 0 : sortedReplies.comments) || []) {
+                            const markedAsRead = ((_b = (_a = previousAccountsCommentsReplies[account.id]) === null || _a === void 0 ? void 0 : _a[sortedReply.cid]) === null || _b === void 0 ? void 0 : _b.markedAsRead) === true ? true : false;
+                            updatedReplies[sortedReply.cid] = Object.assign(Object.assign({}, sortedReply), { markedAsRead });
+                        }
+                    }
+                    // add all to database
+                    const promises = [];
+                    for (const replyCid in updatedReplies) {
+                        promises.push(accounts_database_1.default.addAccountCommentReply(account.id, updatedReplies[replyCid]));
+                    }
+                    Promise.all(promises);
+                    // set new react context
+                    const updatedAccountCommentsReplies = Object.assign(Object.assign({}, previousAccountsCommentsReplies[account.id]), updatedReplies);
+                    return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies });
+                });
+            }
         }));
         comment.update();
     });
@@ -332,12 +383,12 @@ function AccountsProvider(props) {
                     accounts_database_1.default.accountsMetadataDatabase.getItem('activeAccountId'),
                     accounts_database_1.default.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
                 ]);
+                (0, assert_1.default)(accountIds && activeAccountId && accountNamesToAccountIds, `AccountsProvider error creating a default account during initialization`);
             }
-            const [accountsComments, accountsVotes] = yield Promise.all([
-                // @ts-ignore
+            const [accountsComments, accountsVotes, accountsCommentsReplies] = yield Promise.all([
                 accounts_database_1.default.getAccountsComments(accountIds),
-                // @ts-ignore
                 accounts_database_1.default.getAccountsVotes(accountIds),
+                accounts_database_1.default.getAccountsCommentsReplies(accountIds),
             ]);
             setAccounts(accounts);
             setAccountIds(accountIds);
@@ -345,6 +396,7 @@ function AccountsProvider(props) {
             setAccountNamesToAccountIds(accountNamesToAccountIds);
             setAccountsComments(accountsComments);
             setAccountsVotes(accountsVotes);
+            setAccountsCommentsReplies(accountsCommentsReplies);
             // start looking for updates for all accounts comments in database
             for (const accountId in accountsComments) {
                 for (const accountComment of accountsComments[accountId]) {
@@ -367,8 +419,10 @@ function AccountsProvider(props) {
             accountsActions,
             accountsComments,
             accountsVotes,
+            accountsNotifications,
             // internal accounts actions
             addCidToAccountComment,
+            markAccountNotificationsAsRead
         };
     }
     debug({
@@ -379,14 +433,38 @@ function AccountsProvider(props) {
             accountNamesToAccountIds,
             accountsComments,
             accountsVotes,
+            accountsNotifications,
             accountsCommentsWithoutCids,
         },
     });
     return react_1.default.createElement(exports.AccountsContext.Provider, { value: accountsContext }, props.children);
 }
 exports.default = AccountsProvider;
+const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
+    return (0, react_1.useMemo)(() => {
+        const accountsNotifications = {};
+        if (!accountsCommentsReplies) {
+            return accountsNotifications;
+        }
+        for (const accountId in accountsCommentsReplies) {
+            // get reply notifications
+            const accountCommentsReplies = [];
+            for (const replyCid in accountsCommentsReplies[accountId]) {
+                const reply = accountsCommentsReplies[accountId][replyCid];
+                // TODO: filter blocked addresses
+                // if (accounts[accountId].blockedAddress[reply.subplebbitAddress] || accounts[accountId].blockedAddress[reply.author.address]) {
+                //   continue
+                // }
+                accountCommentsReplies.push(reply);
+            }
+            // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
+            accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp);
+        }
+        return accountsNotifications;
+    }, [accounts, accountsCommentsReplies]);
+};
 const useAccountsCommentsWithoutCids = (accounts, accountsComments) => {
-    const accountsCommentsWithoutCids = (0, react_1.useMemo)(() => {
+    return (0, react_1.useMemo)(() => {
         var _a;
         const accountsCommentsWithoutCids = {};
         if (!accounts || !accountsComments) {
@@ -411,10 +489,9 @@ const useAccountsCommentsWithoutCids = (accounts, accountsComments) => {
         }
         return accountsCommentsWithoutCids;
     }, [accountsComments]);
-    return accountsCommentsWithoutCids;
 };
-// add calculated properties to accounts, like karma
-const useAccountsWithCalculatedProperties = (accounts, accountsComments) => {
+// add calculated properties to accounts, like karma and unreadNotificationCount
+const useAccountsWithCalculatedProperties = (accounts, accountsComments, accountsNotifications) => {
     return (0, react_1.useMemo)(() => {
         if (!accounts) {
             return;
@@ -423,6 +500,7 @@ const useAccountsWithCalculatedProperties = (accounts, accountsComments) => {
             return accounts;
         }
         const accountsWithCalculatedProperties = Object.assign({}, accounts);
+        // add karma
         for (const accountId in accountsComments) {
             const account = accounts[accountId];
             const accountComments = accountsComments[accountId];
@@ -462,6 +540,16 @@ const useAccountsWithCalculatedProperties = (accounts, accountsComments) => {
             const accountWithCalculatedProperties = Object.assign(Object.assign({}, account), { karma });
             accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties;
         }
+        // add unreadNotificationCount
+        for (const accountId in accountsWithCalculatedProperties) {
+            let unreadNotificationCount = 0;
+            for (const notification of (accountsNotifications === null || accountsNotifications === void 0 ? void 0 : accountsNotifications[accountId]) || []) {
+                if (!notification.markedAsRead) {
+                    unreadNotificationCount++;
+                }
+            }
+            accountsWithCalculatedProperties[accountId].unreadNotificationCount = unreadNotificationCount;
+        }
         return accountsWithCalculatedProperties;
-    }, [accounts, accountsComments]);
+    }, [accounts, accountsComments, accountsNotifications]);
 };

@@ -1,30 +1,7 @@
 import React from 'react';
-export declare type Props = {
-    children?: React.ReactChild;
-};
-export declare type AccountNamesToAccountIds = {
-    [key: string]: string;
-};
-export declare type Comments = {
-    [key: string]: Comment;
-};
-export declare type Accounts = {
-    [key: string]: Account;
-};
-export interface AccountComment extends Comment {
-    index: number;
-    accountId: string;
-}
-export declare type AccountComments = AccountComment[];
-export declare type AccountsComments = {
-    [key: string]: AccountComments;
-};
-export declare type Subplebbits = {
-    [key: string]: Subplebbit;
-};
-export declare type Feeds = {
-    [key: string]: Feed;
-};
+/**
+ * TODO: define these undefined types
+ */
 export declare type Account = any;
 export declare type AccountsActions = any;
 export declare type PublishCommentOptions = any;
@@ -36,10 +13,53 @@ export declare type CreateCommentOptions = any;
 export declare type CreateVoteOptions = any;
 export declare type Comment = any;
 export declare type Subplebbit = any;
-export declare type Feed = any;
+export declare type AccountNotification = any;
+/**
+ * Subplebbits and comments provider
+ */
+export declare type Subplebbits = {
+    [key: string]: Subplebbit;
+};
+export declare type Comments = {
+    [key: string]: Comment;
+};
+/**
+ * Accounts provider
+ */
+export declare type Accounts = {
+    [key: string]: Account;
+};
+export declare type AccountNamesToAccountIds = {
+    [key: string]: string;
+};
+export interface AccountComment extends Comment {
+    index: number;
+    accountId: string;
+}
+export declare type AccountComments = AccountComment[];
+export declare type AccountsComments = {
+    [key: string]: AccountComments;
+};
+export interface AccountCommentReply extends Comment {
+    markedAsRead: boolean;
+}
+export declare type AccountCommentsReplies = {
+    [key: string]: AccountCommentReply;
+};
+export declare type AccountsCommentsReplies = {
+    [key: string]: AccountCommentsReplies;
+};
+export declare type AccountNotifications = AccountNotification[];
+export declare type AccountsNotifications = {
+    [key: string]: AccountNotifications;
+};
 /**
  * Feeds provider
  */
+export declare type Feed = Comment[];
+export declare type Feeds = {
+    [key: string]: Feed;
+};
 export declare type FeedOptions = {
     subplebbitAddresses: string[];
     sortType: string;
@@ -96,4 +116,10 @@ export declare type UseAccountCommentsOptions = {
 export declare type UseBufferedFeedOptions = {
     subplebbitAddresses: string[];
     sortType?: string;
+};
+/**
+ * Utils
+ */
+export declare type Props = {
+    children?: React.ReactChild;
 };

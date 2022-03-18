@@ -39,7 +39,7 @@ function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
     }
     const loadMore = () => {
         if (!uniqueSubplebbitAddresses || !account) {
-            return;
+            throw Error('useFeed cannot load more feed not initalized yet');
         }
         feedsContext.feedsActions.incrementFeedPageNumber(feedName);
     };

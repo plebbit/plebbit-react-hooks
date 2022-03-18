@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,11 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const localforage_1 = __importDefault(require("localforage"));
+import localForage from 'localforage';
 function createLocalForageInstance(localForageLruOptions) {
     if (typeof (localForageLruOptions === null || localForageLruOptions === void 0 ? void 0 : localForageLruOptions.size) !== 'number') {
         throw Error(`LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions === null || localForageLruOptions === void 0 ? void 0 : localForageLruOptions.size}' not a number`);
@@ -21,8 +16,8 @@ function createLocalForageInstance(localForageLruOptions) {
     delete localForageOptions.size;
     let database1, database2, databaseSize, initialized = false;
     (() => __awaiter(this, void 0, void 0, function* () {
-        const localForage1 = localforage_1.default.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name }));
-        const localForage2 = localforage_1.default.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name + '2' }));
+        const localForage1 = localForage.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name }));
+        const localForage2 = localForage.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name + '2' }));
         const [localForage1Size, localForage2Size] = yield Promise.all([localForage1.length(), localForage2.length()]);
         if (localForage1Size > localForage2Size) {
             database2 = localForage1;
@@ -84,7 +79,11 @@ function createLocalForageInstance(localForageLruOptions) {
         },
         keys: function () {
             return __awaiter(this, void 0, void 0, function* () {
-                throw Error('not implemented');
+                yield initialization();
+                return [...new Set([
+                        ...(yield database1.keys()),
+                        ...(yield database2.keys())
+                    ])];
             });
         },
         length: function () {
@@ -130,4 +129,4 @@ const createInstance = (localForageLruOptions) => {
     instances[localForageLruOptions.name] = createLocalForageInstance(localForageLruOptions);
     return instances[localForageLruOptions.name];
 };
-exports.default = { createInstance };
+export default { createInstance };

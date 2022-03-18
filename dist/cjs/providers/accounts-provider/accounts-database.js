@@ -16,6 +16,7 @@ const plebbit_js_1 = __importDefault(require("../../lib/plebbit-js"));
 const validator_1 = __importDefault(require("../../lib/validator"));
 const assert_1 = __importDefault(require("assert"));
 const localforage_1 = __importDefault(require("localforage"));
+const localforage_lru_1 = __importDefault(require("../../lib/localforage-lru"));
 const accountsDatabase = localforage_1.default.createInstance({ name: 'accounts' });
 const accountsMetadataDatabase = localforage_1.default.createInstance({ name: 'accountsMetadata' });
 const utils_1 = __importDefault(require("../../lib/utils"));
@@ -176,6 +177,45 @@ const getAccountsVotes = (accountIds) => __awaiter(void 0, void 0, void 0, funct
     }
     return accountsVotes;
 });
+const accountsCommentsRepliesDatabases = {};
+const getAccountCommentsRepliesDatabase = (accountId) => {
+    (0, assert_1.default)(accountId && typeof accountId === 'string', `getAccountCommentsRepliesDatabase '${accountId}' not a string`);
+    if (!accountsCommentsRepliesDatabases[accountId]) {
+        accountsCommentsRepliesDatabases[accountId] = localforage_lru_1.default.createInstance({ name: `accountCommentsReplies-${accountId}`, size: 1000 });
+    }
+    return accountsCommentsRepliesDatabases[accountId];
+};
+const addAccountCommentReply = (accountId, reply) => __awaiter(void 0, void 0, void 0, function* () {
+    const accountCommentsRepliesDatabase = getAccountCommentsRepliesDatabase(accountId);
+    yield accountCommentsRepliesDatabase.setItem(reply.cid, utils_1.default.clone(reply));
+});
+const getAccountCommentsReplies = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
+    const accountCommentsRepliesDatabase = getAccountCommentsRepliesDatabase(accountId);
+    const replyCids = yield accountCommentsRepliesDatabase.keys();
+    const promises = [];
+    for (const replyCid of replyCids) {
+        promises.push(accountCommentsRepliesDatabase.getItem(replyCid));
+    }
+    const replyArray = yield Promise.all(promises);
+    const replies = {};
+    for (const reply of replyArray) {
+        // @ts-ignore
+        replies[reply.cid] = reply;
+    }
+    return replies;
+});
+const getAccountsCommentsReplies = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
+    const promises = [];
+    for (const accountId of accountIds) {
+        promises.push(getAccountCommentsReplies(accountId));
+    }
+    const accountsCommentsRepliesArray = yield Promise.all(promises);
+    const accountsCommentsReplies = {};
+    for (const [i, accountId] of accountIds.entries()) {
+        accountsCommentsReplies[accountId] = accountsCommentsRepliesArray[i];
+    }
+    return accountsCommentsReplies;
+});
 const database = {
     accountsDatabase,
     accountsMetadataDatabase,
@@ -187,6 +227,9 @@ const database = {
     addAccountComment,
     addAccount,
     getAccounts,
-    getAccount
+    getAccount,
+    addAccountCommentReply,
+    getAccountCommentsReplies,
+    getAccountsCommentsReplies
 };
 exports.default = database;

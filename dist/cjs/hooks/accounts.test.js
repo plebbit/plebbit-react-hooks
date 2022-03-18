@@ -609,6 +609,54 @@ describe('accounts', () => {
             expect(rendered2.result.current[2].cid).toBe(undefined);
             expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current);
         }));
+        test(`cid gets added to account comment after feed is fetched`, () => __awaiter(void 0, void 0, void 0, function* () {
+            const getSortedPosts = plebbit_js_mock_1.Subplebbit.prototype.getSortedPosts;
+            const rendered = (0, react_hooks_1.renderHook)((props) => {
+                const { feed } = (0, index_1.useFeed)(props === null || props === void 0 ? void 0 : props.subplebbitAddresses, 'new');
+                const accountComments = (0, index_1.useAccountComments)();
+                return { accountComments, feed };
+            }, { wrapper: index_1.PlebbitProvider });
+            // wait for account comments to render
+            try {
+                yield rendered.waitFor(() => { var _a; return ((_a = rendered.result.current.accountComments) === null || _a === void 0 ? void 0 : _a.length) > 0; });
+            }
+            catch (e) {
+                console.error(e);
+            }
+            // get feed page with our timestamp and author address in it
+            const accountCommentTimestamp = rendered.result.current.accountComments[0].timestamp;
+            const accountCommentAuthor = rendered.result.current.accountComments[0].author;
+            const accountCommentSubplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress;
+            plebbit_js_mock_1.Subplebbit.prototype.getSortedPosts = () => __awaiter(void 0, void 0, void 0, function* () {
+                return ({
+                    comments: [{
+                            cid: 'cid from feed',
+                            timestamp: accountCommentTimestamp,
+                            author: accountCommentAuthor,
+                            subplebbitAddress: accountCommentSubplebbitAddress
+                        }],
+                    nextSortedCommentsCid: null
+                });
+            });
+            rendered.rerender({ subplebbitAddresses: [accountCommentSubplebbitAddress] });
+            // wait for feed to load
+            try {
+                yield rendered.waitFor(() => { var _a; return ((_a = rendered.result.current.feed) === null || _a === void 0 ? void 0 : _a.length) > 0; });
+            }
+            catch (e) {
+                console.error(e);
+            }
+            // wait for cid from feed to have been added to account comments
+            try {
+                yield rendered.waitFor(() => rendered.result.current.accountComments[0].cid === 'cid from feed');
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect(rendered.result.current.accountComments[0].cid).toBe('cid from feed');
+            // restore mock
+            plebbit_js_mock_1.Subplebbit.prototype.getSortedPosts = getSortedPosts;
+        }));
         test(`account comments are stored to database`, () => __awaiter(void 0, void 0, void 0, function* () {
             // render with new context to see if still in database
             const rendered2 = (0, react_hooks_1.renderHook)(() => (0, index_1.useAccountComments)(), { wrapper: index_1.PlebbitProvider });
@@ -775,5 +823,155 @@ describe('accounts', () => {
             expect(rendered.result.current.accountVotes.length).toBe(1);
             expect(rendered.result.current.accountVotes[0].commentCid).toBe('comment cid 3');
         });
+    });
+    describe('one comment in database', () => {
+        let rendered;
+        const updatingComments = [];
+        const commentUpdate = plebbit_js_mock_1.Comment.prototype.update;
+        beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
+            var _a;
+            // mock the comment update to get able to access the comment from test
+            plebbit_js_mock_1.Comment.prototype.update = function () {
+                updatingComments.push(this);
+                return commentUpdate.bind(this)();
+            };
+            rendered = (0, react_hooks_1.renderHook)((props) => {
+                const account = (0, index_1.useAccount)(props === null || props === void 0 ? void 0 : props.accountName);
+                const { notifications, markAsRead } = (0, index_1.useAccountNotifications)(props === null || props === void 0 ? void 0 : props.accountName);
+                const { publishComment } = (0, index_1.useAccountsActions)();
+                return { account, notifications, markAsRead, publishComment };
+            }, { wrapper: index_1.PlebbitProvider });
+            try {
+                yield rendered.waitForNextUpdate();
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect((_a = rendered.result.current.account) === null || _a === void 0 ? void 0 : _a.name).toBe('Account 1');
+            expect(rendered.result.current.notifications).toEqual([]);
+            expect(typeof rendered.result.current.markAsRead).toBe('function');
+            expect(typeof rendered.result.current.publishComment).toBe('function');
+            yield (0, react_hooks_1.act)(() => __awaiter(void 0, void 0, void 0, function* () {
+                yield rendered.result.current.publishComment({
+                    title: 'title 1',
+                    content: 'content 1',
+                    parentCommentCid: 'parent comment cid 1',
+                    postCid: 'post cid 1',
+                    subplebbitAddress: 'subplebbit address 1',
+                    // @ts-ignore
+                    onChallenge: (challenge, comment) => comment.publishChallengeAnswers(),
+                    onChallengeVerification: () => { },
+                });
+            }));
+        }));
+        afterEach(() => __awaiter(void 0, void 0, void 0, function* () {
+            plebbit_js_mock_1.Comment.prototype.update = commentUpdate;
+            yield deleteDatabases();
+        }));
+        test('get notifications', () => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                yield rendered.waitFor(() => updatingComments.length > 0);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            // we should have published 1 comment and it should be updating at this point
+            expect(updatingComments.length).toBe(1);
+            const comment = updatingComments[0];
+            expect(rendered.result.current.notifications).toEqual([]);
+            expect(rendered.result.current.account.unreadNotificationCount).toBe(0);
+            (0, react_hooks_1.act)(() => {
+                // update the comment with replies to see get notifications
+                comment.sortedReplies = {
+                    topAll: {
+                        nextSortedCommentsCid: null,
+                        comments: [
+                            { cid: 'reply cid 1', timestamp: 1 },
+                            { cid: 'reply cid 2', timestamp: 2 },
+                            { cid: 'reply cid 3', timestamp: 3 }
+                        ]
+                    }
+                };
+                comment.emit('update', comment);
+            });
+            // wait for notifications, should be sorted by highest/newest timestamp
+            try {
+                yield rendered.waitFor(() => rendered.result.current.notifications.length > 0);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect(rendered.result.current.notifications.length).toBe(3);
+            expect(rendered.result.current.notifications[0].cid).toBe('reply cid 3');
+            expect(rendered.result.current.notifications[1].cid).toBe('reply cid 2');
+            expect(rendered.result.current.notifications[2].cid).toBe('reply cid 1');
+            expect(rendered.result.current.notifications[0].markedAsRead).toBe(false);
+            expect(rendered.result.current.notifications[1].markedAsRead).toBe(false);
+            expect(rendered.result.current.notifications[2].markedAsRead).toBe(false);
+            expect(rendered.result.current.account.unreadNotificationCount).toBe(3);
+            (0, react_hooks_1.act)(() => {
+                // mark te notifications as read
+                rendered.result.current.markAsRead();
+            });
+            // should be marked as read
+            try {
+                yield rendered.waitFor(() => rendered.result.current.notifications[0].markedAsRead === true);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect(rendered.result.current.notifications.length).toBe(3);
+            expect(rendered.result.current.notifications[0].cid).toBe('reply cid 3');
+            expect(rendered.result.current.notifications[1].cid).toBe('reply cid 2');
+            expect(rendered.result.current.notifications[2].cid).toBe('reply cid 1');
+            expect(rendered.result.current.notifications[0].markedAsRead).toBe(true);
+            expect(rendered.result.current.notifications[1].markedAsRead).toBe(true);
+            expect(rendered.result.current.notifications[2].markedAsRead).toBe(true);
+            expect(rendered.result.current.account.unreadNotificationCount).toBe(0);
+            (0, react_hooks_1.act)(() => {
+                // update the comment with one unread reply and one read reply
+                comment.sortedReplies = {
+                    topAll: {
+                        nextSortedCommentsCid: null,
+                        comments: [{ cid: 'reply cid 3', timestamp: 3 }, { cid: 'reply cid 4', timestamp: 4 }]
+                    }
+                };
+                comment.emit('update', comment);
+            });
+            // comment 3 should be marked as read, comment 4 should not
+            try {
+                yield rendered.waitFor(() => rendered.result.current.notifications.length >= 4);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect(rendered.result.current.notifications.length).toBe(4);
+            expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4');
+            expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3');
+            expect(rendered.result.current.notifications[2].cid).toBe('reply cid 2');
+            expect(rendered.result.current.notifications[3].cid).toBe('reply cid 1');
+            expect(rendered.result.current.notifications[0].markedAsRead).toBe(false);
+            expect(rendered.result.current.notifications[1].markedAsRead).toBe(true);
+            expect(rendered.result.current.notifications[2].markedAsRead).toBe(true);
+            expect(rendered.result.current.notifications[3].markedAsRead).toBe(true);
+            expect(rendered.result.current.account.unreadNotificationCount).toBe(1);
+            // check to see if in database after refreshing with a new context
+            const rendered2 = (0, react_hooks_1.renderHook)(() => (0, index_1.useAccountNotifications)(), { wrapper: index_1.PlebbitProvider });
+            try {
+                yield rendered2.waitFor(() => rendered2.result.current.notifications.length >= 4);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            expect(rendered2.result.current.notifications.length).toBe(4);
+            expect(rendered2.result.current.notifications[0].cid).toBe('reply cid 4');
+            expect(rendered2.result.current.notifications[1].cid).toBe('reply cid 3');
+            expect(rendered2.result.current.notifications[2].cid).toBe('reply cid 2');
+            expect(rendered2.result.current.notifications[3].cid).toBe('reply cid 1');
+            expect(rendered2.result.current.notifications[0].markedAsRead).toBe(false);
+            expect(rendered2.result.current.notifications[1].markedAsRead).toBe(true);
+            expect(rendered2.result.current.notifications[2].markedAsRead).toBe(true);
+            expect(rendered2.result.current.notifications[3].markedAsRead).toBe(true);
+        }));
     });
 });
