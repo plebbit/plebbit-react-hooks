@@ -141,11 +141,11 @@ describe('feeds', () => {
     test('get feed with 1 subplebbit sorted by new and scroll to multiple pages', async () => {
       let getSortedPostsCalledTimes = 0
       const getSortedPosts = Subplebbit.prototype.getSortedPosts
-      Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
+      Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         const sortedComments: any = {
-          nextSortedCommentsCid: this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes + 1),
+          nextCid: this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes + 1),
           comments: [],
         }
         const postCount = 100
@@ -154,7 +154,7 @@ describe('feeds', () => {
         while (index++ < postCount) {
           sortedComments.comments.push({
             timestamp: commentStartIndex + index,
-            cid: sortedPostsCid + ' comment cid ' + (commentStartIndex + index),
+            cid: pageCid + ' comment cid ' + (commentStartIndex + index),
             subplebbitAddress: this.address,
           })
         }
@@ -240,12 +240,12 @@ describe('feeds', () => {
         'subplebbit address 3': 0,
       }
       const getSortedPosts = Subplebbit.prototype.getSortedPosts
-      Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
+      Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         await simulateLoadingTime()
         const sortedComments: any = {
-          nextSortedCommentsCid: // @ts-ignore
+          nextCid: // @ts-ignore
             this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes[this.address] + 1),
           comments: [],
         }
@@ -256,7 +256,7 @@ describe('feeds', () => {
         while (index++ < postCount) {
           sortedComments.comments.push({
             timestamp: commentStartIndex + index,
-            cid: sortedPostsCid + ' comment cid ' + (commentStartIndex + index),
+            cid: pageCid + ' comment cid ' + (commentStartIndex + index),
             subplebbitAddress: this.address,
           })
         }
@@ -554,17 +554,17 @@ describe('feeds', () => {
       const getSortedPosts = Subplebbit.prototype.getSortedPosts
       beforeEach(() => {
         // mock getSortedPosts to only give 1 or 2 pages
-        Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
+        Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
           // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
           await simulateLoadingTime()
           await simulateLoadingTime()
-          const sortedComments: any = { nextSortedCommentsCid: null, comments: [] }
+          const sortedComments: any = { nextCid: null, comments: [] }
           const postCount = 100
           let index = 0
           while (index++ < postCount) {
             sortedComments.comments.push({
               timestamp: index,
-              cid: sortedPostsCid + ' comment cid ' + index,
+              cid: pageCid + ' comment cid ' + index,
               subplebbitAddress: this.address,
             })
           }
@@ -696,14 +696,14 @@ describe('feeds', () => {
     describe('getSortedPosts never gets called', () => {
       const getSortedPosts = Subplebbit.prototype.getSortedPosts
       beforeEach(() => {
-        Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
+        Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
           // it can get called with a next cid to fetch the second page
-          if (!sortedPostsCid.match('next')) {
+          if (!pageCid.match('next')) {
             throw Error(
-              `subplebbit.getSortedPosts() was called with argument '${sortedPostsCid}', should not get called at all on first page of sort type 'hot'`
+              `subplebbit.getSortedPosts() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`
             )
           }
-          return { nextSortedCommentsCid: null, comments: [] }
+          return { nextCid: null, comments: [] }
         }
       })
       afterEach(() => {
@@ -758,7 +758,7 @@ describe('feeds', () => {
 
       act(() => {
         // update the sorted posts cids and send a subplebbit update event and wait for buffered feeds to change
-        subplebbits[0].sortedPostsCids = {
+        subplebbits[0].pageCids = {
           hot: 'updated sorted posts cid hot',
           topAll: 'updated sorted posts cid topAll',
           new: 'updated sorted posts cid new',
@@ -781,16 +781,16 @@ describe('feeds', () => {
       Subplebbit.prototype.update = update
     })
 
-    describe('getSortedPosts only gets called once per sortedPostsCid', () => {
+    describe('getSortedPosts only gets called once per pageCid', () => {
       const getSortedPosts = Subplebbit.prototype.getSortedPosts
       beforeEach(() => {
-        const usedSortedPostsCids: any = {}
-        Subplebbit.prototype.getSortedPosts = async function (sortedPostsCid: string) {
-          if (usedSortedPostsCids[sortedPostsCid]) {
-            throw Error(`subplebbit.getSortedPosts() already called with argument '${sortedPostsCid}'`)
+        const usedPageCids: any = {}
+        Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
+          if (usedPageCids[pageCid]) {
+            throw Error(`subplebbit.getSortedPosts() already called with argument '${pageCid}'`)
           }
-          usedSortedPostsCids[sortedPostsCid] = true
-          return getSortedPosts.bind(this)(sortedPostsCid)
+          usedPageCids[pageCid] = true
+          return getSortedPosts.bind(this)(pageCid)
         }
       })
       afterEach(() => {

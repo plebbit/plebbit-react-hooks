@@ -725,7 +725,7 @@ describe('accounts', () => {
             subplebbitAddress: accountCommentSubplebbitAddress,
           },
         ],
-        nextSortedCommentsCid: null,
+        nextCid: null,
       })
       rendered.rerender({ subplebbitAddresses: [accountCommentSubplebbitAddress] })
 
@@ -1009,7 +1009,7 @@ describe('accounts', () => {
         // update the comment with replies to see get notifications
         comment.sortedReplies = {
           topAll: {
-            nextSortedCommentsCid: null,
+            nextCid: null,
             comments: [
               { cid: 'reply cid 1', timestamp: 1 },
               { cid: 'reply cid 2', timestamp: 2 },
@@ -1059,7 +1059,7 @@ describe('accounts', () => {
         // update the comment with one unread reply and one read reply
         comment.sortedReplies = {
           topAll: {
-            nextSortedCommentsCid: null,
+            nextCid: null,
             comments: [
               { cid: 'reply cid 3', timestamp: 3 },
               { cid: 'reply cid 4', timestamp: 4 },

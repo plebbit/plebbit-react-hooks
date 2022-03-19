@@ -165,7 +165,7 @@ const getCommentUpdateContent = async (comment: any) => {
   // simulate finding replies from IPNS record
   commentUpdateContent.sortedReplies = {
     topAll: {
-      nextSortedCommentsCid: null,
+      nextCid: null,
       comments: [
         await getReplyContent(comment.cid, comment.cid + 'replycontent1'),
         await getReplyContent(comment.cid, comment.cid + 'replycontent2'),
@@ -179,17 +179,17 @@ const getCommentUpdateContent = async (comment: any) => {
   return commentUpdateContent
 }
 
-const subplebbitGetSortedPosts = async (sortedPostsCid: string, subplebbit: any) => {
+const subplebbitGetSortedPosts = async (pageCid: string, subplebbit: any) => {
   const sortedComments: any = {
-    nextSortedCommentsCid: await hash(sortedPostsCid + 'next'),
+    nextCid: await hash(pageCid + 'next'),
     comments: [],
   }
   const postCount = 100
   let index = 0
   while (index++ < postCount) {
     let comment = {
-      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, sortedPostsCid + index),
-      cid: await hash(sortedPostsCid + index),
+      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, pageCid + index),
+      cid: await hash(pageCid + index),
       subplebbitAddress: subplebbit.address,
     }
     comment = { ...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment)) }
@@ -209,9 +209,9 @@ export class Plebbit {
       address: subplebbitAddress,
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
-    const hotSortedPostsCid = await hash(subplebbitAddress + 'hot1')
-    subplebbit.sortedPosts = { hot: await subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) }
-    subplebbit.sortedPostsCids = {
+    const hotPageCid = await hash(subplebbitAddress + 'hot1')
+    subplebbit.sortedPosts = { hot: await subplebbitGetSortedPosts(hotPageCid, subplebbit) }
+    subplebbit.pageCids = {
       hot: await hash(subplebbitAddress + 'hot1'),
       topAll: await hash(subplebbitAddress + 'topAll1'),
       new: await hash(subplebbitAddress + 'new1'),
@@ -264,7 +264,7 @@ export class Subplebbit extends EventEmitter {
   title: string | undefined
   description: string | undefined
   sortedPosts: any
-  sortedPostsCids: any
+  pageCids: any
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -291,10 +291,10 @@ export class Subplebbit extends EventEmitter {
     this.emit('update', this)
   }
 
-  async getSortedPosts(sortedPostsCid: string) {
+  async getSortedPosts(pageCid: string) {
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return await subplebbitGetSortedPosts(sortedPostsCid, this)
+    return await subplebbitGetSortedPosts(pageCid, this)
   }
 }
 

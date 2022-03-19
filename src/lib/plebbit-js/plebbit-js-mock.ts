@@ -18,10 +18,10 @@ export class Plebbit {
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
     subplebbit.title = subplebbit.address + ' title'
-    const hotSortedPostsCid = subplebbit.address + ' sorted posts cid hot'
-    subplebbit.sortedPosts = { hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) }
-    subplebbit.sortedPostsCids = {
-      hot: hotSortedPostsCid,
+    const hotPageCid = subplebbit.address + ' sorted posts cid hot'
+    subplebbit.sortedPosts = { hot: subplebbitGetSortedPosts(hotPageCid, subplebbit) }
+    subplebbit.pageCids = {
+      hot: hotPageCid,
       topAll: subplebbit.address + ' sorted posts cid topAll',
       new: subplebbit.address + ' sorted posts cid new',
     }
@@ -74,7 +74,7 @@ export class Subplebbit extends EventEmitter {
   title: string | undefined
   description: string | undefined
   sortedPosts: any
-  sortedPostsCids: any
+  pageCids: any
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -107,17 +107,17 @@ export class Subplebbit extends EventEmitter {
     this.emit('update', this)
   }
 
-  async getSortedPosts(sortedPostsCid: string) {
+  async getSortedPosts(pageCid: string) {
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return subplebbitGetSortedPosts(sortedPostsCid, this)
+    return subplebbitGetSortedPosts(pageCid, this)
   }
 }
 
 // define it here because also used it plebbit.getSubplebbit()
-const subplebbitGetSortedPosts = (sortedPostsCid: string, subplebbit: any) => {
+const subplebbitGetSortedPosts = (pageCid: string, subplebbit: any) => {
   const sortedComments: any = {
-    nextSortedCommentsCid: subplebbit.address + ' ' + sortedPostsCid + ' - next sorted comments cid',
+    nextCid: subplebbit.address + ' ' + pageCid + ' - next sorted comments cid',
     comments: [],
   }
   const postCount = 100
@@ -125,7 +125,7 @@ const subplebbitGetSortedPosts = (sortedPostsCid: string, subplebbit: any) => {
   while (index++ < postCount) {
     sortedComments.comments.push({
       timestamp: index,
-      cid: sortedPostsCid + ' comment cid ' + index,
+      cid: pageCid + ' comment cid ' + index,
       subplebbitAddress: subplebbit.address,
       upvoteCount: index,
       downvoteCount: 10,
