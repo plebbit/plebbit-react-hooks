@@ -113,9 +113,13 @@ AccountsActions {
   publishComment(comment: Comment, accountName?: string),
   publishCommentEdit(comment: Comment, accountName?: string),
   publishVote(vote: Vote, accountName?: string),
+  publishReport(report: Report, accountName?: string),
   deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string),
-  saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
   blockAddress(address: string) // block a subplebbit address or author address from showing on your feed
+  saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
+  followComment(commentCid: string, accountName?: string) // get notifications for comments that aren't your own
+  hideComment(commentCid: string, accountName?: string) // hide a comment from showing up anywhere
+  followAuthor(authorAddress: string, accountName?: string) // no method to do this in the backend yet, could use IPNS
 }
 Account {
   id: string, // random immutable string
