@@ -69,13 +69,13 @@ const urlSuffixes = [
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
-  if (!window.TextEncoder) {
-    try {
-      const crypto = require('crypto')
-      return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
-    }
-    catch (e) {}
-  }
+  // if (!window.TextEncoder) {
+  //   try {
+  //     const crypto = require('crypto')
+  //     return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
+  //   }
+  //   catch (e) {}
+  // }
   // @ts-ignore
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(string))
   // @ts-ignore
