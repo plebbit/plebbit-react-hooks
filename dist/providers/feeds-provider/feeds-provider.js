@@ -93,7 +93,6 @@ export default function FeedsProvider(props) {
     };
     feedsActions.incrementFeedPageNumber = (feedName) => {
         assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`);
-        // assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`)
         debug('feedsActions.incrementFeedPageNumber', { feedName });
         setFeedsOptions((previousFeedsOptions) => {
             assert(previousFeedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
@@ -428,7 +427,7 @@ function useSubplebbits(feedsOptions) {
             }
         }
     }, [subplebbitAddressesAndAccounts]);
-    // debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits })
+    debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits });
     return subplebbits;
 }
 /**
