@@ -180,10 +180,10 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
       `accountCommentsFilter commentCid '${commentCid}' not a string`
     )
   }
-  for (const parentCommentCid of filter.parentCommentCids || []) {
+  for (const parentCid of filter.parentCids || []) {
     assert(
-      parentCommentCid && typeof parentCommentCid === 'string',
-      `accountCommentsFilter parentCommentCid '${parentCommentCid}' not a string`
+      parentCid && typeof parentCid === 'string',
+      `accountCommentsFilter parentCid '${parentCid}' not a string`
     )
   }
   const filteredPublications = []
@@ -198,12 +198,12 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
     if (filter.commentCids?.length && !filter.commentCids.includes(publication.commentCid)) {
       isFilteredOut = true
     }
-    if (filter.parentCommentCids?.length && !filter.parentCommentCids.includes(publication.parentCommentCid)) {
+    if (filter.parentCids?.length && !filter.parentCids.includes(publication.parentCid)) {
       isFilteredOut = true
     }
     if (
-      typeof filter.hasParentCommentCid === 'boolean' &&
-      filter.hasParentCommentCid !== Boolean(publication.parentCommentCid)
+      typeof filter.hasParentCid === 'boolean' &&
+      filter.hasParentCid !== Boolean(publication.parentCid)
     ) {
       isFilteredOut = true
     }

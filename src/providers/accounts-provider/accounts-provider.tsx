@@ -153,7 +153,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
     let createCommentOptions = {
       subplebbitAddress: publishCommentOptions.subplebbitAddress,
-      parentCommentCid: publishCommentOptions.parentCommentCid,
+      parentCid: publishCommentOptions.parentCid,
       postCid: publishCommentOptions.postCid, // not used by plebbit-js, but used to store in local database
       content: publishCommentOptions.content,
       title: publishCommentOptions.title,
@@ -605,16 +605,16 @@ const useAccountsWithCalculatedProperties = (
         score: 0,
       }
       for (const comment of accountComments) {
-        if (comment.parentCommentCid && comment.upvoteCount) {
+        if (comment.parentCid && comment.upvoteCount) {
           karma.commentUpvoteCount += comment.upvoteCount
         }
-        if (comment.parentCommentCid && comment.downvoteCount) {
+        if (comment.parentCid && comment.downvoteCount) {
           karma.commentDownvoteCount += comment.downvoteCount
         }
-        if (!comment.parentCommentCid && comment.upvoteCount) {
+        if (!comment.parentCid && comment.upvoteCount) {
           karma.linkUpvoteCount += comment.upvoteCount
         }
-        if (!comment.parentCommentCid && comment.downvoteCount) {
+        if (!comment.parentCid && comment.downvoteCount) {
           karma.linkDownvoteCount += comment.downvoteCount
         }
       }

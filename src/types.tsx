@@ -82,8 +82,8 @@ export type UseAccountCommentsFilter = {
   subplebbitAddresses?: string[]
   postCids?: string[]
   commentCids?: string[]
-  parentCommentCids?: string[]
-  hasParentCommentCid?: boolean
+  parentCids?: string[]
+  hasParentCid?: boolean
 }
 export type UseAccountCommentsOptions = {
   accountName?: string

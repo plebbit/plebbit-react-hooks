@@ -25,8 +25,8 @@ export const validateAccountsActionsPublishCommentArguments = ({
     'publishComment publishCommentOptions.subplebbitAddress not a string'
   )
   assert(
-    !publishCommentOptions.parentCommentCid || typeof publishCommentOptions.parentCommentCid === 'string',
-    'publishComment publishCommentOptions.parentCommentCid not a string'
+    !publishCommentOptions.parentCid || typeof publishCommentOptions.parentCid === 'string',
+    'publishComment publishCommentOptions.parentCid not a string'
   )
   assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string')
   assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string')

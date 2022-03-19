@@ -245,8 +245,7 @@ describe('feeds', () => {
         await simulateLoadingTime()
         await simulateLoadingTime()
         const sortedComments: any = {
-          // @ts-ignore
-          nextSortedCommentsCid:
+          nextSortedCommentsCid: // @ts-ignore
             this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes[this.address] + 1),
           comments: [],
         }

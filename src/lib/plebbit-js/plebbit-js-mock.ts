@@ -188,7 +188,7 @@ export class Comment extends Publication {
   upvoteCount: number | undefined
   downvoteCount: number | undefined
   content: string | undefined
-  parentCommentCid: string | undefined
+  parentCid: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -199,7 +199,7 @@ export class Comment extends Publication {
     this.content = createCommentOptions?.content
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
-    this.parentCommentCid = createCommentOptions?.parentCommentCid
+    this.parentCid = createCommentOptions?.parentCid
   }
 
   update() {

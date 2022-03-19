@@ -132,9 +132,9 @@ const getPostContent = async (seed: string) => {
   return { title, content }
 }
 
-const getReplyContent = async (parentCommentCid: string, seed: string) => {
+const getReplyContent = async (parentCid: string, seed: string) => {
   const content = await getArrayItem(commentContents, seed + 'replycontent')
-  return { content, parentCommentCid }
+  return { content, parentCid }
 }
 
 const getSubplebbitContent = async (seed: string) => {
@@ -234,8 +234,8 @@ export class Plebbit {
     let commentContent: any = await getPostContent(commentCid + 'postcontent')
     const isReply = await getArrayItem([true, false, false, false], commentCid + 'isreply')
     if (isReply) {
-      const parentCommentCid = await hash(commentCid + 'parentcid')
-      commentContent = await getReplyContent(parentCommentCid, commentCid + 'replycontent')
+      const parentCid = await hash(commentCid + 'parentcid')
+      commentContent = await getReplyContent(parentCid, commentCid + 'replycontent')
     }
     const createCommentOptions = {
       cid: commentCid,
@@ -351,7 +351,7 @@ export class Comment extends Publication {
   upvoteCount: number | undefined
   downvoteCount: number | undefined
   content: string | undefined
-  parentCommentCid: string | undefined
+  parentCid: string | undefined
   sortedReplies: any
   replyCount: number | undefined
 
@@ -364,7 +364,7 @@ export class Comment extends Publication {
     this.content = createCommentOptions?.content
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
-    this.parentCommentCid = createCommentOptions?.parentCommentCid
+    this.parentCid = createCommentOptions?.parentCid
   }
 
   update() {

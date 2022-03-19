@@ -354,7 +354,7 @@ describe('accounts', () => {
       test('publish comment', async () => {
         const publishCommentOptions = {
           subplebbitAddress: 'Qm...',
-          parentCommentCid: 'Qm...',
+          parentCid: 'Qm...',
           content: 'some content',
           onChallenge,
           onChallengeVerification,
@@ -470,8 +470,8 @@ describe('accounts', () => {
               commentCids: props?.commentCid && [props?.commentCid],
               postCids: props?.postCid && [props?.postCid],
               subplebbitAddresses: props?.subplebbitAddress && [props?.subplebbitAddress],
-              parentCommentCids: props?.parentCommentCid && [props?.parentCommentCid],
-              hasParentCommentCid: props?.hasParentCommentCid,
+              parentCids: props?.parentCid && [props?.parentCid],
+              hasParentCid: props?.hasParentCid,
             },
           }
           const account = useAccount(props?.accountName)
@@ -497,7 +497,7 @@ describe('accounts', () => {
           ...publishOptions,
           title: 'title 1',
           content: 'content 1',
-          parentCommentCid: 'parent comment cid 1',
+          parentCid: 'parent comment cid 1',
           postCid: 'post cid 1',
           subplebbitAddress: 'subplebbit address 1',
         })
@@ -906,33 +906,33 @@ describe('accounts', () => {
     })
 
     test(`get account replies to a comment`, () => {
-      rendered.rerender({ parentCommentCid: 'parent comment cid 1' })
+      rendered.rerender({ parentCid: 'parent comment cid 1' })
       expect(rendered.result.current.accountComments.length).toBe(1)
       expect(rendered.result.current.accountVotes.length).toBe(0)
-      expect(rendered.result.current.accountComments[0].parentCommentCid).toBe('parent comment cid 1')
+      expect(rendered.result.current.accountComments[0].parentCid).toBe('parent comment cid 1')
     })
 
     test(`get account posts in a subplebbit`, () => {
-      rendered.rerender({ subplebbitAddress: 'subplebbit address 1', hasParentCommentCid: false })
+      rendered.rerender({ subplebbitAddress: 'subplebbit address 1', hasParentCid: false })
       expect(rendered.result.current.accountComments.length).toBe(1)
       expect(rendered.result.current.accountVotes.length).toBe(2)
-      expect(rendered.result.current.accountComments[0].parentCommentCid).toBe(undefined)
+      expect(rendered.result.current.accountComments[0].parentCid).toBe(undefined)
     })
 
     test(`get account posts and comments in a subplebbit`, () => {
       rendered.rerender({ subplebbitAddress: 'subplebbit address 1' })
       expect(rendered.result.current.accountComments.length).toBe(2)
       expect(rendered.result.current.accountVotes.length).toBe(2)
-      expect(rendered.result.current.accountComments[0].parentCommentCid).toBe('parent comment cid 1')
-      expect(rendered.result.current.accountComments[1].parentCommentCid).toBe(undefined)
+      expect(rendered.result.current.accountComments[0].parentCid).toBe('parent comment cid 1')
+      expect(rendered.result.current.accountComments[1].parentCid).toBe(undefined)
     })
 
     test(`get all account posts`, () => {
-      rendered.rerender({ hasParentCommentCid: false })
+      rendered.rerender({ hasParentCid: false })
       expect(rendered.result.current.accountComments.length).toBe(2)
       expect(rendered.result.current.accountVotes.length).toBe(3)
-      expect(rendered.result.current.accountComments[0].parentCommentCid).toBe(undefined)
-      expect(rendered.result.current.accountComments[1].parentCommentCid).toBe(undefined)
+      expect(rendered.result.current.accountComments[0].parentCid).toBe(undefined)
+      expect(rendered.result.current.accountComments[1].parentCid).toBe(undefined)
     })
 
     test(`get account vote on a specific comment`, () => {
@@ -978,7 +978,7 @@ describe('accounts', () => {
         await rendered.result.current.publishComment({
           title: 'title 1',
           content: 'content 1',
-          parentCommentCid: 'parent comment cid 1',
+          parentCid: 'parent comment cid 1',
           postCid: 'post cid 1',
           subplebbitAddress: 'subplebbit address 1',
           // @ts-ignore
