@@ -73,13 +73,13 @@ FeedsContext (no persistant storage, can be rebuilt from Subplebbits and Subpleb
 
 #### Accounts Hooks
 ```
-useAccount(accountName | undefined): Account | undefined
+useAccount(accountName?: string): Account | undefined
 useAccountComments(accountCommentsOptions: AccountsCommentsOptions): Comment[] // export or display list of own comments
 useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export or display list of own votes
-useAccountVote(commentCid, accountName | undefined): Vote // know if you already voted on some comment
+useAccountVote(commentCid: string, accountName?: string): Vote // know if you already voted on some comment
 useAccounts(): Account[]
 useAccountsActions(): AccountsActions
-useAccountNotifications(accountName | undefined): Notification[]
+useAccountNotifications(accountName?: string): Notification[]
 ```
 #### Comments Hooks
 ```
@@ -110,10 +110,11 @@ AccountsActions {
   setAccountsOrder(accountNames: string[]),
   importAccount(serializedAccount: string | buffer),
   exportAccount(accountName: string), // don't allow undefined to prevent catastrophic bugs
-  publishComment(comment: Comment, accountName: string | undefined),
-  publishCommentEdit(comment: Comment, accountName: string | undefined),
-  publishVote(vote: Vote, accountName: string | undefined),
-  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName: string | undefined),
+  publishComment(comment: Comment, accountName?: string),
+  publishCommentEdit(comment: Comment, accountName?: string),
+  publishVote(vote: Vote, accountName?: string),
+  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string),
+  saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
   blockAddress(address: string) // block a subplebbit address or author address from showing on your feed
 }
 Account {
@@ -171,7 +172,7 @@ Author {
   address: string
 }
 Signer {
-  privateKey: string | buffer | undefined,
+  privateKey?: string | buffer,
   type: 'plebbit1'
 }
 Challenge {
