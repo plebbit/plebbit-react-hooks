@@ -18,7 +18,7 @@ const deleteDatabases = () =>
     localForage.createInstance({ name: 'accounts' }).clear(),
     localForageLru.createInstance({ name: 'subplebbits' }).clear(),
     localForageLru.createInstance({ name: 'comments' }).clear(),
-    localForageLru.createInstance({ name: 'sortedPosts' }).clear(),
+    localForageLru.createInstance({ name: 'subplebbitsPages' }).clear(),
   ])
 
 describe('feeds', () => {
@@ -144,7 +144,7 @@ describe('feeds', () => {
       Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
-        const sortedComments: any = {
+        const page: any = {
           nextCid: this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes + 1),
           comments: [],
         }
@@ -152,14 +152,14 @@ describe('feeds', () => {
         let index = 0
         let commentStartIndex = getSortedPostsCalledTimes * postCount
         while (index++ < postCount) {
-          sortedComments.comments.push({
+          page.comments.push({
             timestamp: commentStartIndex + index,
             cid: pageCid + ' comment cid ' + (commentStartIndex + index),
             subplebbitAddress: this.address,
           })
         }
         getSortedPostsCalledTimes++
-        return sortedComments
+        return page
       }
 
       // get feed with 1 sub sorted by new page 1
@@ -244,7 +244,7 @@ describe('feeds', () => {
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         await simulateLoadingTime()
-        const sortedComments: any = {
+        const page: any = {
           nextCid: // @ts-ignore
             this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes[this.address] + 1),
           comments: [],
@@ -254,7 +254,7 @@ describe('feeds', () => {
         // @ts-ignore
         let commentStartIndex = getSortedPostsCalledTimes[this.address] * postCount
         while (index++ < postCount) {
-          sortedComments.comments.push({
+          page.comments.push({
             timestamp: commentStartIndex + index,
             cid: pageCid + ' comment cid ' + (commentStartIndex + index),
             subplebbitAddress: this.address,
@@ -262,7 +262,7 @@ describe('feeds', () => {
         }
         // @ts-ignore
         getSortedPostsCalledTimes[this.address]++
-        return sortedComments
+        return page
       }
 
       // get feed with 3 sub sorted by new page 1
@@ -558,17 +558,17 @@ describe('feeds', () => {
           // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
           await simulateLoadingTime()
           await simulateLoadingTime()
-          const sortedComments: any = { nextCid: null, comments: [] }
+          const page: any = { nextCid: null, comments: [] }
           const postCount = 100
           let index = 0
           while (index++ < postCount) {
-            sortedComments.comments.push({
+            page.comments.push({
               timestamp: index,
               cid: pageCid + ' comment cid ' + index,
               subplebbitAddress: this.address,
             })
           }
-          return sortedComments
+          return page
         }
       })
       afterEach(() => {

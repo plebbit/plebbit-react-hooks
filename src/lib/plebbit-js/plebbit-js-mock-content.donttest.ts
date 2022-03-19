@@ -18,7 +18,7 @@ const deleteDatabases = () =>
     localForage.createInstance({ name: 'accounts' }).clear(),
     localForageLru.createInstance({ name: 'subplebbits' }).clear(),
     localForageLru.createInstance({ name: 'comments' }).clear(),
-    localForageLru.createInstance({ name: 'sortedPosts' }).clear(),
+    localForageLru.createInstance({ name: 'subplebbitsPages' }).clear(),
   ])
 
 describe('mock content', () => {

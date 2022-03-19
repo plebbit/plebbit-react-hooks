@@ -56,23 +56,23 @@ const sortTypes = [
   'controversialYear',
   'controversialAll',
 ]
-export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject: any) => {
+export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   const flattenedComments = []
 
-  // if is SortedComments
-  for (const reply of sortedCommentsOrSortedCommentsObject?.comments || []) {
+  // if is a Page instance
+  for (const reply of pageInstanceOrPagesInstance?.comments || []) {
     flattenedComments.push(reply)
     for (const sortType of sortTypes) {
       if (reply?.sortedReplies?.[sortType]) {
-        flattenedComments.push(...flattenSortedComments(reply.sortedReplies[sortType]))
+        flattenedComments.push(...flattenCommentsPages(reply.sortedReplies[sortType]))
       }
     }
   }
 
-  // if is SortedCommentsObject
+  // if is a Pages instance
   for (const sortType of sortTypes) {
-    if (sortedCommentsOrSortedCommentsObject?.[sortType]) {
-      flattenedComments.push(...flattenSortedComments(sortedCommentsOrSortedCommentsObject[sortType]))
+    if (pageInstanceOrPagesInstance?.[sortType]) {
+      flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance[sortType]))
     }
   }
 
@@ -93,7 +93,7 @@ export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject: any)
 const utils = {
   merge,
   clone,
-  flattenSortedComments,
+  flattenCommentsPages,
 }
 
 export default utils

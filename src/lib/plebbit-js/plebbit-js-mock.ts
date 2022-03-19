@@ -116,14 +116,14 @@ export class Subplebbit extends EventEmitter {
 
 // define it here because also used it plebbit.getSubplebbit()
 const subplebbitGetSortedPosts = (pageCid: string, subplebbit: any) => {
-  const sortedComments: any = {
+  const page: any = {
     nextCid: subplebbit.address + ' ' + pageCid + ' - next sorted comments cid',
     comments: [],
   }
   const postCount = 100
   let index = 0
   while (index++ < postCount) {
-    sortedComments.comments.push({
+    page.comments.push({
       timestamp: index,
       cid: pageCid + ' comment cid ' + index,
       subplebbitAddress: subplebbit.address,
@@ -131,7 +131,7 @@ const subplebbitGetSortedPosts = (pageCid: string, subplebbit: any) => {
       downvoteCount: 10,
     })
   }
-  return sortedComments
+  return page
 }
 
 let challengeRequestCount = 0

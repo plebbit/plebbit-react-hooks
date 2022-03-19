@@ -63,20 +63,12 @@ export type SubplebbitPostsInfo = {
 export type SubplebbitsPostsInfo = { [infoName: string]: SubplebbitPostsInfo }
 export type SubplebbitPageInfo = {
   pageCid: string
-  sortedPosts?: SubplebbitPage
+  page?: SubplebbitPage
   account: Account
   subplebbitAddress: string
   sortType: string
 }
 export type SubplebbitsPagesInfo = { [infoName: string]: SubplebbitPageInfo }
-// export type SortedPostsPageInfo = {
-//   sortedPostsCid: string
-//   sortedPosts?: SortedComments
-//   account: Account
-//   subplebbitAddress: string
-//   sortType: string
-// }
-// export type SortedPostsPagesInfo = { [infoName: string]: SortedPostsPageInfo }
 export type SubplebbitPage = {
   nextCid: string
   comments: Comment[]

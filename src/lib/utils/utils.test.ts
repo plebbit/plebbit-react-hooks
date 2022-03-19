@@ -1,7 +1,7 @@
 import utils from './utils'
 
 describe('utils', () => {
-  test('flattenSortedComments', async () => {
+  test('flattenCommentsPages', async () => {
     const sortedReplies = {
       comments: [
         {
@@ -30,7 +30,7 @@ describe('utils', () => {
       ],
     }
 
-    const flattedReplies = utils.flattenSortedComments(sortedReplies)
+    const flattedReplies = utils.flattenCommentsPages(sortedReplies)
     expect(flattedReplies.length).toBe(7)
     expect(flattedReplies[0].cid).toBe('1')
     expect(flattedReplies[1].cid).toBe('2')
@@ -40,10 +40,10 @@ describe('utils', () => {
     expect(flattedReplies[5].cid).toBe('6')
     expect(flattedReplies[6].cid).toBe('7')
 
-    const sortedCommentsObject = {
+    const pagesInstance = {
       new: sortedReplies,
     }
-    const flattedReplies2 = utils.flattenSortedComments(sortedCommentsObject)
+    const flattedReplies2 = utils.flattenCommentsPages(pagesInstance)
     expect(flattedReplies2).toEqual(flattedReplies)
   })
 })

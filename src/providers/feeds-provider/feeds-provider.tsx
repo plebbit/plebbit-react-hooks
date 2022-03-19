@@ -22,7 +22,7 @@ import {
   SubplebbitPage,
 } from '../../types'
 
-const sortedPostsDatabase = localForageLru.createInstance({ name: 'sortedPosts', size: 500 })
+const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 })
 
 type FeedsContext = any
 
@@ -39,7 +39,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
   const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
 
-  // fetch subplebbits, sorted posts and next pages whenever bufferedFeeds gets too low
+  // fetch subplebbits, subplebbits pages and next subplebbit pages whenever bufferedFeeds gets too low
   const subplebbits = useSubplebbits(feedsOptions)
   const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
   const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits)
@@ -235,7 +235,7 @@ function useFeedsHaveMore(
 }
 
 /**
- * Calculate the final buffered feeds from all the loaded sorted posts pages, sort them,
+ * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
  * and remove the posts already loaded in loadedFeeds
  */
 function useCalculatedBufferedFeeds(
@@ -273,7 +273,7 @@ function useCalculatedBufferedFeeds(
             continue
           }
 
-          // found an info that matches the sub address and sorted by
+          // found an info that matches the sub address and sort type
           // get all the pages for it from subplebbitsPages
           const subplebbitPages = getSubplebbitPages(
             info.firstPageCid,
@@ -331,28 +331,28 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
       const { firstPageCid, account, subplebbitAddress, sortType, bufferedPostCount } =
         subplebbitsPostsInfo[infoName]
       // add first page
-      const sortedPostsFirstPageInfo = {
+      const subplebbitFirstPageInfo = {
         pageCid: firstPageCid,
         account,
         subplebbitAddress,
         sortType,
-        // add preloaded sorted posts if any
-        sortedPosts: subplebbits?.[subplebbitAddress]?.sortedPosts?.[sortType],
+        // add preloaded subplebbit page if any
+        page: subplebbits?.[subplebbitAddress]?.sortedPosts?.[sortType],
       }
-      newSubplebbitsPagesInfo[firstPageCid + infoName] = sortedPostsFirstPageInfo
+      newSubplebbitsPagesInfo[firstPageCid + infoName] = subplebbitFirstPageInfo
 
       // add all next pages if needed and if available
       if (bufferedPostCount <= subplebbitPostsLeftBeforeNextPage) {
         const subplebbitPages = getSubplebbitPages(firstPageCid, subplebbitsPages)
         for (const page of subplebbitPages) {
           if (page.nextCid) {
-            const sortedPostsNextPageInfo = {
+            const subplebbitNextPageInfo = {
               pageCid: page.nextCid,
               account,
               subplebbitAddress,
               sortType,
             }
-            newSubplebbitsPagesInfo[page.nextCid + infoName] = sortedPostsNextPageInfo
+            newSubplebbitsPagesInfo[page.nextCid + infoName] = subplebbitNextPageInfo
           }
         }
       }
@@ -360,28 +360,28 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
     return newSubplebbitsPagesInfo
   }, [subplebbitsPostsInfo, subplebbitsPages])
 
-  // fetch sorted posts pages if needed
+  // fetch subplebbit pages if needed
   // once a page is added, it's never removed
   useEffect(() => {
     for (const infoName in subplebbitsPagesInfo) {
-      const { pageCid, account, subplebbitAddress, sortedPosts } = subplebbitsPagesInfo[infoName]
-      // sorted posts already fetched or fetching
-      if (subplebbitsPages[pageCid] || getSortedPostsPending[account.id + pageCid]) {
+      const { pageCid, account, subplebbitAddress, page } = subplebbitsPagesInfo[infoName]
+      // page already fetched or fetching
+      if (subplebbitsPages[pageCid] || getSubplebbitPagePending[account.id + pageCid]) {
         continue
       }
 
-      // the sorted posts page was already preloaded in the subplebbit IPNS record
-      if (sortedPosts) {
+      // the subplebbit page was already preloaded in the subplebbit IPNS record
+      if (page) {
         setSubplebbitsPages((previousSubplebbitsPages) => ({
           ...previousSubplebbitsPages,
-          [pageCid]: sortedPosts,
+          [pageCid]: page,
         }))
         continue
       }
 
       ;(async () => {
-        // sorted posts page is cached
-        const cachedSubplebbitPage = await sortedPostsDatabase.getItem(pageCid)
+        // subplebbit page is cached
+        const cachedSubplebbitPage = await subplebbitsPagesDatabase.getItem(pageCid)
         if (cachedSubplebbitPage) {
           setSubplebbitsPages((previousSubplebbitsPages) => ({
             ...previousSubplebbitsPages,
@@ -390,10 +390,10 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
           return
         }
 
-        getSortedPostsPending[account.id + pageCid] = true
+        getSubplebbitPagePending[account.id + pageCid] = true
         const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress })
         const fetchedSubplebbitPage = await subplebbit.getSortedPosts(pageCid)
-        await sortedPostsDatabase.setItem(pageCid, fetchedSubplebbitPage)
+        await subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage)
         debug('FeedsProvider useSubplebbitsPages subplebbit.getSortedPosts', {
           pageCid,
           infoName,
@@ -407,13 +407,13 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
           ...previousSubplebbitsPages,
           [pageCid]: fetchedSubplebbitPage,
         }))
-        getSortedPostsPending[account.id + pageCid] = false
+        getSubplebbitPagePending[account.id + pageCid] = false
 
         // when publishing a comment, you don't yet know its CID
         // so when a new comment is fetched, check to see if it's your own
         // comment, and if yes, add the CID to your account comments database
         if (accountsContext?.addCidToAccountComment) {
-          const flattenedReplies = utils.flattenSortedComments(fetchedSubplebbitPage)
+          const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage)
           for (const comment of flattenedReplies) {
             accountsContext.addCidToAccountComment(comment)
           }
@@ -424,7 +424,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
 
   return subplebbitsPages
 }
-const getSortedPostsPending: { [key: string]: boolean } = {}
+const getSubplebbitPagePending: { [key: string]: boolean } = {}
 
 /**
  * Util function to gather in an array all loaded `SubplebbitPage` pages of a subplebbit/sort

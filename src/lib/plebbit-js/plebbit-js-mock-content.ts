@@ -180,7 +180,7 @@ const getCommentUpdateContent = async (comment: any) => {
 }
 
 const subplebbitGetSortedPosts = async (pageCid: string, subplebbit: any) => {
-  const sortedComments: any = {
+  const page: any = {
     nextCid: await hash(pageCid + 'next'),
     comments: [],
   }
@@ -193,9 +193,9 @@ const subplebbitGetSortedPosts = async (pageCid: string, subplebbit: any) => {
       subplebbitAddress: subplebbit.address,
     }
     comment = { ...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment)) }
-    sortedComments.comments.push(comment)
+    page.comments.push(comment)
   }
-  return sortedComments
+  return page
 }
 
 export class Plebbit {
