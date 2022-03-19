@@ -2,26 +2,30 @@ import utils from './utils'
 
 describe('utils', () => {
   test('flattenCommentsPages', async () => {
-    const sortedReplies = {
+    const page = {
       comments: [
         {
           cid: '1',
-          sortedReplies: {
-            new: {
-              comments: [
-                { cid: '4' },
-                {
-                  cid: '5',
-                  sortedReplies: {
-                    topAll: {
-                      comments: [{ cid: '6' }, { cid: '7' }],
-                    },
-                    new: {
-                      comments: [{ cid: '7' }],
+          replies: {
+            pages: {
+              new: {
+                comments: [
+                  { cid: '4' },
+                  {
+                    cid: '5',
+                    replies: {
+                      pages: {
+                        topAll: {
+                          comments: [{ cid: '6' }, { cid: '7' }],
+                        },
+                        new: {
+                          comments: [{ cid: '7' }],
+                        },
+                      },
                     },
                   },
-                },
-              ],
+                ],
+              },
             },
           },
         },
@@ -30,7 +34,7 @@ describe('utils', () => {
       ],
     }
 
-    const flattedReplies = utils.flattenCommentsPages(sortedReplies)
+    const flattedReplies = utils.flattenCommentsPages(page)
     expect(flattedReplies.length).toBe(7)
     expect(flattedReplies[0].cid).toBe('1')
     expect(flattedReplies[1].cid).toBe('2')
@@ -41,9 +45,13 @@ describe('utils', () => {
     expect(flattedReplies[6].cid).toBe('7')
 
     const pagesInstance = {
-      new: sortedReplies,
+      pages: {new: page}
     }
     const flattedReplies2 = utils.flattenCommentsPages(pagesInstance)
     expect(flattedReplies2).toEqual(flattedReplies)
+
+    const pagesdotpagesInstance = {new: page}
+    const flattedReplies3 = utils.flattenCommentsPages(pagesdotpagesInstance)
+    expect(flattedReplies3).toEqual(flattedReplies)
   })
 })

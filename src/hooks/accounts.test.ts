@@ -14,7 +14,7 @@ import {
   useFeed,
 } from '..'
 import localForage from 'localforage'
-import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment, Subplebbit } from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, { mockPlebbitJs, Plebbit, Comment, Subplebbit, Pages } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
@@ -695,7 +695,7 @@ describe('accounts', () => {
     })
 
     test(`cid gets added to account comment after feed is fetched`, async () => {
-      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+      const getPage = Pages.prototype.getPage
 
       const rendered = renderHook<any, any>(
         (props?) => {
@@ -716,7 +716,7 @@ describe('accounts', () => {
       const accountCommentTimestamp = rendered.result.current.accountComments[0].timestamp
       const accountCommentAuthor = rendered.result.current.accountComments[0].author
       const accountCommentSubplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
-      Subplebbit.prototype.getSortedPosts = async () => ({
+      Pages.prototype.getPage = async () => ({
         comments: [
           {
             cid: 'cid from feed',
@@ -745,7 +745,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].cid).toBe('cid from feed')
 
       // restore mock
-      Subplebbit.prototype.getSortedPosts = getSortedPosts
+      Pages.prototype.getPage = getPage
     })
 
     test(`account comments are stored to database`, async () => {

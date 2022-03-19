@@ -8,6 +8,7 @@ import PlebbitJsMock, {
   mockPlebbitJs,
   Plebbit,
   Subplebbit,
+  Pages,
   simulateLoadingTime,
 } from '../lib/plebbit-js/plebbit-js-mock'
 mockPlebbitJs(PlebbitJsMock)
@@ -96,7 +97,7 @@ describe('feeds', () => {
       }
       // NOTE: the 'hot' sort type uses timestamps and bugs out with timestamp '1-100' so this is why we get cid 1
       // with low upvote count first
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
@@ -108,7 +109,7 @@ describe('feeds', () => {
       } catch (e) {
         console.error(e)
       }
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
@@ -139,26 +140,26 @@ describe('feeds', () => {
     })
 
     test('get feed with 1 subplebbit sorted by new and scroll to multiple pages', async () => {
-      let getSortedPostsCalledTimes = 0
-      const getSortedPosts = Subplebbit.prototype.getSortedPosts
-      Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
+      let getPageCalledTimes = 0
+      const getPage = Pages.prototype.getPage
+      Pages.prototype.getPage = async function (pageCid: string) {
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         const page: any = {
-          nextCid: this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes + 1),
+          nextCid: this.subplebbit.address + ' next page cid ' + (getPageCalledTimes + 1),
           comments: [],
         }
         const postCount = 100
         let index = 0
-        let commentStartIndex = getSortedPostsCalledTimes * postCount
+        let commentStartIndex = getPageCalledTimes * postCount
         while (index++ < postCount) {
           page.comments.push({
             timestamp: commentStartIndex + index,
             cid: pageCid + ' comment cid ' + (commentStartIndex + index),
-            subplebbitAddress: this.address,
+            subplebbitAddress: this.subplebbit.address,
           })
         }
-        getSortedPostsCalledTimes++
+        getPageCalledTimes++
         return page
       }
 
@@ -172,96 +173,96 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[0].timestamp).toBe(100)
       expect(rendered.result.current.feed[1].timestamp).toBe(99)
       expect(rendered.result.current.feed[2].timestamp).toBe(98)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 100')
-      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 99')
-      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 98')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid new comment cid 100')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 page cid new comment cid 99')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 page cid new comment cid 98')
 
       // at this point the buffered feed has gotten 1 subplebbit page
-      expect(getSortedPostsCalledTimes).toBe(1)
+      expect(getPageCalledTimes).toBe(1)
 
       // get page 2
       await scrollOnePage()
       expect(rendered.result.current.feed[postsPerPage].timestamp).toBe(75)
       expect(rendered.result.current.feed[postsPerPage].cid).toBe(
-        'subplebbit address 1 sorted posts cid new comment cid 75'
+        'subplebbit address 1 page cid new comment cid 75'
       )
 
-      // ad this point the buffered feed is length 50, we can wait for getSortedPosts to be called again
+      // ad this point the buffered feed is length 50, we can wait for getPage to be called again
       // refill the buffer
       try {
-        await rendered.waitFor(() => getSortedPostsCalledTimes === 2)
+        await rendered.waitFor(() => getPageCalledTimes === 2)
       } catch (e) {
         console.error(e)
       }
-      expect(getSortedPostsCalledTimes).toBe(2)
+      expect(getPageCalledTimes).toBe(2)
 
       // get page 3 and 4, it should show new posts from the recalculated buffer
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(200)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next sorted comments cid 1 comment cid 200'
+        'subplebbit address 1 next page cid 1 comment cid 200'
       )
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(175)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next sorted comments cid 1 comment cid 175'
+        'subplebbit address 1 next page cid 1 comment cid 175'
       )
 
       // scroll 2 more times to get to buffered feeds length 50 and trigger a new buffer refill
       await scrollOnePage()
       await scrollOnePage()
       try {
-        await rendered.waitFor(() => getSortedPostsCalledTimes === 3)
+        await rendered.waitFor(() => getPageCalledTimes === 3)
       } catch (e) {
         console.error(e)
       }
-      expect(getSortedPostsCalledTimes).toBe(3)
+      expect(getPageCalledTimes).toBe(3)
 
       // next pages should have recalculated buffered feed that starts at 300
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(300)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next sorted comments cid 2 comment cid 300'
+        'subplebbit address 1 next page cid 2 comment cid 300'
       )
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(275)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next sorted comments cid 2 comment cid 275'
+        'subplebbit address 1 next page cid 2 comment cid 275'
       )
 
       // restore mock
-      Subplebbit.prototype.getSortedPosts = getSortedPosts
+      Pages.prototype.getPage = getPage
     })
 
     test('get multiple subplebbits sorted by new and scroll to multiple pages', async () => {
-      const getSortedPostsCalledTimes = {
+      const getPageCalledTimes = {
         'subplebbit address 1': 0,
         'subplebbit address 2': 0,
         'subplebbit address 3': 0,
       }
-      const getSortedPosts = Subplebbit.prototype.getSortedPosts
-      Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
+      const getPage = Pages.prototype.getPage
+      Pages.prototype.getPage = async function (pageCid: string) {
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         await simulateLoadingTime()
         const page: any = {
           nextCid: // @ts-ignore
-            this.address + ' next sorted comments cid ' + (getSortedPostsCalledTimes[this.address] + 1),
+            this.subplebbit.address + ' next page cid ' + (getPageCalledTimes[this.subplebbit.address] + 1),
           comments: [],
         }
         const postCount = 100
         let index = 0
         // @ts-ignore
-        let commentStartIndex = getSortedPostsCalledTimes[this.address] * postCount
+        let commentStartIndex = getPageCalledTimes[this.subplebbit.address] * postCount
         while (index++ < postCount) {
           page.comments.push({
             timestamp: commentStartIndex + index,
             cid: pageCid + ' comment cid ' + (commentStartIndex + index),
-            subplebbitAddress: this.address,
+            subplebbitAddress: this.subplebbit.address,
           })
         }
         // @ts-ignore
-        getSortedPostsCalledTimes[this.address]++
+        getPageCalledTimes[this.subplebbit.address]++
         return page
       }
 
@@ -280,34 +281,34 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[0].timestamp).toBe(100)
       expect(rendered.result.current.feed[1].timestamp).toBe(99)
       expect(rendered.result.current.feed[2].timestamp).toBe(98)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 100')
-      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 99')
-      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 sorted posts cid new comment cid 98')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid new comment cid 100')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 page cid new comment cid 99')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 page cid new comment cid 98')
 
       // at this point the buffered feed has gotten page 1 from all subs
       try {
         await rendered.waitFor(
           () =>
-            getSortedPostsCalledTimes['subplebbit address 1'] === 1 &&
-            getSortedPostsCalledTimes['subplebbit address 2'] === 1 &&
-            getSortedPostsCalledTimes['subplebbit address 3'] === 1
+            getPageCalledTimes['subplebbit address 1'] === 1 &&
+            getPageCalledTimes['subplebbit address 2'] === 1 &&
+            getPageCalledTimes['subplebbit address 3'] === 1
         )
       } catch (e) {
         console.error(e)
       }
-      expect(getSortedPostsCalledTimes['subplebbit address 1']).toBe(1)
-      expect(getSortedPostsCalledTimes['subplebbit address 2']).toBe(1)
-      expect(getSortedPostsCalledTimes['subplebbit address 3']).toBe(1)
+      expect(getPageCalledTimes['subplebbit address 1']).toBe(1)
+      expect(getPageCalledTimes['subplebbit address 2']).toBe(1)
+      expect(getPageCalledTimes['subplebbit address 3']).toBe(1)
 
       // get page 2, the first posts of page 2 should be sub 1 and 2's cid 100
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(100)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].timestamp).toBe(100)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 2 sorted posts cid new comment cid 100'
+        'subplebbit address 2 page cid new comment cid 100'
       )
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe(
-        'subplebbit address 3 sorted posts cid new comment cid 100'
+        'subplebbit address 3 page cid new comment cid 100'
       )
 
       // scroll until the next buffered feed that needs to be refilled
@@ -319,16 +320,16 @@ describe('feeds', () => {
       try {
         await rendered.waitFor(
           () =>
-            getSortedPostsCalledTimes['subplebbit address 1'] === 2 &&
-            getSortedPostsCalledTimes['subplebbit address 2'] === 2 &&
-            getSortedPostsCalledTimes['subplebbit address 3'] === 2
+            getPageCalledTimes['subplebbit address 1'] === 2 &&
+            getPageCalledTimes['subplebbit address 2'] === 2 &&
+            getPageCalledTimes['subplebbit address 3'] === 2
         )
       } catch (e) {
         console.error(e)
       }
-      expect(getSortedPostsCalledTimes['subplebbit address 1']).toBe(2)
-      expect(getSortedPostsCalledTimes['subplebbit address 2']).toBe(2)
-      expect(getSortedPostsCalledTimes['subplebbit address 3']).toBe(2)
+      expect(getPageCalledTimes['subplebbit address 1']).toBe(2)
+      expect(getPageCalledTimes['subplebbit address 2']).toBe(2)
+      expect(getPageCalledTimes['subplebbit address 3']).toBe(2)
 
       // get next page, the first posts should all be cids 200 from the buffered feed
       await scrollOnePage()
@@ -336,17 +337,17 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].timestamp).toBe(200)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 2].timestamp).toBe(200)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next sorted comments cid 1 comment cid 200'
+        'subplebbit address 1 next page cid 1 comment cid 200'
       )
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe(
-        'subplebbit address 2 next sorted comments cid 1 comment cid 200'
+        'subplebbit address 2 next page cid 1 comment cid 200'
       )
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 2].cid).toBe(
-        'subplebbit address 3 next sorted comments cid 1 comment cid 200'
+        'subplebbit address 3 next page cid 1 comment cid 200'
       )
 
       // restore mock
-      Subplebbit.prototype.getSortedPosts = getSortedPosts
+      Pages.prototype.getPage = getPage
     })
 
     // getting feeds with multiple subs in them sometimes gets them in the wrong order because
@@ -397,9 +398,9 @@ describe('feeds', () => {
           console.error(e)
         }
         expect(rendered.result.current.feed.length).toBe(postsPerPage)
-        expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 100')
-        expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 99')
-        expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 sorted posts cid topAll comment cid 98')
+        expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid topAll comment cid 100')
+        expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 page cid topAll comment cid 99')
+        expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 page cid topAll comment cid 98')
         expect(rendered.result.current.feed[0].upvoteCount).toBe(100)
         expect(rendered.result.current.feed[1].upvoteCount).toBe(99)
         expect(rendered.result.current.feed[2].upvoteCount).toBe(98)
@@ -422,10 +423,10 @@ describe('feeds', () => {
         // the second page first posts should be sub 2 and 3 with the highest upvotes
         await scrollOnePage()
         expect(rendered.result.current.feed[postsPerPage].cid).toMatch(
-          /subplebbit address (2|3) sorted posts cid topAll comment cid 100/
+          /subplebbit address (2|3) page cid topAll comment cid 100/
         )
         expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(
-          /subplebbit address (2|3) sorted posts cid topAll comment cid 100/
+          /subplebbit address (2|3) page cid topAll comment cid 100/
         )
         expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBe(100)
         expect(rendered.result.current.feed[postsPerPage + 1].upvoteCount).toBe(100)
@@ -550,11 +551,11 @@ describe('feeds', () => {
       expect(rendered.result.error?.message).toMatch(`invalid feed sort type 'doesnt exist'`)
     })
 
-    describe('getSortedPosts only has 1 page', () => {
-      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+    describe('getPage only has 1 page', () => {
+      const getPage = Pages.prototype.getPage
       beforeEach(() => {
-        // mock getSortedPosts to only give 1 or 2 pages
-        Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
+        // mock getPage to only give 1 or 2 pages
+        Pages.prototype.getPage = async function (pageCid: string) {
           // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
           await simulateLoadingTime()
           await simulateLoadingTime()
@@ -565,14 +566,14 @@ describe('feeds', () => {
             page.comments.push({
               timestamp: index,
               cid: pageCid + ' comment cid ' + index,
-              subplebbitAddress: this.address,
+              subplebbitAddress: this.subplebbit.address,
             })
           }
           return page
         }
       })
       afterEach(() => {
-        Subplebbit.prototype.getSortedPosts = getSortedPosts
+        Pages.prototype.getPage = getPage
       })
       test(`1 subplebbit, scroll to end of feed, hasMore becomes false`, async () => {
         rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new' })
@@ -693,23 +694,23 @@ describe('feeds', () => {
       })
     })
 
-    describe('getSortedPosts never gets called', () => {
-      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+    describe('getPage never gets called', () => {
+      const getPage = Pages.prototype.getPage
       beforeEach(() => {
-        Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
+        Pages.prototype.getPage = async function (pageCid: string) {
           // it can get called with a next cid to fetch the second page
           if (!pageCid.match('next')) {
             throw Error(
-              `subplebbit.getSortedPosts() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`
+              `subplebbit.getPage() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`
             )
           }
           return { nextCid: null, comments: [] }
         }
       })
       afterEach(() => {
-        Subplebbit.prototype.getSortedPosts = getSortedPosts
+        Pages.prototype.getPage = getPage
       })
-      test(`get feed sorted by hot, don't call subplebbit.getSortedPosts() because already included in IPNS record`, async () => {
+      test(`get feed sorted by hot, don't call subplebbit.getPage() because already included in IPNS record`, async () => {
         rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot' })
         try {
           await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
@@ -757,46 +758,46 @@ describe('feeds', () => {
       const [subplebbit] = subplebbits
 
       act(() => {
-        // update the sorted posts cids and send a subplebbit update event and wait for buffered feeds to change
-        subplebbits[0].pageCids = {
-          hot: 'updated sorted posts cid hot',
-          topAll: 'updated sorted posts cid topAll',
-          new: 'updated sorted posts cid new',
+        // update the page cids and send a subplebbit update event and wait for buffered feeds to change
+        subplebbits[0].posts.pageCids = {
+          hot: 'updated page cid hot',
+          topAll: 'updated page cid topAll',
+          new: 'updated page cid new',
         }
         subplebbit.emit('update', subplebbit)
       })
 
-      // wait for the buffered feed to empty (because of the update), then to refill with updated sorted posts
+      // wait for the buffered feed to empty (because of the update), then to refill with updated page
       // more testing in production will have to be done to figure out if emptying the buffered feed while waiting
       // for new posts causes problems.
       try {
         await rendered.waitFor(
-          () => rendered.result.current.bufferedFeed[0].cid === 'updated sorted posts cid topAll comment cid 100'
+          () => rendered.result.current.bufferedFeed[0].cid === 'updated page cid topAll comment cid 100'
         )
       } catch (e) {
         console.error(e)
       }
-      expect(rendered.result.current.bufferedFeed[0].cid).toBe('updated sorted posts cid topAll comment cid 100')
+      expect(rendered.result.current.bufferedFeed[0].cid).toBe('updated page cid topAll comment cid 100')
 
       Subplebbit.prototype.update = update
     })
 
-    describe('getSortedPosts only gets called once per pageCid', () => {
-      const getSortedPosts = Subplebbit.prototype.getSortedPosts
+    describe('getPage only gets called once per pageCid', () => {
+      const getPage = Pages.prototype.getPage
       beforeEach(() => {
         const usedPageCids: any = {}
-        Subplebbit.prototype.getSortedPosts = async function (pageCid: string) {
+        Pages.prototype.getPage = async function (pageCid: string) {
           if (usedPageCids[pageCid]) {
-            throw Error(`subplebbit.getSortedPosts() already called with argument '${pageCid}'`)
+            throw Error(`subplebbit.getPage() already called with argument '${pageCid}'`)
           }
           usedPageCids[pageCid] = true
-          return getSortedPosts.bind(this)(pageCid)
+          return getPage.bind(this)(pageCid)
         }
       })
       afterEach(() => {
-        Subplebbit.prototype.getSortedPosts = getSortedPosts
+        Pages.prototype.getPage = getPage
       })
-      test(`store sorted posts pages in database`, async () => {
+      test(`store page pages in database`, async () => {
         rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new' })
         try {
           await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage)

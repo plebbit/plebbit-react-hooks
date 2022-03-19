@@ -87,7 +87,7 @@ describe('mock content', () => {
       console.error(e)
     }
     console.log(rendered.result.current)
-    console.log(rendered.result.current.sortedPosts.hot.comments)
+    console.log(rendered.result.current.posts.pages.hot.comments)
   })
 
   test('use feed', async () => {

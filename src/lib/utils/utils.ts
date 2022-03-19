@@ -60,16 +60,23 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   const flattenedComments = []
 
   // if is a Page instance
-  for (const reply of pageInstanceOrPagesInstance?.comments || []) {
-    flattenedComments.push(reply)
+  for (const comment of pageInstanceOrPagesInstance?.comments || []) {
+    flattenedComments.push(comment)
     for (const sortType of sortTypes) {
-      if (reply?.sortedReplies?.[sortType]) {
-        flattenedComments.push(...flattenCommentsPages(reply.sortedReplies[sortType]))
+      if (comment?.replies?.pages?.[sortType]) {
+        flattenedComments.push(...flattenCommentsPages(comment.replies?.pages?.[sortType]))
       }
     }
   }
 
   // if is a Pages instance
+  for (const sortType of sortTypes) {
+    if (pageInstanceOrPagesInstance?.pages?.[sortType]) {
+      flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance.pages[sortType]))
+    }
+  }
+
+  // if is a Pages.pages instance
   for (const sortType of sortTypes) {
     if (pageInstanceOrPagesInstance?.[sortType]) {
       flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance[sortType]))
@@ -78,9 +85,9 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
 
   // remove duplicate comments
   const flattenedCommentsObject = {}
-  for (const reply of flattenedComments) {
+  for (const comment of flattenedComments) {
     // @ts-ignore
-    flattenedCommentsObject[reply.cid] = reply
+    flattenedCommentsObject[comment.cid] = comment
   }
   const uniqueFlattened = []
   for (const cid in flattenedCommentsObject) {

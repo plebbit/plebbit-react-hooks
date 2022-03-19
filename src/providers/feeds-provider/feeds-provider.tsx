@@ -207,7 +207,7 @@ function useFeedsHaveMore(
           feedsHaveMore[feedName] = true
           continue feedsLoop
         }
-        const firstPageCid = subplebbit.pageCids?.[sortType]
+        const firstPageCid = subplebbit.posts?.pageCids?.[sortType]
         // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
         // should we try to use another sort type by default, like 'hot', or should we just ignore it?
         // 'continue' to ignore it for now
@@ -337,7 +337,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
         subplebbitAddress,
         sortType,
         // add preloaded subplebbit page if any
-        page: subplebbits?.[subplebbitAddress]?.sortedPosts?.[sortType],
+        page: subplebbits?.[subplebbitAddress]?.posts?.pages?.[sortType],
       }
       newSubplebbitsPagesInfo[firstPageCid + infoName] = subplebbitFirstPageInfo
 
@@ -392,12 +392,12 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
 
         getSubplebbitPagePending[account.id + pageCid] = true
         const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress })
-        const fetchedSubplebbitPage = await subplebbit.getSortedPosts(pageCid)
+        const fetchedSubplebbitPage = await subplebbit.posts.getPage(pageCid)
         await subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage)
-        debug('FeedsProvider useSubplebbitsPages subplebbit.getSortedPosts', {
+        debug('FeedsProvider useSubplebbitsPages subplebbit.posts.getPage', {
           pageCid,
           infoName,
-          sortedPosts: {
+          subplebbitPage: {
             nextCid: fetchedSubplebbitPage.nextCid,
             commentsLength: fetchedSubplebbitPage.comments.length,
             subplebbitsPostsInfo,
@@ -459,7 +459,7 @@ function useSubplebbitsPostsInfo(feedsOptions: FeedsOptions, subplebbits: Subple
       const { subplebbitAddresses, sortType, account } = feedsOptions[feedName]
       for (const subplebbitAddress of subplebbitAddresses) {
         const subplebbit = subplebbits[subplebbitAddress]
-        const pageCid = subplebbit?.pageCids?.[sortType]
+        const pageCid = subplebbit?.posts?.pageCids?.[sortType]
         if (!pageCid) {
           continue
         }
@@ -474,7 +474,7 @@ function useSubplebbitsPostsInfo(feedsOptions: FeedsOptions, subplebbits: Subple
       }
     }
     return subplebbitsPostsInfo
-    // don't use bufferedFeeds to rerender, only rerender on feedOptions.pageNumber change, or subplebbit.pageCids change
+    // don't use bufferedFeeds to rerender, only rerender on feedOptions.pageNumber change, or subplebbit.posts.pageCids change
   }, [feedsOptions, subplebbits])
 }
 

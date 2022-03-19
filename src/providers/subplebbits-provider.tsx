@@ -68,11 +68,18 @@ const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Acc
     return
   }
   const subplebbit = account.plebbit.createSubplebbit(subplebbitData)
+
   // add potential missing data from the database onto the subplebbit instance
   for (const prop in subplebbitData) {
     if (subplebbit[prop] === undefined || subplebbit[prop] === null) {
       if (subplebbitData[prop] !== undefined && subplebbitData[prop] !== null) subplebbit[prop] = subplebbitData[prop]
     }
   }
+  // add potential missing data from the Pages API
+  subplebbit.posts.pages = utils.merge(subplebbitData?.posts?.pages || {}, subplebbit?.posts?.pages || {})
+  subplebbit.posts.pageCids = utils.merge(subplebbitData?.posts?.pageCids || {}, subplebbit?.posts?.pageCids || {})
+  
+  // NOTE: adding missing data is probably not needed with a full implementation of plebbit-js with no bugs
+  // but the plebbit mock is barely implemented
   return subplebbit
 }

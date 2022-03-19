@@ -179,7 +179,7 @@ const getCommentUpdateContent = async (comment: any) => {
   return commentUpdateContent
 }
 
-const subplebbitGetSortedPosts = async (pageCid: string, subplebbit: any) => {
+const getCommentsPage = async (pageCid: string, subplebbit: any) => {
   const page: any = {
     nextCid: await hash(pageCid + 'next'),
     comments: [],
@@ -198,7 +198,7 @@ const subplebbitGetSortedPosts = async (pageCid: string, subplebbit: any) => {
   return page
 }
 
-export class Plebbit {
+class Plebbit {
   createSubplebbit(createSubplebbitOptions: any) {
     return new Subplebbit(createSubplebbitOptions)
   }
@@ -210,8 +210,8 @@ export class Plebbit {
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
     const hotPageCid = await hash(subplebbitAddress + 'hot1')
-    subplebbit.sortedPosts = { hot: await subplebbitGetSortedPosts(hotPageCid, subplebbit) }
-    subplebbit.pageCids = {
+    subplebbit.posts.pages.hot = await getCommentsPage(hotPageCid, subplebbit)
+    subplebbit.posts.pageCids = {
       hot: await hash(subplebbitAddress + 'hot1'),
       topAll: await hash(subplebbitAddress + 'topAll1'),
       new: await hash(subplebbitAddress + 'new1'),
@@ -258,17 +258,36 @@ export class Plebbit {
   }
 }
 
-export class Subplebbit extends EventEmitter {
+class Pages {
+  pageCids: any = {}
+  pages: any = {}
+  subplebbit: any
+  comment: any
+
+  constructor(pagesOptions?: any) {
+    Object.defineProperty(this, 'subplebbit', {value: pagesOptions?.subplebbit, enumerable: false})
+    Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
+  }
+
+  async getPage(pageCid: string) {
+    // need to wait twice otherwise react renders too fast and fetches too many pages in advance
+    await simulateLoadingTime()
+    return getCommentsPage(pageCid, this.subplebbit)
+  }
+}
+
+class Subplebbit extends EventEmitter {
   updating = false
   address: string | undefined
   title: string | undefined
   description: string | undefined
-  sortedPosts: any
   pageCids: any
+  posts: Pages
 
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
+    this.posts = new Pages({subplebbit: this})
   }
 
   update() {
@@ -289,12 +308,6 @@ export class Subplebbit extends EventEmitter {
   simulateUpdateEvent() {
     this.description = this.address + ' description updated'
     this.emit('update', this)
-  }
-
-  async getSortedPosts(pageCid: string) {
-    // need to wait twice otherwise react renders too fast and fetches too many pages in advance
-    await simulateLoadingTime()
-    return await subplebbitGetSortedPosts(pageCid, this)
   }
 }
 
@@ -344,7 +357,7 @@ class Publication extends EventEmitter {
   }
 }
 
-export class Comment extends Publication {
+class Comment extends Publication {
   updating = false
   author: any
   ipnsName: string | undefined
@@ -396,7 +409,7 @@ export class Comment extends Publication {
   }
 }
 
-export class Vote extends Publication {}
+class Vote extends Publication {}
 
 export default function () {
   return new Plebbit()
