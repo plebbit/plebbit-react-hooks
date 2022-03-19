@@ -69,10 +69,13 @@ const urlSuffixes = [
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
-  // if (!window.TextEncoder) {
-  //   const crypto = require('crypto')
-  //   return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
-  // }
+  if (!window.TextEncoder) {
+    try {
+      const crypto = require('crypto')
+      return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
+    }
+    catch (e) {}
+  }
   // @ts-ignore
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(string))
   // @ts-ignore
@@ -163,17 +166,19 @@ const getCommentUpdateContent = async (comment: any) => {
     typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate
 
   // simulate finding replies from IPNS record
-  commentUpdateContent.sortedReplies = {
-    topAll: {
-      nextCid: null,
-      comments: [
-        await getReplyContent(comment.cid, comment.cid + 'replycontent1'),
-        await getReplyContent(comment.cid, comment.cid + 'replycontent2'),
-        await getReplyContent(comment.cid, comment.cid + 'replycontent3'),
-        await getReplyContent(comment.cid, comment.cid + 'replycontent4'),
-        await getReplyContent(comment.cid, comment.cid + 'replycontent5'),
-      ],
-    },
+  commentUpdateContent.replies = {
+    pages: {
+      topAll: {
+        nextCid: null,
+        comments: [
+          await getReplyContent(comment.cid, comment.cid + 'replycontent1'),
+          await getReplyContent(comment.cid, comment.cid + 'replycontent2'),
+          await getReplyContent(comment.cid, comment.cid + 'replycontent3'),
+          await getReplyContent(comment.cid, comment.cid + 'replycontent4'),
+          await getReplyContent(comment.cid, comment.cid + 'replycontent5'),
+        ],
+      },
+    }
   }
   commentUpdateContent.replyCount = 5
   return commentUpdateContent
@@ -365,7 +370,7 @@ class Comment extends Publication {
   downvoteCount: number | undefined
   content: string | undefined
   parentCid: string | undefined
-  sortedReplies: any
+  replies: any
   replyCount: number | undefined
 
   constructor(createCommentOptions?: any) {

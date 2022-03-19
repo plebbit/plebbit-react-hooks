@@ -1007,15 +1007,17 @@ describe('accounts', () => {
 
       act(() => {
         // update the comment with replies to see get notifications
-        comment.sortedReplies = {
-          topAll: {
-            nextCid: null,
-            comments: [
-              { cid: 'reply cid 1', timestamp: 1 },
-              { cid: 'reply cid 2', timestamp: 2 },
-              { cid: 'reply cid 3', timestamp: 3 },
-            ],
-          },
+        comment.replies = {
+          pages: {
+            topAll: {
+              nextCid: null,
+              comments: [
+                { cid: 'reply cid 1', timestamp: 1 },
+                { cid: 'reply cid 2', timestamp: 2 },
+                { cid: 'reply cid 3', timestamp: 3 },
+              ],
+            },
+          }
         }
         comment.emit('update', comment)
       })
@@ -1057,14 +1059,16 @@ describe('accounts', () => {
 
       act(() => {
         // update the comment with one unread reply and one read reply
-        comment.sortedReplies = {
-          topAll: {
-            nextCid: null,
-            comments: [
-              { cid: 'reply cid 3', timestamp: 3 },
-              { cid: 'reply cid 4', timestamp: 4 },
-            ],
-          },
+        comment.replies = {
+          pages: {
+            topAll: {
+              nextCid: null,
+              comments: [
+                { cid: 'reply cid 3', timestamp: 3 },
+                { cid: 'reply cid 4', timestamp: 4 },
+              ],
+            },
+          }
         }
         comment.emit('update', comment)
       })

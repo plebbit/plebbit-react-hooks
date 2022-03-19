@@ -389,38 +389,37 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       })
 
       // update AccountCommentsReplies with new replies if has any new replies
-      const sortedRepliesArray = [
-        updatedComment.sortedReplies?.new,
-        updatedComment.sortedReplies?.topAll,
-        updatedComment.sortedReplies?.old,
-        updatedComment.sortedReplies?.controversialAll,
+      const replyPageArray = [
+        updatedComment.replies?.pages?.new,
+        updatedComment.replies?.pages?.topAll,
+        updatedComment.replies?.pages?.old,
+        updatedComment.replies?.pages?.controversialAll,
       ]
-      const hasReplies =
-        sortedRepliesArray
-          .map((sortedReplies) => sortedReplies?.comments?.length || 0)
+      const hasReplies = replyPageArray
+          .map((replyPage) => replyPage?.comments?.length || 0)
           .reduce((prev, curr) => prev + curr) > 0
       if (hasReplies) {
         setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
-          // check which ones are read or not
-          const updatedReplies: { [key: string]: Comment } = {}
-          for (const sortedReplies of sortedRepliesArray) {
-            for (const sortedReply of sortedReplies?.comments || []) {
+          // check which replies are read or not
+          const updatedAccountCommentsReplies: { [replyCid: string]: Comment } = {}
+          for (const replyPage of replyPageArray) {
+            for (const reply of replyPage?.comments || []) {
               const markedAsRead =
-                previousAccountsCommentsReplies[account.id]?.[sortedReply.cid]?.markedAsRead === true ? true : false
-              updatedReplies[sortedReply.cid] = { ...sortedReply, markedAsRead }
+                previousAccountsCommentsReplies[account.id]?.[reply.cid]?.markedAsRead === true ? true : false
+              updatedAccountCommentsReplies[reply.cid] = { ...reply, markedAsRead }
             }
           }
 
           // add all to database
           const promises = []
-          for (const replyCid in updatedReplies) {
-            promises.push(accountsDatabase.addAccountCommentReply(account.id, updatedReplies[replyCid]))
+          for (const replyCid in updatedAccountCommentsReplies) {
+            promises.push(accountsDatabase.addAccountCommentReply(account.id, updatedAccountCommentsReplies[replyCid]))
           }
           Promise.all(promises)
 
           // set new react context
-          const updatedAccountCommentsReplies = { ...previousAccountsCommentsReplies[account.id], ...updatedReplies }
-          return { ...previousAccountsCommentsReplies, [account.id]: updatedAccountCommentsReplies }
+          const newAccountCommentsReplies = { ...previousAccountsCommentsReplies[account.id], ...updatedAccountCommentsReplies }
+          return { ...previousAccountsCommentsReplies, [account.id]: newAccountCommentsReplies }
         })
       }
     })
