@@ -15,11 +15,11 @@ import {
   Subplebbits,
   Account,
   Accounts,
+  SubplebbitPage,
   SubplebbitsPages,
   SubplebbitsPagesInfo,
   SubplebbitsPostsInfo,
   FeedsOptions,
-  SubplebbitPage,
 } from '../../types'
 
 const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 })
@@ -126,7 +126,6 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       feedsOptions[feedName],
       `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`
     )
-    // assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`)
     debug('feedsActions.incrementFeedPageNumber', { feedName })
     setFeedsOptions((previousFeedsOptions) => {
       assert(
@@ -518,7 +517,7 @@ function useSubplebbits(feedsOptions: FeedsOptions) {
     }
   }, [subplebbitAddressesAndAccounts])
 
-  // debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits })
+  debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits })
   return subplebbits
 }
 
