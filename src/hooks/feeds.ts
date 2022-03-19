@@ -5,7 +5,7 @@ import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:feeds')
 import assert from 'assert'
-import {Feed, UseBufferedFeedOptions} from '../types'
+import { Feed, UseBufferedFeedOptions } from '../types'
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
@@ -46,13 +46,13 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   }
 
   debug('useFeed', { feed, hasMore })
-  return {feed, hasMore, loadMore}
+  return { feed, hasMore, loadMore }
 }
 
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when
  * they are called by useFeed later, they are already preloaded.
- * 
+ *
  * @param feedOptions - The options of the feed
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
@@ -74,7 +74,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
     feedsOptionsFlattened[i] = [account?.id, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]]
   }
   const feedNames = useStringified(feedsOptionsFlattened)
-  
+
   // only give to the user the buffered feeds he requested
   const bufferedFeeds: Feed[] = []
   for (const feedName of feedNames) {
@@ -91,7 +91,13 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
       }
       if (!feedsContext.bufferedFeeds[feedName || '']) {
         const isBufferedFeed = true
-        feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed)
+        feedsContext.feedsActions.addFeedToContext(
+          feedName,
+          uniqueSubplebbitAddresses,
+          sortType,
+          account,
+          isBufferedFeed
+        )
       }
     }
   }, [feedNames])
@@ -103,14 +109,13 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
 /**
  * Util to find unique and sorted subplebbit addresses for multiple feed options
  */
-function useUniqueSorted(stringsArrays?: (string[]|undefined)[]) {
+function useUniqueSorted(stringsArrays?: (string[] | undefined)[]) {
   return useMemo(() => {
     const uniqueSorted = []
     for (const stringsArray of stringsArrays || []) {
       if (!stringsArray) {
         uniqueSorted.push(undefined)
-      }
-      else {
+      } else {
         uniqueSorted.push([...new Set(stringsArray.sort())])
       }
     }
@@ -127,8 +132,7 @@ function useStringified(objs?: any[]) {
     for (const obj of objs || []) {
       if (obj === undefined) {
         stringified.push(undefined)
-      }
-      else {
+      } else {
         stringified.push(JSON.stringify(obj))
       }
     }

@@ -116,15 +116,9 @@ export const validateAccountsProviderAccountNames = (accountNames: any) => {
 
 export const validateAccountsDatabaseAddAccountArguments = (account: any) => {
   assert(account && typeof account === 'object', `accountsDatabase.addAccount '${account}' not an object`)
-  assert(
-    typeof account.name === 'string',
-    `accountsDatabase.addAccount account.name '${account.name}' not a string`
-  )
+  assert(typeof account.name === 'string', `accountsDatabase.addAccount account.name '${account.name}' not a string`)
   assert(account.name !== '', `accountsDatabase.addAccount account.name is empty string`)
-  assert(
-    typeof account.id === 'string',
-    `accountsDatabase.addAccount account.id '${account.id}' not a string`
-  )
+  assert(typeof account.id === 'string', `accountsDatabase.addAccount account.id '${account.id}' not a string`)
   assert(account.id !== '', `accountsDatabase.addAccount account.id is empty string`)
 }
 
@@ -172,7 +166,22 @@ export const validateUseSubplebbitsArguments = (subplebbitAddresses: any, accoun
   )
 }
 
-const feedSortTypes = new Set(['hot', 'new', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'controversialHour', 'controversialDay', 'controversialWeek', 'controversialMonth', 'controversialYear', 'controversialAll'])
+const feedSortTypes = new Set([
+  'hot',
+  'new',
+  'topHour',
+  'topDay',
+  'topWeek',
+  'topMonth',
+  'topYear',
+  'topAll',
+  'controversialHour',
+  'controversialDay',
+  'controversialWeek',
+  'controversialMonth',
+  'controversialYear',
+  'controversialAll',
+])
 export const validateFeedSortType = (sortType: any) => {
   assert(feedSortTypes.has(sortType), `invalid feed sort type '${sortType}'`)
 }
@@ -191,7 +200,7 @@ const validator = {
   validateUseCommentsArguments,
   validateUseSubplebbitArguments,
   validateUseSubplebbitsArguments,
-  validateFeedSortType
+  validateFeedSortType,
 }
 
 export default validator

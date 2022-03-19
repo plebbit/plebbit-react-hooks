@@ -39,7 +39,7 @@ const restoreAll = () => {
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
-  restoreAll
+  restoreAll,
 }
 
 export default testUtils

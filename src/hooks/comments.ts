@@ -5,7 +5,7 @@ import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:comments')
 import assert from 'assert'
-import {Comment} from '../types'
+import { Comment } from '../types'
 
 /**
  * @param commentCid - The IPFS CID of the comment to get

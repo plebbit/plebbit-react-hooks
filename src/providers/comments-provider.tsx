@@ -6,7 +6,7 @@ import localForageLru from '../lib/localforage-lru'
 const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 })
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:commentsprovider')
-import {Props, Comment, Comments, Account} from '../types'
+import { Props, Comment, Comments, Account } from '../types'
 import utils from '../lib/utils'
 
 type CommentsContext = any
@@ -19,7 +19,7 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
   const accountsContext = useContext(AccountsContext)
   const [comments, setComments] = useState<Comments>({})
 
-  const commentsActions: {[key: string]: Function} = {}
+  const commentsActions: { [key: string]: Function } = {}
 
   commentsActions.addCommentToContext = async (commentId: string, account: Account) => {
     // comment is in context already, do nothing
@@ -81,8 +81,7 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
   // should not be necessary if Plebbit.createComment is implemented properly
   for (const prop in commentData) {
     if (comment[prop] === undefined || comment[prop] === null) {
-      if (commentData[prop] !== undefined && commentData[prop] !== null) 
-        comment[prop] = commentData[prop]
+      if (commentData[prop] !== undefined && commentData[prop] !== null) comment[prop] = commentData[prop]
     }
   }
   return comment

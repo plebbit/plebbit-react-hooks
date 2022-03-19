@@ -4,7 +4,12 @@ import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:hooks:accounts')
 import assert from 'assert'
-import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications} from '../types'
+import type {
+  UseAccountCommentsFilter,
+  UseAccountCommentsOptions,
+  AccountComments,
+  AccountNotifications,
+} from '../types'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -63,7 +68,7 @@ export function useAccountsActions() {
 
 /**
  * Returns an account's notifications in an array. Unread notifications have a field markedAsRead: false.
- * 
+ *
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account's notifications.
  */
@@ -78,12 +83,11 @@ export function useAccountNotifications(accountName?: string) {
   const markAsRead = () => {
     if (!account) {
       throw Error('useAccountNotifications cannot mark as read accounts not initalized yet')
-      
     }
     accountsContext?.markAccountNotificationsAsRead(account)
   }
   debug('useAccountNotifications', { notifications })
-  return {notifications, markAsRead}
+  return { notifications, markAsRead }
 }
 
 /**

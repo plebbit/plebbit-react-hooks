@@ -4,7 +4,7 @@ import PlebbitJsMockContent from './plebbit-js-mock-content'
 function Plebbit(plebbitOptions: any) {} // should import from plebbit-js npm module later instead
 
 const PlebbitJs = {
-  Plebbit: Plebbit
+  Plebbit: Plebbit,
 }
 
 // mock the plebbit-js module for unit tests

@@ -5,7 +5,16 @@ import localForage from 'localforage'
 import localForageLru from '../../lib/localforage-lru'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
-import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
+import {
+  Accounts,
+  AccountNamesToAccountIds,
+  CreateCommentOptions,
+  Account,
+  Comment,
+  AccountsComments,
+  AccountCommentReply,
+  AccountsCommentsReplies,
+} from '../../types'
 import utils from '../../lib/utils'
 
 const getAccounts = async (accountIds: string[]) => {
@@ -196,7 +205,10 @@ const accountsCommentsRepliesDatabases: any = {}
 const getAccountCommentsRepliesDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountCommentsRepliesDatabase '${accountId}' not a string`)
   if (!accountsCommentsRepliesDatabases[accountId]) {
-    accountsCommentsRepliesDatabases[accountId] = localForageLru.createInstance({ name: `accountCommentsReplies-${accountId}`, size: 1000 })
+    accountsCommentsRepliesDatabases[accountId] = localForageLru.createInstance({
+      name: `accountCommentsReplies-${accountId}`,
+      size: 1000,
+    })
   }
   return accountsCommentsRepliesDatabases[accountId]
 }
@@ -249,7 +261,7 @@ const database = {
   getAccount,
   addAccountCommentReply,
   getAccountCommentsReplies,
-  getAccountsCommentsReplies
+  getAccountsCommentsReplies,
 }
 
 export default database

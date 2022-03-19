@@ -19,7 +19,7 @@ export type AccountNotification = any
 /**
  * Subplebbits and comments provider
  */
-export type Subplebbits = {[key: string]: Subplebbit}
+export type Subplebbits = { [key: string]: Subplebbit }
 export type Comments = { [key: string]: Comment }
 
 /**
@@ -27,11 +27,16 @@ export type Comments = { [key: string]: Comment }
  */
 export type Accounts = { [key: string]: Account }
 export type AccountNamesToAccountIds = { [key: string]: string }
-export interface AccountComment extends Comment {index: number, accountId: string}
+export interface AccountComment extends Comment {
+  index: number
+  accountId: string
+}
 export type AccountComments = AccountComment[]
 export type AccountsComments = { [key: string]: AccountComments }
-export interface AccountCommentReply extends Comment {markedAsRead: boolean}
-export type AccountCommentsReplies = { [key: string]:  AccountCommentReply }
+export interface AccountCommentReply extends Comment {
+  markedAsRead: boolean
+}
+export type AccountCommentsReplies = { [key: string]: AccountCommentReply }
 export type AccountsCommentsReplies = { [key: string]: AccountCommentsReplies }
 export type AccountNotifications = AccountNotification[]
 export type AccountsNotifications = { [key: string]: AccountNotifications }
@@ -40,14 +45,14 @@ export type AccountsNotifications = { [key: string]: AccountNotifications }
  * Feeds provider
  */
 export type Feed = Comment[]
-export type Feeds = {[key: string]: Feed}
+export type Feeds = { [key: string]: Feed }
 export type FeedOptions = {
-  subplebbitAddresses: string[],
+  subplebbitAddresses: string[]
   sortType: string
   account: Account
   pageNumber: number
 }
-export type FeedsOptions = {[key: string]: FeedOptions}
+export type FeedsOptions = { [key: string]: FeedOptions }
 export type FeedSortedPostsInfo = {
   firstPageSortedPostsCid: string
   account: Account
@@ -55,7 +60,7 @@ export type FeedSortedPostsInfo = {
   sortType: string
   bufferedPostCount: number
 }
-export type FeedsSortedPostsInfo = {[key: string]: FeedSortedPostsInfo}
+export type FeedsSortedPostsInfo = { [key: string]: FeedSortedPostsInfo }
 export type SortedPostsPageInfo = {
   sortedPostsCid: string
   sortedPosts?: SortedComments
@@ -63,12 +68,12 @@ export type SortedPostsPageInfo = {
   subplebbitAddress: string
   sortType: string
 }
-export type SortedPostsPagesInfo = {[key: string]: SortedPostsPageInfo}
+export type SortedPostsPagesInfo = { [key: string]: SortedPostsPageInfo }
 export type SortedComments = {
-  nextSortedCommentsCid: string,
+  nextSortedCommentsCid: string
   comments: Comment[]
 }
-export type SortedPostsPages = {[key: string]: SortedComments}
+export type SortedPostsPages = { [key: string]: SortedComments }
 
 /**
  * Accounts hooks

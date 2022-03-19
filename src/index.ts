@@ -1,7 +1,7 @@
 // fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
 try {
   if (process?.env?.DEBUG_DEPTH) {
-    require("util").inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
+    require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
   }
 } catch (e) {}
 
@@ -13,7 +13,7 @@ import {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
-  useAccountNotifications
+  useAccountNotifications,
 } from './hooks/accounts'
 
 import { useComment, useComments } from './hooks/comments'
@@ -33,10 +33,10 @@ export {
   useAccountNotifications,
   useComment,
   useComments,
-  useSubplebbit, 
+  useSubplebbit,
   useSubplebbits,
   useFeed,
-  useBufferedFeeds
+  useBufferedFeeds,
 }
 
 const hooks = {
@@ -49,10 +49,10 @@ const hooks = {
   useAccountVote,
   useAccountNotifications,
   useComment,
-  useSubplebbit, 
+  useSubplebbit,
   useSubplebbits,
   useFeed,
-  useBufferedFeeds
+  useBufferedFeeds,
 }
 
 export default hooks

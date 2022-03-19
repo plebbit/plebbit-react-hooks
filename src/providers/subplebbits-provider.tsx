@@ -5,7 +5,7 @@ import localForageLru from '../lib/localforage-lru'
 const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 })
 import Debug from 'debug'
 const debug = Debug('plebbitreacthooks:providers:subplebbitsprovider')
-import {Props, Subplebbit, Subplebbits, Account} from '../types'
+import { Props, Subplebbit, Subplebbits, Account } from '../types'
 import utils from '../lib/utils'
 
 type SubplebbitsContext = any
@@ -17,7 +17,7 @@ const plebbitGetSubplebbitPending: { [key: string]: boolean } = {}
 export default function SubplebbitsProvider(props: Props): JSX.Element | null {
   const [subplebbits, setSubplebbits] = useState<Subplebbits>({})
 
-  const subplebbitsActions: {[key: string]: Function} = {}
+  const subplebbitsActions: { [key: string]: Function } = {}
 
   subplebbitsActions.addSubplebbitToContext = async (subplebbitAddress: string, account: Account) => {
     // subplebbit is in context already, do nothing
@@ -71,8 +71,7 @@ const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Acc
   // add potential missing data from the database onto the subplebbit instance
   for (const prop in subplebbitData) {
     if (subplebbit[prop] === undefined || subplebbit[prop] === null) {
-      if (subplebbitData[prop] !== undefined && subplebbitData[prop] !== null) 
-        subplebbit[prop] = subplebbitData[prop]
+      if (subplebbitData[prop] !== undefined && subplebbitData[prop] !== null) subplebbit[prop] = subplebbitData[prop]
     }
   }
   return subplebbit

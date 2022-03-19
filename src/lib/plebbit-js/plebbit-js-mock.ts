@@ -14,16 +14,16 @@ export class Plebbit {
   async getSubplebbit(subplebbitAddress: string) {
     await simulateLoadingTime()
     const createSubplebbitOptions = {
-      address: subplebbitAddress
+      address: subplebbitAddress,
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
     subplebbit.title = subplebbit.address + ' title'
     const hotSortedPostsCid = subplebbit.address + ' sorted posts cid hot'
-    subplebbit.sortedPosts = {hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit)}
+    subplebbit.sortedPosts = { hot: subplebbitGetSortedPosts(hotSortedPostsCid, subplebbit) }
     subplebbit.sortedPostsCids = {
       hot: hotSortedPostsCid,
       topAll: subplebbit.address + ' sorted posts cid topAll',
-      new: subplebbit.address + ' sorted posts cid new'
+      new: subplebbit.address + ' sorted posts cid new',
     }
     // mock properties of subplebbitToGet unto the subplebbit instance
     for (const prop in this.subplebbitToGet(subplebbit)) {
@@ -84,7 +84,9 @@ export class Subplebbit extends EventEmitter {
   update() {
     this.updateCalledTimes++
     if (this.updateCalledTimes > 1) {
-      throw Error('with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times')
+      throw Error(
+        'with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
+      )
     }
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (!this.address) {
@@ -115,18 +117,18 @@ export class Subplebbit extends EventEmitter {
 // define it here because also used it plebbit.getSubplebbit()
 const subplebbitGetSortedPosts = (sortedPostsCid: string, subplebbit: any) => {
   const sortedComments: any = {
-    nextSortedCommentsCid: subplebbit.address + ' ' + sortedPostsCid + ' - next sorted comments cid', 
-    comments: []
+    nextSortedCommentsCid: subplebbit.address + ' ' + sortedPostsCid + ' - next sorted comments cid',
+    comments: [],
   }
   const postCount = 100
   let index = 0
   while (index++ < postCount) {
     sortedComments.comments.push({
       timestamp: index,
-      cid: sortedPostsCid + ' comment cid ' + index, 
+      cid: sortedPostsCid + ' comment cid ' + index,
       subplebbitAddress: subplebbit.address,
       upvoteCount: index,
-      downvoteCount: 10
+      downvoteCount: 10,
     })
   }
   return sortedComments
@@ -203,7 +205,9 @@ export class Comment extends Publication {
   update() {
     this.updateCalledTimes++
     if (this.updateCalledTimes > 2) {
-      throw Error('with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times')
+      throw Error(
+        'with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
+      )
     }
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (!this.ipnsName) {

@@ -9,30 +9,25 @@ describe('utils', () => {
           sortedReplies: {
             new: {
               comments: [
-                {cid: '4'},
+                { cid: '4' },
                 {
                   cid: '5',
                   sortedReplies: {
                     topAll: {
-                      comments: [
-                        {cid: '6'},
-                        {cid: '7'}
-                      ]
+                      comments: [{ cid: '6' }, { cid: '7' }],
                     },
                     new: {
-                      comments: [
-                        {cid: '7'}
-                      ]
-                    }
-                  }
+                      comments: [{ cid: '7' }],
+                    },
+                  },
                 },
-              ]
-            }
-          }
+              ],
+            },
+          },
         },
-        {cid: '2'},
-        {cid: '3'}
-      ]
+        { cid: '2' },
+        { cid: '3' },
+      ],
     }
 
     const flattedReplies = utils.flattenSortedComments(sortedReplies)
@@ -46,7 +41,7 @@ describe('utils', () => {
     expect(flattedReplies[6].cid).toBe('7')
 
     const sortedCommentsObject = {
-      new: sortedReplies
+      new: sortedReplies,
     }
     const flattedReplies2 = utils.flattenSortedComments(sortedCommentsObject)
     expect(flattedReplies2).toEqual(flattedReplies)

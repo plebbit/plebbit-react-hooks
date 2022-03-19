@@ -39,9 +39,25 @@ const clone = (obj: any) => {
   return JSON.parse(JSON.stringify(clonedObj))
 }
 
-const sortTypes = ['hot', 'new', 'old', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'controversialHour', 'controversialDay', 'controversialWeek', 'controversialMonth', 'controversialYear', 'controversialAll']
+const sortTypes = [
+  'hot',
+  'new',
+  'old',
+  'topHour',
+  'topDay',
+  'topWeek',
+  'topMonth',
+  'topYear',
+  'topAll',
+  'controversialHour',
+  'controversialDay',
+  'controversialWeek',
+  'controversialMonth',
+  'controversialYear',
+  'controversialAll',
+]
 export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject: any) => {
-  const flattenedComments  = []
+  const flattenedComments = []
 
   // if is SortedComments
   for (const reply of sortedCommentsOrSortedCommentsObject?.comments || []) {
@@ -77,7 +93,7 @@ export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject: any)
 const utils = {
   merge,
   clone,
-  flattenSortedComments
+  flattenSortedComments,
 }
 
 export default utils
