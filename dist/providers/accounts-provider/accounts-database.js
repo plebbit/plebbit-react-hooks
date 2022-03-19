@@ -176,7 +176,10 @@ const accountsCommentsRepliesDatabases = {};
 const getAccountCommentsRepliesDatabase = (accountId) => {
     assert(accountId && typeof accountId === 'string', `getAccountCommentsRepliesDatabase '${accountId}' not a string`);
     if (!accountsCommentsRepliesDatabases[accountId]) {
-        accountsCommentsRepliesDatabases[accountId] = localForageLru.createInstance({ name: `accountCommentsReplies-${accountId}`, size: 1000 });
+        accountsCommentsRepliesDatabases[accountId] = localForageLru.createInstance({
+            name: `accountCommentsReplies-${accountId}`,
+            size: 1000,
+        });
     }
     return accountsCommentsRepliesDatabases[accountId];
 };
@@ -225,6 +228,6 @@ const database = {
     getAccount,
     addAccountCommentReply,
     getAccountCommentsReplies,
-    getAccountsCommentsReplies
+    getAccountsCommentsReplies,
 };
 export default database;

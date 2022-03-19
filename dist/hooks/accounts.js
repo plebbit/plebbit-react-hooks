@@ -154,8 +154,8 @@ const filterPublications = (publications, filter) => {
     for (const commentCid of filter.commentCids || []) {
         assert(commentCid && typeof commentCid === 'string', `accountCommentsFilter commentCid '${commentCid}' not a string`);
     }
-    for (const parentCommentCid of filter.parentCommentCids || []) {
-        assert(parentCommentCid && typeof parentCommentCid === 'string', `accountCommentsFilter parentCommentCid '${parentCommentCid}' not a string`);
+    for (const parentCid of filter.parentCids || []) {
+        assert(parentCid && typeof parentCid === 'string', `accountCommentsFilter parentCid '${parentCid}' not a string`);
     }
     const filteredPublications = [];
     for (const publication of publications) {
@@ -169,11 +169,11 @@ const filterPublications = (publications, filter) => {
         if (((_c = filter.commentCids) === null || _c === void 0 ? void 0 : _c.length) && !filter.commentCids.includes(publication.commentCid)) {
             isFilteredOut = true;
         }
-        if (((_d = filter.parentCommentCids) === null || _d === void 0 ? void 0 : _d.length) && !filter.parentCommentCids.includes(publication.parentCommentCid)) {
+        if (((_d = filter.parentCids) === null || _d === void 0 ? void 0 : _d.length) && !filter.parentCids.includes(publication.parentCid)) {
             isFilteredOut = true;
         }
-        if (typeof filter.hasParentCommentCid === 'boolean' &&
-            filter.hasParentCommentCid !== Boolean(publication.parentCommentCid)) {
+        if (typeof filter.hasParentCid === 'boolean' &&
+            filter.hasParentCid !== Boolean(publication.parentCid)) {
             isFilteredOut = true;
         }
         if (!isFilteredOut) {

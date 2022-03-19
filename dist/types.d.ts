@@ -18,19 +18,19 @@ export declare type AccountNotification = any;
  * Subplebbits and comments provider
  */
 export declare type Subplebbits = {
-    [key: string]: Subplebbit;
+    [subplebbitAddress: string]: Subplebbit;
 };
 export declare type Comments = {
-    [key: string]: Comment;
+    [commendCid: string]: Comment;
 };
 /**
  * Accounts provider
  */
 export declare type Accounts = {
-    [key: string]: Account;
+    [accountId: string]: Account;
 };
 export declare type AccountNamesToAccountIds = {
-    [key: string]: string;
+    [accountName: string]: string;
 };
 export interface AccountComment extends Comment {
     index: number;
@@ -38,27 +38,27 @@ export interface AccountComment extends Comment {
 }
 export declare type AccountComments = AccountComment[];
 export declare type AccountsComments = {
-    [key: string]: AccountComments;
+    [accountId: string]: AccountComments;
 };
 export interface AccountCommentReply extends Comment {
     markedAsRead: boolean;
 }
 export declare type AccountCommentsReplies = {
-    [key: string]: AccountCommentReply;
+    [replyCid: string]: AccountCommentReply;
 };
 export declare type AccountsCommentsReplies = {
-    [key: string]: AccountCommentsReplies;
+    [accountId: string]: AccountCommentsReplies;
 };
 export declare type AccountNotifications = AccountNotification[];
 export declare type AccountsNotifications = {
-    [key: string]: AccountNotifications;
+    [accountId: string]: AccountNotifications;
 };
 /**
  * Feeds provider
  */
 export declare type Feed = Comment[];
 export declare type Feeds = {
-    [key: string]: Feed;
+    [feedName: string]: Feed;
 };
 export declare type FeedOptions = {
     subplebbitAddresses: string[];
@@ -67,34 +67,34 @@ export declare type FeedOptions = {
     pageNumber: number;
 };
 export declare type FeedsOptions = {
-    [key: string]: FeedOptions;
+    [feedName: string]: FeedOptions;
 };
-export declare type FeedSortedPostsInfo = {
-    firstPageSortedPostsCid: string;
+export declare type SubplebbitPostsInfo = {
+    firstPageCid: string;
     account: Account;
     subplebbitAddress: string;
     sortType: string;
     bufferedPostCount: number;
 };
-export declare type FeedsSortedPostsInfo = {
-    [key: string]: FeedSortedPostsInfo;
+export declare type SubplebbitsPostsInfo = {
+    [infoName: string]: SubplebbitPostsInfo;
 };
-export declare type SortedPostsPageInfo = {
-    sortedPostsCid: string;
-    sortedPosts?: SortedComments;
+export declare type SubplebbitPageInfo = {
+    pageCid: string;
+    page?: SubplebbitPage;
     account: Account;
     subplebbitAddress: string;
     sortType: string;
 };
-export declare type SortedPostsPagesInfo = {
-    [key: string]: SortedPostsPageInfo;
+export declare type SubplebbitsPagesInfo = {
+    [infoName: string]: SubplebbitPageInfo;
 };
-export declare type SortedComments = {
-    nextSortedCommentsCid: string;
+export declare type SubplebbitPage = {
+    nextCid: string;
     comments: Comment[];
 };
-export declare type SortedPostsPages = {
-    [key: string]: SortedComments;
+export declare type SubplebbitsPages = {
+    [pageCid: string]: SubplebbitPage;
 };
 /**
  * Accounts hooks
@@ -103,8 +103,8 @@ export declare type UseAccountCommentsFilter = {
     subplebbitAddresses?: string[];
     postCids?: string[];
     commentCids?: string[];
-    parentCommentCids?: string[];
-    hasParentCommentCid?: boolean;
+    parentCids?: string[];
+    hasParentCid?: boolean;
 };
 export declare type UseAccountCommentsOptions = {
     accountName?: string;

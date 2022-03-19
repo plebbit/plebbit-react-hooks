@@ -7,7 +7,7 @@ export const validateAccountsActionsPublishCommentArguments = ({ publishCommentO
     assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function');
     assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function');
     assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string');
-    assert(!publishCommentOptions.parentCommentCid || typeof publishCommentOptions.parentCommentCid === 'string', 'publishComment publishCommentOptions.parentCommentCid not a string');
+    assert(!publishCommentOptions.parentCid || typeof publishCommentOptions.parentCid === 'string', 'publishComment publishCommentOptions.parentCid not a string');
     assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string');
     assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string');
     assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number');
@@ -85,7 +85,22 @@ export const validateUseSubplebbitsArguments = (subplebbitAddresses, account) =>
     }
     assert((account === null || account === void 0 ? void 0 : account.plebbit) && typeof (account === null || account === void 0 ? void 0 : account.plebbit) === 'object', `useSubplebbit account.plebbit '${account === null || account === void 0 ? void 0 : account.plebbit}' not an object`);
 };
-const feedSortTypes = new Set(['hot', 'new', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'controversialHour', 'controversialDay', 'controversialWeek', 'controversialMonth', 'controversialYear', 'controversialAll']);
+const feedSortTypes = new Set([
+    'hot',
+    'new',
+    'topHour',
+    'topDay',
+    'topWeek',
+    'topMonth',
+    'topYear',
+    'topAll',
+    'controversialHour',
+    'controversialDay',
+    'controversialWeek',
+    'controversialMonth',
+    'controversialYear',
+    'controversialAll',
+]);
 export const validateFeedSortType = (sortType) => {
     assert(feedSortTypes.has(sortType), `invalid feed sort type '${sortType}'`);
 };
@@ -103,6 +118,6 @@ const validator = {
     validateUseCommentsArguments,
     validateUseSubplebbitArguments,
     validateUseSubplebbitsArguments,
-    validateFeedSortType
+    validateFeedSortType,
 };
 export default validator;

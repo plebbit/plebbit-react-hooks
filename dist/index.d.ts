@@ -4,7 +4,7 @@ import { useComment, useComments } from './hooks/comments';
 import { useSubplebbit, useSubplebbits } from './hooks/subplebbits';
 import { useFeed, useBufferedFeeds } from './hooks/feeds';
 export * from './types';
-export { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountNotifications, useComment, useComments, useSubplebbit, useSubplebbits, useFeed, useBufferedFeeds };
+export { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountNotifications, useComment, useComments, useSubplebbit, useSubplebbits, useFeed, useBufferedFeeds, };
 declare const hooks: {
     PlebbitProvider: typeof PlebbitProvider;
     useAccount: typeof useAccount;

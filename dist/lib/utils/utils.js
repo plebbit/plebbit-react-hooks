@@ -36,30 +36,52 @@ const clone = (obj) => {
     }
     return JSON.parse(JSON.stringify(clonedObj));
 };
-const sortTypes = ['hot', 'new', 'old', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'controversialHour', 'controversialDay', 'controversialWeek', 'controversialMonth', 'controversialYear', 'controversialAll'];
-export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject) => {
-    var _a;
+const sortTypes = [
+    'hot',
+    'new',
+    'old',
+    'topHour',
+    'topDay',
+    'topWeek',
+    'topMonth',
+    'topYear',
+    'topAll',
+    'controversialHour',
+    'controversialDay',
+    'controversialWeek',
+    'controversialMonth',
+    'controversialYear',
+    'controversialAll',
+];
+export const flattenCommentsPages = (pageInstanceOrPagesInstance) => {
+    var _a, _b, _c, _d, _e;
     const flattenedComments = [];
-    // if is SortedComments
-    for (const reply of (sortedCommentsOrSortedCommentsObject === null || sortedCommentsOrSortedCommentsObject === void 0 ? void 0 : sortedCommentsOrSortedCommentsObject.comments) || []) {
-        flattenedComments.push(reply);
+    // if is a Page instance
+    for (const comment of (pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance.comments) || []) {
+        flattenedComments.push(comment);
         for (const sortType of sortTypes) {
-            if ((_a = reply === null || reply === void 0 ? void 0 : reply.sortedReplies) === null || _a === void 0 ? void 0 : _a[sortType]) {
-                flattenedComments.push(...flattenSortedComments(reply.sortedReplies[sortType]));
+            if ((_b = (_a = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) {
+                flattenedComments.push(...flattenCommentsPages((_d = (_c = comment.replies) === null || _c === void 0 ? void 0 : _c.pages) === null || _d === void 0 ? void 0 : _d[sortType]));
             }
         }
     }
-    // if is SortedCommentsObject
+    // if is a Pages instance
     for (const sortType of sortTypes) {
-        if (sortedCommentsOrSortedCommentsObject === null || sortedCommentsOrSortedCommentsObject === void 0 ? void 0 : sortedCommentsOrSortedCommentsObject[sortType]) {
-            flattenedComments.push(...flattenSortedComments(sortedCommentsOrSortedCommentsObject[sortType]));
+        if ((_e = pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance.pages) === null || _e === void 0 ? void 0 : _e[sortType]) {
+            flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance.pages[sortType]));
+        }
+    }
+    // if is a Pages.pages instance
+    for (const sortType of sortTypes) {
+        if (pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance[sortType]) {
+            flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance[sortType]));
         }
     }
     // remove duplicate comments
     const flattenedCommentsObject = {};
-    for (const reply of flattenedComments) {
+    for (const comment of flattenedComments) {
         // @ts-ignore
-        flattenedCommentsObject[reply.cid] = reply;
+        flattenedCommentsObject[comment.cid] = comment;
     }
     const uniqueFlattened = [];
     for (const cid in flattenedCommentsObject) {
@@ -71,6 +93,6 @@ export const flattenSortedComments = (sortedCommentsOrSortedCommentsObject) => {
 const utils = {
     merge,
     clone,
-    flattenSortedComments
+    flattenCommentsPages,
 };
 export default utils;

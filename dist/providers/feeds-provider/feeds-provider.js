@@ -16,7 +16,7 @@ import localForageLru from '../../lib/localforage-lru';
 import utils from '../../lib/utils';
 import Debug from 'debug';
 const debug = Debug('plebbitreacthooks:providers:feedsprovider');
-const sortedPostsDatabase = localForageLru.createInstance({ name: 'sortedPosts', size: 500 });
+const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 });
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 const postsPerPage = 25;
@@ -27,12 +27,12 @@ export default function FeedsProvider(props) {
     const [feedsOptions, setFeedsOptions] = useState({});
     const [bufferedFeeds, setBufferedFeeds] = useState({});
     const [loadedFeeds, setLoadedFeeds] = useState({});
-    // fetch subplebbits, sorted posts and next pages whenever bufferedFeeds gets too low
+    // fetch subplebbits, subplebbits pages and next subplebbit pages whenever bufferedFeeds gets too low
     const subplebbits = useSubplebbits(feedsOptions);
-    const feedsSortedPostsInfo = useFeedsSortedPostsInfo(feedsOptions, subplebbits, bufferedFeeds);
-    const sortedPostsPages = useSortedPostsPages(feedsSortedPostsInfo, subplebbits);
-    const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPostsPages, loadedFeeds);
-    const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, sortedPostsPages, bufferedFeeds);
+    const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds);
+    const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits);
+    const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds);
+    const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds);
     // handle buffered feeds
     useEffect(() => {
         // don't rerender if there are no feeds
@@ -65,10 +65,10 @@ export default function FeedsProvider(props) {
         if (Object.keys(loadedFeedsMissingPosts).length === 0) {
             return;
         }
-        setLoadedFeeds(previousLoadedFeeds => {
+        setLoadedFeeds((previousLoadedFeeds) => {
             const newLoadedFeeds = {};
             for (const feedName in loadedFeedsMissingPosts) {
-                newLoadedFeeds[feedName] = [...previousLoadedFeeds[feedName] || [], ...loadedFeedsMissingPosts[feedName]];
+                newLoadedFeeds[feedName] = [...(previousLoadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]];
             }
             return Object.assign(Object.assign({}, previousLoadedFeeds), newLoadedFeeds);
         });
@@ -83,7 +83,7 @@ export default function FeedsProvider(props) {
         // to add a buffered feed, add a feed with pageNumber 0
         const feedOptions = { subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1 };
         debug('feedsActions.addFeedToContext', feedOptions);
-        setFeedsOptions(previousFeedsOptions => {
+        setFeedsOptions((previousFeedsOptions) => {
             // make sure to never overwrite a feed already added
             if (previousFeedsOptions[feedName]) {
                 return previousFeedsOptions;
@@ -95,7 +95,7 @@ export default function FeedsProvider(props) {
         assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`);
         // assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`)
         debug('feedsActions.incrementFeedPageNumber', { feedName });
-        setFeedsOptions(previousFeedsOptions => {
+        setFeedsOptions((previousFeedsOptions) => {
             assert(previousFeedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
             const feedOptions = Object.assign(Object.assign({}, previousFeedsOptions[feedName]), { pageNumber: previousFeedsOptions[feedName].pageNumber + 1 });
             return Object.assign(Object.assign({}, previousFeedsOptions), { [feedName]: feedOptions });
@@ -108,12 +108,19 @@ export default function FeedsProvider(props) {
         bufferedFeeds,
         loadedFeeds,
         feedsActions,
-        feedsHaveMore
+        feedsHaveMore,
     };
     // debug util
     const bufferedFeedsLengths = useFeedsLengths(bufferedFeeds);
     const loadedFeedsLengths = useFeedsLengths(loadedFeeds);
-    debug({ feedsOptions, feedsHaveMore, feedsSortedPostsInfo, sortedPostsPages, bufferedFeedsLengths, loadedFeedsLengths });
+    debug({
+        feedsOptions,
+        feedsHaveMore,
+        subplebbitsPostsInfo,
+        subplebbitsPages,
+        bufferedFeedsLengths,
+        loadedFeedsLengths,
+    });
     return React.createElement(FeedsContext.Provider, { value: feedsContext }, props.children);
 }
 /**
@@ -131,12 +138,11 @@ function useFeedsLengths(feeds) {
     }, [feeds]);
 }
 /**
- * Generate a list of `feedSortedPostsInfo` objects which contain the information required
- * to initiate fetching the pages of each subplebbit/sort/account/feed
+ * List of which feeds have more posts, i.e. have no reached the final page of all subs
  */
-function useFeedsHaveMore(feedsOptions, subplebbits, sortedPostsPages, bufferedFeeds) {
+function useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds) {
     return useMemo(() => {
-        var _a, _b;
+        var _a, _b, _c;
         const feedsHaveMore = {};
         feedsLoop: for (const feedName in feedsOptions) {
             // if the feed still has buffered posts, then it still has more
@@ -152,21 +158,21 @@ function useFeedsHaveMore(feedsOptions, subplebbits, sortedPostsPages, bufferedF
                     feedsHaveMore[feedName] = true;
                     continue feedsLoop;
                 }
-                const firstPageSortedPostsCid = (_b = subplebbit.sortedPostsCids) === null || _b === void 0 ? void 0 : _b[sortType];
+                const firstPageCid = (_c = (_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.pageCids) === null || _c === void 0 ? void 0 : _c[sortType];
                 // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
                 // should we try to use another sort type by default, like 'hot', or should we just ignore it?
                 // 'continue' to ignore it for now
-                if (!firstPageSortedPostsCid) {
+                if (!firstPageCid) {
                     continue;
                 }
-                const pages = getSubplebbitSortedPostsPages(firstPageSortedPostsCid, sortedPostsPages);
+                const pages = getSubplebbitPages(firstPageCid, subplebbitsPages);
                 // if first page isn't loaded yet, then the feed still has more
                 if (!pages.length) {
                     feedsHaveMore[feedName] = true;
                     continue feedsLoop;
                 }
                 const lastPage = pages[pages.length - 1];
-                if (lastPage.nextSortedCommentsCid) {
+                if (lastPage.nextCid) {
                     feedsHaveMore[feedName] = true;
                     continue feedsLoop;
                 }
@@ -175,13 +181,13 @@ function useFeedsHaveMore(feedsOptions, subplebbits, sortedPostsPages, bufferedF
             feedsHaveMore[feedName] = false;
         }
         return feedsHaveMore;
-    }, [feedsOptions, bufferedFeeds, subplebbits, sortedPostsPages]);
+    }, [feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages]);
 }
 /**
- * Calculate the final buffered feeds from all the loaded sorted posts pages, sort them,
+ * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
  * and remove the posts already loaded in loadedFeeds
  */
-function useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPostsPages, loadedFeeds) {
+function useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds) {
     return useMemo(() => {
         // contruct a list of posts already loaded to remove them from buffered feeds
         const loadedFeedsPosts = {};
@@ -197,23 +203,23 @@ function useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPo
             const { subplebbitAddresses, sortType, account } = feedsOptions[feedName];
             // find all fetched posts
             const bufferedFeedPosts = [];
-            // start by finding all sortedPostsCids
+            // start by finding all pageCids
             for (const subplebbitAddress of subplebbitAddresses) {
-                for (const infoName in feedsSortedPostsInfo) {
-                    const info = feedsSortedPostsInfo[infoName];
+                for (const infoName in subplebbitsPostsInfo) {
+                    const info = subplebbitsPostsInfo[infoName];
                     if (info.sortType !== sortType) {
                         continue;
                     }
                     if (info.subplebbitAddress !== subplebbitAddress) {
                         continue;
                     }
-                    // found an info that matches the sub address and sorted by
-                    // get all the pages for it from sortedPostsPages
-                    const subplebbitSortedPostsPages = getSubplebbitSortedPostsPages(info.firstPageSortedPostsCid, sortedPostsPages);
+                    // found an info that matches the sub address and sort type
+                    // get all the pages for it from subplebbitsPages
+                    const subplebbitPages = getSubplebbitPages(info.firstPageCid, subplebbitsPages);
                     // add each comment from each page, do not filter at this stage, filter after sorting
-                    for (const sortedPostsPage of subplebbitSortedPostsPages) {
-                        if (sortedPostsPage === null || sortedPostsPage === void 0 ? void 0 : sortedPostsPage.comments) {
-                            bufferedFeedPosts.push(...sortedPostsPage.comments);
+                    for (const subplebbitPage of subplebbitPages) {
+                        if (subplebbitPage === null || subplebbitPage === void 0 ? void 0 : subplebbitPage.comments) {
+                            bufferedFeedPosts.push(...subplebbitPage.comments);
                         }
                     }
                 }
@@ -236,136 +242,153 @@ function useCalculatedBufferedFeeds(feedsOptions, feedsSortedPostsInfo, sortedPo
             newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts;
         }
         return newBufferedFeeds;
-    }, [feedsOptions, sortedPostsPages, loadedFeeds]);
+    }, [feedsOptions, subplebbitsPages, loadedFeeds]);
 }
 /**
- * Use the `feedSortedPostsInfo` objects to fetch the first page of all subplebbit/sorts
- * if the `feedSortedPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
+ * Use the `SubplebbitPostsInfo` objects to fetch the first page of all subplebbit/sorts
+ * if the `SubplebbitPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
  * Once a next page is added, it is never removed.
  */
-function useSortedPostsPages(feedsSortedPostsInfo, subplebbits) {
+function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
     const accountsContext = useContext(AccountsContext);
-    const [sortedPostsPages, setSortedPostsPages] = useState({});
+    const [subplebbitsPages, setSubplebbitsPages] = useState({});
     // set the info necessary to fetch each page recursively
     // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage
-    const sortedPostsPagesInfo = useMemo(() => {
-        var _a, _b;
-        const newSortedPostsPagesInfo = {};
-        for (const infoName in feedsSortedPostsInfo) {
-            const { firstPageSortedPostsCid, account, subplebbitAddress, sortType, bufferedPostCount } = feedsSortedPostsInfo[infoName];
+    const subplebbitsPagesInfo = useMemo(() => {
+        var _a, _b, _c;
+        const newSubplebbitsPagesInfo = {};
+        for (const infoName in subplebbitsPostsInfo) {
+            const { firstPageCid, account, subplebbitAddress, sortType, bufferedPostCount } = subplebbitsPostsInfo[infoName];
             // add first page
-            const sortedPostsFirstPageInfo = { sortedPostsCid: firstPageSortedPostsCid, account, subplebbitAddress, sortType,
-                // add preloaded sorted posts if any
-                sortedPosts: (_b = (_a = subplebbits === null || subplebbits === void 0 ? void 0 : subplebbits[subplebbitAddress]) === null || _a === void 0 ? void 0 : _a.sortedPosts) === null || _b === void 0 ? void 0 : _b[sortType]
+            const subplebbitFirstPageInfo = {
+                pageCid: firstPageCid,
+                account,
+                subplebbitAddress,
+                sortType,
+                // add preloaded subplebbit page if any
+                page: (_c = (_b = (_a = subplebbits === null || subplebbits === void 0 ? void 0 : subplebbits[subplebbitAddress]) === null || _a === void 0 ? void 0 : _a.posts) === null || _b === void 0 ? void 0 : _b.pages) === null || _c === void 0 ? void 0 : _c[sortType],
             };
-            newSortedPostsPagesInfo[firstPageSortedPostsCid + infoName] = sortedPostsFirstPageInfo;
+            newSubplebbitsPagesInfo[firstPageCid + infoName] = subplebbitFirstPageInfo;
             // add all next pages if needed and if available
             if (bufferedPostCount <= subplebbitPostsLeftBeforeNextPage) {
-                const subplebbitPages = getSubplebbitSortedPostsPages(firstPageSortedPostsCid, sortedPostsPages);
+                const subplebbitPages = getSubplebbitPages(firstPageCid, subplebbitsPages);
                 for (const page of subplebbitPages) {
-                    if (page.nextSortedCommentsCid) {
-                        const sortedPostsNextPageInfo = { sortedPostsCid: page.nextSortedCommentsCid, account, subplebbitAddress, sortType };
-                        newSortedPostsPagesInfo[page.nextSortedCommentsCid + infoName] = sortedPostsNextPageInfo;
+                    if (page.nextCid) {
+                        const subplebbitNextPageInfo = {
+                            pageCid: page.nextCid,
+                            account,
+                            subplebbitAddress,
+                            sortType,
+                        };
+                        newSubplebbitsPagesInfo[page.nextCid + infoName] = subplebbitNextPageInfo;
                     }
                 }
             }
         }
-        return newSortedPostsPagesInfo;
-    }, [feedsSortedPostsInfo, sortedPostsPages]);
-    // fetch sorted posts pages if needed
+        return newSubplebbitsPagesInfo;
+    }, [subplebbitsPostsInfo, subplebbitsPages]);
+    // fetch subplebbit pages if needed
     // once a page is added, it's never removed
     useEffect(() => {
-        for (const infoName in sortedPostsPagesInfo) {
-            const { sortedPostsCid, account, subplebbitAddress, sortedPosts } = sortedPostsPagesInfo[infoName];
-            // sorted posts already fetched or fetching
-            if (sortedPostsPages[sortedPostsCid] || getSortedPostsPending[account.id + sortedPostsCid]) {
+        for (const infoName in subplebbitsPagesInfo) {
+            const { pageCid, account, subplebbitAddress, page } = subplebbitsPagesInfo[infoName];
+            // page already fetched or fetching
+            if (subplebbitsPages[pageCid] || getSubplebbitPagePending[account.id + pageCid]) {
                 continue;
             }
-            // the sorted posts page was already preloaded in the subplebbit IPNS record
-            if (sortedPosts) {
-                setSortedPostsPages(previousSortedPostsPages => (Object.assign(Object.assign({}, previousSortedPostsPages), { [sortedPostsCid]: sortedPosts })));
+            // the subplebbit page was already preloaded in the subplebbit IPNS record
+            if (page) {
+                setSubplebbitsPages((previousSubplebbitsPages) => (Object.assign(Object.assign({}, previousSubplebbitsPages), { [pageCid]: page })));
                 continue;
             }
             ;
             (() => __awaiter(this, void 0, void 0, function* () {
-                // sorted posts page is cached
-                const cachedSortedPostsPage = yield sortedPostsDatabase.getItem(sortedPostsCid);
-                if (cachedSortedPostsPage) {
-                    setSortedPostsPages(previousSortedPostsPages => (Object.assign(Object.assign({}, previousSortedPostsPages), { [sortedPostsCid]: cachedSortedPostsPage })));
+                // subplebbit page is cached
+                const cachedSubplebbitPage = yield subplebbitsPagesDatabase.getItem(pageCid);
+                if (cachedSubplebbitPage) {
+                    setSubplebbitsPages((previousSubplebbitsPages) => (Object.assign(Object.assign({}, previousSubplebbitsPages), { [pageCid]: cachedSubplebbitPage })));
                     return;
                 }
-                getSortedPostsPending[account.id + sortedPostsCid] = true;
+                getSubplebbitPagePending[account.id + pageCid] = true;
                 const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress });
-                const fetchedSortedPostsPage = yield subplebbit.getSortedPosts(sortedPostsCid);
-                yield sortedPostsDatabase.setItem(sortedPostsCid, fetchedSortedPostsPage);
-                debug('FeedsProvider useSortedPostsPages subplebbit.getSortedPosts', { sortedPostsCid, infoName, sortedPosts: { nextSortedCommentsCid: fetchedSortedPostsPage.nextSortedCommentsCid, commentsLength: fetchedSortedPostsPage.comments.length, feedsSortedPostsInfo } });
-                setSortedPostsPages(previousSortedPostsPages => (Object.assign(Object.assign({}, previousSortedPostsPages), { [sortedPostsCid]: fetchedSortedPostsPage })));
-                getSortedPostsPending[account.id + sortedPostsCid] = false;
+                const fetchedSubplebbitPage = yield subplebbit.posts.getPage(pageCid);
+                yield subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage);
+                debug('FeedsProvider useSubplebbitsPages subplebbit.posts.getPage', {
+                    pageCid,
+                    infoName,
+                    subplebbitPage: {
+                        nextCid: fetchedSubplebbitPage.nextCid,
+                        commentsLength: fetchedSubplebbitPage.comments.length,
+                        subplebbitsPostsInfo,
+                    },
+                });
+                setSubplebbitsPages((previousSubplebbitsPages) => (Object.assign(Object.assign({}, previousSubplebbitsPages), { [pageCid]: fetchedSubplebbitPage })));
+                getSubplebbitPagePending[account.id + pageCid] = false;
                 // when publishing a comment, you don't yet know its CID
                 // so when a new comment is fetched, check to see if it's your own
                 // comment, and if yes, add the CID to your account comments database
                 if (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.addCidToAccountComment) {
-                    const flattenedReplies = utils.flattenSortedComments(fetchedSortedPostsPage);
+                    const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage);
                     for (const comment of flattenedReplies) {
                         accountsContext.addCidToAccountComment(comment);
                     }
                 }
             }))();
         }
-    }, [sortedPostsPagesInfo]);
-    return sortedPostsPages;
+    }, [subplebbitsPagesInfo]);
+    return subplebbitsPages;
 }
-const getSortedPostsPending = {};
+const getSubplebbitPagePending = {};
 /**
- * Util function to gather in an array all loaded `SortedComments` pages of a subplebbit/sort
- * using `SortedComments.nextSortedCommentsCid`
+ * Util function to gather in an array all loaded `SubplebbitPage` pages of a subplebbit/sort
+ * using `SubplebbitPage.nextCid`
  */
-const getSubplebbitSortedPostsPages = (firstPageSortedPostsCid, sortedPostsPages) => {
+const getSubplebbitPages = (firstPageCid, subplebbitsPages) => {
     var _a;
     const pages = [];
-    const firstPage = sortedPostsPages[firstPageSortedPostsCid];
+    const firstPage = subplebbitsPages[firstPageCid];
     if (!firstPage) {
         return pages;
     }
     pages.push(firstPage);
     while (true) {
-        const nextSortedCommentsCid = (_a = pages[pages.length - 1]) === null || _a === void 0 ? void 0 : _a.nextSortedCommentsCid;
-        const sortedPostsPage = sortedPostsPages[nextSortedCommentsCid];
-        if (!sortedPostsPage) {
+        const nextCid = (_a = pages[pages.length - 1]) === null || _a === void 0 ? void 0 : _a.nextCid;
+        const subplebbitPage = subplebbitsPages[nextCid];
+        if (!subplebbitPage) {
             return pages;
         }
-        pages.push(sortedPostsPage);
+        pages.push(subplebbitPage);
     }
 };
 /**
- * Generate a list of `feedSortedPostsInfo` objects which contain the information required
+ * Generate a list of `SubplebbitPostsInfo` objects which contain the information required
  * to initiate fetching the pages of each subplebbit/sort/account/feed
  */
-function useFeedsSortedPostsInfo(feedsOptions, subplebbits, bufferedFeeds) {
+function useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds) {
     const bufferedFeedsSubplebbitsPostCounts = useBufferedFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds);
     return useMemo(() => {
-        var _a;
-        const feedsSortedPostsInfo = {};
+        var _a, _b;
+        const subplebbitsPostsInfo = {};
         for (const feedName in feedsOptions) {
             const { subplebbitAddresses, sortType, account } = feedsOptions[feedName];
             for (const subplebbitAddress of subplebbitAddresses) {
                 const subplebbit = subplebbits[subplebbitAddress];
-                const sortedPostsCid = (_a = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.sortedPostsCids) === null || _a === void 0 ? void 0 : _a[sortType];
-                if (!sortedPostsCid) {
+                const pageCid = (_b = (_a = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _a === void 0 ? void 0 : _a.pageCids) === null || _b === void 0 ? void 0 : _b[sortType];
+                if (!pageCid) {
                     continue;
                 }
-                const feedSortedPostsInfo = {
-                    firstPageSortedPostsCid: sortedPostsCid,
+                const subplebbitPostsInfo = {
+                    firstPageCid: pageCid,
                     account,
                     subplebbitAddress,
                     sortType,
-                    bufferedPostCount: bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddress]
+                    bufferedPostCount: bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddress],
                 };
-                feedsSortedPostsInfo[account.id + subplebbitAddress + sortType] = feedSortedPostsInfo;
+                subplebbitsPostsInfo[account.id + subplebbitAddress + sortType] = subplebbitPostsInfo;
             }
         }
-        return feedsSortedPostsInfo;
-        // don't use bufferedFeeds to rerender, only rerender on feedOptions.pageNumber change, or subplebbit.sortedPostsCids change
+        return subplebbitsPostsInfo;
+        // don't use bufferedFeeds to rerender, only rerender on feedOptions.pageNumber change, or subplebbit.posts.pageCids change
     }, [feedsOptions, subplebbits]);
 }
 /**
@@ -423,7 +446,7 @@ function useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions) {
             }
         }
         const uniqueSortedStrings = [...new Set(subplebbitAddressesAndAccountsStrings.sort())];
-        const uniqueSorted = uniqueSortedStrings.map(string => JSON.parse(string));
+        const uniqueSorted = uniqueSortedStrings.map((string) => JSON.parse(string));
         return uniqueSorted.map(([subplebbitAddress, accountId]) => [subplebbitAddress, accounts[accountId]]);
     }, [feedsOptions]);
 }

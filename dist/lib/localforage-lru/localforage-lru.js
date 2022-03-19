@@ -80,10 +80,7 @@ function createLocalForageInstance(localForageLruOptions) {
         keys: function () {
             return __awaiter(this, void 0, void 0, function* () {
                 yield initialization();
-                return [...new Set([
-                        ...(yield database1.keys()),
-                        ...(yield database2.keys())
-                    ])];
+                return [...new Set([...(yield database1.keys()), ...(yield database2.keys())])];
             });
         },
         length: function () {

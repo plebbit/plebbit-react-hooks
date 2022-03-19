@@ -5,11 +5,18 @@ export declare const simulateLoadingTime: () => Promise<unknown>;
 export declare class Plebbit {
     createSubplebbit(createSubplebbitOptions: any): Subplebbit;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    subplebbitToGet(subplebbit: any): any;
     createComment(createCommentOptions: any): Comment;
     getComment(commentCid: string): Promise<Comment>;
     commentToGet(): {};
     createVote(): Vote;
+}
+export declare class Pages {
+    pageCids: any;
+    pages: any;
+    subplebbit: any;
+    comment: any;
+    constructor(pagesOptions?: any);
+    getPage(pageCid: string): Promise<any>;
 }
 export declare class Subplebbit extends EventEmitter {
     updateCalledTimes: number;
@@ -17,12 +24,10 @@ export declare class Subplebbit extends EventEmitter {
     address: string | undefined;
     title: string | undefined;
     description: string | undefined;
-    sortedPosts: any;
-    sortedPostsCids: any;
+    posts: Pages;
     constructor(createSubplebbitOptions?: any);
     update(): void;
     simulateUpdateEvent(): void;
-    getSortedPosts(sortedPostsCid: string): Promise<any>;
 }
 declare class Publication extends EventEmitter {
     timestamp: number | undefined;
@@ -43,7 +48,8 @@ export declare class Comment extends Publication {
     upvoteCount: number | undefined;
     downvoteCount: number | undefined;
     content: string | undefined;
-    parentCommentCid: string | undefined;
+    parentCid: string | undefined;
+    replies: any;
     constructor(createCommentOptions?: any);
     update(): void;
     simulateUpdateEvent(): void;

@@ -63,6 +63,7 @@ export default function CommentsProvider(props) {
     return React.createElement(CommentsContext.Provider, { value: commentsContext }, props.children);
 }
 const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     const commentData = yield commentsDatabase.getItem(commentId);
     if (!commentData) {
         return;
@@ -76,5 +77,10 @@ const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0,
                 comment[prop] = commentData[prop];
         }
     }
+    // add potential missing data from the Pages API
+    comment.replies.pages = utils.merge(((_a = commentData === null || commentData === void 0 ? void 0 : commentData.replies) === null || _a === void 0 ? void 0 : _a.pages) || {}, ((_b = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _b === void 0 ? void 0 : _b.pages) || {});
+    comment.replies.pageCids = utils.merge(((_c = commentData === null || commentData === void 0 ? void 0 : commentData.replies) === null || _c === void 0 ? void 0 : _c.pageCids) || {}, ((_d = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _d === void 0 ? void 0 : _d.pageCids) || {});
+    // NOTE: adding missing data is probably not needed with a full implementation of plebbit-js with no bugs
+    // but the plebbit mock is barely implemented
     return comment;
 });

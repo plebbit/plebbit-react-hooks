@@ -118,7 +118,7 @@ export default function AccountsProvider(props) {
         validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
         let createCommentOptions = {
             subplebbitAddress: publishCommentOptions.subplebbitAddress,
-            parentCommentCid: publishCommentOptions.parentCommentCid,
+            parentCid: publishCommentOptions.parentCid,
             postCid: publishCommentOptions.postCid,
             content: publishCommentOptions.content,
             title: publishCommentOptions.title,
@@ -261,14 +261,14 @@ export default function AccountsProvider(props) {
         yield Promise.all(promises);
         // add all to react context
         debug('AccountContext.markAccountNotificationsAsRead', { account, repliesToMarkAsRead });
-        setAccountsCommentsReplies(previousAccountsCommentsReplies => {
+        setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
             const updatedAccountCommentsReplies = Object.assign(Object.assign({}, previousAccountsCommentsReplies[account.id]), repliesToMarkAsRead);
             return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies });
         });
     });
     // TODO: we currently subscribe to updates for every single comment
     // in the user's account history. This probably does not scale, we
-    // need to eventually schedule and queue older comments to look 
+    // need to eventually schedule and queue older comments to look
     // for updates at a lower priority.
     const [alreadyUpdatingAccountsComments, setAlreadyUpdatingAccountsComments] = useState({});
     const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, account, accountCommentIndex) => __awaiter(this, void 0, void 0, function* () {
@@ -292,9 +292,9 @@ export default function AccountsProvider(props) {
             comment = account.plebbit.createComment(comment);
         }
         // @ts-ignore
-        setAlreadyUpdatingAccountsComments(prev => (Object.assign(Object.assign({}, prev), { [comment.cid]: true })));
+        setAlreadyUpdatingAccountsComments((prev) => (Object.assign(Object.assign({}, prev), { [comment.cid]: true })));
         comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
-            var _b, _c, _d, _e;
+            var _b, _c, _d, _e, _f, _g, _h, _j;
             // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
             updatedComment = utils.merge(commentArgument, comment, updatedComment);
             yield accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex);
@@ -306,28 +306,35 @@ export default function AccountsProvider(props) {
                 return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: updatedAccountComments });
             });
             // update AccountCommentsReplies with new replies if has any new replies
-            const sortedRepliesArray = [(_b = updatedComment.sortedReplies) === null || _b === void 0 ? void 0 : _b.new, (_c = updatedComment.sortedReplies) === null || _c === void 0 ? void 0 : _c.topAll, (_d = updatedComment.sortedReplies) === null || _d === void 0 ? void 0 : _d.old, (_e = updatedComment.sortedReplies) === null || _e === void 0 ? void 0 : _e.controversialAll];
-            const hasReplies = sortedRepliesArray.map(sortedReplies => { var _a; return ((_a = sortedReplies === null || sortedReplies === void 0 ? void 0 : sortedReplies.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
+            const replyPageArray = [
+                (_c = (_b = updatedComment.replies) === null || _b === void 0 ? void 0 : _b.pages) === null || _c === void 0 ? void 0 : _c.new,
+                (_e = (_d = updatedComment.replies) === null || _d === void 0 ? void 0 : _d.pages) === null || _e === void 0 ? void 0 : _e.topAll,
+                (_g = (_f = updatedComment.replies) === null || _f === void 0 ? void 0 : _f.pages) === null || _g === void 0 ? void 0 : _g.old,
+                (_j = (_h = updatedComment.replies) === null || _h === void 0 ? void 0 : _h.pages) === null || _j === void 0 ? void 0 : _j.controversialAll,
+            ];
+            const hasReplies = replyPageArray
+                .map((replyPage) => { var _a; return ((_a = replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; })
+                .reduce((prev, curr) => prev + curr) > 0;
             if (hasReplies) {
                 setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
                     var _a, _b;
-                    // check which ones are read or not
-                    const updatedReplies = {};
-                    for (const sortedReplies of sortedRepliesArray) {
-                        for (const sortedReply of (sortedReplies === null || sortedReplies === void 0 ? void 0 : sortedReplies.comments) || []) {
-                            const markedAsRead = ((_b = (_a = previousAccountsCommentsReplies[account.id]) === null || _a === void 0 ? void 0 : _a[sortedReply.cid]) === null || _b === void 0 ? void 0 : _b.markedAsRead) === true ? true : false;
-                            updatedReplies[sortedReply.cid] = Object.assign(Object.assign({}, sortedReply), { markedAsRead });
+                    // check which replies are read or not
+                    const updatedAccountCommentsReplies = {};
+                    for (const replyPage of replyPageArray) {
+                        for (const reply of (replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) || []) {
+                            const markedAsRead = ((_b = (_a = previousAccountsCommentsReplies[account.id]) === null || _a === void 0 ? void 0 : _a[reply.cid]) === null || _b === void 0 ? void 0 : _b.markedAsRead) === true ? true : false;
+                            updatedAccountCommentsReplies[reply.cid] = Object.assign(Object.assign({}, reply), { markedAsRead });
                         }
                     }
                     // add all to database
                     const promises = [];
-                    for (const replyCid in updatedReplies) {
-                        promises.push(accountsDatabase.addAccountCommentReply(account.id, updatedReplies[replyCid]));
+                    for (const replyCid in updatedAccountCommentsReplies) {
+                        promises.push(accountsDatabase.addAccountCommentReply(account.id, updatedAccountCommentsReplies[replyCid]));
                     }
                     Promise.all(promises);
                     // set new react context
-                    const updatedAccountCommentsReplies = Object.assign(Object.assign({}, previousAccountsCommentsReplies[account.id]), updatedReplies);
-                    return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies });
+                    const newAccountCommentsReplies = Object.assign(Object.assign({}, previousAccountsCommentsReplies[account.id]), updatedAccountCommentsReplies);
+                    return Object.assign(Object.assign({}, previousAccountsCommentsReplies), { [account.id]: newAccountCommentsReplies });
                 });
             }
         }));
@@ -397,7 +404,7 @@ export default function AccountsProvider(props) {
             accountsNotifications,
             // internal accounts actions
             addCidToAccountComment,
-            markAccountNotificationsAsRead
+            markAccountNotificationsAsRead,
         };
     }
     debug({
@@ -490,19 +497,19 @@ const useAccountsWithCalculatedProperties = (accounts, accountsComments, account
                 linkScore: 0,
                 upvoteCount: 0,
                 downvoteCount: 0,
-                score: 0
+                score: 0,
             };
             for (const comment of accountComments) {
-                if (comment.parentCommentCid && comment.upvoteCount) {
+                if (comment.parentCid && comment.upvoteCount) {
                     karma.commentUpvoteCount += comment.upvoteCount;
                 }
-                if (comment.parentCommentCid && comment.downvoteCount) {
+                if (comment.parentCid && comment.downvoteCount) {
                     karma.commentDownvoteCount += comment.downvoteCount;
                 }
-                if (!comment.parentCommentCid && comment.upvoteCount) {
+                if (!comment.parentCid && comment.upvoteCount) {
                     karma.linkUpvoteCount += comment.upvoteCount;
                 }
-                if (!comment.parentCommentCid && comment.downvoteCount) {
+                if (!comment.parentCid && comment.downvoteCount) {
                     karma.linkDownvoteCount += comment.downvoteCount;
                 }
             }

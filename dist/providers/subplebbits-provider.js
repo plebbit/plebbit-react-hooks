@@ -55,6 +55,7 @@ export default function SubplebbitsProvider(props) {
     return React.createElement(SubplebbitsContext.Provider, { value: subplebbitsContext }, props.children);
 }
 const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     const subplebbitData = yield subplebbitsDatabase.getItem(subplebbitAddress);
     if (!subplebbitData) {
         return;
@@ -67,5 +68,10 @@ const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void
                 subplebbit[prop] = subplebbitData[prop];
         }
     }
+    // add potential missing data from the Pages API
+    subplebbit.posts.pages = utils.merge(((_a = subplebbitData === null || subplebbitData === void 0 ? void 0 : subplebbitData.posts) === null || _a === void 0 ? void 0 : _a.pages) || {}, ((_b = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _b === void 0 ? void 0 : _b.pages) || {});
+    subplebbit.posts.pageCids = utils.merge(((_c = subplebbitData === null || subplebbitData === void 0 ? void 0 : subplebbitData.posts) === null || _c === void 0 ? void 0 : _c.pageCids) || {}, ((_d = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _d === void 0 ? void 0 : _d.pageCids) || {});
+    // NOTE: adding missing data is probably not needed with a full implementation of plebbit-js with no bugs
+    // but the plebbit mock is barely implemented
     return subplebbit;
 });
