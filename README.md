@@ -128,9 +128,9 @@ Account {
   signer: Signer,
   plebbit: Plebbit,
   plebbitOptions: PlebbitOptions,
-  subscriptions: subplebbitAddress[],
-  blockedAddresses: {[key: address]: boolean}, // hide address from feed and notifications
-  limitedAddresses: {[key: address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
+  subscriptions: SubplebbitAddress[],
+  blockedAddresses: {[key: Address]: boolean}, // hide address from feed and notifications
+  limitedAddresses: {[key: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
   theme: 'light' | 'dark,
   karma: Karma,
   unreadNotificationCount: number
