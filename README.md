@@ -9,8 +9,8 @@
     [key: accountId]: Account
   }
   AccountsMetadata {
-    accountIds: strings[], // this array sets the order of the accounts
-    activeAccountId: string, // the default account to use with all hooks and actions
+    accountIds: strings[] // this array sets the order of the accounts
+    activeAccountId: string // the default account to use with all hooks and actions
     accountNamesToAccountIds: {[key: accountName]: accountId}
   }
   AccountsComments (each database named accountComments-[accountId]) {
@@ -103,18 +103,18 @@ useAuthorComments(authorAddress) // there are no way to fetch all comments from 
 
 ```
 AccountsActions {
-  createAccount(account: Account),
-  deleteAccount(accountName: string),
-  setAccount(account: Account),
-  setActiveAccount(accountName: string),
-  setAccountsOrder(accountNames: string[]),
-  importAccount(serializedAccount: string | buffer),
-  exportAccount(accountName: string), // don't allow undefined to prevent catastrophic bugs
-  publishComment(comment: Comment, accountName?: string),
-  publishCommentEdit(comment: Comment, accountName?: string),
-  publishVote(vote: Vote, accountName?: string),
-  publishReport(report: Report, accountName?: string),
-  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string),
+  createAccount(account: Account)
+  deleteAccount(accountName: string)
+  setAccount(account: Account)
+  setActiveAccount(accountName: string)
+  setAccountsOrder(accountNames: string[])
+  importAccount(serializedAccount: string | buffer)
+  exportAccount(accountName: string) // don't allow undefined to prevent catastrophic bugs
+  publishComment(comment: Comment, accountName?: string)
+  publishCommentEdit(comment: Comment, accountName?: string)
+  publishVote(vote: Vote, accountName?: string)
+  publishReport(report: Report, accountName?: string)
+  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string)
   blockAddress(address: string) // block a subplebbit address or author address from showing on your feed
   saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
   followComment(commentCid: string, accountName?: string) // get notifications for comments that aren't your own
@@ -122,8 +122,8 @@ AccountsActions {
   followAuthor(authorAddress: string, accountName?: string) // no method to do this in the backend yet, could use IPNS
 }
 Account {
-  id: string, // random immutable string
-  name: string, // the nickname of the account, eg "Account 1"
+  id: string // random immutable string
+  name: string // the nickname of the account, eg "Account 1"
   author: Author,
   signer: Signer,
   plebbit: Plebbit,
@@ -131,56 +131,53 @@ Account {
   subscriptions: SubplebbitAddress[],
   blockedAddresses: {[key: Address]: boolean}, // hide address from feed and notifications
   limitedAddresses: {[key: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
-  theme: 'light' | 'dark,
-  karma: Karma,
+  theme: 'light' | 'dark
+  karma: Karma
   unreadNotificationCount: number
 }
 Karma {
-  commentUpvoteCount,
-  commentDownvoteCount,
-  commentScore,
-  linkUpvoteCount,
-  linkDownvoteCount,
-  linkScore,
-  upvoteCount,
-  downvoteCount,
+  commentUpvoteCount
+  commentDownvoteCount
+  commentScore
+  linkUpvoteCount
+  linkDownvoteCount
+  linkScore
+  upvoteCount
+  downvoteCount
   score
 }
-AccountComment {
-  ...Comment,
-  index: number, // the index of the comment in the AccountComments array and database
-  accountId: string,
+AccountComment extends Comment {
+  index: number // the index of the comment in the AccountComments array and database
+  accountId: string
   upvoteCountMarkedAsRead: number // upvote count the last time the user read it, needed for upvote notifications
 }
-AccountCommentReply {
-  ...Comment,
+AccountCommentReply extends Comment {
   markedAsRead: boolean // has the user read this reply, needed for reply notifications
 }
 UseAccountsCommentsOptions {
-  accountName?: string,
+  accountName?: string
   filter: UseAccountCommentsFilter
 }
 UseAccountCommentsFilter { // only get your own account's comments/votes on a certain subplebbit, thread, etc useful for certain UI pages
-  subplebbitAddresses?: string[],
-  postCids?: string[],
-  commentCids?: string[],
-  parentCommentCids?: string[],
+  subplebbitAddresses?: string[]
+  postCids?: string[]
+  commentCids?: string[]
+  parentCommentCids?: string[]
   hasParentCommentCid?: boolean // get only posts, no comments
 }
-AccountVote {
-  ...Vote,
+AccountVote extends Vote {
   previousAccountVoteCid: string // needed to scroll to every vote an account has published
 }
 Author {
-  displayName: string,
+  displayName: string
   address: string
 }
 Signer {
-  privateKey?: string | buffer,
+  privateKey?: string | buffer
   type: 'plebbit1'
 }
 Challenge {
-  type: 'image' | 'text' | 'audio' | 'video' | 'html', // tells the client how to display the challenge, start with implementing image and text only first
+  type: 'image' | 'text' | 'audio' | 'video' | 'html' // tells the client how to display the challenge, start with implementing image and text only first
   challenge: buffer // data required to complete the challenge, could be html, png, etc.
 }
 FeedItem {

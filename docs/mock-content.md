@@ -34,7 +34,7 @@ ReactDOM.render(
 import {useFeed} from '@plebbit/plebbit-react-hooks'
 
 function App() {
-  const {feed, hasMore, loadMore} = useFeed(['memes.eth'], 'new')
+  const {feed, hasMore, loadMore} = useFeed(['news.eth'], 'new')
   console.log({feed})
   return <div className="App"></div>
 }
