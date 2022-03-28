@@ -113,8 +113,8 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
         }
         const hasThumbnail = yield getArrayItem([true, true, true, false], seed + 'hasthumbnail');
         if (!linkIsImage && hasThumbnail) {
-            const thumbnail = yield getImageUrl(seed + 'thumbnail');
-            return { title, link, thumbnail };
+            const thumbnailUrl = yield getImageUrl(seed + 'thumbnail');
+            return { title, link, thumbnailUrl };
         }
         return { title, link };
     }
