@@ -125,8 +125,8 @@ const getPostContent = async (seed: string) => {
     }
     const hasThumbnail = await getArrayItem([true, true, true, false], seed + 'hasthumbnail')
     if (!linkIsImage && hasThumbnail) {
-      const thumbnail = await getImageUrl(seed + 'thumbnail')
-      return { title, link, thumbnail }
+      const thumbnailUrl = await getImageUrl(seed + 'thumbnail')
+      return { title, link, thumbnailUrl }
     }
     return { title, link }
   }
