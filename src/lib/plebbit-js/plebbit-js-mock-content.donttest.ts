@@ -40,13 +40,13 @@ describe('mock content', () => {
     expect(rendered.result.current).toBe(undefined)
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa0')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
     console.log(rendered.result.current)
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.upvoteCount === 'number')
+      await rendered.waitFor(() => typeof rendered.result.current.upvoteCount === 'number', {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
@@ -54,7 +54,7 @@ describe('mock content', () => {
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa1')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
@@ -62,7 +62,7 @@ describe('mock content', () => {
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa2')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
@@ -70,7 +70,7 @@ describe('mock content', () => {
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa3')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
@@ -82,14 +82,32 @@ describe('mock content', () => {
       wrapper: PlebbitProvider,
     })
     expect(rendered.result.current).toBe(undefined)
-    rendered.rerender('memes.eth')
+    rendered.rerender('anything.eth')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.address === 'string')
+      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
+    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
     console.log(rendered.result.current)
-    console.log(rendered.result.current.posts.pages.hot.comments)
+
+    rendered.rerender('jokes.eth')
+    try {
+      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
+    console.log(rendered.result.current)
+
+    rendered.rerender('memes.eth')
+    try {
+      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
+    console.log(rendered.result.current)
   })
 
   test.only('use feed', async () => {

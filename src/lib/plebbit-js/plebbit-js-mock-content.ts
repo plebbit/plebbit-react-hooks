@@ -187,19 +187,87 @@ const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
 }
 
 const getSubplebbitContent = async (seed: string) => {
+  const subplebbit: any = {
+    pubsubTopic: await hash(seed + 'pubsub topic'),
+    createdAt: await getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
+    updatedAt: await getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at')
+  }
+
+  const hasChallengeTypes = await getArrayItem([true, false], seed + 'has challenge types')
+  if (hasChallengeTypes) {
+    subplebbit.challengeTypes = ['image']
+  }
+
+  const hasModeratorAddresses = await getArrayItem([true, false], seed + 'has moderator addresses')
+  if (hasModeratorAddresses) {
+    subplebbit.moderatorAddresses = [
+      (await getAuthor(seed + 'mod address 1')).address,
+      (await getAuthor(seed + 'mod address 2')).address,
+      (await getAuthor(seed + 'mod address 3')).address,
+      (await getAuthor(seed + 'mod address 4')).address,
+      (await getAuthor(seed + 'mod address 5')).address,
+      (await getAuthor(seed + 'mod address 6')).address,
+      (await getAuthor(seed + 'mod address 7')).address,
+      (await getAuthor(seed + 'mod address 8')).address,
+    ]
+  }
+
   const title = await getArrayItem([undefined, ...subplebbitTitles], seed + 'title')
+  if (title) {
+    subplebbit.title = title
+  }
   const description = await getArrayItem([undefined, ...subplebbitDescriptions], seed + 'description')
-  if (!title && !description) {
-    return {}
+  if (description) {
+    subplebbit.description = description
   }
-  if (!description) {
-    return { title }
+
+  const hasFlairs = await getArrayItem([true, false], seed + 'has flairs')
+  if (hasFlairs) {
+    subplebbit.flairs = flairs
   }
-  if (!title) {
-    return description
+
+  const hasSuggested = await getArrayItem([true, false], seed + 'has suggested')
+  if (hasSuggested) {
+    subplebbit.suggested = {
+      primaryColor: (await getArrayItem(flairs, seed + 'suggested primary color')).color,
+      secondaryColor: (await getArrayItem(flairs, seed + 'suggested secondary color')).color,
+      avatarUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
+      bannerUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
+      backgroundUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
+      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language')
+    }
   }
+
+  const hasFeatures = await getArrayItem([true, false], seed + 'has features')
+  if (hasFeatures) {
+    subplebbit.features = {
+      noVideos: await getArrayItem([undefined, undefined, true, false], seed + 'noVideos'),
+      noSpoilers: await getArrayItem([undefined, undefined, true, false], seed + 'noSpoilers'),
+      noImages: await getArrayItem([undefined, undefined, true, false], seed + 'noImages'),
+      noVideoReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noVideoReplies'),
+      noSpoilerReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noSpoilerReplies'),
+      noImageReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noImageReplies'),
+      noPolls: await getArrayItem([undefined, undefined, true, false], seed + 'noPolls'),
+      noCrossposts: await getArrayItem([undefined, undefined, true, false], seed + 'noCrossposts'),
+      noUpvotes: await getArrayItem([undefined, undefined, true, false], seed + 'noUpvotes'),
+      noDownvotes: await getArrayItem([undefined, undefined, true, false], seed + 'noDownvotes'),
+      noAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'noAuthors'),
+      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'), 
+      noNestedReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noNestedReplies'),
+      safeForWork: await getArrayItem([undefined, undefined, true, false], seed + 'safeForWork'),
+      flairs: await getArrayItem([undefined, undefined, true, false], seed + 'flairs'),
+      requireFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'requireFlairs'),
+      noMarkdownImages: await getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownImages'),
+      noMarkdownVideos: await getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownVideos'),
+      markdownImageReplies: await getArrayItem([undefined, undefined, true, false], seed + 'markdownImageReplies'),
+      markdownVideoReplies: await getArrayItem([undefined, undefined, true, false], seed + 'markdownVideoReplies'),
+    }
+  }
+
+  return subplebbit
 }
 
+// for debugging slow bulk reply generation
 let replyLoopCount = 0
 
 const getCommentUpdateContent = async (comment: any) => {
@@ -389,17 +457,36 @@ class Pages {
 }
 
 class Subplebbit extends EventEmitter {
-  updating = false
   address: string | undefined
   title: string | undefined
   description: string | undefined
   pageCids: any
   posts: Pages
-
+  pubsubTopic: string | undefined
+  createdAt: number | undefined
+  updatedAt: number | undefined
+  challengeTypes: string[] | undefined
+  moderatorAddresses: string[] | undefined
+  flairs: any[] | undefined
+  suggested: any | undefined
+  features: any | undefined
+  
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
     this.posts = new Pages({subplebbit: this})
+    this.pubsubTopic = createSubplebbitOptions?.pubsubTopic
+    this.createdAt = createSubplebbitOptions?.createdAt
+    this.updatedAt = createSubplebbitOptions?.updatedAt
+    this.challengeTypes = createSubplebbitOptions?.challengeTypes
+    this.moderatorAddresses = createSubplebbitOptions?.moderatorAddresses
+    this.flairs = createSubplebbitOptions?.flairs
+    this.suggested = createSubplebbitOptions?.suggested
+    this.features = createSubplebbitOptions?.features
+
+    Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
+    // @ts-ignore
+    this.updating = false
   }
 
   update() {
@@ -408,9 +495,11 @@ class Subplebbit extends EventEmitter {
       throw Error(`can't update without subplebbit.address`)
     }
     // don't update twice
+    // @ts-ignore
     if (this.updating) {
       return
     }
+    // @ts-ignore
     this.updating = true
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
@@ -418,7 +507,6 @@ class Subplebbit extends EventEmitter {
   }
 
   simulateUpdateEvent() {
-    this.description = this.address + ' description updated'
     this.emit('update', this)
   }
 }
@@ -430,8 +518,16 @@ class Publication extends EventEmitter {
   timestamp: number | undefined
   content: string | undefined
   cid: string | undefined
-  challengeRequestId = `r${++challengeRequestCount}`
-  challengeAnswerId = `a${++challengeAnswerCount}`
+
+  constructor() {
+    super()
+    Object.defineProperty(this, 'challengeRequestId', {enumerable: false, writable: true})
+    Object.defineProperty(this, 'challengeAnswerId', {enumerable: false, writable: true})
+    // @ts-ignore
+    this.challengeRequestId = `r${++challengeRequestCount}`
+    // @ts-ignore
+    this.challengeAnswerId = `a${++challengeAnswerCount}`
+  }
 
   async publish() {
     await simulateLoadingTime()
@@ -442,6 +538,7 @@ class Publication extends EventEmitter {
     const challenge = { type: 'text', challenge: '2+2=?' }
     const challengeMessage = {
       type: 'CHALLENGE',
+      // @ts-ignore
       challengeRequestId: this.challengeRequestId,
       challenges: [challenge],
     }
@@ -460,7 +557,9 @@ class Publication extends EventEmitter {
 
     const challengeVerificationMessage = {
       type: 'CHALLENGEVERIFICATION',
+      // @ts-ignore
       challengeRequestId: this.challengeRequestId,
+      // @ts-ignore
       challengeAnswerId: this.challengeAnswerId,
       challengeAnswerIsVerified: true,
       publication,
@@ -470,7 +569,6 @@ class Publication extends EventEmitter {
 }
 
 class Comment extends Publication {
-  updating = false
   author: any
   ipnsName: string | undefined
   upvoteCount: number | undefined
@@ -511,6 +609,10 @@ class Comment extends Publication {
     this.removed = createCommentOptions?.removed
     this.editTimestamp = createCommentOptions?.editTimestamp
     this.reason = createCommentOptions?.reason
+
+    Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
+    // @ts-ignore
+    this.updating = false
   }
 
   update() {
@@ -519,9 +621,11 @@ class Comment extends Publication {
       throw Error(`can't update without comment.ipnsName`)
     }
     // don't update twice
+    // @ts-ignore
     if (this.updating) {
       return
     }
+    // @ts-ignore
     this.updating = true
     ;(async () => {
       while (true) {
