@@ -67,6 +67,14 @@ const urlSuffixes = [
   '?query=string&yes=1',
 ]
 
+const firstNames = ['james', 'robert', 'john', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua']
+
+const displayNames = ['COVERCADIGMENTS!', 'Everco__Evidehovi', 'fermind-flashyte', 'FlirtyraForeguiGoldhil_', 'Hanmiddie Headro Herdman', 'Hurigher Irongmug', 'Islandvi   Jumbinte', 'Lackapac Lorvalow', 'MarsEdgyMedprin', 'parispn!!!', 'personna', '  popic😃', 'Riderix\n', 'Romantec__', 'Sellakuk23', '--TickoAim2$', 'Transia4\t', 'Trippah+512', '😃', 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa']
+
+const flairs = [{text: 'Analysis'}, {text: 'ADVICE', color: '#252850'}, {text: 'comedy', color: '#23282B'}, {text: 'General News'}, {text: 'Probably a scammer', color: '#5B3A29'}, {text: 'education', color: '#4A192C'}, {text: 'MARKETS', color: '#F8F32B'}, {text: 'IMPORTANT!!!', color: '#C35831'}, {text: 'WARNING', color: '#AF2B1E'}, {text: 'MOON 🌕', color: '#D36E70'}, {text: 'video', color: '#924E7D'}, ]
+
+const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW']
+
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
   // if (!window.TextEncoder) {
@@ -114,9 +122,40 @@ const getImageUrl = async (seed: string) => {
   return imageUrl
 }
 
+const getAuthor = async (seed: string) => {
+  const author: any = {
+    address: await hash(seed + 'author address')
+  }
+  const hasEns = await getArrayItem([true, false, false, false], seed + 'has ens')
+  if (hasEns) {
+    const text = await getArrayItem([...firstNames, ...displayNames], seed + 'author ens first name')
+    author.address = (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth'
+  }
+  const hasDisplayName = await getArrayItem([true, true, true, false], seed + 'has display name')
+  if (hasDisplayName) {
+    author.displayName = await getArrayItem(displayNames, seed + 'display name')
+  }
+  const hasNftAvatar = await getArrayItem([true, false, false, false, false, false, false, false, false, false, false, false], seed + 'has nft avatar')
+  if (hasNftAvatar) {
+    author.avatar = {
+      chainTicker: 'eth',
+      address: await getArrayItem(['0xed5af388653567af2f388e6224dc7c4b3241c544', '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '0x60e4d786628fea6478f785a6d7e704777c86a7c6', '0x79fcdef22feed20eddacbb2587640e45491b757f', '0x0000000000000000000000000000000000000dead'], seed + 'nft avatar address'),
+      index: await getNumberBetween(1, 2000, seed + 'nft avatar index')
+    }
+  }
+  return author
+}
+
 const getPostContent = async (seed: string) => {
+  const author = await getAuthor(seed + 'author')
+  let flair
+  const hasFlair = await getArrayItem([true, false, false, false], seed + 'has flair')
+  if (hasFlair) {
+    flair = await getArrayItem(flairs, seed + 'flair')
+  }
   const title = await getArrayItem(commentTitles, seed + 'title')
   const isLinkPost = await getArrayItem([true, false], seed + 'islinkpost')
+  const depth = 0
   if (isLinkPost) {
     let link = await getArrayItem(commentLinks, seed + 'link')
     const linkIsImage = await getArrayItem([true, false], seed + 'linkisimage')
@@ -126,18 +165,25 @@ const getPostContent = async (seed: string) => {
     const hasThumbnail = await getArrayItem([true, true, true, false], seed + 'hasthumbnail')
     if (!linkIsImage && hasThumbnail) {
       const thumbnailUrl = await getImageUrl(seed + 'thumbnail')
-      return { title, link, thumbnailUrl }
+      return { title, link, thumbnailUrl, flair, depth }
     }
-    return { title, link }
+    return { title, link, author, flair, depth }
   }
   // else is text post
   const content = await getArrayItem(commentContents, seed + 'content')
-  return { title, content }
+  return { title, content, author, flair, depth }
 }
 
-const getReplyContent = async (parentCid: string, seed: string) => {
+const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
+  const {depth, parentCid, postCid} = getReplyContentOptions
+  const author = await getAuthor(seed + 'author')
+  let flair
+  const hasFlair = await getArrayItem([true, false, false, false], seed + 'has flair')
+  if (hasFlair) {
+    flair = await getArrayItem(flairs, seed + 'flair')
+  }
   const content = await getArrayItem(commentContents, seed + 'replycontent')
-  return { content, parentCid }
+  return { content, author, flair, depth, parentCid, postCid }
 }
 
 const getSubplebbitContent = async (seed: string) => {
@@ -154,6 +200,8 @@ const getSubplebbitContent = async (seed: string) => {
   }
 }
 
+let replyLoopCount = 0
+
 const getCommentUpdateContent = async (comment: any) => {
   const upvotesPerUpdate = await getNumberBetween(1, 1000, comment.cid + 'upvoteupdate')
   const downvotesPerUpdate = await getNumberBetween(1, 1000, comment.cid + 'downvoteupdate')
@@ -165,22 +213,77 @@ const getCommentUpdateContent = async (comment: any) => {
   commentUpdateContent.downvoteCount =
     typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate
 
+  // find the number of replies
+  commentUpdateContent.replyCount = 0
+  const hasReplies = await getArrayItem([true, false, false, false], comment.cid + 'has replies')
+  if (hasReplies) {
+    commentUpdateContent.replyCount = await getNumberBetween(0, 30, comment.cid + 'reply count')
+    if (comment.depth > 0) {
+      commentUpdateContent.replyCount = commentUpdateContent.replyCount / ((comment.depth + 1) ** 2)
+    }
+    if (commentUpdateContent.replyCount < 1) {
+      commentUpdateContent.replyCount = 0
+    }
+    commentUpdateContent.replyCount = Math.round(commentUpdateContent.replyCount)
+  }
+
   // simulate finding replies from IPNS record
-  commentUpdateContent.replies = {
-    pages: {
-      topAll: {
-        nextCid: null,
-        comments: [
-          await getReplyContent(comment.cid, comment.cid + 'replycontent1'),
-          await getReplyContent(comment.cid, comment.cid + 'replycontent2'),
-          await getReplyContent(comment.cid, comment.cid + 'replycontent3'),
-          await getReplyContent(comment.cid, comment.cid + 'replycontent4'),
-          await getReplyContent(comment.cid, comment.cid + 'replycontent5'),
-        ],
-      },
+  commentUpdateContent.replies = {pages: {topAll: {nextCid: null, comments: []}}}
+  const getReplyContentOptions = {depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid}
+  let replyCount = commentUpdateContent.replyCount
+  while (replyCount-- > 0) {
+    // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
+    const replyContent = await getReplyContent(getReplyContentOptions, comment.cid + 'reply content' + replyCount)
+    const reply = {
+      cid: await hash(comment.cid + 'reply cid' + replyCount),
+      ipnsName: await hash(comment.cid + 'reply ipns name' + replyCount),
+      timestamp: await getNumberBetween(comment.timestamp, NOW, comment.cid + 'reply timestamp' + replyCount),
+      subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
+      ...replyContent,
+    }
+    const replyUpdateContent = await getCommentUpdateContent(reply)
+    commentUpdateContent.replies.pages.topAll.comments.push({...reply, ...replyUpdateContent})
+  }
+
+  const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+
+  const isSpoiler = await getArrayItem(rareTrue, comment.cid + 'is spoiler')
+  if (isSpoiler) {
+    commentUpdateContent.spoiler = true
+  }
+
+  const isEdited = await getArrayItem(rareTrue, comment.cid + 'is edited')
+  if (isEdited) {
+    commentUpdateContent.editTimestamp = comment.timestamp + 60 * 30
+    commentUpdateContent.content = comment.content + ' WHY DOWNVOTES!?'
+  }
+
+  const isDeleted = await getArrayItem(rareTrue, comment.cid + 'is deleted')
+  const isPinned = await getArrayItem(rareTrue, comment.cid + 'is pinned')
+  const isRemoved = await getArrayItem(rareTrue, comment.cid + 'is removed')
+  const isLocked = await getArrayItem(rareTrue, comment.cid + 'is locked')
+
+  if (isDeleted) {
+    commentUpdateContent.deleted = true
+  }
+  else if (isPinned) {
+    commentUpdateContent.pinned = true
+  }
+  else if (isRemoved) {
+    commentUpdateContent.removed = true
+    const hasReason = await getArrayItem([true, false], comment.cid + 'is removed reason')
+    if (hasReason) {
+      commentUpdateContent.reason = await getArrayItem(reasons, comment.cid + 'reason removed')
     }
   }
-  commentUpdateContent.replyCount = 5
+  else if (isLocked && comment.depth === 0) {
+    commentUpdateContent.locked = true
+    const hasReason = await getArrayItem([true, false], comment.cid + 'is locked reason')
+    if (hasReason) {
+      commentUpdateContent.reason = await getArrayItem(reasons, comment.cid + 'locked removed')
+    }
+  }
+
   return commentUpdateContent
 }
 
@@ -196,6 +299,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
       timestamp: await getNumberBetween(NOW - DAY * 30, NOW, pageCid + index),
       cid: await hash(pageCid + index),
       subplebbitAddress: subplebbit.address,
+      depth: 0
     }
     comment = { ...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment)) }
     page.comments.push(comment)
@@ -239,8 +343,11 @@ class Plebbit {
     let commentContent: any = await getPostContent(commentCid + 'postcontent')
     const isReply = await getArrayItem([true, false, false, false], commentCid + 'isreply')
     if (isReply) {
+      const depth = await getNumberBetween(1, 10, commentCid + 'reply depth')
       const parentCid = await hash(commentCid + 'parentcid')
-      commentContent = await getReplyContent(parentCid, commentCid + 'replycontent')
+      const postCid = depth === 1 ? parentCid : await hash(commentCid + 'postCid')
+      const getReplyContentOptions = {depth, parentCid, postCid}
+      commentContent = await getReplyContent(getReplyContentOptions, commentCid + 'replycontent')
     }
     const createCommentOptions = {
       cid: commentCid,
@@ -372,6 +479,16 @@ class Comment extends Publication {
   parentCid: string | undefined
   replies: any
   replyCount: number | undefined
+  postCid: string | undefined
+  depth: number | undefined
+  spoiler: boolean | undefined
+  flair: any | undefined
+  pinned: boolean | undefined
+  locked: boolean | undefined
+  deleted: boolean | undefined
+  removed: boolean | undefined
+  editTimestamp: number | undefined
+  reason: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -383,6 +500,17 @@ class Comment extends Publication {
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
+    this.postCid = createCommentOptions?.postCid
+    this.parentCid = createCommentOptions?.parentCid
+    this.depth = createCommentOptions?.depth
+    this.spoiler = createCommentOptions?.spoiler
+    this.flair = createCommentOptions?.flair
+    this.pinned = createCommentOptions?.pinned
+    this.locked = createCommentOptions?.locked
+    this.deleted = createCommentOptions?.deleted
+    this.removed = createCommentOptions?.removed
+    this.editTimestamp = createCommentOptions?.editTimestamp
+    this.reason = createCommentOptions?.reason
   }
 
   update() {

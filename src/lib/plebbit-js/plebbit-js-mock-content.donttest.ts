@@ -2,8 +2,10 @@
 // only use it to log the content mock and see if the outputs make sense
 // use `jest --testRegex plebbit-js-mock-content.donttest.ts` to run
 
+jest.setTimeout(60000)
+
 process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT = '1'
-process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '100'
+process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
 
 import { act, renderHook } from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
@@ -90,7 +92,7 @@ describe('mock content', () => {
     console.log(rendered.result.current.posts.pages.hot.comments)
   })
 
-  test('use feed', async () => {
+  test.only('use feed', async () => {
     const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed(subplebbitAddresses, 'new'), {
       wrapper: PlebbitProvider,
     })
@@ -100,15 +102,15 @@ describe('mock content', () => {
         rendered.result.current.loadMore()
       })
       try {
-        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength)
+        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout: 60000})
       } catch (e) {
         console.error('scrollOnePage failed:', e)
       }
     }
 
-    rendered.rerender(['memes.eth', 'news.eth'])
+    rendered.rerender(['jokes.eth', 'news.eth'])
     try {
-      await rendered.waitFor(() => rendered.result.current.feed?.length > 0)
+      await rendered.waitFor(() => rendered.result.current.feed?.length > 0, {timeout: 60000})
     } catch (e) {
       console.error(e)
     }
