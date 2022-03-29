@@ -91,7 +91,13 @@ function createLocalForageInstance(localForageLruOptions) {
     };
     function updateDatabases(key, value) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield database1.setItem(key, value);
+            try {
+                yield database1.setItem(key, value);
+            }
+            catch (e) {
+                console.error('TODO: figure out sure why this error happens', { localForageLruOptions, databaseSize });
+                console.error(e);
+            }
             databaseSize++;
             if (databaseSize >= localForageLruOptions.size) {
                 databaseSize = 0;

@@ -67,6 +67,10 @@ const urlSuffixes = [
     '?query=string',
     '?query=string&yes=1',
 ];
+const firstNames = ['james', 'robert', 'john', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua'];
+const displayNames = ['COVERCADIGMENTS!', 'Everco__Evidehovi', 'fermind-flashyte', 'FlirtyraForeguiGoldhil_', 'Hanmiddie Headro Herdman', 'Hurigher Irongmug', 'Islandvi   Jumbinte', 'Lackapac Lorvalow', 'MarsEdgyMedprin', 'parispn!!!', 'personna', '  popic😃', 'Riderix\n', 'Romantec__', 'Sellakuk23', '--TickoAim2$', 'Transia4\t', 'Trippah+512', '😃', 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa'];
+const flairs = [{ text: 'Analysis' }, { text: 'ADVICE', color: '#252850' }, { text: 'comedy', color: '#23282B' }, { text: 'General News' }, { text: 'Probably a scammer', color: '#5B3A29' }, { text: 'education', color: '#4A192C' }, { text: 'MARKETS', color: '#F8F32B' }, { text: 'IMPORTANT!!!', color: '#C35831' }, { text: 'WARNING', color: '#AF2B1E' }, { text: 'MOON 🌕', color: '#D36E70' }, { text: 'video', color: '#924E7D' },];
+const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW'];
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     assert(string, `cant hash string '${string}'`);
     // if (!window.TextEncoder) {
@@ -102,9 +106,39 @@ const getImageUrl = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     const imageUrl = (yield getArrayItem(imageUrls, seed + 'image')) + (yield getArrayItem(urlSuffixes, seed + 'suffix'));
     return imageUrl;
 });
+const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const author = {
+        address: yield hash(seed + 'author address')
+    };
+    const hasEns = yield getArrayItem([true, false, false, false], seed + 'has ens');
+    if (hasEns) {
+        const text = yield getArrayItem([...firstNames, ...displayNames], seed + 'author ens first name');
+        author.address = (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth';
+    }
+    const hasDisplayName = yield getArrayItem([true, true, true, false], seed + 'has display name');
+    if (hasDisplayName) {
+        author.displayName = yield getArrayItem(displayNames, seed + 'display name');
+    }
+    const hasNftAvatar = yield getArrayItem([true, false, false, false, false, false, false, false, false, false, false, false], seed + 'has nft avatar');
+    if (hasNftAvatar) {
+        author.avatar = {
+            chainTicker: 'eth',
+            address: yield getArrayItem(['0xed5af388653567af2f388e6224dc7c4b3241c544', '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '0x60e4d786628fea6478f785a6d7e704777c86a7c6', '0x79fcdef22feed20eddacbb2587640e45491b757f', '0x0000000000000000000000000000000000000dead'], seed + 'nft avatar address'),
+            index: yield getNumberBetween(1, 2000, seed + 'nft avatar index')
+        };
+    }
+    return author;
+});
 const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const author = yield getAuthor(seed + 'author');
+    let flair;
+    const hasFlair = yield getArrayItem([true, false, false, false], seed + 'has flair');
+    if (hasFlair) {
+        flair = yield getArrayItem(flairs, seed + 'flair');
+    }
     const title = yield getArrayItem(commentTitles, seed + 'title');
     const isLinkPost = yield getArrayItem([true, false], seed + 'islinkpost');
+    const depth = 0;
     if (isLinkPost) {
         let link = yield getArrayItem(commentLinks, seed + 'link');
         const linkIsImage = yield getArrayItem([true, false], seed + 'linkisimage');
@@ -114,31 +148,100 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
         const hasThumbnail = yield getArrayItem([true, true, true, false], seed + 'hasthumbnail');
         if (!linkIsImage && hasThumbnail) {
             const thumbnailUrl = yield getImageUrl(seed + 'thumbnail');
-            return { title, link, thumbnailUrl };
+            return { title, link, thumbnailUrl, flair, depth };
         }
-        return { title, link };
+        return { title, link, author, flair, depth };
     }
     // else is text post
     const content = yield getArrayItem(commentContents, seed + 'content');
-    return { title, content };
+    return { title, content, author, flair, depth };
 });
-const getReplyContent = (parentCid, seed) => __awaiter(void 0, void 0, void 0, function* () {
+const getReplyContent = (getReplyContentOptions, seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const { depth, parentCid, postCid } = getReplyContentOptions;
+    const author = yield getAuthor(seed + 'author');
+    let flair;
+    const hasFlair = yield getArrayItem([true, false, false, false], seed + 'has flair');
+    if (hasFlair) {
+        flair = yield getArrayItem(flairs, seed + 'flair');
+    }
     const content = yield getArrayItem(commentContents, seed + 'replycontent');
-    return { content, parentCid };
+    return { content, author, flair, depth, parentCid, postCid };
 });
 const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const subplebbit = {
+        pubsubTopic: yield hash(seed + 'pubsub topic'),
+        createdAt: yield getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
+        updatedAt: yield getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at')
+    };
+    const hasChallengeTypes = yield getArrayItem([true, false], seed + 'has challenge types');
+    if (hasChallengeTypes) {
+        subplebbit.challengeTypes = ['image'];
+    }
+    const hasModeratorAddresses = yield getArrayItem([true, false], seed + 'has moderator addresses');
+    if (hasModeratorAddresses) {
+        subplebbit.moderatorAddresses = [
+            (yield getAuthor(seed + 'mod address 1')).address,
+            (yield getAuthor(seed + 'mod address 2')).address,
+            (yield getAuthor(seed + 'mod address 3')).address,
+            (yield getAuthor(seed + 'mod address 4')).address,
+            (yield getAuthor(seed + 'mod address 5')).address,
+            (yield getAuthor(seed + 'mod address 6')).address,
+            (yield getAuthor(seed + 'mod address 7')).address,
+            (yield getAuthor(seed + 'mod address 8')).address,
+        ];
+    }
     const title = yield getArrayItem([undefined, ...subplebbitTitles], seed + 'title');
+    if (title) {
+        subplebbit.title = title;
+    }
     const description = yield getArrayItem([undefined, ...subplebbitDescriptions], seed + 'description');
-    if (!title && !description) {
-        return {};
+    if (description) {
+        subplebbit.description = description;
     }
-    if (!description) {
-        return { title };
+    const hasFlairs = yield getArrayItem([true, false], seed + 'has flairs');
+    if (hasFlairs) {
+        subplebbit.flairs = flairs;
     }
-    if (!title) {
-        return description;
+    const hasSuggested = yield getArrayItem([true, false], seed + 'has suggested');
+    if (hasSuggested) {
+        subplebbit.suggested = {
+            primaryColor: (yield getArrayItem(flairs, seed + 'suggested primary color')).color,
+            secondaryColor: (yield getArrayItem(flairs, seed + 'suggested secondary color')).color,
+            avatarUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
+            bannerUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
+            backgroundUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
+            language: yield getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language')
+        };
     }
+    const hasFeatures = yield getArrayItem([true, false], seed + 'has features');
+    if (hasFeatures) {
+        subplebbit.features = {
+            noVideos: yield getArrayItem([undefined, undefined, true, false], seed + 'noVideos'),
+            noSpoilers: yield getArrayItem([undefined, undefined, true, false], seed + 'noSpoilers'),
+            noImages: yield getArrayItem([undefined, undefined, true, false], seed + 'noImages'),
+            noVideoReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'noVideoReplies'),
+            noSpoilerReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'noSpoilerReplies'),
+            noImageReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'noImageReplies'),
+            noPolls: yield getArrayItem([undefined, undefined, true, false], seed + 'noPolls'),
+            noCrossposts: yield getArrayItem([undefined, undefined, true, false], seed + 'noCrossposts'),
+            noUpvotes: yield getArrayItem([undefined, undefined, true, false], seed + 'noUpvotes'),
+            noDownvotes: yield getArrayItem([undefined, undefined, true, false], seed + 'noDownvotes'),
+            noAuthors: yield getArrayItem([undefined, undefined, true, false], seed + 'noAuthors'),
+            anonymousAuthors: yield getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'),
+            noNestedReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'noNestedReplies'),
+            safeForWork: yield getArrayItem([undefined, undefined, true, false], seed + 'safeForWork'),
+            flairs: yield getArrayItem([undefined, undefined, true, false], seed + 'flairs'),
+            requireFlairs: yield getArrayItem([undefined, undefined, true, false], seed + 'requireFlairs'),
+            noMarkdownImages: yield getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownImages'),
+            noMarkdownVideos: yield getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownVideos'),
+            markdownImageReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'markdownImageReplies'),
+            markdownVideoReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'markdownVideoReplies'),
+        };
+    }
+    return subplebbit;
 });
+// for debugging slow bulk reply generation
+let replyLoopCount = 0;
 const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, function* () {
     const upvotesPerUpdate = yield getNumberBetween(1, 1000, comment.cid + 'upvoteupdate');
     const downvotesPerUpdate = yield getNumberBetween(1, 1000, comment.cid + 'downvoteupdate');
@@ -148,22 +251,64 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         typeof comment.upvoteCount === 'number' ? comment.upvoteCount + upvotesPerUpdate : upvotesPerUpdate;
     commentUpdateContent.downvoteCount =
         typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate;
-    // simulate finding replies from IPNS record
-    commentUpdateContent.replies = {
-        pages: {
-            topAll: {
-                nextCid: null,
-                comments: [
-                    yield getReplyContent(comment.cid, comment.cid + 'replycontent1'),
-                    yield getReplyContent(comment.cid, comment.cid + 'replycontent2'),
-                    yield getReplyContent(comment.cid, comment.cid + 'replycontent3'),
-                    yield getReplyContent(comment.cid, comment.cid + 'replycontent4'),
-                    yield getReplyContent(comment.cid, comment.cid + 'replycontent5'),
-                ],
-            },
+    // find the number of replies
+    commentUpdateContent.replyCount = 0;
+    const hasReplies = yield getArrayItem([true, false, false, false], comment.cid + 'has replies');
+    if (hasReplies) {
+        commentUpdateContent.replyCount = yield getNumberBetween(0, 30, comment.cid + 'reply count');
+        if (comment.depth > 0) {
+            commentUpdateContent.replyCount = commentUpdateContent.replyCount / (Math.pow((comment.depth + 1), 2));
         }
-    };
-    commentUpdateContent.replyCount = 5;
+        if (commentUpdateContent.replyCount < 1) {
+            commentUpdateContent.replyCount = 0;
+        }
+        commentUpdateContent.replyCount = Math.round(commentUpdateContent.replyCount);
+    }
+    // simulate finding replies from IPNS record
+    commentUpdateContent.replies = { pages: { topAll: { nextCid: null, comments: [] } } };
+    const getReplyContentOptions = { depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid };
+    let replyCount = commentUpdateContent.replyCount;
+    while (replyCount-- > 0) {
+        // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
+        const replyContent = yield getReplyContent(getReplyContentOptions, comment.cid + 'reply content' + replyCount);
+        const reply = Object.assign({ cid: yield hash(comment.cid + 'reply cid' + replyCount), ipnsName: yield hash(comment.cid + 'reply ipns name' + replyCount), timestamp: yield getNumberBetween(comment.timestamp, NOW, comment.cid + 'reply timestamp' + replyCount), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
+        const replyUpdateContent = yield getCommentUpdateContent(reply);
+        commentUpdateContent.replies.pages.topAll.comments.push(Object.assign(Object.assign({}, reply), replyUpdateContent));
+    }
+    const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
+    const isSpoiler = yield getArrayItem(rareTrue, comment.cid + 'is spoiler');
+    if (isSpoiler) {
+        commentUpdateContent.spoiler = true;
+    }
+    const isEdited = yield getArrayItem(rareTrue, comment.cid + 'is edited');
+    if (isEdited) {
+        commentUpdateContent.editTimestamp = comment.timestamp + 60 * 30;
+        commentUpdateContent.content = comment.content + ' WHY DOWNVOTES!?';
+    }
+    const isDeleted = yield getArrayItem(rareTrue, comment.cid + 'is deleted');
+    const isPinned = yield getArrayItem(rareTrue, comment.cid + 'is pinned');
+    const isRemoved = yield getArrayItem(rareTrue, comment.cid + 'is removed');
+    const isLocked = yield getArrayItem(rareTrue, comment.cid + 'is locked');
+    if (isDeleted) {
+        commentUpdateContent.deleted = true;
+    }
+    else if (isPinned) {
+        commentUpdateContent.pinned = true;
+    }
+    else if (isRemoved) {
+        commentUpdateContent.removed = true;
+        const hasReason = yield getArrayItem([true, false], comment.cid + 'is removed reason');
+        if (hasReason) {
+            commentUpdateContent.reason = yield getArrayItem(reasons, comment.cid + 'reason removed');
+        }
+    }
+    else if (isLocked && comment.depth === 0) {
+        commentUpdateContent.locked = true;
+        const hasReason = yield getArrayItem([true, false], comment.cid + 'is locked reason');
+        if (hasReason) {
+            commentUpdateContent.reason = yield getArrayItem(reasons, comment.cid + 'locked removed');
+        }
+    }
     return commentUpdateContent;
 });
 const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 0, function* () {
@@ -178,6 +323,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
             timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, pageCid + index),
             cid: yield hash(pageCid + index),
             subplebbitAddress: subplebbit.address,
+            depth: 0
         };
         comment = Object.assign(Object.assign(Object.assign({}, comment), (yield getPostContent(comment.cid))), (yield getCommentUpdateContent(comment)));
         page.comments.push(comment);
@@ -219,8 +365,11 @@ class Plebbit {
             let commentContent = yield getPostContent(commentCid + 'postcontent');
             const isReply = yield getArrayItem([true, false, false, false], commentCid + 'isreply');
             if (isReply) {
+                const depth = yield getNumberBetween(1, 10, commentCid + 'reply depth');
                 const parentCid = yield hash(commentCid + 'parentcid');
-                commentContent = yield getReplyContent(parentCid, commentCid + 'replycontent');
+                const postCid = depth === 1 ? parentCid : yield hash(commentCid + 'postCid');
+                const getReplyContentOptions = { depth, parentCid, postCid };
+                commentContent = yield getReplyContent(getReplyContentOptions, commentCid + 'replycontent');
             }
             const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: yield hash(commentCid + 'ipns name'), timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentCid + 'timestamp'), subplebbitAddress: 'memes.eth' }, commentContent);
             const comment = new Comment(createCommentOptions);
@@ -254,9 +403,19 @@ class Pages {
 class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
         super();
-        this.updating = false;
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
         this.posts = new Pages({ subplebbit: this });
+        this.pubsubTopic = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.pubsubTopic;
+        this.createdAt = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.createdAt;
+        this.updatedAt = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.updatedAt;
+        this.challengeTypes = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.challengeTypes;
+        this.moderatorAddresses = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.moderatorAddresses;
+        this.flairs = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.flairs;
+        this.suggested = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.suggested;
+        this.features = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.features;
+        Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
+        // @ts-ignore
+        this.updating = false;
     }
     update() {
         // is ipnsName is known, look for updates and emit updates immediately after creation
@@ -264,16 +423,17 @@ class Subplebbit extends EventEmitter {
             throw Error(`can't update without subplebbit.address`);
         }
         // don't update twice
+        // @ts-ignore
         if (this.updating) {
             return;
         }
+        // @ts-ignore
         this.updating = true;
         simulateLoadingTime().then(() => {
             this.simulateUpdateEvent();
         });
     }
     simulateUpdateEvent() {
-        this.description = this.address + ' description updated';
         this.emit('update', this);
     }
 }
@@ -281,8 +441,12 @@ let challengeRequestCount = 0;
 let challengeAnswerCount = 0;
 class Publication extends EventEmitter {
     constructor() {
-        super(...arguments);
+        super();
+        Object.defineProperty(this, 'challengeRequestId', { enumerable: false, writable: true });
+        Object.defineProperty(this, 'challengeAnswerId', { enumerable: false, writable: true });
+        // @ts-ignore
         this.challengeRequestId = `r${++challengeRequestCount}`;
+        // @ts-ignore
         this.challengeAnswerId = `a${++challengeAnswerCount}`;
     }
     publish() {
@@ -295,6 +459,7 @@ class Publication extends EventEmitter {
         const challenge = { type: 'text', challenge: '2+2=?' };
         const challengeMessage = {
             type: 'CHALLENGE',
+            // @ts-ignore
             challengeRequestId: this.challengeRequestId,
             challenges: [challenge],
         };
@@ -312,7 +477,9 @@ class Publication extends EventEmitter {
         const publication = this.cid && { cid: this.cid };
         const challengeVerificationMessage = {
             type: 'CHALLENGEVERIFICATION',
+            // @ts-ignore
             challengeRequestId: this.challengeRequestId,
+            // @ts-ignore
             challengeAnswerId: this.challengeAnswerId,
             challengeAnswerIsVerified: true,
             publication,
@@ -323,7 +490,6 @@ class Publication extends EventEmitter {
 class Comment extends Publication {
     constructor(createCommentOptions) {
         super();
-        this.updating = false;
         this.ipnsName = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.ipnsName;
         this.cid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.cid;
         this.upvoteCount = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.upvoteCount;
@@ -332,6 +498,20 @@ class Comment extends Publication {
         this.author = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.author;
         this.timestamp = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.timestamp;
         this.parentCid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.parentCid;
+        this.postCid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.postCid;
+        this.parentCid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.parentCid;
+        this.depth = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.depth;
+        this.spoiler = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.spoiler;
+        this.flair = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.flair;
+        this.pinned = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.pinned;
+        this.locked = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.locked;
+        this.deleted = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.deleted;
+        this.removed = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.removed;
+        this.editTimestamp = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.editTimestamp;
+        this.reason = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.reason;
+        Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
+        // @ts-ignore
+        this.updating = false;
     }
     update() {
         // is ipnsName is known, look for updates and emit updates immediately after creation
@@ -339,9 +519,11 @@ class Comment extends Publication {
             throw Error(`can't update without comment.ipnsName`);
         }
         // don't update twice
+        // @ts-ignore
         if (this.updating) {
             return;
         }
+        // @ts-ignore
         this.updating = true;
         (() => __awaiter(this, void 0, void 0, function* () {
             while (true) {
