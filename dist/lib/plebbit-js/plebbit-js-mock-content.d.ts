@@ -26,9 +26,10 @@ declare class Subplebbit extends EventEmitter {
     updatedAt: number | undefined;
     challengeTypes: string[] | undefined;
     moderatorAddresses: string[] | undefined;
-    flairs: any[] | undefined;
+    flairs: any | undefined;
     suggested: any | undefined;
     features: any | undefined;
+    rules: string[] | undefined;
     constructor(createSubplebbitOptions?: any);
     update(): void;
     simulateUpdateEvent(): void;

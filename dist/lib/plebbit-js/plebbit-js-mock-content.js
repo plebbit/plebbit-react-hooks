@@ -69,8 +69,9 @@ const urlSuffixes = [
 ];
 const firstNames = ['james', 'robert', 'john', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua'];
 const displayNames = ['COVERCADIGMENTS!', 'Everco__Evidehovi', 'fermind-flashyte', 'FlirtyraForeguiGoldhil_', 'Hanmiddie Headro Herdman', 'Hurigher Irongmug', 'Islandvi   Jumbinte', 'Lackapac Lorvalow', 'MarsEdgyMedprin', 'parispn!!!', 'personna', '  popic😃', 'Riderix\n', 'Romantec__', 'Sellakuk23', '--TickoAim2$', 'Transia4\t', 'Trippah+512', '😃', 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa'];
-const flairs = [{ text: 'Analysis' }, { text: 'ADVICE', color: '#252850' }, { text: 'comedy', color: '#23282B' }, { text: 'General News' }, { text: 'Probably a scammer', color: '#5B3A29' }, { text: 'education', color: '#4A192C' }, { text: 'MARKETS', color: '#F8F32B' }, { text: 'IMPORTANT!!!', color: '#C35831' }, { text: 'WARNING', color: '#AF2B1E' }, { text: 'MOON 🌕', color: '#D36E70' }, { text: 'video', color: '#924E7D' },];
-const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW'];
+const postFlairs = [{ text: 'Analysis' }, { text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850' }, { text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B' }, { text: 'General News' }, { text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!', textColor: '#FFFFFF', backgroundColor: '#5B3A29' }, { text: 'education', textColor: '#000000', backgroundColor: '#4A192C' }, { text: 'MARKETS', backgroundColor: '#F8F32B' }, { text: 'IMPORTANT!!!', backgroundColor: '#C35831' }, { text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', backgroundColor: '#AF2B1E' }, { text: 'MOON 🌕', backgroundColor: '#D36E70' }, { text: 'video', backgroundColor: '#924E7D' },];
+const authorFlairs = [{ text: 'SCAMMER' }, { text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850' }, { text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B' }, { text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }, { text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29' }, { text: 'loser', textColor: '#000000', backgroundColor: '#4A192C' }, { text: 'WINNER', backgroundColor: '#F8F32B' }, { text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831' }, { text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!', backgroundColor: '#AF2B1E' }, { text: '🌕', backgroundColor: '#D36E70' }, { text: 'creator', backgroundColor: '#924E7D' },];
+const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW', 'SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'];
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     assert(string, `cant hash string '${string}'`);
     // if (!window.TextEncoder) {
@@ -119,7 +120,8 @@ const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     if (hasDisplayName) {
         author.displayName = yield getArrayItem(displayNames, seed + 'display name');
     }
-    const hasNftAvatar = yield getArrayItem([true, false, false, false, false, false, false, false, false, false, false, false], seed + 'has nft avatar');
+    const rareTrue = [true, false, false, false, false, false, false, false];
+    const hasNftAvatar = yield getArrayItem(rareTrue, seed + 'has nft avatar');
     if (hasNftAvatar) {
         author.avatar = {
             chainTicker: 'eth',
@@ -127,47 +129,48 @@ const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
             index: yield getNumberBetween(1, 2000, seed + 'nft avatar index')
         };
     }
+    const hasFlair = yield getArrayItem(rareTrue, seed + 'has author flair');
+    if (hasFlair) {
+        author.flair = yield getArrayItem(authorFlairs, seed + 'author flair');
+    }
     return author;
 });
 const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
-    const author = yield getAuthor(seed + 'author');
-    let flair;
+    const postContent = {
+        depth: 0,
+        author: yield getAuthor(seed + 'author'),
+        title: yield getArrayItem(commentTitles, seed + 'title')
+    };
     const hasFlair = yield getArrayItem([true, false, false, false], seed + 'has flair');
     if (hasFlair) {
-        flair = yield getArrayItem(flairs, seed + 'flair');
+        postContent.flair = yield getArrayItem(postFlairs, seed + 'flair');
     }
-    const title = yield getArrayItem(commentTitles, seed + 'title');
     const isLinkPost = yield getArrayItem([true, false], seed + 'islinkpost');
-    const depth = 0;
     if (isLinkPost) {
-        let link = yield getArrayItem(commentLinks, seed + 'link');
+        postContent.link = yield getArrayItem(commentLinks, seed + 'link');
         const linkIsImage = yield getArrayItem([true, false], seed + 'linkisimage');
         if (linkIsImage) {
-            link = yield getImageUrl(seed + 'linkimage');
+            postContent.link = yield getImageUrl(seed + 'linkimage');
         }
         const hasThumbnail = yield getArrayItem([true, true, true, false], seed + 'hasthumbnail');
         if (!linkIsImage && hasThumbnail) {
-            const thumbnailUrl = yield getImageUrl(seed + 'thumbnail');
-            return { title, link, thumbnailUrl, flair, depth };
+            postContent.thumbnailUrl = yield getImageUrl(seed + 'thumbnail');
         }
-        return { title, link, author, flair, depth };
     }
     // else is text post
-    const content = yield getArrayItem(commentContents, seed + 'content');
-    return { title, content, author, flair, depth };
+    else {
+        postContent.content = yield getArrayItem(commentContents, seed + 'content');
+    }
+    return postContent;
 });
 const getReplyContent = (getReplyContentOptions, seed) => __awaiter(void 0, void 0, void 0, function* () {
     const { depth, parentCid, postCid } = getReplyContentOptions;
     const author = yield getAuthor(seed + 'author');
-    let flair;
-    const hasFlair = yield getArrayItem([true, false, false, false], seed + 'has flair');
-    if (hasFlair) {
-        flair = yield getArrayItem(flairs, seed + 'flair');
-    }
     const content = yield getArrayItem(commentContents, seed + 'replycontent');
-    return { content, author, flair, depth, parentCid, postCid };
+    return { content, author, depth, parentCid, postCid };
 });
 const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const subplebbit = {
         pubsubTopic: yield hash(seed + 'pubsub topic'),
         createdAt: yield getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
@@ -198,15 +201,19 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
     if (description) {
         subplebbit.description = description;
     }
-    const hasFlairs = yield getArrayItem([true, false], seed + 'has flairs');
-    if (hasFlairs) {
-        subplebbit.flairs = flairs;
+    const hasPostFlairs = yield getArrayItem([true, false], seed + 'has post flairs');
+    if (hasPostFlairs) {
+        subplebbit.flairs = { post: postFlairs };
+    }
+    const hasAuthorFlairs = yield getArrayItem([true, false], seed + 'has author flairs');
+    if (hasAuthorFlairs) {
+        subplebbit.flairs = { post: (_a = subplebbit.flairs) === null || _a === void 0 ? void 0 : _a.post, author: authorFlairs };
     }
     const hasSuggested = yield getArrayItem([true, false], seed + 'has suggested');
     if (hasSuggested) {
         subplebbit.suggested = {
-            primaryColor: (yield getArrayItem(flairs, seed + 'suggested primary color')).color,
-            secondaryColor: (yield getArrayItem(flairs, seed + 'suggested secondary color')).color,
+            primaryColor: (yield getArrayItem(postFlairs, seed + 'suggested primary color')).backgroundColor,
+            secondaryColor: (yield getArrayItem(postFlairs, seed + 'suggested secondary color')).backgroundColor,
             avatarUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
             bannerUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
             backgroundUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
@@ -230,13 +237,25 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
             anonymousAuthors: yield getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'),
             noNestedReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'noNestedReplies'),
             safeForWork: yield getArrayItem([undefined, undefined, true, false], seed + 'safeForWork'),
-            flairs: yield getArrayItem([undefined, undefined, true, false], seed + 'flairs'),
-            requireFlairs: yield getArrayItem([undefined, undefined, true, false], seed + 'requireFlairs'),
+            authorFlairs: yield getArrayItem([undefined, undefined, true, false], seed + 'authorFlairs'),
+            requireAuthorFlairs: yield getArrayItem([undefined, undefined, true, false], seed + 'requireAuthorFlairs'),
+            postFlairs: yield getArrayItem([undefined, undefined, true, false], seed + 'postFlairs'),
+            requirePostFlairs: yield getArrayItem([undefined, undefined, true, false], seed + 'requirePostFlairs'),
             noMarkdownImages: yield getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownImages'),
             noMarkdownVideos: yield getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownVideos'),
             markdownImageReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'markdownImageReplies'),
             markdownVideoReplies: yield getArrayItem([undefined, undefined, true, false], seed + 'markdownVideoReplies'),
         };
+    }
+    const hasRules = yield getArrayItem([true, false], seed + 'has rules');
+    if (hasRules) {
+        subplebbit.rules = [
+            'no spam',
+            'be nice',
+            'Do not link to CNN.',
+            'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+            'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO '
+        ];
     }
     return subplebbit;
 });
@@ -413,6 +432,7 @@ class Subplebbit extends EventEmitter {
         this.flairs = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.flairs;
         this.suggested = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.suggested;
         this.features = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.features;
+        this.rules = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.rules;
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
