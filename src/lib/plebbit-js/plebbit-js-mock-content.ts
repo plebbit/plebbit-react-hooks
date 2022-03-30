@@ -71,9 +71,11 @@ const firstNames = ['james', 'robert', 'john', 'michael', 'william', 'david', 'r
 
 const displayNames = ['COVERCADIGMENTS!', 'Everco__Evidehovi', 'fermind-flashyte', 'FlirtyraForeguiGoldhil_', 'Hanmiddie Headro Herdman', 'Hurigher Irongmug', 'Islandvi   Jumbinte', 'Lackapac Lorvalow', 'MarsEdgyMedprin', 'parispn!!!', 'personna', '  popic😃', 'Riderix\n', 'Romantec__', 'Sellakuk23', '--TickoAim2$', 'Transia4\t', 'Trippah+512', '😃', 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa']
 
-const flairs = [{text: 'Analysis'}, {text: 'ADVICE', color: '#252850'}, {text: 'comedy', color: '#23282B'}, {text: 'General News'}, {text: 'Probably a scammer', color: '#5B3A29'}, {text: 'education', color: '#4A192C'}, {text: 'MARKETS', color: '#F8F32B'}, {text: 'IMPORTANT!!!', color: '#C35831'}, {text: 'WARNING', color: '#AF2B1E'}, {text: 'MOON 🌕', color: '#D36E70'}, {text: 'video', color: '#924E7D'}, ]
+const postFlairs = [{text: 'Analysis'}, {text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850'}, {text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B'}, {text: 'General News'}, {text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!', textColor: '#FFFFFF', backgroundColor: '#5B3A29'}, {text: 'education', textColor: '#000000', backgroundColor: '#4A192C'}, {text: 'MARKETS', backgroundColor: '#F8F32B'}, {text: 'IMPORTANT!!!', backgroundColor: '#C35831'}, {text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', backgroundColor: '#AF2B1E'}, {text: 'MOON 🌕', backgroundColor: '#D36E70'}, {text: 'video', backgroundColor: '#924E7D'}, ]
 
-const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW']
+const authorFlairs = [{text: 'SCAMMER'}, {text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850'}, {text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B'}, {text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}, {text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29'}, {text: 'loser', textColor: '#000000', backgroundColor: '#4A192C'}, {text: 'WINNER', backgroundColor: '#F8F32B'}, {text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831'}, {text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!', backgroundColor: '#AF2B1E'}, {text: '🌕', backgroundColor: '#D36E70'}, {text: 'creator', backgroundColor: '#924E7D'}, ]
+
+const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW', 'SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA']
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
@@ -135,7 +137,8 @@ const getAuthor = async (seed: string) => {
   if (hasDisplayName) {
     author.displayName = await getArrayItem(displayNames, seed + 'display name')
   }
-  const hasNftAvatar = await getArrayItem([true, false, false, false, false, false, false, false, false, false, false, false], seed + 'has nft avatar')
+  const rareTrue = [true, false, false, false, false, false, false, false]
+  const hasNftAvatar = await getArrayItem(rareTrue, seed + 'has nft avatar')
   if (hasNftAvatar) {
     author.avatar = {
       chainTicker: 'eth',
@@ -143,47 +146,47 @@ const getAuthor = async (seed: string) => {
       index: await getNumberBetween(1, 2000, seed + 'nft avatar index')
     }
   }
+  const hasFlair = await getArrayItem(rareTrue, seed + 'has author flair') 
+  if (hasFlair) {
+    author.flair = await getArrayItem(authorFlairs, seed + 'author flair') 
+  }
   return author
 }
 
 const getPostContent = async (seed: string) => {
-  const author = await getAuthor(seed + 'author')
-  let flair
+  const postContent: any = {
+    depth: 0,
+    author: await getAuthor(seed + 'author'),
+    title: await getArrayItem(commentTitles, seed + 'title')
+  }
   const hasFlair = await getArrayItem([true, false, false, false], seed + 'has flair')
   if (hasFlair) {
-    flair = await getArrayItem(flairs, seed + 'flair')
+    postContent.flair = await getArrayItem(postFlairs, seed + 'flair')
   }
-  const title = await getArrayItem(commentTitles, seed + 'title')
   const isLinkPost = await getArrayItem([true, false], seed + 'islinkpost')
-  const depth = 0
   if (isLinkPost) {
-    let link = await getArrayItem(commentLinks, seed + 'link')
+    postContent.link = await getArrayItem(commentLinks, seed + 'link')
     const linkIsImage = await getArrayItem([true, false], seed + 'linkisimage')
     if (linkIsImage) {
-      link = await getImageUrl(seed + 'linkimage')
+      postContent.link = await getImageUrl(seed + 'linkimage')
     }
     const hasThumbnail = await getArrayItem([true, true, true, false], seed + 'hasthumbnail')
     if (!linkIsImage && hasThumbnail) {
-      const thumbnailUrl = await getImageUrl(seed + 'thumbnail')
-      return { title, link, thumbnailUrl, flair, depth }
+      postContent.thumbnailUrl = await getImageUrl(seed + 'thumbnail')
     }
-    return { title, link, author, flair, depth }
   }
   // else is text post
-  const content = await getArrayItem(commentContents, seed + 'content')
-  return { title, content, author, flair, depth }
+  else {
+    postContent.content = await getArrayItem(commentContents, seed + 'content')
+  }
+  return postContent
 }
 
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
   const {depth, parentCid, postCid} = getReplyContentOptions
   const author = await getAuthor(seed + 'author')
-  let flair
-  const hasFlair = await getArrayItem([true, false, false, false], seed + 'has flair')
-  if (hasFlair) {
-    flair = await getArrayItem(flairs, seed + 'flair')
-  }
   const content = await getArrayItem(commentContents, seed + 'replycontent')
-  return { content, author, flair, depth, parentCid, postCid }
+  return { content, author, depth, parentCid, postCid }
 }
 
 const getSubplebbitContent = async (seed: string) => {
@@ -221,16 +224,20 @@ const getSubplebbitContent = async (seed: string) => {
     subplebbit.description = description
   }
 
-  const hasFlairs = await getArrayItem([true, false], seed + 'has flairs')
-  if (hasFlairs) {
-    subplebbit.flairs = flairs
+  const hasPostFlairs = await getArrayItem([true, false], seed + 'has post flairs')
+  if (hasPostFlairs) {
+    subplebbit.flairs = {post: postFlairs}
+  }
+  const hasAuthorFlairs = await getArrayItem([true, false], seed + 'has author flairs')
+  if (hasAuthorFlairs) {
+    subplebbit.flairs = {post: subplebbit.flairs?.post, author: authorFlairs}
   }
 
   const hasSuggested = await getArrayItem([true, false], seed + 'has suggested')
   if (hasSuggested) {
     subplebbit.suggested = {
-      primaryColor: (await getArrayItem(flairs, seed + 'suggested primary color')).color,
-      secondaryColor: (await getArrayItem(flairs, seed + 'suggested secondary color')).color,
+      primaryColor: (await getArrayItem(postFlairs, seed + 'suggested primary color')).backgroundColor,
+      secondaryColor: (await getArrayItem(postFlairs, seed + 'suggested secondary color')).backgroundColor,
       avatarUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
       bannerUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
       backgroundUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
@@ -255,13 +262,26 @@ const getSubplebbitContent = async (seed: string) => {
       anonymousAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'), 
       noNestedReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noNestedReplies'),
       safeForWork: await getArrayItem([undefined, undefined, true, false], seed + 'safeForWork'),
-      flairs: await getArrayItem([undefined, undefined, true, false], seed + 'flairs'),
-      requireFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'requireFlairs'),
+      authorFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'authorFlairs'),
+      requireAuthorFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'requireAuthorFlairs'),
+      postFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'postFlairs'),
+      requirePostFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'requirePostFlairs'),
       noMarkdownImages: await getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownImages'),
       noMarkdownVideos: await getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownVideos'),
       markdownImageReplies: await getArrayItem([undefined, undefined, true, false], seed + 'markdownImageReplies'),
       markdownVideoReplies: await getArrayItem([undefined, undefined, true, false], seed + 'markdownVideoReplies'),
     }
+  }
+
+  const hasRules = await getArrayItem([true, false], seed + 'has rules')
+  if (hasRules) {
+    subplebbit.rules = [
+      'no spam',
+      'be nice',
+      'Do not link to CNN.',
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO '
+    ]
   }
 
   return subplebbit
@@ -467,9 +487,10 @@ class Subplebbit extends EventEmitter {
   updatedAt: number | undefined
   challengeTypes: string[] | undefined
   moderatorAddresses: string[] | undefined
-  flairs: any[] | undefined
+  flairs: any | undefined
   suggested: any | undefined
   features: any | undefined
+  rules: string[] | undefined
   
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -483,6 +504,7 @@ class Subplebbit extends EventEmitter {
     this.flairs = createSubplebbitOptions?.flairs
     this.suggested = createSubplebbitOptions?.suggested
     this.features = createSubplebbitOptions?.features
+    this.rules = createSubplebbitOptions?.rules
 
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore

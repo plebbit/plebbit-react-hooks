@@ -82,7 +82,7 @@ describe('mock content', () => {
       wrapper: PlebbitProvider,
     })
     expect(rendered.result.current).toBe(undefined)
-    rendered.rerender('anything.eth')
+    rendered.rerender('anything2.eth')
     try {
       await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
     } catch (e) {
@@ -91,7 +91,7 @@ describe('mock content', () => {
     // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
     console.log(rendered.result.current)
 
-    rendered.rerender('jokes.eth')
+    rendered.rerender('jokes2.eth')
     try {
       await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
     } catch (e) {
@@ -100,7 +100,7 @@ describe('mock content', () => {
     // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
     console.log(rendered.result.current)
 
-    rendered.rerender('memes.eth')
+    rendered.rerender('memes2.eth')
     try {
       await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
     } catch (e) {
