@@ -583,7 +583,7 @@ class Publication extends EventEmitter {
       challengeRequestId: this.challengeRequestId,
       // @ts-ignore
       challengeAnswerId: this.challengeAnswerId,
-      challengeAnswerIsVerified: true,
+      challengeSuccess: true,
       publication,
     }
     this.emit('challengeverification', challengeVerificationMessage, this)

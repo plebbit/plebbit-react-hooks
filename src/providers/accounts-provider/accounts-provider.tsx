@@ -170,7 +170,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       })
       comment.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
         publishCommentOptions.onChallengeVerification(challengeVerification, comment)
-        if (!challengeVerification.challengeAnswerIsVerified) {
+        if (!challengeVerification.challengeSuccess) {
           // publish again automatically on fail
           createCommentOptions = { ...createCommentOptions, timestamp: Math.round(Date.now() / 1000) }
           comment = account.plebbit.createComment(createCommentOptions)
@@ -248,7 +248,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       })
       vote.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
         publishVoteOptions.onChallengeVerification(challengeVerification, vote)
-        if (!challengeVerification.challengeAnswerIsVerified) {
+        if (!challengeVerification.challengeSuccess) {
           // publish again automatically on fail
           vote = account.plebbit.createVote(createVoteOptions)
           publishAndRetryFailedChallengeVerification()
