@@ -9,7 +9,7 @@ process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
 
 import { act, renderHook } from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import { useComment, useSubplebbit, useFeed } from '../../index'
+import { useComment, useSubplebbit, useFeed, useAccountsActions } from '../../index'
 import PlebbitProvider from '../../providers/plebbit-provider'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
@@ -140,5 +140,45 @@ describe('mock content', () => {
     await scrollOnePage()
     await scrollOnePage()
     console.log(rendered.result.current)
+  })
+
+  test('publish', async () => {
+    const rendered = renderHook<any, any>(() => useAccountsActions(), {
+      wrapper: PlebbitProvider,
+    })
+
+    try {
+      await rendered.waitFor(() => typeof rendered.result.current.publishComment === 'function', {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+
+    console.log('publishing comment')
+    let onChallengeVerificationCalled = false
+    const onChallenge = (challenge: any, comment: any) => {
+      console.log('challenge', challenge)
+      comment.publishChallengeAnswers(['some answer...'])
+    }
+    const onChallengeVerification = (...args: any) => {
+      console.log('challengeverification', args)
+      onChallengeVerificationCalled = true
+    }
+    await rendered.result.current.publishComment({subplebbitAddress: 'news.eth', content: 'content', title: 'title', onChallenge, onChallengeVerification})
+  
+    try {
+      await rendered.waitFor(() => onChallengeVerificationCalled, {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+
+    console.log('publishing vote')
+    onChallengeVerificationCalled = false
+    await rendered.result.current.publishVote({subplebbitAddress: 'news.eth', vote: 1, commentCid: 'some cid...', onChallenge, onChallengeVerification})
+  
+    try {
+      await rendered.waitFor(() => onChallengeVerificationCalled, {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
   })
 })

@@ -152,14 +152,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account })
 
     let createCommentOptions = {
-      subplebbitAddress: publishCommentOptions.subplebbitAddress,
-      parentCid: publishCommentOptions.parentCid,
-      postCid: publishCommentOptions.postCid, // not used by plebbit-js, but used to store in local database
-      content: publishCommentOptions.content,
-      title: publishCommentOptions.title,
       timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
+      ...publishCommentOptions
     }
 
     let accountCommentIndex: number
@@ -232,13 +228,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account })
 
-    const createVoteOptions = {
-      subplebbitAddress: publishVoteOptions.subplebbitAddress,
-      vote: publishVoteOptions.vote,
-      commentCid: publishVoteOptions.commentCid,
-      timestamp: publishVoteOptions.timestamp || Math.round(Date.now() / 1000),
+    let createVoteOptions = {
+      timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
+      ...publishVoteOptions
     }
 
     let vote = account.plebbit.createVote(createVoteOptions)
