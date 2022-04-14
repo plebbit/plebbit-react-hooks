@@ -116,16 +116,7 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
-        let createCommentOptions = {
-            subplebbitAddress: publishCommentOptions.subplebbitAddress,
-            parentCid: publishCommentOptions.parentCid,
-            postCid: publishCommentOptions.postCid,
-            content: publishCommentOptions.content,
-            title: publishCommentOptions.title,
-            timestamp: Math.round(Date.now() / 1000),
-            author: account.author,
-            signer: account.signer,
-        };
+        let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions);
         let accountCommentIndex;
         let comment = account.plebbit.createComment(createCommentOptions);
         const publishAndRetryFailedChallengeVerification = () => {
@@ -135,7 +126,7 @@ export default function AccountsProvider(props) {
             comment.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 publishCommentOptions.onChallengeVerification(challengeVerification, comment);
-                if (!challengeVerification.challengeAnswerIsVerified) {
+                if (!challengeVerification.challengeSuccess) {
                     // publish again automatically on fail
                     createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp: Math.round(Date.now() / 1000) });
                     comment = account.plebbit.createComment(createCommentOptions);
@@ -183,14 +174,7 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
-        const createVoteOptions = {
-            subplebbitAddress: publishVoteOptions.subplebbitAddress,
-            vote: publishVoteOptions.vote,
-            commentCid: publishVoteOptions.commentCid,
-            timestamp: publishVoteOptions.timestamp || Math.round(Date.now() / 1000),
-            author: account.author,
-            signer: account.signer,
-        };
+        let createVoteOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
         let vote = account.plebbit.createVote(createVoteOptions);
         const publishAndRetryFailedChallengeVerification = () => {
             vote.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
@@ -198,7 +182,7 @@ export default function AccountsProvider(props) {
             }));
             vote.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
                 publishVoteOptions.onChallengeVerification(challengeVerification, vote);
-                if (!challengeVerification.challengeAnswerIsVerified) {
+                if (!challengeVerification.challengeSuccess) {
                     // publish again automatically on fail
                     vote = account.plebbit.createVote(createVoteOptions);
                     publishAndRetryFailedChallengeVerification();

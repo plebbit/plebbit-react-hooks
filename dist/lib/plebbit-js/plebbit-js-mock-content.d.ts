@@ -42,7 +42,7 @@ declare class Publication extends EventEmitter {
     publish(): Promise<void>;
     simulateChallengeEvent(): void;
     publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
-    simulateChallengeVerificationEvent(): void;
+    simulateChallengeVerificationEvent(): Promise<void>;
 }
 declare class Comment extends Publication {
     author: any;

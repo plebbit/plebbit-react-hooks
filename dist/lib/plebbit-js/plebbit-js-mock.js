@@ -159,7 +159,7 @@ class Publication extends EventEmitter {
             type: 'CHALLENGEVERIFICATION',
             challengeRequestId: this.challengeRequestId,
             challengeAnswerId: this.challengeAnswerId,
-            challengeAnswerIsVerified: true,
+            challengeSuccess: true,
             publication,
         };
         this.emit('challengeverification', challengeVerificationMessage, this);
