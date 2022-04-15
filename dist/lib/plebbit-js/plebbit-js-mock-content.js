@@ -90,7 +90,7 @@ const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuffer))).replace(/[^a-zA-Z0-9]/g, '');
 });
 const getNumberBetween = (min, max, seed) => __awaiter(void 0, void 0, void 0, function* () {
-    const number = Number('0.' + parseInt((yield hash(seed)).substring(0, 6), 36));
+    const number = Number('0.' + parseInt((yield hash(seed)).substring(6, 12), 36));
     return Math.floor(number * (max - min + 1) + min);
 });
 const getArrayItem = (array, seed) => __awaiter(void 0, void 0, void 0, function* () {
@@ -98,14 +98,16 @@ const getArrayItem = (array, seed) => __awaiter(void 0, void 0, void 0, function
     return array[index];
 });
 const getImageUrl = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    const jpg = `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 1)}/${yield getNumberBetween(10, 2000, seed + 2)}/${yield getNumberBetween(10, 2000, seed + 3)}.jpg`;
+    const webp = `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 4)}/${yield getNumberBetween(10, 2000, seed + 5)}/${yield getNumberBetween(10, 2000, seed + 6)}.webp`;
     const imageUrls = [
+        // jpg & webp
+        jpg, jpg, webp, webp,
+        'https://samplelib.com/lib/preview/png/sample-bumblebee-400x300.png',
+        'https://c.tenor.com/WHs8ooxWJUIAAAAM/really-great-example-right-here-echo-gaming.gif',
         'https://filesamples.com/samples/image/bmp/sample_640%C3%97426.bmp',
         'https://brokensite.xyz/images/dog.png',
-        // jpg & webp
-        `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 1)}/${yield getNumberBetween(10, 2000, seed + 2)}/${yield getNumberBetween(10, 2000, seed + 3)}.jpg`,
-        `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 1)}/${yield getNumberBetween(10, 2000, seed + 2)}/${yield getNumberBetween(10, 2000, seed + 3)}.webp`,
-        'https://samplelib.com/lib/preview/png/sample-bumblebee-400x300.png',
-        'https://c.tenor.com/WHs8ooxWJUIAAAAM/really-great-example-right-here-echo-gaming.gif', // gif
+        'https://brokensite.xyz/images/dog.jpeg', // broken jpeg
     ];
     const imageUrl = (yield getArrayItem(imageUrls, seed + 'image')) + (yield getArrayItem(urlSuffixes, seed + 'suffix'));
     return imageUrl;
