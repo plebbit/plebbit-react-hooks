@@ -97,7 +97,7 @@ const hash = async (string: string) => {
 }
 
 const getNumberBetween = async (min: number, max: number, seed: string) => {
-  const number = Number('0.' + parseInt((await hash(seed)).substring(0, 6), 36))
+  const number = Number('0.' + parseInt((await hash(seed)).substring(6, 12), 36))
   return Math.floor(number * (max - min + 1) + min)
 }
 
@@ -107,22 +107,26 @@ const getArrayItem = async (array: any[], seed: string) => {
 }
 
 const getImageUrl = async (seed: string) => {
+  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(
+      10,
+      2000,
+      seed + 2
+    )}/${await getNumberBetween(10, 2000, seed + 3)}.jpg`
+
+  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 4)}/${await getNumberBetween(
+      10,
+      2000,
+      seed + 5
+    )}/${await getNumberBetween(10, 2000, seed + 6)}.webp`
+
   const imageUrls = [
-    'https://filesamples.com/samples/image/bmp/sample_640%C3%97426.bmp', // bmp
-    'https://brokensite.xyz/images/dog.png', // broken image
     // jpg & webp
-    `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(
-      10,
-      2000,
-      seed + 2
-    )}/${await getNumberBetween(10, 2000, seed + 3)}.jpg`,
-    `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(
-      10,
-      2000,
-      seed + 2
-    )}/${await getNumberBetween(10, 2000, seed + 3)}.webp`,
+    jpg, jpg, webp, webp,
     'https://samplelib.com/lib/preview/png/sample-bumblebee-400x300.png', // png
     'https://c.tenor.com/WHs8ooxWJUIAAAAM/really-great-example-right-here-echo-gaming.gif', // gif
+    'https://filesamples.com/samples/image/bmp/sample_640%C3%97426.bmp', // bmp
+    'https://brokensite.xyz/images/dog.png', // broken image
+    'https://brokensite.xyz/images/dog.jpeg', // broken jpeg
   ]
   const imageUrl = (await getArrayItem(imageUrls, seed + 'image')) + (await getArrayItem(urlSuffixes, seed + 'suffix'))
   return imageUrl
