@@ -15,10 +15,7 @@ const plebbitReactHooksDebugUtils = {deleteDatabases}
 // add debug function to clear the databases
 if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT && window) {
   // @ts-ignore
-  if (!window.plebbitReactHooksDebugUtils) {
-    // @ts-ignore
-    window.plebbitReactHooksDebugUtils = plebbitReactHooksDebugUtils
-  }
+  window.plebbitReactHooksDebugUtils = plebbitReactHooksDebugUtils
 }
 
 export default plebbitReactHooksDebugUtils
