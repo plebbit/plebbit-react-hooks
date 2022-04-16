@@ -40,7 +40,7 @@ function App() {
 }
 ```
 
-#### Disable caching
+#### Disable caching (warning: extremely slow loading)
 
 - Add to your .env file
 
