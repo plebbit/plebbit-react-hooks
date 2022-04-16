@@ -42,7 +42,7 @@ function App() {
 
 #### Disable caching (warning: extremely slow loading)
 
-- Add to your .env file
+- Add to your .env file:
 
 ```sh
 REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE=1
