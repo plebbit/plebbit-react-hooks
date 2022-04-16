@@ -10,12 +10,7 @@ const deleteDatabases = () =>
     localForageLru.createInstance({ name: 'subplebbitsPages' }).clear(),
   ])
 
-const plebbitReactHooksDebugUtils = {deleteDatabases}
+const debugUtils = {deleteDatabases}
+export {deleteDatabases}
 
-// add debug function to clear the databases
-if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT && window) {
-  // @ts-ignore
-  window.plebbitReactHooksDebugUtils = plebbitReactHooksDebugUtils
-}
-
-export default plebbitReactHooksDebugUtils
+export default debugUtils

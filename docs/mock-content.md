@@ -51,5 +51,7 @@ REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE=1
 #### Delete databases and caches
 
 ```js
-await window.plebbitReactHooksDebugUtils.deleteDatabases()
+import {debugUtils} from '@plebbit/plebbit-react-hooks'
+
+await debugUtils.deleteDatabases()
 ```

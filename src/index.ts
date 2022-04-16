@@ -38,6 +38,7 @@ export {
   useSubplebbits,
   useFeed,
   useBufferedFeeds,
+  debugUtils
 }
 
 const hooks = {
@@ -54,6 +55,7 @@ const hooks = {
   useSubplebbits,
   useFeed,
   useBufferedFeeds,
+  debugUtils
 }
 
 export default hooks
