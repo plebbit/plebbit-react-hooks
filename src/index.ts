@@ -19,6 +19,7 @@ import {
 import { useComment, useComments } from './hooks/comments'
 import { useSubplebbit, useSubplebbits } from './hooks/subplebbits'
 import { useFeed, useBufferedFeeds } from './hooks/feeds'
+import debugUtils from './lib/debug-utils'
 
 export * from './types'
 
