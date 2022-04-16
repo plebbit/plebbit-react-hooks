@@ -22,6 +22,9 @@ declare const hooks: {
     useBufferedFeeds: typeof useBufferedFeeds;
     debugUtils: {
         deleteDatabases: () => Promise<[void, void, any, any, any]>;
+        deleteCaches: () => Promise<[any, any, any]>;
+        deleteAccountsDatabases: () => Promise<[void, void]>;
+        deleteNonAccountsDatabases: () => Promise<[any, any, any]>;
     };
 };
 export default hooks;
