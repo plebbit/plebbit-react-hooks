@@ -467,7 +467,7 @@ function useSubplebbitsPostsInfo(feedsOptions: FeedsOptions, subplebbits: Subple
           account,
           subplebbitAddress,
           sortType,
-          bufferedPostCount: bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddress],
+          bufferedPostCount: bufferedFeedsSubplebbitsPostCounts[feedName]?.[subplebbitAddress] || 0,
         }
         subplebbitsPostsInfo[account.id + subplebbitAddress + sortType] = subplebbitPostsInfo
       }

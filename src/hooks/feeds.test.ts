@@ -113,6 +113,47 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
+    test('change subplebbit addresses and sort type', async () => {
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'] })
+      try {
+        await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
+      } catch (e) {
+        console.error(e)
+      }
+      expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address 1/)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // change subplebbit addresses
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'hot' })
+      try {
+        await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
+      } catch (e) {
+        console.error(e)
+      }
+      expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // change sort type
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new'})
+      try {
+        await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
+      } catch (e) {
+        console.error(e)
+      }
+      expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // change subplebbit addresses and sort type
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5'], sortType: 'topAll'})
+      try {
+        await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (4|5)/))
+      } catch (e) {
+        console.error(e)
+      }
+      expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (4|5)/)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+    })
+
     test('get feed with 1 subplebbit and scroll to multiple pages', async () => {
       // get feed with 1 sub
       rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'] })

@@ -366,7 +366,7 @@ const getSubplebbitPages = (firstPageCid, subplebbitsPages) => {
 function useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds) {
     const bufferedFeedsSubplebbitsPostCounts = useBufferedFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds);
     return useMemo(() => {
-        var _a, _b;
+        var _a, _b, _c;
         const subplebbitsPostsInfo = {};
         for (const feedName in feedsOptions) {
             const { subplebbitAddresses, sortType, account } = feedsOptions[feedName];
@@ -381,7 +381,7 @@ function useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds) {
                     account,
                     subplebbitAddress,
                     sortType,
-                    bufferedPostCount: bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddress],
+                    bufferedPostCount: ((_c = bufferedFeedsSubplebbitsPostCounts[feedName]) === null || _c === void 0 ? void 0 : _c[subplebbitAddress]) || 0,
                 };
                 subplebbitsPostsInfo[account.id + subplebbitAddress + sortType] = subplebbitPostsInfo;
             }
