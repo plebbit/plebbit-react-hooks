@@ -114,7 +114,7 @@ describe('feeds', () => {
     })
 
     test('change subplebbit addresses and sort type', async () => {
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'] })
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
       } catch (e) {
@@ -131,6 +131,8 @@ describe('feeds', () => {
         console.error(e)
       }
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
+      // the 'hot' sort type should give timestamp 1 with the current mock
+      expect(rendered.result.current.feed[0].timestamp).toBe(1)
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change sort type
@@ -141,6 +143,8 @@ describe('feeds', () => {
         console.error(e)
       }
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
+      // the 'new' sort type should give timestamp higher than 99 with the current mock
+      expect(rendered.result.current.feed[0].timestamp).toBeGreaterThan(99)
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change subplebbit addresses and sort type
