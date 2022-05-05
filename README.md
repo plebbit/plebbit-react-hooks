@@ -295,6 +295,10 @@ publishComment({
 })
 ```
 
+#### Create a vote
+
+#### Create a comment edit
+
 #### Get feed
 
 ```js
