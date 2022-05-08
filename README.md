@@ -263,8 +263,8 @@ const onChallenge = async (challenges: Challenge[], comment: Comment) => {
     // if he declines, throw error and don't get a challenge answer
   }
   if (challengeAnswers) {
-    // if user declines, publishChallengeAnswer is not called, retry loop stops
-    await comment.publishChallengeAnswer(challengeAnswers)
+    // if user declines, publishChallengeAnswers is not called, retry loop stops
+    await comment.publishChallengeAnswers(challengeAnswers)
   }
 }
 
@@ -296,6 +296,10 @@ publishComment({
   onChallengeVerification
 })
 ```
+
+#### Create a vote
+
+#### Create a comment edit
 
 #### Get feed
 
