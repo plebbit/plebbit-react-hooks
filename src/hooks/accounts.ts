@@ -16,8 +16,11 @@ import type {
  * the active account id.
  */
 function useAccountId(accountName?: string) {
+  // @ts-ignore
   const accountsContext = useContext(AccountsContext)
+  // @ts-ignore
   const accountId = accountName && accountsContext?.accountNamesToAccountIds[accountName]
+  // @ts-ignore
   const activeAccountId = accountsContext?.activeAccountId
   const accountIdToUse = accountName ? accountId : activeAccountId
   return accountIdToUse
@@ -28,8 +31,11 @@ function useAccountId(accountName?: string) {
  * the active account.
  */
 export function useAccount(accountName?: string) {
+  // @ts-ignore
+
   const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
+  // @ts-ignore
   const account = accountsContext?.accounts[accountId]
   debug('useAccount', { accountId, account, accountName: account?.name })
   return account
@@ -39,15 +45,20 @@ export function useAccount(accountName?: string) {
  * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
 export function useAccounts() {
+  // @ts-ignore
   const accountsContext = useContext(AccountsContext)
   let accounts
+  // @ts-ignore
   if (accountsContext?.accountIds?.length && accountsContext?.accounts) {
     accounts = []
+    // @ts-ignore
     for (const accountId of accountsContext.accountIds) {
+      // @ts-ignore
       accounts.push(accountsContext.accounts[accountId])
     }
     return accounts
   }
+  // @ts-ignore
   debug('useAccounts', { accounts, accountIds: accountsContext?.accountIds })
   return accounts
 }
@@ -56,8 +67,11 @@ export function useAccounts() {
  * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
  */
 export function useAccountsActions() {
+  // @ts-ignore
+
   const accountsContext = useContext(AccountsContext)
   if (accountsContext) {
+    // @ts-ignore
     return accountsContext.accountsActions
   }
   // return empty object for deconstructing without errors if context isn't ready
@@ -73,17 +87,21 @@ export function useAccountsActions() {
  * the active account's notifications.
  */
 export function useAccountNotifications(accountName?: string) {
+  // @ts-ignore
   const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
+  // @ts-ignore
   const account = accountsContext?.accounts[accountId]
   let notifications: AccountNotifications | undefined
   if (account) {
+    // @ts-ignore
     notifications = accountsContext?.accountsNotifications[accountId]
   }
   const markAsRead = () => {
     if (!account) {
       throw Error('useAccountNotifications cannot mark as read accounts not initalized yet')
     }
+    // @ts-ignore
     accountsContext?.markAccountNotificationsAsRead(account)
   }
   debug('useAccountNotifications', { notifications })
@@ -96,10 +114,12 @@ export function useAccountNotifications(accountName?: string) {
  */
 export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
+  // @ts-ignore
   const accountsContext = useContext(AccountsContext)
 
   let accountComments: AccountComments | undefined
   if (accountId && accountsContext) {
+    // @ts-ignore
     accountComments = accountsContext.accountsComments[accountId]
   }
 
@@ -123,10 +143,12 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
  */
 export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountVotesOptions?.accountName)
+  // @ts-ignore
   const accountsContext = useContext(AccountsContext)
 
   let accountVotes: any
   if (accountId && accountsContext) {
+    // @ts-ignore
     accountVotes = accountsContext.accountsVotes[accountId]
   }
 
