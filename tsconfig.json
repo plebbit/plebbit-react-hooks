@@ -1,6 +1,6 @@
 {
   "extends": "@tsconfig/recommended/tsconfig.json",
-  "include": ["./src"],
+  "include": ["./src", "decs.d.tsx"],
   "compilerOptions": {
     "module": "ES2020",
     "declaration": true,
