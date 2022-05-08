@@ -8,5 +8,5 @@ module.exports = {
             useESM: true,
         },
     },
-    setupFilesAfterEnv: ['<rootDir>/testSetupFile.js'],
+  setupFilesAfterEnv: ['./jest.setup.js']
 }

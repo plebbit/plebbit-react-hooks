@@ -93,7 +93,8 @@ useSubplebbits(subplebbitAddress[]): Subplebbits[]
 ```
 #### Feeds Hooks
 ```
-useFeed(feedNameOrSubplebbitAddress)
+useFeed(subplebbitAddresses: string[], sortType?: string): {feed: Feed, loadMore: function, hasMore: boolean}
+useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[]) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
 ```
 
@@ -115,7 +116,8 @@ AccountsActions {
   publishVote(vote: Vote, accountName?: string)
   publishReport(report: Report, accountName?: string)
   deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string)
-  blockAddress(address: string) // block a subplebbit address or author address from showing on your feed
+  blockAddress(address: string, accountName?: string) // block a subplebbit address or author address from showing on your feed
+  limitAddress(address: string | number, limitPercent: number, accountName?: string) // instead of blocking, limit the percent of your feed an address can take
   saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
   followComment(commentCid: string, accountName?: string) // get notifications for comments that aren't your own
   hideComment(commentCid: string, accountName?: string) // hide a comment from showing up anywhere
