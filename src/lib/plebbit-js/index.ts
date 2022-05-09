@@ -13,7 +13,7 @@ export function mockPlebbitJs(_Plebbit: any) {
 }
 
 // mock content for front-end dev with this env var
-if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
+if (process?.env?.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
   mockPlebbitJs(PlebbitJsMockContent)
 }
 
