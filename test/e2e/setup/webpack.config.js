@@ -46,6 +46,20 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.tsx', '.ts', '.jsx', '.js']
+    extensions: ['.tsx', '.ts', '.jsx', '.js'],
+
+    // fix polyfills
+    fallback: {
+      'crypto': require.resolve('browser-crypto'),
+      'assert': require.resolve('assert'),
+      'path': require.resolve('path-browserify'),
+      'stream': false,
+      'util': false,
+      'os': false,
+      'url': false,
+      'fs': false,
+      'timers': false,
+      'tty': false
+    }
   },
 }

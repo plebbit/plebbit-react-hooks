@@ -450,13 +450,13 @@ sudo n auto
 yarn
 ```
 
-#### Test
+#### Unit tests
 
 ```
 yarn test
 ```
 
-#### Test with logs
+#### Unit tests with logs
 
 ```
 DEBUG=* yarn test
@@ -466,7 +466,7 @@ DEBUG=plebbitreacthooks:hooks:accounts yarn test
 DEBUG=plebbitreacthooks:hooks:accounts DEBUG_DEPTH=6 yarn test feeds
 ```
 
-#### Test single file
+#### Unit tests single file
 
 ```
 yarn test file-name
@@ -491,6 +491,18 @@ await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
 try {await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')} catch (e) {console.error(e)}
 expect(typeof rendered.result.current.cid).toBe('string')
 ````
+
+#### E2E tests
+
+```
+yarn test:e2e
+```
+
+#### E2E tests webpack dev server
+
+```
+yarn webpack:dev
+```
 
 #### Before commit
 
