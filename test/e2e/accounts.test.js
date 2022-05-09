@@ -1,4 +1,4 @@
-describe('Account', () => {
+describe('account', () => {
   beforeAll(async () => {
     await page.goto(reactAppUrl + '#/account', { waitUntil: 'networkidle' })
   })

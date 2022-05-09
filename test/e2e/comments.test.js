@@ -1,4 +1,4 @@
-describe('Commen', () => {
+describe('comment', () => {
   beforeAll(async () => {
     const commentCidToGet = 'Qm...'
     await page.goto(reactAppUrl + `#/comment/${commentCidToGet}`, { waitUntil: 'networkidle' })

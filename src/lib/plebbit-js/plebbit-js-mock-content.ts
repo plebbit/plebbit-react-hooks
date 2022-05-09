@@ -2,7 +2,7 @@ import EventEmitter from 'events'
 import assert from 'assert'
 
 // changeable with env variable so the frontend can test with different latencies
-const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 5000)
+const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100)
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
 const NOW = 1647600000

@@ -4,6 +4,7 @@ const ci = process.env.TRAVIS === 'true' || process.env.CI === 'true'
 // TODO: figure out what options to use
 module.exports = {
   launchOptions: {
-    headless: (!debug || ci) // show browser window when in debug mode
+    headless: (!debug || ci), // show browser window when in debug mode
+    args: ['--auto-open-devtools-for-tabs']
   }
 }

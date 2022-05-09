@@ -1,9 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Route, Switch, HashRouter } from 'react-router-dom'
+import { Route, Switch, HashRouter, Link } from 'react-router-dom'
 
 import Account from './pages/account'
 import Comment from './pages/comment'
+import Subplebbit from './pages/subplebbit'
+import Feed from './pages/feed'
+import Publish from './pages/publish'
 
 import PlebbitReactHooks from '../../../src'
 
@@ -13,6 +16,9 @@ function App() {
       <Switch>
         <Route exact strict path='/account' component={Account} />
         <Route exact strict path='/comment/:commentCid?' component={Comment} />
+        <Route exact strict path='/subplebbit/:subplebbitAddress?' component={Subplebbit} />
+        <Route exact strict path='/feed' component={Feed} />
+        <Route exact strict path='/publish' component={Publish} />
         <Route component={Home} />
       </Switch>
     </div>
@@ -24,7 +30,11 @@ function Home () {
     <h1>Plebbit React Hooks Test React App Home</h1>
     <h2>Available pages:</h2>
     <ul>
-      <li><a href='/#/account'>/#/account</a></li>
+      <li><Link to='/account'>/#/account</Link></li>
+      <li><Link to='/comment/someCid...'>/#/comment/someCid...</Link></li>
+      <li><Link to='/subplebbit/someSubplebbitAddress...'>/#/subplebbit/someSubplebbitAddress...</Link></li>
+      <li><Link to='/feed'>/#/feed</Link></li>
+      <li><Link to='/publish'>/#/publish</Link></li>
     </ul>
   </div>)
 }
