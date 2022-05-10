@@ -927,7 +927,7 @@
 
 "@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#ce45b8015bd843b3ca53182c8d033671d14d10ca"
+  resolved "https://github.com/plebbit/plebbit-js.git#2e773c80160a78e60effab87d0d64d8ce5098748"
   dependencies:
     better-sqlite3 "7.5.1"
     captcha-canvas "3.1.0"

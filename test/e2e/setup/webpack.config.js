@@ -47,6 +47,11 @@ module.exports = {
 
     // fix process polyfill
     new webpack.ProvidePlugin({process: 'process/browser'}),
+
+    // fix Buffer is not defined
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    })
   ],
 
   // options of the .js bundle
@@ -63,8 +68,10 @@ module.exports = {
 
     // fix polyfills
     fallback: {
+      // keep the / it is recommended
+      'assert': require.resolve('assert/'),
+      'buffer': require.resolve('buffer/'),
       'crypto': require.resolve('browser-crypto'),
-      'assert': require.resolve('assert'),
       'path': require.resolve('path-browserify'),
       'stream': false,
       'util': false,
