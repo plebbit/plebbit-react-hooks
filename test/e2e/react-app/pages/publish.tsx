@@ -4,6 +4,7 @@ import {useAccountsActions, useAccount} from '../../../../src'
 
 export default function Publish() {
   const account = useAccount()
+  console.log({account})
   const {publishComment, publishVote} = useAccountsActions()
   const [events, setEvents] = useState([])
 

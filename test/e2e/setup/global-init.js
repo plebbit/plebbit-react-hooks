@@ -13,7 +13,7 @@ module.exports = async function globalSetup (globalConfig) {
   // http server with webui build
   await setupDevServer({
     command: `yarn webpack:dev --config ${webpackConfigPath} --port ${reactAppPort}`,
-    launchTimeout: 60000,
+    launchTimeout: 10000,
     port: reactAppPort,
     debug: process.env.DEBUG === 'true'
   })

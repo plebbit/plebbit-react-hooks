@@ -28,7 +28,7 @@ const getAccounts = async (accountIds: string[]) => {
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
     accounts[accountId] = accountsArray[i]
-    accounts[accountId].plebbit = PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
+    accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
   }
   return accounts
 }

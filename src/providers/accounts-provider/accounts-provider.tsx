@@ -159,7 +159,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
 
     let accountCommentIndex: number
-    let comment = account.plebbit.createComment(createCommentOptions)
+    let comment = await account.plebbit.createComment(createCommentOptions)
     const publishAndRetryFailedChallengeVerification = () => {
       comment.once('challenge', async (challenge: Challenge) => {
         publishCommentOptions.onChallenge(challenge, comment)
@@ -169,7 +169,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         if (!challengeVerification.challengeSuccess) {
           // publish again automatically on fail
           createCommentOptions = { ...createCommentOptions, timestamp: Math.round(Date.now() / 1000) }
-          comment = account.plebbit.createComment(createCommentOptions)
+          comment = await account.plebbit.createComment(createCommentOptions)
           publishAndRetryFailedChallengeVerification()
         } else {
           // the challengeverification message of a comment publication should in theory send back the CID
@@ -235,7 +235,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       ...publishVoteOptions
     }
 
-    let vote = account.plebbit.createVote(createVoteOptions)
+    let vote = await account.plebbit.createVote(createVoteOptions)
     const publishAndRetryFailedChallengeVerification = () => {
       vote.once('challenge', async (challenge: Challenge) => {
         publishVoteOptions.onChallenge(challenge, vote)
@@ -244,7 +244,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         publishVoteOptions.onChallengeVerification(challengeVerification, vote)
         if (!challengeVerification.challengeSuccess) {
           // publish again automatically on fail
-          vote = account.plebbit.createVote(createVoteOptions)
+          vote = await account.plebbit.createVote(createVoteOptions)
           publishAndRetryFailedChallengeVerification()
         }
       })
@@ -362,7 +362,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
     // comment is not a `Comment` instance
     if (!comment.on) {
-      comment = account.plebbit.createComment(comment)
+      comment = await account.plebbit.createComment(comment)
     }
     // @ts-ignore
     setAlreadyUpdatingAccountsComments((prev) => ({ ...prev, [comment.cid]: true }))
