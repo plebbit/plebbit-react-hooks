@@ -5,12 +5,15 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require('webpack')
 
-// dev mode creates the files in memory
 const rootPath = path.resolve(__dirname, '..', '..', '..')
-const buildPath = path.resolve(rootPath, 'build')
 const entryPath = path.resolve(__dirname, '..', 'react-app', 'index.tsx')
 
+// dev mode creates the files in memory so buildPath will be ignored
+const buildPath = path.resolve(rootPath, 'build')
+
 module.exports = {
+  target: ['web'],
+
   entry: entryPath,
 
   // dev mode creates the files in memory
@@ -20,12 +23,22 @@ module.exports = {
   devtool: 'inline-source-map',
 
   module: {
-    rules: [{
+    rules: [
       // transpile typescript
-      test: /\.tsx?$/,
-      use: 'ts-loader',
-      exclude: /node_modules/
-    }]
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      },
+      // fix error: /node_modules/jose/dist/browser/runtime/env.js 
+      // The request 'process/browser' failed to resolve only because it was resolved as fully specified
+      {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false
+        },
+      }
+    ]
   },
 
   plugins: [
@@ -33,13 +46,13 @@ module.exports = {
     new HtmlWebpackPlugin(),
 
     // fix process polyfill
-    new webpack.ProvidePlugin({process: 'process/browser'})
+    new webpack.ProvidePlugin({process: 'process/browser'}),
   ],
 
   // options of the .js bundle
   output: {
     filename: 'bundle.js',
-    // path is in memory for dev mode
+    // dev mode creates the files in memory so buildPath will be ignored
     path: buildPath,
     // delete files already present in build path before building
     clean: true,
@@ -59,7 +72,12 @@ module.exports = {
       'url': false,
       'fs': false,
       'timers': false,
-      'tty': false
+      'tty': false,
+    },
+
+    // remove modules that dont work in browser
+    alias: {
+      'knex': false
     }
   },
 }

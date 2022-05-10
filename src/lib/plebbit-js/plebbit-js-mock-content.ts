@@ -404,6 +404,13 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
 }
 
 class Plebbit {
+  async createSigner() {
+    return {
+      privateKey: 'private key',
+      address: 'address'
+    }
+  }
+
   createSubplebbit(createSubplebbitOptions: any) {
     return new Subplebbit(createSubplebbitOptions)
   }

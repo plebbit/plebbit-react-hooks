@@ -29,10 +29,11 @@
     "test:e2e": "jest --verbose -c test/e2e/setup/jest.config.js --runInBand"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git",
     "@types/debug": "4.1.7",
     "@types/uuid": "8.3.4",
     "assert": "2.0.0",
+    "crypto-test": "https://github.com/estebanabaroa/crypto-test.git",
     "debug": "4.3.3",
     "localforage": "1.10.0",
     "uuid": "8.3.2"

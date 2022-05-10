@@ -7,6 +7,13 @@ const loadingTime = 10
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
 export class Plebbit {
+  async createSigner() {
+    return {
+      privateKey: 'private key',
+      address: 'address'
+    }
+  }
+
   createSubplebbit(createSubplebbitOptions: any) {
     return new Subplebbit(createSubplebbitOptions)
   }

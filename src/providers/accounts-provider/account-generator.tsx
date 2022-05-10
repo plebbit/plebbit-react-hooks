@@ -5,7 +5,11 @@ import accountsDatabase from './accounts-database'
 import { Accounts } from '../../types'
 
 export const generateDefaultAccount = async () => {
-  const plebbitOptions = {} // Will default to cloudflare and pubsubprovider.xyz
+  const plebbitOptions = {
+    ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
+    ipfsHttpClientOptions: undefined,
+    pubsubHttpClientOptions: 'https://pubsubprovider.xyz'
+  }
   const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
   const signer = await plebbit.createSigner()
   const author = {
