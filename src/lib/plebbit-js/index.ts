@@ -3,8 +3,8 @@
 import PlebbitJsMockContent from './plebbit-js-mock-content'
 // TODO: change to default export
 // @ts-ignore
-// import {Plebbit} from "@plebbit/plebbit-js"
-const Plebbit = async (options: any): any => ({})
+import {Plebbit} from "@plebbit/plebbit-js"
+// const Plebbit = async (options: any): any => ({})
 
 const PlebbitJs = {
   Plebbit: Plebbit,
