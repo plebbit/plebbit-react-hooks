@@ -26,7 +26,7 @@ describe('publish', () => {
       // DOMException: Failed to execute 'put' on 'IDBObjectStore':
       try {
         await window.publishVote({
-          subplebbitAddress: 'subplebbitAddress',
+          subplebbitAddress: 'QmbdJpNU6cAgSXHjUNnSBrUZGBtStKPkdwKyiffqRy1x6c',
           commentCid: 'commentCid', 
           vote: 1, 
           onChallenge, 

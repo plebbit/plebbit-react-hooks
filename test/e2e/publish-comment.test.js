@@ -24,7 +24,7 @@ describe('publish', () => {
 
       try {
         await window.publishComment({
-          subplebbitAddress: 'subplebbitAddress', 
+          subplebbitAddress: 'QmbdJpNU6cAgSXHjUNnSBrUZGBtStKPkdwKyiffqRy1x6c', 
           content: 'content', 
           title: 'title', 
           onChallenge, 

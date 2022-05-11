@@ -5,3 +5,4 @@ packages/example/.next/
 yarn-error.log
 TODO.md
 dist/
+.plebbit
