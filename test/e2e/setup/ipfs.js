@@ -86,8 +86,7 @@ tQuns2k5sbZtcecJ/VsilRhju5KcTDZ3Zdy8XInkSkGxlc1m7/xRVjysqP4=
   })
   console.log('subplebbit created')
 
-  // TODO: should be .start() .startPublishing()
   console.log('starting subplebbit...')
-  await subplebbit.startPublishing()
+  await subplebbit.start()
   console.log(`subplebbit started with address ${signer.address}`)
 })()
