@@ -1,5 +1,5 @@
 declare const PlebbitJs: {
-    Plebbit: any;
+    Plebbit: (options: any) => any;
 };
 export declare function mockPlebbitJs(_Plebbit: any): void;
 export default PlebbitJs;

@@ -30,7 +30,6 @@
     "ipfs": "DEBUG=plebbit-js:* node test/e2e/setup/ipfs"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js",
     "@types/debug": "4.1.7",
     "@types/uuid": "8.3.4",
     "assert": "2.0.0",

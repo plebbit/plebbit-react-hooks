@@ -2,7 +2,8 @@
 
 import PlebbitJsMockContent from './plebbit-js-mock-content'
 // @ts-ignore
-import Plebbit from "@plebbit/plebbit-js"
+// import Plebbit from "@plebbit/plebbit-js"
+const Plebbit = (options: any): any => ({})
 
 const PlebbitJs = {
   Plebbit: Plebbit,
