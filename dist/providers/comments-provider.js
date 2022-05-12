@@ -68,7 +68,7 @@ const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0,
     if (!commentData) {
         return;
     }
-    const comment = account.plebbit.createComment(commentData);
+    const comment = yield account.plebbit.createComment(commentData);
     // add potential missing data from the database onto the comment instance
     // should not be necessary if Plebbit.createComment is implemented properly
     for (const prop in commentData) {

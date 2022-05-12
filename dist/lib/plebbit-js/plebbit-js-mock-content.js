@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import EventEmitter from 'events';
 import assert from 'assert';
 // changeable with env variable so the frontend can test with different latencies
-const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 5000);
+const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100);
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
 const NOW = 1647600000;
 const DAY = 60 * 60 * 24;
@@ -355,8 +355,18 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
     return page;
 });
 class Plebbit {
+    createSigner() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return {
+                privateKey: 'private key',
+                address: 'address'
+            };
+        });
+    }
     createSubplebbit(createSubplebbitOptions) {
-        return new Subplebbit(createSubplebbitOptions);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Subplebbit(createSubplebbitOptions);
+        });
     }
     getSubplebbit(subplebbitAddress) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -381,7 +391,9 @@ class Plebbit {
         });
     }
     createComment(createCommentOptions) {
-        return new Comment(createCommentOptions);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Comment(createCommentOptions);
+        });
     }
     getComment(commentCid) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -406,7 +418,9 @@ class Plebbit {
         });
     }
     createVote() {
-        return new Vote();
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Vote();
+        });
     }
 }
 class Pages {
@@ -575,5 +589,7 @@ class Comment extends Publication {
 class Vote extends Publication {
 }
 export default function () {
-    return new Plebbit();
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Plebbit();
+    });
 }

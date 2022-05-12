@@ -56,7 +56,7 @@ describe('accounts', () => {
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').toBe(true)
       expect(account.plebbitOptions.ipfsGatewayUrl).toBe('https://cloudflare-ipfs.com')
       expect(account.plebbitOptions.ipfsHttpClientOptions).toBe(undefined)
-      expect(account.plebbitOptions.pubsubHttpClientOptions).toBe('https://pubsubprovider.xyz')
+      expect(account.plebbitOptions.pubsubHttpClientOptions).toBe('https://pubsubprovider.xyz/api/v0')
     })
 
     test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')

@@ -60,7 +60,7 @@ const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void
     if (!subplebbitData) {
         return;
     }
-    const subplebbit = account.plebbit.createSubplebbit(subplebbitData);
+    const subplebbit = yield account.plebbit.createSubplebbit(subplebbitData);
     // add potential missing data from the database onto the subplebbit instance
     for (const prop in subplebbitData) {
         if (subplebbit[prop] === undefined || subplebbit[prop] === null) {

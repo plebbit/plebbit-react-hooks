@@ -159,9 +159,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
 
     let accountCommentIndex: number
-    console.log('account.plebbit.createComment(createCommentOptions)', {createCommentOptions})
+
     let comment = await account.plebbit.createComment(createCommentOptions)
-    console.log('account.plebbit.createComment(createCommentOptions) after', {createCommentOptions})
     const publishAndRetryFailedChallengeVerification = () => {
       comment.once('challenge', async (challenge: Challenge) => {
         publishCommentOptions.onChallenge(challenge, comment)
@@ -190,7 +189,6 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           }
         }
       })
-      console.log('comment.publish()')
       comment.publish()
     }
 

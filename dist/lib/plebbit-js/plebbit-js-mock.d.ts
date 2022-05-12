@@ -3,12 +3,16 @@ import EventEmitter from 'events';
 export { mockPlebbitJs as mockPlebbitJs } from '.';
 export declare const simulateLoadingTime: () => Promise<unknown>;
 export declare class Plebbit {
-    createSubplebbit(createSubplebbitOptions: any): Subplebbit;
+    createSigner(): Promise<{
+        privateKey: string;
+        address: string;
+    }>;
+    createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    createComment(createCommentOptions: any): Comment;
+    createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     commentToGet(): {};
-    createVote(): Vote;
+    createVote(): Promise<Vote>;
 }
 export declare class Pages {
     pageCids: any;
@@ -56,4 +60,4 @@ export declare class Comment extends Publication {
 }
 export declare class Vote extends Publication {
 }
-export default function (): Plebbit;
+export default function (): Promise<Plebbit>;

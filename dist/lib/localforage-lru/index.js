@@ -7,9 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var _a;
 import localForageLru from './localforage-lru';
 // for debugging without caching
-if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE) {
+if ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE) {
     // @ts-ignore
     localForageLru.createInstance = () => {
         console.warn('@plebbit/plebbit-react-hooks cache is disabled for testing');

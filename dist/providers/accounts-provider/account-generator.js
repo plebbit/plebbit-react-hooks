@@ -12,15 +12,16 @@ import validator from '../../lib/validator';
 import { v4 as uuid } from 'uuid';
 import accountsDatabase from './accounts-database';
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {
-    // TODO: a default account will probably not be exactly like this
-    const signer = {}; // TODO: generate new signer
+    const plebbitOptions = {
+        ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
+        ipfsHttpClientOptions: undefined,
+        pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0'
+    };
+    const plebbit = yield PlebbitJs.Plebbit(plebbitOptions);
+    const signer = yield plebbit.createSigner();
     const author = {
         displayName: null,
-        address: 'Qm...', // TODO: get address of signer
-    };
-    const plebbitOptions = {
-        ipfsGatewayUrl: 'https://cloudflare-ipfs',
-        ipfsApiUrl: 'http://localhost:8080',
+        address: signer.address,
     };
     const accountName = yield getNextAvailableDefaultAccountName();
     const account = {
@@ -28,7 +29,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         name: accountName,
         author,
         signer,
-        plebbit: PlebbitJs.Plebbit(plebbitOptions),
+        plebbit: plebbit,
         plebbitOptions,
         subscriptions: [],
         blockedAddresses: {},

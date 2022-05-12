@@ -309,7 +309,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                     return;
                 }
                 getSubplebbitPagePending[account.id + pageCid] = true;
-                const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress });
+                const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
                 const fetchedSubplebbitPage = yield subplebbit.posts.getPage(pageCid);
                 yield subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage);
                 debug('FeedsProvider useSubplebbitsPages subplebbit.posts.getPage', {

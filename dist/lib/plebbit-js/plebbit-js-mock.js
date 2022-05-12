@@ -14,8 +14,18 @@ export { mockPlebbitJs as mockPlebbitJs } from '.';
 const loadingTime = 10;
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
 export class Plebbit {
+    createSigner() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return {
+                privateKey: 'private key',
+                address: 'address'
+            };
+        });
+    }
     createSubplebbit(createSubplebbitOptions) {
-        return new Subplebbit(createSubplebbitOptions);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Subplebbit(createSubplebbitOptions);
+        });
     }
     getSubplebbit(subplebbitAddress) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -36,7 +46,9 @@ export class Plebbit {
         });
     }
     createComment(createCommentOptions) {
-        return new Comment(createCommentOptions);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Comment(createCommentOptions);
+        });
     }
     getComment(commentCid) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -54,7 +66,9 @@ export class Plebbit {
         };
     }
     createVote() {
-        return new Vote();
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Vote();
+        });
     }
 }
 export class Pages {
@@ -208,5 +222,7 @@ export class Comment extends Publication {
 export class Vote extends Publication {
 }
 export default function () {
-    return new Plebbit();
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Plebbit();
+    });
 }
