@@ -26,7 +26,7 @@
     "prettier": "prettier --write src",
     "test": "jest",
     "test:e2e": "jest --verbose -c test/e2e/setup/jest.config.js --runInBand",
-    "webpack:dev": "webpack serve --config test/e2e/setup/webpack.config.js",
+    "webpackdev": "webpack serve --config test/e2e/setup/webpack.config.js",
     "ipfs": "DEBUG=plebbit-js:* node test/e2e/setup/ipfs"
   },
   "dependencies": {

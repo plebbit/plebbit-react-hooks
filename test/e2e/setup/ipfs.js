@@ -14,7 +14,7 @@ catch (e) {}
 execSync(`ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'`, {stdio: 'inherit'})
 
 // start ipfs daemon
-let ipfsProcess = exec(`ipfs daemon --enable-pubsub-experiment`)
+const ipfsProcess = exec(`ipfs daemon --enable-pubsub-experiment`)
 console.log(`ipfs process started with pid ${ipfsProcess.pid}`)
 ipfsProcess.stderr.on('data', console.error)
 ipfsProcess.stdin.on('data', console.log)
@@ -73,21 +73,25 @@ tQuns2k5sbZtcecJ/VsilRhju5KcTDZ3Zdy8XInkSkGxlc1m7/xRVjysqP4=
   await ipfsDaemonIsReady()
 
   const plebbit = await Plebbit({
-    ipfsHttpClientOptions: 'http://localhost:5001',
-    // 'dataPath': '/tmp/.plebbit'
+    ipfsHttpClientOptions: 'http://localhost:5001/api/v0',
   })
   const signer = await plebbit.createSigner({privateKey, type: 'rsa'})
 
   console.log(`creating subplebbit with address '${signer.address}'...`)
   const subplebbit = await plebbit.createSubplebbit({
     'signer': signer,
-    'title': 'subplebbit title',
-    'address' : signer.address,
+    // 'title': 'subplebbit title',
+    // 'address' : signer.address,
   })
   console.log('subplebbit created')
 
-  // TODO: should be .start() .startPublishing()
   console.log('starting subplebbit...')
-  await subplebbit.startPublishing()
+  try {
+    await subplebbit.start()
+  }
+  catch (e) {
+    console.log('subplebbit.start() error:', e.message)
+    console.log(e)
+  }
   console.log(`subplebbit started with address ${signer.address}`)
 })()
