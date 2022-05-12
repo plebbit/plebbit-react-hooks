@@ -14,8 +14,13 @@ export default function Publish() {
   // set the account's plebbit options to localhost if not set
   useEffect(() => {
     if (account?.plebbitOptions) {
-      if (account.plebbitOptions.ipfsGatewayUrl !== 'http://localhost:8080') {
-        const plebbitOptions = {...account.plebbitOptions, ipfsGatewayUrl: 'http://localhost:8080'}
+      if (account.plebbitOptions.ipfsGatewayUrl !== 'http://localhost:8080'
+        || account.plebbitOptions.ipfsHttpClientOptions !== 'http://localhost:5001/api/v0'
+      ) {
+        const plebbitOptions = {
+          ipfsHttpClientOptions: 'http://localhost:5001/api/v0', 
+          ipfsGatewayUrl: 'http://localhost:8080'
+        }
         setAccount({...account, plebbitOptions})
       }
     }
