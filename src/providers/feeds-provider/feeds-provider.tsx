@@ -295,7 +295,7 @@ function useCalculatedBufferedFeeds(
       const filteredSortedBufferedFeedPosts = []
       for (const post of sortedBufferedFeedPosts) {
         // don't add posts already loaded in loaded feeds
-        if (loadedFeedsPosts[feedName].has(post.cid)) {
+        if (loadedFeedsPosts[feedName]?.has(post.cid)) {
           continue
         }
 
