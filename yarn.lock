@@ -925,9 +925,13 @@
     ws "^7.4.6"
     yazl "^2.5.1"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js":
   version "0.0.3"
+<<<<<<< HEAD
   resolved "https://github.com/plebbit/plebbit-js.git#5c035960b259d28b24b5e7df7c20f83a004cd4d7"
+=======
+  resolved "https://github.com/plebbit/plebbit-js#5c035960b259d28b24b5e7df7c20f83a004cd4d7"
+>>>>>>> 7a4a4940ff9d10ccaaa4a0a0ac925731045bd62e
   dependencies:
     assert "2.0.0"
     better-sqlite3 "7.5.1"

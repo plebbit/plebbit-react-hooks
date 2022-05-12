@@ -86,6 +86,7 @@ tQuns2k5sbZtcecJ/VsilRhju5KcTDZ3Zdy8XInkSkGxlc1m7/xRVjysqP4=
   console.log('subplebbit created')
 
   console.log('starting subplebbit...')
+<<<<<<< HEAD
   try {
     await subplebbit.start()
   }
@@ -93,5 +94,8 @@ tQuns2k5sbZtcecJ/VsilRhju5KcTDZ3Zdy8XInkSkGxlc1m7/xRVjysqP4=
     console.log('subplebbit.start() error:', e.message)
     console.log(e)
   }
+=======
+  await subplebbit.start()
+>>>>>>> 7a4a4940ff9d10ccaaa4a0a0ac925731045bd62e
   console.log(`subplebbit started with address ${signer.address}`)
 })()
