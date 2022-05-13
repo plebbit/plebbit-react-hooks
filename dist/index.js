@@ -1,7 +1,6 @@
-var _a;
 // fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
 try {
-    if ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.DEBUG_DEPTH) {
+    if (process.env.DEBUG_DEPTH) {
         require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH;
     }
 }
