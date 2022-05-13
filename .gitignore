@@ -1,8 +1,0 @@
-node_modules/
-packages/*/dist/
-packages/example/.next/
-.env.local
-yarn-error.log
-TODO.md
-dist
-.plebbit
