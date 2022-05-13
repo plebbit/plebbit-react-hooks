@@ -1,6 +1,6 @@
 // fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
 try {
-  if (process?.env?.DEBUG_DEPTH) {
+  if (process.env.DEBUG_DEPTH) {
     require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
   }
 } catch (e) {}
