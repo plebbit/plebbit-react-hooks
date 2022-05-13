@@ -76,7 +76,7 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
   if (!commentData) {
     return
   }
-  const comment = account.plebbit.createComment(commentData)
+  const comment = await account.plebbit.createComment(commentData)
   // add potential missing data from the database onto the comment instance
   // should not be necessary if Plebbit.createComment is implemented properly
   for (const prop in commentData) {

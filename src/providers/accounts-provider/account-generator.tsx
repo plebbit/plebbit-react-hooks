@@ -5,23 +5,25 @@ import accountsDatabase from './accounts-database'
 import { Accounts } from '../../types'
 
 export const generateDefaultAccount = async () => {
-  // TODO: a default account will probably not be exactly like this
-  const signer = {} // TODO: generate new signer
+  const plebbitOptions = {
+    ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
+    ipfsHttpClientOptions: undefined,
+    pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0'
+  }
+  const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
+  const signer = await plebbit.createSigner()
   const author = {
     displayName: null,
-    address: 'Qm...', // TODO: get address of signer
+    address: signer.address,
   }
-  const plebbitOptions = {
-    ipfsGatewayUrl: 'https://cloudflare-ipfs',
-    ipfsApiUrl: 'http://localhost:8080',
-  }
+
   const accountName = await getNextAvailableDefaultAccountName()
   const account = {
     id: uuid(),
     name: accountName,
     author,
     signer,
-    plebbit: PlebbitJs.Plebbit(plebbitOptions),
+    plebbit: plebbit,
     plebbitOptions,
     subscriptions: [],
     blockedAddresses: {},

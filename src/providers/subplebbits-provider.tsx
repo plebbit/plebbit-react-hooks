@@ -67,7 +67,7 @@ const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Acc
   if (!subplebbitData) {
     return
   }
-  const subplebbit = account.plebbit.createSubplebbit(subplebbitData)
+  const subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
 
   // add potential missing data from the database onto the subplebbit instance
   for (const prop in subplebbitData) {

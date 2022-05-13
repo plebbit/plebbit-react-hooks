@@ -7,7 +7,14 @@ const loadingTime = 10
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
 export class Plebbit {
-  createSubplebbit(createSubplebbitOptions: any) {
+  async createSigner() {
+    return {
+      privateKey: 'private key',
+      address: 'address'
+    }
+  }
+
+  async createSubplebbit(createSubplebbitOptions: any) {
     return new Subplebbit(createSubplebbitOptions)
   }
 
@@ -28,7 +35,7 @@ export class Plebbit {
     return subplebbit
   }
 
-  createComment(createCommentOptions: any) {
+  async createComment(createCommentOptions: any) {
     return new Comment(createCommentOptions)
   }
 
@@ -51,7 +58,7 @@ export class Plebbit {
     }
   }
 
-  createVote() {
+  async createVote() {
     return new Vote()
   }
 }
@@ -236,6 +243,6 @@ export class Comment extends Publication {
 
 export class Vote extends Publication {}
 
-export default function () {
+export default async function () {
   return new Plebbit()
 }

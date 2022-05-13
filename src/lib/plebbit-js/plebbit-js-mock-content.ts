@@ -2,7 +2,7 @@ import EventEmitter from 'events'
 import assert from 'assert'
 
 // changeable with env variable so the frontend can test with different latencies
-const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 5000)
+const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100)
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
 const NOW = 1647600000
@@ -404,7 +404,14 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
 }
 
 class Plebbit {
-  createSubplebbit(createSubplebbitOptions: any) {
+  async createSigner() {
+    return {
+      privateKey: 'private key',
+      address: 'address'
+    }
+  }
+
+  async createSubplebbit(createSubplebbitOptions: any) {
     return new Subplebbit(createSubplebbitOptions)
   }
 
@@ -430,7 +437,7 @@ class Plebbit {
     return subplebbit
   }
 
-  createComment(createCommentOptions: any) {
+  async createComment(createCommentOptions: any) {
     return new Comment(createCommentOptions)
   }
 
@@ -461,7 +468,7 @@ class Plebbit {
     return comment
   }
 
-  createVote() {
+  async createVote() {
     return new Vote()
   }
 }
@@ -679,6 +686,6 @@ class Comment extends Publication {
 
 class Vote extends Publication {}
 
-export default function () {
+export default async function () {
   return new Plebbit()
 }

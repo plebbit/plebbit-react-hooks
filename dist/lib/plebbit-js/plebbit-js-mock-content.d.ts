@@ -1,11 +1,15 @@
 /// <reference types="node" />
 import EventEmitter from 'events';
 declare class Plebbit {
-    createSubplebbit(createSubplebbitOptions: any): Subplebbit;
+    createSigner(): Promise<{
+        privateKey: string;
+        address: string;
+    }>;
+    createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    createComment(createCommentOptions: any): Comment;
+    createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
-    createVote(): Vote;
+    createVote(): Promise<Vote>;
 }
 declare class Pages {
     pageCids: any;
@@ -69,5 +73,5 @@ declare class Comment extends Publication {
 }
 declare class Vote extends Publication {
 }
-export default function (): Plebbit;
+export default function (): Promise<Plebbit>;
 export {};

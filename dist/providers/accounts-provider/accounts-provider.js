@@ -118,7 +118,7 @@ export default function AccountsProvider(props) {
         validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
         let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions);
         let accountCommentIndex;
-        let comment = account.plebbit.createComment(createCommentOptions);
+        let comment = yield account.plebbit.createComment(createCommentOptions);
         const publishAndRetryFailedChallengeVerification = () => {
             comment.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
                 publishCommentOptions.onChallenge(challenge, comment);
@@ -129,7 +129,7 @@ export default function AccountsProvider(props) {
                 if (!challengeVerification.challengeSuccess) {
                     // publish again automatically on fail
                     createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp: Math.round(Date.now() / 1000) });
-                    comment = account.plebbit.createComment(createCommentOptions);
+                    comment = yield account.plebbit.createComment(createCommentOptions);
                     publishAndRetryFailedChallengeVerification();
                 }
                 else {
@@ -175,7 +175,7 @@ export default function AccountsProvider(props) {
         }
         validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
         let createVoteOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
-        let vote = account.plebbit.createVote(createVoteOptions);
+        let vote = yield account.plebbit.createVote(createVoteOptions);
         const publishAndRetryFailedChallengeVerification = () => {
             vote.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
                 publishVoteOptions.onChallenge(challenge, vote);
@@ -184,7 +184,7 @@ export default function AccountsProvider(props) {
                 publishVoteOptions.onChallengeVerification(challengeVerification, vote);
                 if (!challengeVerification.challengeSuccess) {
                     // publish again automatically on fail
-                    vote = account.plebbit.createVote(createVoteOptions);
+                    vote = yield account.plebbit.createVote(createVoteOptions);
                     publishAndRetryFailedChallengeVerification();
                 }
             }));
@@ -273,7 +273,7 @@ export default function AccountsProvider(props) {
         }
         // comment is not a `Comment` instance
         if (!comment.on) {
-            comment = account.plebbit.createComment(comment);
+            comment = yield account.plebbit.createComment(comment);
         }
         // @ts-ignore
         setAlreadyUpdatingAccountsComments((prev) => (Object.assign(Object.assign({}, prev), { [comment.cid]: true })));

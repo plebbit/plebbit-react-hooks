@@ -28,7 +28,7 @@ const getAccounts = async (accountIds: string[]) => {
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
     accounts[accountId] = accountsArray[i]
-    accounts[accountId].plebbit = PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
+    accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
   }
   return accounts
 }
@@ -156,8 +156,8 @@ const getAccountVotesDatabase = (accountId: string) => {
 
 const addAccountVote = async (accountId: string, createVoteOptions: CreateCommentOptions) => {
   assert(
-    createVoteOptions.commentCid && typeof createVoteOptions.commentCid === 'string',
-    `addAccountVote '${createVoteOptions.commentCid}' not a string`
+    createVoteOptions?.commentCid && typeof createVoteOptions?.commentCid === 'string',
+    `addAccountVote createVoteOptions.commentCid '${createVoteOptions?.commentCid}' not a string`
   )
   const accountVotesDatabase = getAccountVotesDatabase(accountId)
   const length = (await accountVotesDatabase.getItem('length')) || 0
@@ -183,7 +183,7 @@ const getAccountVotes = async (accountId: string) => {
   }
   const votesArray = await Promise.all(promises)
   for (const vote of votesArray) {
-    votes[vote.commentCid] = vote
+    votes[vote?.commentCid] = vote
   }
   return votes
 }

@@ -188,6 +188,7 @@ function useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedF
  */
 function useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds) {
     return useMemo(() => {
+        var _a;
         // contruct a list of posts already loaded to remove them from buffered feeds
         const loadedFeedsPosts = {};
         for (const feedName in loadedFeeds) {
@@ -229,7 +230,7 @@ function useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebb
             const filteredSortedBufferedFeedPosts = [];
             for (const post of sortedBufferedFeedPosts) {
                 // don't add posts already loaded in loaded feeds
-                if (loadedFeedsPosts[feedName].has(post.cid)) {
+                if ((_a = loadedFeedsPosts[feedName]) === null || _a === void 0 ? void 0 : _a.has(post.cid)) {
                     continue;
                 }
                 // TODO: filter blocked addresses
@@ -309,7 +310,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                     return;
                 }
                 getSubplebbitPagePending[account.id + pageCid] = true;
-                const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress });
+                const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
                 const fetchedSubplebbitPage = yield subplebbit.posts.getPage(pageCid);
                 yield subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage);
                 debug('FeedsProvider useSubplebbitsPages subplebbit.posts.getPage', {

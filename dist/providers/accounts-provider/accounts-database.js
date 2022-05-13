@@ -26,7 +26,7 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     for (const [i, accountId] of accountIds.entries()) {
         assert(accountsArray[i], `accountId '${accountId}' not found in database`);
         accounts[accountId] = accountsArray[i];
-        accounts[accountId].plebbit = PlebbitJs.Plebbit(accounts[accountId].plebbitOptions);
+        accounts[accountId].plebbit = yield PlebbitJs.Plebbit(accounts[accountId].plebbitOptions);
     }
     return accounts;
 });
@@ -132,7 +132,7 @@ const getAccountVotesDatabase = (accountId) => {
     return accountsVotesDatabases[accountId];
 };
 const addAccountVote = (accountId, createVoteOptions) => __awaiter(void 0, void 0, void 0, function* () {
-    assert(createVoteOptions.commentCid && typeof createVoteOptions.commentCid === 'string', `addAccountVote '${createVoteOptions.commentCid}' not a string`);
+    assert((createVoteOptions === null || createVoteOptions === void 0 ? void 0 : createVoteOptions.commentCid) && typeof (createVoteOptions === null || createVoteOptions === void 0 ? void 0 : createVoteOptions.commentCid) === 'string', `addAccountVote createVoteOptions.commentCid '${createVoteOptions === null || createVoteOptions === void 0 ? void 0 : createVoteOptions.commentCid}' not a string`);
     const accountVotesDatabase = getAccountVotesDatabase(accountId);
     const length = (yield accountVotesDatabase.getItem('length')) || 0;
     const vote = Object.assign(Object.assign({}, createVoteOptions), { signer: undefined, author: undefined });
@@ -156,7 +156,7 @@ const getAccountVotes = (accountId) => __awaiter(void 0, void 0, void 0, functio
     }
     const votesArray = yield Promise.all(promises);
     for (const vote of votesArray) {
-        votes[vote.commentCid] = vote;
+        votes[vote === null || vote === void 0 ? void 0 : vote.commentCid] = vote;
     }
     return votes;
 });

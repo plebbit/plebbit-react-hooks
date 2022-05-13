@@ -295,7 +295,7 @@ function useCalculatedBufferedFeeds(
       const filteredSortedBufferedFeedPosts = []
       for (const post of sortedBufferedFeedPosts) {
         // don't add posts already loaded in loaded feeds
-        if (loadedFeedsPosts[feedName].has(post.cid)) {
+        if (loadedFeedsPosts[feedName]?.has(post.cid)) {
           continue
         }
 
@@ -390,7 +390,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
         }
 
         getSubplebbitPagePending[account.id + pageCid] = true
-        const subplebbit = account.plebbit.createSubplebbit({ address: subplebbitAddress })
+        const subplebbit = await account.plebbit.createSubplebbit({ address: subplebbitAddress })
         const fetchedSubplebbitPage = await subplebbit.posts.getPage(pageCid)
         await subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage)
         debug('FeedsProvider useSubplebbitsPages subplebbit.posts.getPage', {

@@ -3,13 +3,14 @@ export declare const generateDefaultAccount: () => Promise<{
     name: string;
     author: {
         displayName: null;
-        address: string;
+        address: any;
     };
-    signer: {};
-    plebbit: void;
+    signer: any;
+    plebbit: any;
     plebbitOptions: {
         ipfsGatewayUrl: string;
-        ipfsApiUrl: string;
+        ipfsHttpClientOptions: undefined;
+        pubsubHttpClientOptions: string;
     };
     subscriptions: never[];
     blockedAddresses: {};
@@ -20,13 +21,14 @@ declare const accountGenerator: {
         name: string;
         author: {
             displayName: null;
-            address: string;
+            address: any;
         };
-        signer: {};
-        plebbit: void;
+        signer: any;
+        plebbit: any;
         plebbitOptions: {
             ipfsGatewayUrl: string;
-            ipfsApiUrl: string;
+            ipfsHttpClientOptions: undefined;
+            pubsubHttpClientOptions: string;
         };
         subscriptions: never[];
         blockedAddresses: {};

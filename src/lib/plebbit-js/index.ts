@@ -1,7 +1,7 @@
 // NOTE: don't import plebbit-js directly to be able to mock it for unit tests
 
 import PlebbitJsMockContent from './plebbit-js-mock-content'
-function Plebbit(plebbitOptions: any) {} // should import from plebbit-js npm module later instead
+const Plebbit = (options: any): any => ({})
 
 const PlebbitJs = {
   Plebbit: Plebbit,
@@ -13,7 +13,7 @@ export function mockPlebbitJs(_Plebbit: any) {
 }
 
 // mock content for front-end dev with this env var
-if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
+if (process?.env?.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
   mockPlebbitJs(PlebbitJsMockContent)
 }
 
