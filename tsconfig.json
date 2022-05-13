@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/recommended/tsconfig.json",
+  "include": ["./src"],
+  "compilerOptions": {
+    "module": "ES2020",
+    "declaration": true,
+    "moduleResolution": "Node",
+    "outDir": "./dist",
+    "jsx": "react"
+  },
+  "exclude": ["**/*.spec.ts", "**/*.test.ts", "**/*.donttest.ts"]
+}
