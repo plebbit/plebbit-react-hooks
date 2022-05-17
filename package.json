@@ -21,9 +21,11 @@
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "tsc --project config/tsconfig.json",
-    "start": "tsc --project config/tsconfig.json --watch",
-    "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write",
-    "test": "jest --config config/jest.config.cjs"
+    "build:watch": "tsc --project config/tsconfig.json --watch",
+    "webpack:watch": "while true; do webpack watch --mode development --config config/webpack.config.js; sleep 1; done",
+    "test": "jest --config config/jest.config.cjs",
+    "test:e2e": "karma start config/karma.conf.js",
+    "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
     "@types/debug": "4.1.7",
@@ -37,6 +39,8 @@
     "react": ">=16.8"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "7.17.12",
+    "@babel/preset-env": "7.17.12",
     "@testing-library/react-hooks": "7.0.2",
     "@tsconfig/recommended": "1.0.1",
     "@types/jest": "27.0.2",
@@ -44,17 +48,34 @@
     "@types/react": "17.0.21",
     "@typescript-eslint/eslint-plugin": "5.7.0",
     "@typescript-eslint/parser": "5.7.0",
+    "babel-loader": "8.2.5",
+    "chai": "4.3.6",
+    "chokidar": "3.5.3",
+    "dotenv": "16.0.1",
     "eslint": "8.4.1",
     "eslint-plugin-react-hooks": "4.3.0",
     "eslint-plugin-tsdoc": "0.2.14",
+    "fs-extra": "10.1.0",
     "husky": "4.3.8",
     "jest": "27.2.4",
+    "karma": "6.3.20",
+    "karma-chai": "0.1.0",
+    "karma-chrome-launcher": "3.1.1",
+    "karma-firefox-launcher": "2.1.2",
+    "karma-mocha": "2.0.1",
+    "karma-sinon": "1.0.5",
+    "karma-spec-reporter": "0.0.34",
     "lint-staged": "12.3.8",
+    "mocha": "10.0.0",
     "prettier": "2.3.2",
     "react": "17.0.2",
     "react-test-renderer": "17.0.2",
+    "sinon": "14.0.0",
     "ts-jest": "27.0.5",
-    "typescript": "4.5.4"
+    "typescript": "4.5.4",
+    "webpack": "5.72.1",
+    "webpack-cli": "4.9.2",
+    "webpack-watch-files-plugin": "1.2.1"
   },
   "lint-staged": {
     "{src,test,config}/**/*.{cjs,js,jsx,ts,tsx}": [

@@ -9,3 +9,5 @@ dist/
 dist
 .plebbit
 .plebbit/
+test-karma-webpack
+.env
