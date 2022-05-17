@@ -57,7 +57,7 @@
     "typescript": "4.5.4"
   },
   "lint-staged": {
-    "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx}": [
+    "{src,test,config}/**/*.{cjs,js,jsx,ts,tsx}": [
       "prettier --write --config config/prettier.config.js"
     ]
   },
