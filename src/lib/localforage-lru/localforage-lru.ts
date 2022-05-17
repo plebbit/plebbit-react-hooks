@@ -49,13 +49,13 @@ function createLocalForageInstance(localForageLruOptions: any): any {
       }
     },
     setItem: async function (key: string, value: any) {
-        await initialization()
-        const databaseValue = await database1.getItem(key)
-        if (databaseValue !== null && databaseValue !== undefined) {
-          await database1.setItem(key, value)
-        } else {
-          await updateDatabases(key, value)
-        }
+      await initialization()
+      const databaseValue = await database1.getItem(key)
+      if (databaseValue !== null && databaseValue !== undefined) {
+        await database1.setItem(key, value)
+      } else {
+        await updateDatabases(key, value)
+      }
     },
     removeItem: async function (key: string) {
       await initialization()
@@ -82,9 +82,8 @@ function createLocalForageInstance(localForageLruOptions: any): any {
   async function updateDatabases(key: string, value: any) {
     try {
       await database1.setItem(key, value)
-    }
-    catch (e) {
-      console.error('TODO: figure out sure why this error happens', {localForageLruOptions, databaseSize})
+    } catch (e) {
+      console.error('TODO: figure out sure why this error happens', { localForageLruOptions, databaseSize })
       console.error(e)
     }
     databaseSize++

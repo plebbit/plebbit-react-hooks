@@ -274,10 +274,7 @@ function useCalculatedBufferedFeeds(
 
           // found an info that matches the sub address and sort type
           // get all the pages for it from subplebbitsPages
-          const subplebbitPages = getSubplebbitPages(
-            info.firstPageCid,
-            subplebbitsPages
-          )
+          const subplebbitPages = getSubplebbitPages(info.firstPageCid, subplebbitsPages)
 
           // add each comment from each page, do not filter at this stage, filter after sorting
           for (const subplebbitPage of subplebbitPages) {
@@ -327,8 +324,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
   const subplebbitsPagesInfo = useMemo(() => {
     const newSubplebbitsPagesInfo: SubplebbitsPagesInfo = {}
     for (const infoName in subplebbitsPostsInfo) {
-      const { firstPageCid, account, subplebbitAddress, sortType, bufferedPostCount } =
-        subplebbitsPostsInfo[infoName]
+      const { firstPageCid, account, subplebbitAddress, sortType, bufferedPostCount } = subplebbitsPostsInfo[infoName]
       // add first page
       const subplebbitFirstPageInfo = {
         pageCid: firstPageCid,

@@ -45,12 +45,12 @@ describe('utils', () => {
     expect(flattedReplies[6].cid).toBe('7')
 
     const pagesInstance = {
-      pages: {new: page}
+      pages: { new: page },
     }
     const flattedReplies2 = utils.flattenCommentsPages(pagesInstance)
     expect(flattedReplies2).toEqual(flattedReplies)
 
-    const pagesdotpagesInstance = {new: page}
+    const pagesdotpagesInstance = { new: page }
     const flattedReplies3 = utils.flattenCommentsPages(pagesdotpagesInstance)
     expect(flattedReplies3).toEqual(flattedReplies)
   })

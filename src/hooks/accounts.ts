@@ -181,10 +181,7 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
     )
   }
   for (const parentCid of filter.parentCids || []) {
-    assert(
-      parentCid && typeof parentCid === 'string',
-      `accountCommentsFilter parentCid '${parentCid}' not a string`
-    )
+    assert(parentCid && typeof parentCid === 'string', `accountCommentsFilter parentCid '${parentCid}' not a string`)
   }
   const filteredPublications = []
   for (const publication of publications) {
@@ -201,10 +198,7 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
     if (filter.parentCids?.length && !filter.parentCids.includes(publication.parentCid)) {
       isFilteredOut = true
     }
-    if (
-      typeof filter.hasParentCid === 'boolean' &&
-      filter.hasParentCid !== Boolean(publication.parentCid)
-    ) {
+    if (typeof filter.hasParentCid === 'boolean' && filter.hasParentCid !== Boolean(publication.parentCid)) {
       isFilteredOut = true
     }
     if (!isFilteredOut) {

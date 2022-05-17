@@ -34,14 +34,9 @@ const debugUtils = {
   deleteDatabases,
   deleteCaches,
   deleteAccountsDatabases,
-  deleteNonAccountsDatabases
+  deleteNonAccountsDatabases,
 }
 
-export {
-  deleteDatabases,
-  deleteCaches,
-  deleteAccountsDatabases,
-  deleteNonAccountsDatabases
-}
+export { deleteDatabases, deleteCaches, deleteAccountsDatabases, deleteNonAccountsDatabases }
 
 export default debugUtils

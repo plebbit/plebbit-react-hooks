@@ -8,7 +8,7 @@ export const generateDefaultAccount = async () => {
   const plebbitOptions = {
     ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
     ipfsHttpClientOptions: undefined,
-    pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0'
+    pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
   }
   const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
   const signer = await plebbit.createSigner()

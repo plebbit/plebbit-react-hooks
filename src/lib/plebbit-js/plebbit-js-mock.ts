@@ -10,7 +10,7 @@ export class Plebbit {
   async createSigner() {
     return {
       privateKey: 'private key',
-      address: 'address'
+      address: 'address',
     }
   }
 
@@ -70,8 +70,8 @@ export class Pages {
   comment: any
 
   constructor(pagesOptions?: any) {
-    Object.defineProperty(this, 'subplebbit', {value: pagesOptions?.subplebbit, enumerable: false})
-    Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
+    Object.defineProperty(this, 'subplebbit', { value: pagesOptions?.subplebbit, enumerable: false })
+    Object.defineProperty(this, 'comment', { value: pagesOptions?.comment, enumerable: false })
   }
 
   async getPage(pageCid: string) {
@@ -92,7 +92,7 @@ export class Subplebbit extends EventEmitter {
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
-    this.posts = new Pages({subplebbit: this})
+    this.posts = new Pages({ subplebbit: this })
   }
 
   update() {
@@ -209,7 +209,7 @@ export class Comment extends Publication {
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
-    this.replies = new Pages({comment: this})
+    this.replies = new Pages({ comment: this })
   }
 
   update() {

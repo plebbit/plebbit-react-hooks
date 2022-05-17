@@ -41,13 +41,13 @@ describe('mock content', () => {
     expect(rendered.result.current).toBe(undefined)
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa0')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
     console.log(rendered.result.current)
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.upvoteCount === 'number', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.upvoteCount === 'number', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -55,7 +55,7 @@ describe('mock content', () => {
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa1')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -63,7 +63,7 @@ describe('mock content', () => {
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa2')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -71,7 +71,7 @@ describe('mock content', () => {
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa3')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.cid === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -85,7 +85,7 @@ describe('mock content', () => {
     expect(rendered.result.current).toBe(undefined)
     rendered.rerender('anything2.eth')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -94,7 +94,7 @@ describe('mock content', () => {
 
     rendered.rerender('jokes2.eth')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -103,7 +103,7 @@ describe('mock content', () => {
 
     rendered.rerender('memes2.eth')
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.address === 'string', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -121,7 +121,7 @@ describe('mock content', () => {
         rendered.result.current.loadMore()
       })
       try {
-        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout: 60000})
+        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, { timeout: 60000 })
       } catch (e) {
         console.error('scrollOnePage failed:', e)
       }
@@ -129,7 +129,7 @@ describe('mock content', () => {
 
     rendered.rerender(['jokes.eth', 'news.eth'])
     try {
-      await rendered.waitFor(() => rendered.result.current.feed?.length > 0, {timeout: 60000})
+      await rendered.waitFor(() => rendered.result.current.feed?.length > 0, { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -149,7 +149,7 @@ describe('mock content', () => {
     })
 
     try {
-      await rendered.waitFor(() => typeof rendered.result.current.publishComment === 'function', {timeout: 60000})
+      await rendered.waitFor(() => typeof rendered.result.current.publishComment === 'function', { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
@@ -164,20 +164,32 @@ describe('mock content', () => {
       console.log('challengeverification', args)
       onChallengeVerificationCalled = true
     }
-    await rendered.result.current.publishComment({subplebbitAddress: 'news.eth', content: 'content', title: 'title', onChallenge, onChallengeVerification})
-  
+    await rendered.result.current.publishComment({
+      subplebbitAddress: 'news.eth',
+      content: 'content',
+      title: 'title',
+      onChallenge,
+      onChallengeVerification,
+    })
+
     try {
-      await rendered.waitFor(() => onChallengeVerificationCalled, {timeout: 60000})
+      await rendered.waitFor(() => onChallengeVerificationCalled, { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }
 
     console.log('publishing vote')
     onChallengeVerificationCalled = false
-    await rendered.result.current.publishVote({subplebbitAddress: 'news.eth', vote: 1, commentCid: 'some cid...', onChallenge, onChallengeVerification})
-  
+    await rendered.result.current.publishVote({
+      subplebbitAddress: 'news.eth',
+      vote: 1,
+      commentCid: 'some cid...',
+      onChallenge,
+      onChallengeVerification,
+    })
+
     try {
-      await rendered.waitFor(() => onChallengeVerificationCalled, {timeout: 60000})
+      await rendered.waitFor(() => onChallengeVerificationCalled, { timeout: 60000 })
     } catch (e) {
       console.error(e)
     }

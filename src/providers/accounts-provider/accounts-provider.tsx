@@ -155,7 +155,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
-      ...publishCommentOptions
+      ...publishCommentOptions,
     }
 
     let accountCommentIndex: number
@@ -233,7 +233,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
-      ...publishVoteOptions
+      ...publishVoteOptions,
     }
 
     let vote = await account.plebbit.createVote(createVoteOptions)
@@ -390,9 +390,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         updatedComment.replies?.pages?.old,
         updatedComment.replies?.pages?.controversialAll,
       ]
-      const hasReplies = replyPageArray
-          .map((replyPage) => replyPage?.comments?.length || 0)
-          .reduce((prev, curr) => prev + curr) > 0
+      const hasReplies =
+        replyPageArray.map((replyPage) => replyPage?.comments?.length || 0).reduce((prev, curr) => prev + curr) > 0
       if (hasReplies) {
         setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
           // check which replies are read or not
@@ -413,7 +412,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           Promise.all(promises)
 
           // set new react context
-          const newAccountCommentsReplies = { ...previousAccountsCommentsReplies[account.id], ...updatedAccountCommentsReplies }
+          const newAccountCommentsReplies = {
+            ...previousAccountsCommentsReplies[account.id],
+            ...updatedAccountCommentsReplies,
+          }
           return { ...previousAccountsCommentsReplies, [account.id]: newAccountCommentsReplies }
         })
       }

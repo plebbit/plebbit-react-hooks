@@ -114,7 +114,7 @@ describe('feeds', () => {
     })
 
     test('change subplebbit addresses and sort type', async () => {
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot' })
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
       } catch (e) {
@@ -136,7 +136,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change sort type
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new'})
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new' })
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
       } catch (e) {
@@ -148,7 +148,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change subplebbit addresses and sort type
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5'], sortType: 'topAll'})
+      rendered.rerender({ subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5'], sortType: 'topAll' })
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (4|5)/))
       } catch (e) {
@@ -228,9 +228,7 @@ describe('feeds', () => {
       // get page 2
       await scrollOnePage()
       expect(rendered.result.current.feed[postsPerPage].timestamp).toBe(75)
-      expect(rendered.result.current.feed[postsPerPage].cid).toBe(
-        'subplebbit address 1 page cid new comment cid 75'
-      )
+      expect(rendered.result.current.feed[postsPerPage].cid).toBe('subplebbit address 1 page cid new comment cid 75')
 
       // ad this point the buffered feed is length 50, we can wait for getPage to be called again
       // refill the buffer
@@ -291,8 +289,8 @@ describe('feeds', () => {
         await simulateLoadingTime()
         await simulateLoadingTime()
         const page: any = {
-          nextCid: // @ts-ignore
-            this.subplebbit.address + ' next page cid ' + (getPageCalledTimes[this.subplebbit.address] + 1),
+          // @ts-ignore
+          nextCid: this.subplebbit.address + ' next page cid ' + (getPageCalledTimes[this.subplebbit.address] + 1),
           comments: [],
         }
         const postCount = 100

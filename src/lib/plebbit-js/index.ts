@@ -17,7 +17,6 @@ try {
   if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
     mockPlebbitJs(PlebbitJsMockContent)
   }
-}
-catch (e) {}
+} catch (e) {}
 
 export default PlebbitJs

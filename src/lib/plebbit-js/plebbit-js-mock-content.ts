@@ -9,7 +9,8 @@ const NOW = 1647600000
 const DAY = 60 * 60 * 24
 
 // TODO: should delete this eventually to reduce npm package size
-let captchaImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAJYAAAAyCAMAAACJUtIoAAAAY1BMVEX////y8vLm5ub39/fr7Ozf39/a29u/6c256MjV8N7v+fL0+/bU1dXO7tnp9+7e8+TJ7NTOzs7E69Gt5L+I26ag4bfk9en3/fmS3Kyo4rx42J2Z37LI38/AwMDR5tip1Li+1cUdWDCzAAAEkElEQVRYw+1Y6ZKjIBBuGuTyPqKZHLP7/k+5KrhIUEwms1X7Y76pMYVg23x9IvzgZfQN/I/QXavhP0SXyh6+AdQbEYS3UJ1TkC/zlbDxEtOD7Q8JnQRMFxYzooL0A46APhlZEizw71A2X+kyu5pBHC8JMUJ3ITqpu0O6GPqbRU8l3CM1CdnCjC0a8Yil80pdLinEMXBc5BMCuwaMUejYimzHoZSgzzJ90oaY8HCW7BmD0ug9QmAXxWlULW9yM+IbgqyHUjJJsuZYyWZu6xEwc3keaqTqCoUJx5puCx1vo1GAWPUf1GI8CRhk6IZZQM8RdCu6HiBvlgCCjaetWhZYo28JkvmvpBO/iD5bNLBFHPnsW1oq7mQGoGSlosdqYB+bARiDb4H6NRiZ6AkM+SdG8Vf9BckXK6RQxsVrStF3etxx5Vf8BdGLlBfQS233xXx6SODRHm9oh6HeSLcyScJejIAmn0mgFMoEvWISS+wZcT8ecPpngVrInmPMLdGymKvSubv9TVLM5gVzY8ObOVt+aIJe0kRqdHPp5wVDUveIyRVQFvKTgI1rV6LjIIDJlCsy3IoXDiEyElUrI7UbpbI05jRVjK2oPwJmWcLgzk0W3u/Jnt8p8UplMZLGs0DaEdgcLEiMX3tlHHcKSHQeWIZr71aikfWdvdOoIkdMVtGM0QxG79v2rDPf96vLZ2j5/c33Hyp4EyO46UbJhulIzR55JOSv5zC27DftVFvs2/yxAKVdc833wps9MJBs+A4NWk/3GJ34tQ91AyhRPHeoYAnvAPKT3qE2XpFqujVh5lzcWSHXG7KIYo9qXfTUvqU7mWMPSW3UigO5YzXlk4LPKKYrKcWlVRrKFg4RngQyAnEkuC6opqDFFUuVEGriSKoiF+KSD48+ovTDzr36QP1WarclQPBhFbMFRxt9zfaGUohKr6spVB/NeK9fc9OdWzW4Vsz3SqSmPfsK+NRcm/iXp/EX61FO34im91Sfr+3E4OcvISxJjJ3Up7z+FcXhDYS009+zKZWsTnnye6SkBA/WrfL5yjiAzsW4KAX4uAWd29tAuiQDnH2saNP8apzJZEzqKukp78tz5XVCfSVkdzOLLHnBoeor4HSdqKpWXiq918SneXv+NQStwulyFv2R+GNEtkMR2ip1mShoE5DMqcjDR6mbk5B58RBcizHCCvlqX0ZwDLWT1IAJCfdpKxglj2oZ32ukKNdFp1DDs0ffY5QSegW0RrZLMIRqWfGlkJVeeC26czMNCI00Wc5PWRL7mpCezS2vC6Cx7VVnWawdUEqFprjz26l85qOKVSvqYH45DuMrnKG31q+Vn0I2o6YdRxi2zjCIkQO0I9FbpfX+p6wQDGcy9eB9nmCQKgmncpee0KoB8LhvHuhO2xM6Dnd32ms+uIS9xp0cbpvgYfBiQDh/KK585TdkWSSr6qpgA/SehQY8BllUQePfPFjACa53SO7rjo5YCqoKoBgng+xHMoQvIJtOJJMkNPI43fIGut0H0toOmJJLQDF4C+6d098XwZcn+9ZmsO9SC96Bc5TUSvvBD/49/gDEMCEP8TccuAAAAABJRU5ErkJggg=='
+let captchaImageBase64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAJYAAAAyCAMAAACJUtIoAAAAY1BMVEX////y8vLm5ub39/fr7Ozf39/a29u/6c256MjV8N7v+fL0+/bU1dXO7tnp9+7e8+TJ7NTOzs7E69Gt5L+I26ag4bfk9en3/fmS3Kyo4rx42J2Z37LI38/AwMDR5tip1Li+1cUdWDCzAAAEkElEQVRYw+1Y6ZKjIBBuGuTyPqKZHLP7/k+5KrhIUEwms1X7Y76pMYVg23x9IvzgZfQN/I/QXavhP0SXyh6+AdQbEYS3UJ1TkC/zlbDxEtOD7Q8JnQRMFxYzooL0A46APhlZEizw71A2X+kyu5pBHC8JMUJ3ITqpu0O6GPqbRU8l3CM1CdnCjC0a8Yil80pdLinEMXBc5BMCuwaMUejYimzHoZSgzzJ90oaY8HCW7BmD0ug9QmAXxWlULW9yM+IbgqyHUjJJsuZYyWZu6xEwc3keaqTqCoUJx5puCx1vo1GAWPUf1GI8CRhk6IZZQM8RdCu6HiBvlgCCjaetWhZYo28JkvmvpBO/iD5bNLBFHPnsW1oq7mQGoGSlosdqYB+bARiDb4H6NRiZ6AkM+SdG8Vf9BckXK6RQxsVrStF3etxx5Vf8BdGLlBfQS233xXx6SODRHm9oh6HeSLcyScJejIAmn0mgFMoEvWISS+wZcT8ecPpngVrInmPMLdGymKvSubv9TVLM5gVzY8ObOVt+aIJe0kRqdHPp5wVDUveIyRVQFvKTgI1rV6LjIIDJlCsy3IoXDiEyElUrI7UbpbI05jRVjK2oPwJmWcLgzk0W3u/Jnt8p8UplMZLGs0DaEdgcLEiMX3tlHHcKSHQeWIZr71aikfWdvdOoIkdMVtGM0QxG79v2rDPf96vLZ2j5/c33Hyp4EyO46UbJhulIzR55JOSv5zC27DftVFvs2/yxAKVdc833wps9MJBs+A4NWk/3GJ34tQ91AyhRPHeoYAnvAPKT3qE2XpFqujVh5lzcWSHXG7KIYo9qXfTUvqU7mWMPSW3UigO5YzXlk4LPKKYrKcWlVRrKFg4RngQyAnEkuC6opqDFFUuVEGriSKoiF+KSD48+ovTDzr36QP1WarclQPBhFbMFRxt9zfaGUohKr6spVB/NeK9fc9OdWzW4Vsz3SqSmPfsK+NRcm/iXp/EX61FO34im91Sfr+3E4OcvISxJjJ3Up7z+FcXhDYS009+zKZWsTnnye6SkBA/WrfL5yjiAzsW4KAX4uAWd29tAuiQDnH2saNP8apzJZEzqKukp78tz5XVCfSVkdzOLLHnBoeor4HSdqKpWXiq918SneXv+NQStwulyFv2R+GNEtkMR2ip1mShoE5DMqcjDR6mbk5B58RBcizHCCvlqX0ZwDLWT1IAJCfdpKxglj2oZ32ukKNdFp1DDs0ffY5QSegW0RrZLMIRqWfGlkJVeeC26czMNCI00Wc5PWRL7mpCezS2vC6Cx7VVnWawdUEqFprjz26l85qOKVSvqYH45DuMrnKG31q+Vn0I2o6YdRxi2zjCIkQO0I9FbpfX+p6wQDGcy9eB9nmCQKgmncpee0KoB8LhvHuhO2xM6Dnd32ms+uIS9xp0cbpvgYfBiQDh/KK585TdkWSSr6qpgA/SehQY8BllUQePfPFjACa53SO7rjo5YCqoKoBgng+xHMoQvIJtOJJMkNPI43fIGut0H0toOmJJLQDF4C+6d098XwZcn+9ZmsO9SC96Bc5TUSvvBD/49/gDEMCEP8TccuAAAAABJRU5ErkJggg=='
 
 const commentTitles = [
   `Own a Piece of Digital History- Winamp Is Now Selling Its Original 1.0 Skin as an NFT, Iconic Player “was the go-to music player everybody was using at the beginning of the history of digital music and was instrumental in helping the .mp3 become mainstream”.`,
@@ -70,15 +71,102 @@ const urlSuffixes = [
   '?query=string&yes=1',
 ]
 
-const firstNames = ['james', 'robert', 'john', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua']
+const firstNames = [
+  'james',
+  'robert',
+  'john',
+  'michael',
+  'william',
+  'david',
+  'richard',
+  'joseph',
+  'thomas',
+  'charles',
+  'christopher',
+  'daniel',
+  'matthew',
+  'anthony',
+  'mark',
+  'donald',
+  'steven',
+  'paul',
+  'andrew',
+  'joshua',
+]
 
-const displayNames = ['COVERCADIGMENTS!', 'Everco__Evidehovi', 'fermind-flashyte', 'FlirtyraForeguiGoldhil_', 'Hanmiddie Headro Herdman', 'Hurigher Irongmug', 'Islandvi   Jumbinte', 'Lackapac Lorvalow', 'MarsEdgyMedprin', 'parispn!!!', 'personna', '  popic😃', 'Riderix\n', 'Romantec__', 'Sellakuk23', '--TickoAim2$', 'Transia4\t', 'Trippah+512', '😃', 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa']
+const displayNames = [
+  'COVERCADIGMENTS!',
+  'Everco__Evidehovi',
+  'fermind-flashyte',
+  'FlirtyraForeguiGoldhil_',
+  'Hanmiddie Headro Herdman',
+  'Hurigher Irongmug',
+  'Islandvi   Jumbinte',
+  'Lackapac Lorvalow',
+  'MarsEdgyMedprin',
+  'parispn!!!',
+  'personna',
+  '  popic😃',
+  'Riderix\n',
+  'Romantec__',
+  'Sellakuk23',
+  '--TickoAim2$',
+  'Transia4\t',
+  'Trippah+512',
+  '😃',
+  'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh',
+  'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa',
+]
 
-const postFlairs = [{text: 'Analysis'}, {text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850'}, {text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B'}, {text: 'General News'}, {text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!', textColor: '#FFFFFF', backgroundColor: '#5B3A29'}, {text: 'education', textColor: '#000000', backgroundColor: '#4A192C'}, {text: 'MARKETS', backgroundColor: '#F8F32B'}, {text: 'IMPORTANT!!!', backgroundColor: '#C35831'}, {text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', backgroundColor: '#AF2B1E'}, {text: 'MOON 🌕', backgroundColor: '#D36E70'}, {text: 'video', backgroundColor: '#924E7D'}, ]
+const postFlairs = [
+  { text: 'Analysis' },
+  { text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850' },
+  { text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B' },
+  { text: 'General News' },
+  {
+    text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!',
+    textColor: '#FFFFFF',
+    backgroundColor: '#5B3A29',
+  },
+  { text: 'education', textColor: '#000000', backgroundColor: '#4A192C' },
+  { text: 'MARKETS', backgroundColor: '#F8F32B' },
+  { text: 'IMPORTANT!!!', backgroundColor: '#C35831' },
+  {
+    text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    backgroundColor: '#AF2B1E',
+  },
+  { text: 'MOON 🌕', backgroundColor: '#D36E70' },
+  { text: 'video', backgroundColor: '#924E7D' },
+]
 
-const authorFlairs = [{text: 'SCAMMER'}, {text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850'}, {text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B'}, {text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}, {text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29'}, {text: 'loser', textColor: '#000000', backgroundColor: '#4A192C'}, {text: 'WINNER', backgroundColor: '#F8F32B'}, {text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831'}, {text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!', backgroundColor: '#AF2B1E'}, {text: '🌕', backgroundColor: '#D36E70'}, {text: 'creator', backgroundColor: '#924E7D'}, ]
+const authorFlairs = [
+  { text: 'SCAMMER' },
+  { text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850' },
+  { text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B' },
+  {
+    text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  },
+  { text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29' },
+  { text: 'loser', textColor: '#000000', backgroundColor: '#4A192C' },
+  { text: 'WINNER', backgroundColor: '#F8F32B' },
+  { text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831' },
+  {
+    text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!',
+    backgroundColor: '#AF2B1E',
+  },
+  { text: '🌕', backgroundColor: '#D36E70' },
+  { text: 'creator', backgroundColor: '#924E7D' },
+]
 
-const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW', 'SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA']
+const reasons = [
+  'SPAM',
+  'this is spam',
+  'repeated spamming',
+  'User is a known scammer',
+  'NSFW',
+  'SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM',
+  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+]
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
@@ -108,20 +196,23 @@ const getArrayItem = async (array: any[], seed: string) => {
 
 const getImageUrl = async (seed: string) => {
   const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(
-      10,
-      2000,
-      seed + 2
-    )}/${await getNumberBetween(10, 2000, seed + 3)}.jpg`
+    10,
+    2000,
+    seed + 2
+  )}/${await getNumberBetween(10, 2000, seed + 3)}.jpg`
 
   const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 4)}/${await getNumberBetween(
-      10,
-      2000,
-      seed + 5
-    )}/${await getNumberBetween(10, 2000, seed + 6)}.webp`
+    10,
+    2000,
+    seed + 5
+  )}/${await getNumberBetween(10, 2000, seed + 6)}.webp`
 
   const imageUrls = [
     // jpg & webp
-    jpg, jpg, webp, webp,
+    jpg,
+    jpg,
+    webp,
+    webp,
     'https://samplelib.com/lib/preview/png/sample-bumblebee-400x300.png', // png
     'https://c.tenor.com/WHs8ooxWJUIAAAAM/really-great-example-right-here-echo-gaming.gif', // gif
     'https://filesamples.com/samples/image/bmp/sample_640%C3%97426.bmp', // bmp
@@ -134,7 +225,7 @@ const getImageUrl = async (seed: string) => {
 
 const getAuthor = async (seed: string) => {
   const author: any = {
-    address: await hash(seed + 'author address')
+    address: await hash(seed + 'author address'),
   }
   const hasEns = await getArrayItem([true, false, false, false], seed + 'has ens')
   if (hasEns) {
@@ -150,13 +241,22 @@ const getAuthor = async (seed: string) => {
   if (hasNftAvatar) {
     author.avatar = {
       chainTicker: 'eth',
-      address: await getArrayItem(['0xed5af388653567af2f388e6224dc7c4b3241c544', '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '0x60e4d786628fea6478f785a6d7e704777c86a7c6', '0x79fcdef22feed20eddacbb2587640e45491b757f', '0x0000000000000000000000000000000000000dead'], seed + 'nft avatar address'),
-      index: await getNumberBetween(1, 2000, seed + 'nft avatar index')
+      address: await getArrayItem(
+        [
+          '0xed5af388653567af2f388e6224dc7c4b3241c544',
+          '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
+          '0x60e4d786628fea6478f785a6d7e704777c86a7c6',
+          '0x79fcdef22feed20eddacbb2587640e45491b757f',
+          '0x0000000000000000000000000000000000000dead',
+        ],
+        seed + 'nft avatar address'
+      ),
+      index: await getNumberBetween(1, 2000, seed + 'nft avatar index'),
     }
   }
-  const hasFlair = await getArrayItem(rareTrue, seed + 'has author flair') 
+  const hasFlair = await getArrayItem(rareTrue, seed + 'has author flair')
   if (hasFlair) {
-    author.flair = await getArrayItem(authorFlairs, seed + 'author flair') 
+    author.flair = await getArrayItem(authorFlairs, seed + 'author flair')
   }
   return author
 }
@@ -165,7 +265,7 @@ const getPostContent = async (seed: string) => {
   const postContent: any = {
     depth: 0,
     author: await getAuthor(seed + 'author'),
-    title: await getArrayItem(commentTitles, seed + 'title')
+    title: await getArrayItem(commentTitles, seed + 'title'),
   }
   const hasFlair = await getArrayItem([true, false, false, false], seed + 'has flair')
   if (hasFlair) {
@@ -191,7 +291,7 @@ const getPostContent = async (seed: string) => {
 }
 
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
-  const {depth, parentCid, postCid} = getReplyContentOptions
+  const { depth, parentCid, postCid } = getReplyContentOptions
   const author = await getAuthor(seed + 'author')
   const content = await getArrayItem(commentContents, seed + 'replycontent')
   return { content, author, depth, parentCid, postCid }
@@ -201,7 +301,7 @@ const getSubplebbitContent = async (seed: string) => {
   const subplebbit: any = {
     pubsubTopic: await hash(seed + 'pubsub topic'),
     createdAt: await getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
-    updatedAt: await getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at')
+    updatedAt: await getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at'),
   }
 
   const hasChallengeTypes = await getArrayItem([true, false], seed + 'has challenge types')
@@ -234,11 +334,11 @@ const getSubplebbitContent = async (seed: string) => {
 
   const hasPostFlairs = await getArrayItem([true, false], seed + 'has post flairs')
   if (hasPostFlairs) {
-    subplebbit.flairs = {post: postFlairs}
+    subplebbit.flairs = { post: postFlairs }
   }
   const hasAuthorFlairs = await getArrayItem([true, false], seed + 'has author flairs')
   if (hasAuthorFlairs) {
-    subplebbit.flairs = {post: subplebbit.flairs?.post, author: authorFlairs}
+    subplebbit.flairs = { post: subplebbit.flairs?.post, author: authorFlairs }
   }
 
   const hasSuggested = await getArrayItem([true, false], seed + 'has suggested')
@@ -246,10 +346,19 @@ const getSubplebbitContent = async (seed: string) => {
     subplebbit.suggested = {
       primaryColor: (await getArrayItem(postFlairs, seed + 'suggested primary color')).backgroundColor,
       secondaryColor: (await getArrayItem(postFlairs, seed + 'suggested secondary color')).backgroundColor,
-      avatarUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
-      bannerUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
-      backgroundUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
-      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language')
+      avatarUrl: await getArrayItem(
+        [undefined, await getImageUrl(seed + 'suggested avatar url')],
+        seed + 'suggested avatar url'
+      ),
+      bannerUrl: await getArrayItem(
+        [undefined, await getImageUrl(seed + 'suggested banner url')],
+        seed + 'suggested banner url'
+      ),
+      backgroundUrl: await getArrayItem(
+        [undefined, await getImageUrl(seed + 'suggested background url')],
+        seed + 'suggested background url'
+      ),
+      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language'),
     }
   }
 
@@ -267,7 +376,7 @@ const getSubplebbitContent = async (seed: string) => {
       noUpvotes: await getArrayItem([undefined, undefined, true, false], seed + 'noUpvotes'),
       noDownvotes: await getArrayItem([undefined, undefined, true, false], seed + 'noDownvotes'),
       noAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'noAuthors'),
-      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'), 
+      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'),
       noNestedReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noNestedReplies'),
       safeForWork: await getArrayItem([undefined, undefined, true, false], seed + 'safeForWork'),
       authorFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'authorFlairs'),
@@ -288,7 +397,7 @@ const getSubplebbitContent = async (seed: string) => {
       'be nice',
       'Do not link to CNN.',
       'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-      'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO '
+      'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO ',
     ]
   }
 
@@ -315,7 +424,7 @@ const getCommentUpdateContent = async (comment: any) => {
   if (hasReplies) {
     commentUpdateContent.replyCount = await getNumberBetween(0, 30, comment.cid + 'reply count')
     if (comment.depth > 0) {
-      commentUpdateContent.replyCount = commentUpdateContent.replyCount / ((comment.depth + 1) ** 2)
+      commentUpdateContent.replyCount = commentUpdateContent.replyCount / (comment.depth + 1) ** 2
     }
     if (commentUpdateContent.replyCount < 1) {
       commentUpdateContent.replyCount = 0
@@ -324,8 +433,8 @@ const getCommentUpdateContent = async (comment: any) => {
   }
 
   // simulate finding replies from IPNS record
-  commentUpdateContent.replies = {pages: {topAll: {nextCid: null, comments: []}}}
-  const getReplyContentOptions = {depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid}
+  commentUpdateContent.replies = { pages: { topAll: { nextCid: null, comments: [] } } }
+  const getReplyContentOptions = { depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid }
   let replyCount = commentUpdateContent.replyCount
   while (replyCount-- > 0) {
     // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
@@ -338,10 +447,32 @@ const getCommentUpdateContent = async (comment: any) => {
       ...replyContent,
     }
     const replyUpdateContent = await getCommentUpdateContent(reply)
-    commentUpdateContent.replies.pages.topAll.comments.push({...reply, ...replyUpdateContent})
+    commentUpdateContent.replies.pages.topAll.comments.push({ ...reply, ...replyUpdateContent })
   }
 
-  const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+  const rareTrue = [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ]
 
   const isSpoiler = await getArrayItem(rareTrue, comment.cid + 'is spoiler')
   if (isSpoiler) {
@@ -361,18 +492,15 @@ const getCommentUpdateContent = async (comment: any) => {
 
   if (isDeleted) {
     commentUpdateContent.deleted = true
-  }
-  else if (isPinned) {
+  } else if (isPinned) {
     commentUpdateContent.pinned = true
-  }
-  else if (isRemoved) {
+  } else if (isRemoved) {
     commentUpdateContent.removed = true
     const hasReason = await getArrayItem([true, false], comment.cid + 'is removed reason')
     if (hasReason) {
       commentUpdateContent.reason = await getArrayItem(reasons, comment.cid + 'reason removed')
     }
-  }
-  else if (isLocked && comment.depth === 0) {
+  } else if (isLocked && comment.depth === 0) {
     commentUpdateContent.locked = true
     const hasReason = await getArrayItem([true, false], comment.cid + 'is locked reason')
     if (hasReason) {
@@ -395,7 +523,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
       timestamp: await getNumberBetween(NOW - DAY * 30, NOW, pageCid + index),
       cid: await hash(pageCid + index),
       subplebbitAddress: subplebbit.address,
-      depth: 0
+      depth: 0,
     }
     comment = { ...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment)) }
     page.comments.push(comment)
@@ -407,7 +535,7 @@ class Plebbit {
   async createSigner() {
     return {
       privateKey: 'private key',
-      address: 'address'
+      address: 'address',
     }
   }
 
@@ -449,7 +577,7 @@ class Plebbit {
       const depth = await getNumberBetween(1, 10, commentCid + 'reply depth')
       const parentCid = await hash(commentCid + 'parentcid')
       const postCid = depth === 1 ? parentCid : await hash(commentCid + 'postCid')
-      const getReplyContentOptions = {depth, parentCid, postCid}
+      const getReplyContentOptions = { depth, parentCid, postCid }
       commentContent = await getReplyContent(getReplyContentOptions, commentCid + 'replycontent')
     }
     const createCommentOptions = {
@@ -480,8 +608,8 @@ class Pages {
   comment: any
 
   constructor(pagesOptions?: any) {
-    Object.defineProperty(this, 'subplebbit', {value: pagesOptions?.subplebbit, enumerable: false})
-    Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
+    Object.defineProperty(this, 'subplebbit', { value: pagesOptions?.subplebbit, enumerable: false })
+    Object.defineProperty(this, 'comment', { value: pagesOptions?.comment, enumerable: false })
   }
 
   async getPage(pageCid: string) {
@@ -506,11 +634,11 @@ class Subplebbit extends EventEmitter {
   suggested: any | undefined
   features: any | undefined
   rules: string[] | undefined
-  
+
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
-    this.posts = new Pages({subplebbit: this})
+    this.posts = new Pages({ subplebbit: this })
     this.pubsubTopic = createSubplebbitOptions?.pubsubTopic
     this.createdAt = createSubplebbitOptions?.createdAt
     this.updatedAt = createSubplebbitOptions?.updatedAt
@@ -521,7 +649,7 @@ class Subplebbit extends EventEmitter {
     this.features = createSubplebbitOptions?.features
     this.rules = createSubplebbitOptions?.rules
 
-    Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
+    Object.defineProperty(this, 'updating', { enumerable: false, writable: true })
     // @ts-ignore
     this.updating = false
   }
@@ -558,8 +686,8 @@ class Publication extends EventEmitter {
 
   constructor() {
     super()
-    Object.defineProperty(this, 'challengeRequestId', {enumerable: false, writable: true})
-    Object.defineProperty(this, 'challengeAnswerId', {enumerable: false, writable: true})
+    Object.defineProperty(this, 'challengeRequestId', { enumerable: false, writable: true })
+    Object.defineProperty(this, 'challengeAnswerId', { enumerable: false, writable: true })
     // @ts-ignore
     this.challengeRequestId = `r${++challengeRequestCount}`
     // @ts-ignore
@@ -589,8 +717,8 @@ class Publication extends EventEmitter {
 
   async simulateChallengeVerificationEvent() {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
-    // @ts-ignore
-    this.cid = (this.content || this.title || this.link) ? await hash(this.content + this.title + this.link + 'cid') : undefined
+    this.cid = // @ts-ignore
+      this.content || this.title || this.link ? await hash(this.content + this.title + this.link + 'cid') : undefined
     const publication = this.cid && { cid: this.cid }
 
     const challengeVerificationMessage = {
@@ -648,7 +776,7 @@ class Comment extends Publication {
     this.editTimestamp = createCommentOptions?.editTimestamp
     this.reason = createCommentOptions?.reason
 
-    Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
+    Object.defineProperty(this, 'updating', { enumerable: false, writable: true })
     // @ts-ignore
     this.updating = false
   }

@@ -11,11 +11,12 @@ try {
         setItem: async function (key: string, value: any) {},
         removeItem: async function (key: string) {},
         clear: async function () {},
-        keys: async function () {return []}
+        keys: async function () {
+          return []
+        },
       }
     }
   }
-}
-catch (e) {}
+} catch (e) {}
 
 export default localForageLru

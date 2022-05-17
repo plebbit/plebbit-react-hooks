@@ -1019,7 +1019,7 @@ describe('accounts', () => {
                 { cid: 'reply cid 3', timestamp: 3 },
               ],
             },
-          }
+          },
         }
         comment.emit('update', comment)
       })
@@ -1070,7 +1070,7 @@ describe('accounts', () => {
                 { cid: 'reply cid 4', timestamp: 4 },
               ],
             },
-          }
+          },
         }
         comment.emit('update', comment)
       })
