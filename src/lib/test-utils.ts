@@ -36,10 +36,36 @@ const restoreAll = () => {
   }
 }
 
+type WaitForOptions = {
+  timeout?: number
+  interval?: number
+}
+const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
+  if (!rendered?.result) {
+    throw Error(`createWaitFor invalid 'rendered' argument`)
+  }
+  const waitFor = async (waitForFunction: Function) => {
+    if (typeof waitForFunction !== 'function') {
+      throw Error(`waitFor invalid 'waitForFunction' argument`)
+    }
+    // @ts-ignore
+    if (typeof waitForFunction.then === 'function') {
+      throw Error(`waitFor 'waitForFunction' can't be async`)
+    }
+    try {
+      await rendered.waitFor(() => Boolean(waitForFunction()), waitForOptions)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  return waitFor
+}
+
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
   restoreAll,
+  createWaitFor,
 }
 
 export default testUtils
