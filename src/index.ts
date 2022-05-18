@@ -1,3 +1,6 @@
+import polyfill from './lib/polyfill'
+polyfill()
+
 // fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
 try {
   if (process.env.DEBUG_DEPTH) {
