@@ -18,6 +18,7 @@ const CustomChrome = {
 const browsers = [
   // "FirefoxHeadless",
   'CustomChrome',
+  // 'Chrome'
 ]
 
 // inject browser code before each test file
@@ -26,7 +27,7 @@ let codeToInjectBefore = ''
 // inject debug env variable to be able to do `DEBUG=plebbit:* npm run test`
 if (process.env.DEBUG) {
   codeToInjectBefore += `
-        localStorage.debug = "${process.env.DEBUG.replaceAll(`"`, '')}";
+      localStorage.debug = "${process.env.DEBUG.replaceAll(`"`, '')}";
     `
 }
 

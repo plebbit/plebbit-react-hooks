@@ -18,11 +18,10 @@ const waitFor = async (rendered, cb) => {
 describe('accounts', () => {
   describe('no accounts in database', () => {
     it('generate default account on load', async () => {
-      // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook(() => useAccount(), { wrapper: PlebbitProvider })
       expect(rendered.result.current).to.equal(undefined)
 
-      await waitFor(rendered, () => !!rendered.result.current)
+      await waitFor(rendered, () => rendered.result.current?.name === 'Account 1')
 
       const account = rendered.result.current
       expect(account.name).to.equal('Account 1')
