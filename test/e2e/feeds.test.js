@@ -108,7 +108,7 @@ describe('feeds', () => {
     })
 
     // use this as stress test
-    it.skip('get feed with 25 subplebbit and scroll to 1000 pages', async () => {
+    it.skip('(long stress test) get feed with 25 subplebbit and scroll to 1000 pages', async () => {
       const subplebbitAddresses = []
       while (subplebbitAddresses.length < 25) {
         subplebbitAddresses.push(`subplebbit address ${subplebbitAddresses.length + 1}`)
