@@ -6,30 +6,30 @@
 
 ```
   Accounts {
-    [key: accountId]: Account
+    [accountId: string]: Account
   }
   AccountsMetadata {
     accountIds: strings[] // this array sets the order of the accounts
     activeAccountId: string // the default account to use with all hooks and actions
-    accountNamesToAccountIds: {[key: accountName]: accountId}
+    accountNamesToAccountIds: {[accountName: string]: accountId}
   }
   AccountsComments (each database named accountComments-[accountId]) {
-    [key: commentIndex]: AccountComment // store in array because cid is still unknown
+    [commentIndex: number]: AccountComment // store in array because cid is still unknown
   }
   AccountsCommentsReplies (each database named accountCommentsReplies-[accountId]) {
-    [key: commentCid]: AccountCommentReply // keep replies to own account comments in a separate last recently used database because they should be cached for a different amount of time than regular comments and account comments
+    [commentCid: string]: AccountCommentReply // keep replies to own account comments in a separate last recently used database because they should be cached for a different amount of time than regular comments and account comments
   }
   AccountsVotes (each database named accountVotes-[accountId]) {
-    [key: commentCid]: AccountVote
+    [commentCid: string]: AccountVote
   }
   Subplebbits {
-    [key: subplebbitAddress]: Subplebbit // last recently used database, delete oldest data
+    [subplebbitAddress: string]: Subplebbit // last recently used database, delete oldest data
   }
   Comments {
-    [key: commentCid]: Comment // last recently used database, delete oldest data, different from AccountsComments that never expire
+    [commentCid: string]: Comment // last recently used database, delete oldest data, different from AccountsComments that never expire
   }
   SubplebbitPages {
-    [key: pageCid]: SubplebbitPage // last recently used database, delete oldest data
+    [pageCid: string]: SubplebbitPage // last recently used database, delete oldest data
   }
 ```
 
@@ -37,13 +37,13 @@
 
 ```
 AccountsContext (store in indexeddb permanently) {
-  accounts: {[key: accountName]: Account}
+  accounts: {[accountName: string]: Account}
   accountNames: string[]
   activeAccountName: string
-  accountNamesToAccountIds: {[key: accountName]: accountId}
-  accountsComments: {[key: accountName]: AccountComment[]} // cid of comment unknown at time of posting, so store it in array
-  accountsVotes: {[key: accountName]: {[key: commentCid]: AccountVote}}
-  accountsCommentsReplies: {[key: accountName]: {[key: replyCid]: AccountCommentReply}}
+  accountNamesToAccountIds: {[accountName: string]: accountId}
+  accountsComments: {[accountName: string]: AccountComment[]} // cid of comment unknown at time of posting, so store it in array
+  accountsVotes: {[accountName: string]: {[commentCid: string]: AccountVote}}
+  accountsCommentsReplies: {[accountName: string]: {[replyCid: string]: AccountCommentReply}}
   accountsActions: AccountsActions
   // internal
   addCidToAccountComment(comment: Comment)
@@ -51,19 +51,19 @@ AccountsContext (store in indexeddb permanently) {
   markAccountNotificationsAsRead(account: Account)
 }
 CommentsContext (store in indexeddb last recently used) {
-  comments: {[key: commentCid]: Comment}
+  comments: {[commentCid: string]: Comment}
   // internal
   addCommentToContext(commentCid)
 }
 SubplebbitsContext (store in indexeddb last recently used) {
-  subplebbits: {[key: subplebbitAddress]: Subplebbit}
+  subplebbits: {[subplebbitAddress: string]: Subplebbit}
   // internal
   addSubplebbitToContext(subplebbitAddress)
 }
 FeedsContext (no persistant storage, can be rebuilt from Subplebbits and SubplebbitPages databases) {
-  bufferedFeeds: {[key: feedName]: Comment[]}
-  loadedFeeds: {[key: feedName]: Comment[]}
-  feedsHaveMore: {[key: feedName]: boolean}
+  bufferedFeeds: {[feedName: string]: Comment[]}
+  loadedFeeds: {[feedName: string]: Comment[]}
+  feedsHaveMore: {[feedName: string]: boolean}
   // internal
   addFeedToContext(feedName, subplebbitAddresses, sortType, account)
 }
@@ -131,8 +131,8 @@ Account {
   plebbit: Plebbit,
   plebbitOptions: PlebbitOptions,
   subscriptions: SubplebbitAddress[],
-  blockedAddresses: {[key: Address]: boolean}, // hide address from feed and notifications
-  limitedAddresses: {[key: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
+  blockedAddresses: {[address: Address]: boolean}, // hide address from feed and notifications
+  limitedAddresses: {[address: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
   theme: 'light' | 'dark
   karma: Karma
   unreadNotificationCount: number
