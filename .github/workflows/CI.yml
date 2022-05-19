@@ -32,3 +32,4 @@ jobs:
       - run: yarn test
       - run: yarn build
       - run: yarn webpack
+      - run: CHROME_BIN=$(which chrome) yarn test:e2e
