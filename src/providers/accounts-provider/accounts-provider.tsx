@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
-const debug = Debug('plebbitreacthooks:providers:accountsprovider')
+const debug = Debug('plebbit-react-hooks:providers:accounts-provider')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import utils from '../../lib/utils'

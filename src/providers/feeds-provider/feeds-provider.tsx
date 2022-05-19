@@ -7,7 +7,7 @@ import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
 import utils from '../../lib/utils'
 import Debug from 'debug'
-const debug = Debug('plebbitreacthooks:providers:feedsprovider')
+const debug = Debug('plebbit-react-hooks:providers:feeds-provider')
 import {
   Props,
   Feed,

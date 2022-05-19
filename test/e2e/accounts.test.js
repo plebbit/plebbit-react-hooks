@@ -1,5 +1,5 @@
 const { act, renderHook } = require('@testing-library/react-hooks/dom')
-const { PlebbitProvider, useAccount, useAccountsActions } = require('../../dist')
+const { PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments } = require('../../dist')
 const { mockPlebbitJs, default: PlebbitJsMock } = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
 mockPlebbitJs(PlebbitJsMock)
@@ -45,7 +45,9 @@ describe('accounts', () => {
         (accountName) => {
           const account = useAccount(accountName)
           const accountsActions = useAccountsActions()
-          return { account, ...accountsActions }
+          const accountVotes = useAccountVotes()
+          const accountComments = useAccountComments()
+          return { account, accountVotes, accountComments, ...accountsActions }
         },
         { wrapper: PlebbitProvider }
       )
@@ -103,6 +105,13 @@ describe('accounts', () => {
         expect(challengeVerification.type).to.equal('CHALLENGEVERIFICATION')
         expect(commentVerified.constructor.name).to.equal('Comment')
       })
+
+      it('published comment is in account comments', async () => {
+        await waitFor(() => rendered.result.current.accountComments.length > 0)
+        await waitFor(() => typeof rendered.result.current.accountComments[0].cid === 'string')
+        expect(rendered.result.current.accountComments.length).to.equal(1)
+        expect(rendered.result.current.accountComments[0].cid).to.equal('some content cid')
+      })
     })
 
     describe(`create vote`, () => {
@@ -151,6 +160,13 @@ describe('accounts', () => {
         expect(onChallengeVerificationCalled).to.equal(1)
         expect(challengeVerification.type).to.equal('CHALLENGEVERIFICATION')
         expect(voteVerified.constructor.name).to.equal('Vote')
+      })
+
+      it('published vote is in account votes', async () => {
+        await waitFor(() => rendered.result.current.accountVotes.length > 0)
+        await waitFor(() => typeof rendered.result.current.accountVotes[0].commentCid === 'string')
+        expect(rendered.result.current.accountVotes.length).to.equal(1)
+        expect(rendered.result.current.accountVotes[0].commentCid).to.equal('Qm...')
       })
     })
   })

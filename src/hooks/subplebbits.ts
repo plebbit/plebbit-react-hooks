@@ -3,7 +3,7 @@ import { useAccount } from './accounts'
 import { SubplebbitsContext } from '../providers/subplebbits-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
-const debug = Debug('plebbitreacthooks:hooks:subplebbits')
+const debug = Debug('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
 import { Subplebbit } from '../types'
 

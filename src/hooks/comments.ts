@@ -3,7 +3,7 @@ import { useAccount } from './accounts'
 import { CommentsContext } from '../providers/comments-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
-const debug = Debug('plebbitreacthooks:hooks:comments')
+const debug = Debug('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
 import { Comment } from '../types'
 
