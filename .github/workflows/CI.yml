@@ -3,10 +3,10 @@ name: CI
 on:
   pull_request:
     branches:
-      - main
+      - master
   push:
     branches:
-      - main
+      - master
 
 jobs:
   test:
@@ -29,7 +29,5 @@ jobs:
           cache: 'yarn'
 
       - run: yarn
-      - run: yarn build
       - run: yarn test
-      # - run: yarn lint
-      - run: yarn prettier
+      - run: yarn build
