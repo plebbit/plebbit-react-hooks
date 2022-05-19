@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-export const validateAccountsActionsPublishCommentArguments = ({ publishCommentOptions, accountName, account }: any) => {
+export const validateAccountsActionsPublishCommentArguments = ({publishCommentOptions, accountName, account}: any) => {
   assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
   assert(accountName !== '', `publishComment accountName argument is empty string`)
   assert(!accountName || account, `publishComment no account with name '${accountName}' in AccountsContext`)
@@ -14,7 +14,7 @@ export const validateAccountsActionsPublishCommentArguments = ({ publishCommentO
   assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number')
 }
 
-export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions, accountName, account }: any) => {
+export const validateAccountsActionsPublishVoteArguments = ({publishVoteOptions, accountName, account}: any) => {
   assert(!accountName || typeof accountName === 'string', `publishVote accountName '${accountName}' not a string`)
   assert(accountName !== '', `publishVote accountName argument is empty string`)
   assert(!accountName || account, `publishVote no account with name '${accountName}' in AccountsContext`)
@@ -25,6 +25,21 @@ export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions
   assert(typeof publishVoteOptions.commentCid === 'string', 'publishVote publishVoteOptions.commentCid not a string')
   assert(publishVoteOptions.vote === 1 || publishVoteOptions.vote === 0 || publishVoteOptions.vote === -1, 'publishVote publishVoteOptions.vote not 1, 0 or -1')
   assert(!publishVoteOptions.timestamp || typeof publishVoteOptions.timestamp === 'number', 'publishVote publishVoteOptions.timestamp is not a number')
+}
+
+export const validateAccountsActionsPublishCommentEditArguments = ({publishCommentEditOptions, accountName, account}: any) => {
+  assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
+  assert(accountName !== '', `publishComment accountName argument is empty string`)
+  assert(!accountName || account, `publishComment no account with name '${accountName}' in AccountsContext`)
+  assert(publishCommentEditOptions && typeof publishCommentEditOptions === 'object', 'publishComment publishCommentEditOptions not an object')
+  assert(typeof publishCommentEditOptions.onChallenge === 'function', 'publishComment publishCommentEditOptions.onChallenge not a function')
+  assert(typeof publishCommentEditOptions.onChallengeVerification === 'function', 'publishComment publishCommentEditOptions.onChallengeVerification not a function')
+  assert(typeof publishCommentEditOptions.subplebbitAddress === 'string', 'publishComment publishCommentEditOptions.subplebbitAddress not a string')
+  assert(typeof publishCommentEditOptions.commentCid === 'string', 'publishComment publishCommentEditOptions.commentCid not a string')
+  assert(
+    !publishCommentEditOptions.timestamp || typeof publishCommentEditOptions.timestamp === 'number',
+    'publishComment publishCommentEditOptions.timestamp is not a number'
+  )
 }
 
 export const validateAccountsActionsExportAccountArguments = (accountName: any) => {
@@ -124,6 +139,7 @@ export const validateFeedSortType = (sortType: any) => {
 
 const validator = {
   validateAccountsActionsPublishCommentArguments,
+  validateAccountsActionsPublishCommentEditArguments,
   validateAccountsActionsPublishVoteArguments,
   validateAccountsActionsExportAccountArguments,
   validateAccountsActionsSetAccountsOrderArguments,

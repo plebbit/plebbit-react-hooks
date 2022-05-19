@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, {useState, useEffect, useMemo} from 'react'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
@@ -51,7 +51,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     validator.validateAccountsActionsSetActiveAccountArguments(accountName)
     const accountId = accountNamesToAccountIds[accountName]
     await accountsDatabase.accountsMetadataDatabase.setItem('activeAccountId', accountId)
-    debug('accountsActions.setActiveAccount', { accountName, accountId })
+    debug('accountsActions.setActiveAccount', {accountName, accountId})
     setActiveAccountId(accountId)
   }
 
@@ -65,8 +65,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountsDatabase.getAccount(account.id),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ])
-    const newAccounts = { ...accounts, [newAccount.id]: newAccount }
-    debug('accountsActions.setAccount', { account: newAccount })
+    const newAccounts = {...accounts, [newAccount.id]: newAccount}
+    debug('accountsActions.setAccount', {account: newAccount})
     setAccounts(newAccounts)
     setAccountNamesToAccountIds(accountNamesToAccountIds)
   }
@@ -95,18 +95,18 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       newAccount.name = accountName
     }
     await accountsDatabase.addAccount(newAccount)
-    const newAccounts = { ...accounts, [newAccount.id]: newAccount }
+    const newAccounts = {...accounts, [newAccount.id]: newAccount}
     const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all<any>([
       accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
       accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ])
-    debug('accountsActions.createAccount', { accountName, account: newAccount })
+    debug('accountsActions.createAccount', {accountName, account: newAccount})
     setAccounts(newAccounts)
     setAccountIds(newAccountIds)
     setAccountNamesToAccountIds(accountNamesToAccountIds)
-    setAccountsComments({ ...accountsComments, [newAccount.id]: [] })
-    setAccountsVotes({ ...accountsVotes, [newAccount.id]: {} })
+    setAccountsComments({...accountsComments, [newAccount.id]: []})
+    setAccountsVotes({...accountsVotes, [newAccount.id]: {}})
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
@@ -140,13 +140,15 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account })
+    validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
     let createCommentOptions = {
       timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
       ...publishCommentOptions,
+      onChallenge: undefined,
+      onChallengeVerification: undefined,
     }
 
     let accountCommentIndex: number
@@ -160,20 +162,20 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         publishCommentOptions.onChallengeVerification(challengeVerification, comment)
         if (!challengeVerification.challengeSuccess) {
           // publish again automatically on fail
-          createCommentOptions = { ...createCommentOptions, timestamp: Math.round(Date.now() / 1000) }
+          createCommentOptions = {...createCommentOptions, timestamp: Math.round(Date.now() / 1000)}
           comment = await account.plebbit.createComment(createCommentOptions)
           publishAndRetryFailedChallengeVerification()
         } else {
           // the challengeverification message of a comment publication should in theory send back the CID
           // of the published comment which is needed to resolve it for replies, upvotes, etc
           if (challengeVerification?.publication?.cid) {
-            const commentWithCid = { ...createCommentOptions, cid: challengeVerification.publication.cid }
+            const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
             await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
             setAccountsComments((previousAccountsComments) => {
               const updatedAccountComments = [...previousAccountsComments[account.id]]
-              const updatedAccountComment = { ...commentWithCid, index: accountCommentIndex, accountId: account.id }
+              const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
               updatedAccountComments[accountCommentIndex] = updatedAccountComment
-              return { ...previousAccountsComments, [account.id]: updatedAccountComments }
+              return {...previousAccountsComments, [account.id]: updatedAccountComments}
             })
 
             startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
@@ -185,11 +187,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
     publishAndRetryFailedChallengeVerification()
     await accountsDatabase.addAccountComment(account.id, createCommentOptions)
-    debug('accountsActions.publishComment', { createCommentOptions })
+    debug('accountsActions.publishComment', {createCommentOptions})
     setAccountsComments((previousAccountsComments) => {
       // save account comment index to update the comment later
       accountCommentIndex = previousAccountsComments[account.id].length
-      const createdAccountComment = { ...createCommentOptions, index: accountCommentIndex, accountId: account.id }
+      const createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
       return {
         ...previousAccountsComments,
         [account.id]: [...previousAccountsComments[account.id], createdAccountComment],
@@ -198,7 +200,42 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.publishCommentEdit = async (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string) => {
-    throw Error('TODO: not implemented')
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    validator.validateAccountsActionsPublishCommentEditArguments({publishCommentEditOptions, accountName, account})
+
+    let createCommentEditOptions = {
+      timestamp: Math.round(Date.now() / 1000),
+      author: account.author,
+      signer: account.signer,
+      ...publishCommentEditOptions,
+      onChallenge: undefined,
+      onChallengeVerification: undefined,
+    }
+
+    let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
+    const publishAndRetryFailedChallengeVerification = () => {
+      commentEdit.once('challenge', async (challenge: Challenge) => {
+        publishCommentEditOptions.onChallenge(challenge, commentEdit)
+      })
+      commentEdit.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+        publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit)
+        if (!challengeVerification.challengeSuccess) {
+          // publish again automatically on fail
+          createCommentEditOptions = {...createCommentEditOptions, timestamp: Math.round(Date.now() / 1000)}
+          commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
+          publishAndRetryFailedChallengeVerification()
+        }
+      })
+      commentEdit.publish()
+    }
+
+    publishAndRetryFailedChallengeVerification()
+    debug('accountsActions.createCommentEdit', {createCommentEditOptions})
   }
 
   accountsActions.deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
@@ -212,13 +249,15 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account })
+    validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
 
     let createVoteOptions = {
       timestamp: Math.round(Date.now() / 1000),
       author: account.author,
       signer: account.signer,
       ...publishVoteOptions,
+      onChallenge: undefined,
+      onChallengeVerification: undefined,
     }
 
     let vote = await account.plebbit.createVote(createVoteOptions)
@@ -230,6 +269,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         publishVoteOptions.onChallengeVerification(challengeVerification, vote)
         if (!challengeVerification.challengeSuccess) {
           // publish again automatically on fail
+          createVoteOptions = {...createVoteOptions, timestamp: Math.round(Date.now() / 1000)}
           vote = await account.plebbit.createVote(createVoteOptions)
           publishAndRetryFailedChallengeVerification()
         }
@@ -239,12 +279,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
 
     publishAndRetryFailedChallengeVerification()
     await accountsDatabase.addAccountVote(account.id, createVoteOptions)
-    debug('accountsActions.publishVote', { createVoteOptions })
+    debug('accountsActions.publishVote', {createVoteOptions})
     setAccountsVotes({
       ...accountsVotes,
-      [account.id]: { ...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions },
+      [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions},
     })
-    return vote
   }
 
   accountsActions.blockAddress = async (address: string | number, accountName?: string) => {
@@ -272,7 +311,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
         setAccountsComments((previousAccountsComments) => {
           const updatedAccountComments = [...previousAccountsComments[accountComment.accountId]]
           updatedAccountComments[accountComment.index] = commentWithCid
-          return { ...previousAccountsComments, [accountComment.accountId]: updatedAccountComments }
+          return {...previousAccountsComments, [accountComment.accountId]: updatedAccountComments}
         })
 
         startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index)
@@ -289,7 +328,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     const repliesToMarkAsRead: AccountCommentsReplies = {}
     for (const replyCid in accountsCommentsReplies[account.id]) {
       if (!accountsCommentsReplies[account.id][replyCid].markedAsRead) {
-        repliesToMarkAsRead[replyCid] = { ...accountsCommentsReplies[account.id][replyCid], markedAsRead: true }
+        repliesToMarkAsRead[replyCid] = {...accountsCommentsReplies[account.id][replyCid], markedAsRead: true}
       }
     }
 
@@ -301,10 +340,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     await Promise.all(promises)
 
     // add all to react context
-    debug('AccountContext.markAccountNotificationsAsRead', { account, repliesToMarkAsRead })
+    debug('AccountContext.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
     setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
-      const updatedAccountCommentsReplies = { ...previousAccountsCommentsReplies[account.id], ...repliesToMarkAsRead }
-      return { ...previousAccountsCommentsReplies, [account.id]: updatedAccountCommentsReplies }
+      const updatedAccountCommentsReplies = {...previousAccountsCommentsReplies[account.id], ...repliesToMarkAsRead}
+      return {...previousAccountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}
     })
   }
 
@@ -334,7 +373,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       comment = await account.plebbit.createComment(comment)
     }
     // @ts-ignore
-    setAlreadyUpdatingAccountsComments((prev) => ({ ...prev, [comment.cid]: true }))
+    setAlreadyUpdatingAccountsComments((prev) => ({...prev, [comment.cid]: true}))
     comment.on('update', async (updatedComment: Comment) => {
       // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
       updatedComment = utils.merge(commentArgument, comment, updatedComment)
@@ -348,7 +387,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           accountId: account.id,
         })
         updatedAccountComments[accountCommentIndex] = updatedAccountComment
-        return { ...previousAccountsComments, [account.id]: updatedAccountComments }
+        return {...previousAccountsComments, [account.id]: updatedAccountComments}
       })
 
       // update AccountCommentsReplies with new replies if has any new replies
@@ -362,11 +401,11 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       if (hasReplies) {
         setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
           // check which replies are read or not
-          const updatedAccountCommentsReplies: { [replyCid: string]: Comment } = {}
+          const updatedAccountCommentsReplies: {[replyCid: string]: Comment} = {}
           for (const replyPage of replyPageArray) {
             for (const reply of replyPage?.comments || []) {
               const markedAsRead = previousAccountsCommentsReplies[account.id]?.[reply.cid]?.markedAsRead === true ? true : false
-              updatedAccountCommentsReplies[reply.cid] = { ...reply, markedAsRead }
+              updatedAccountCommentsReplies[reply.cid] = {...reply, markedAsRead}
             }
           }
 
@@ -382,7 +421,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
             ...previousAccountsCommentsReplies[account.id],
             ...updatedAccountCommentsReplies,
           }
-          return { ...previousAccountsCommentsReplies, [account.id]: newAccountCommentsReplies }
+          return {...previousAccountsCommentsReplies, [account.id]: newAccountCommentsReplies}
         })
       }
     })
@@ -409,7 +448,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       else {
         const defaultAccount = await accountGenerator.generateDefaultAccount()
         await accountsDatabase.addAccount(defaultAccount)
-        accounts = { [defaultAccount.id]: defaultAccount }
+        accounts = {[defaultAccount.id]: defaultAccount}
         ;[accountIds, activeAccountId, accountNamesToAccountIds] = await Promise.all<any>([
           accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
           accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
@@ -539,7 +578,7 @@ const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsCommen
     if (!accountsComments) {
       return accounts
     }
-    const accountsWithCalculatedProperties = { ...accounts }
+    const accountsWithCalculatedProperties = {...accounts}
 
     // add karma
     for (const accountId in accountsComments) {
@@ -578,7 +617,7 @@ const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsCommen
       karma.upvoteCount = karma.commentUpvoteCount + karma.linkUpvoteCount
       karma.downvoteCount = karma.commentDownvoteCount + karma.linkDownvoteCount
       karma.score = karma.upvoteCount - karma.downvoteCount
-      const accountWithCalculatedProperties = { ...account, karma }
+      const accountWithCalculatedProperties = {...account, karma}
       accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties
     }
 

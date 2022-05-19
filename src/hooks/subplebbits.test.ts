@@ -1,12 +1,12 @@
-import { act, renderHook } from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import { useSubplebbit, useSubplebbits, setPlebbitJs } from '..'
+import {useSubplebbit, useSubplebbits, setPlebbitJs} from '..'
 import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
-import PlebbitJsMock, { Plebbit, Subplebbit } from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForageLru.createInstance({ name: 'subplebbits' }).clear()])
+const deleteDatabases = () => Promise.all([localForageLru.createInstance({name: 'subplebbits'}).clear()])
 
 describe('subplebbits', () => {
   beforeAll(() => {

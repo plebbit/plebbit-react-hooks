@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import validator from '../lib/validator'
 import assert from 'assert'
 import localForageLru from '../lib/localforage-lru'
-const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 })
+const subplebbitsDatabase = localForageLru.createInstance({name: 'subplebbits', size: 500})
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:subplebbits-provider')
-import { Props, Subplebbit, Subplebbits, Account } from '../types'
+import {Props, Subplebbit, Subplebbits, Account} from '../types'
 import utils from '../lib/utils'
 
 type SubplebbitsContext = any
 
 export const SubplebbitsContext = React.createContext<SubplebbitsContext | undefined>(undefined)
 
-const plebbitGetSubplebbitPending: { [key: string]: boolean } = {}
+const plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
 
 export default function SubplebbitsProvider(props: Props): JSX.Element | null {
   const [subplebbits, setSubplebbits] = useState<Subplebbits>({})
 
-  const subplebbitsActions: { [key: string]: Function } = {}
+  const subplebbitsActions: {[key: string]: Function} = {}
 
   subplebbitsActions.addSubplebbitToContext = async (subplebbitAddress: string, account: Account) => {
     // subplebbit is in context already, do nothing
@@ -35,16 +35,16 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress)
       await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
     }
-    debug('subplebbitsActions.addSubplebbitToContext', { subplebbitAddress, subplebbit, account })
-    setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: utils.clone(subplebbit) }))
+    debug('subplebbitsActions.addSubplebbitToContext', {subplebbitAddress, subplebbit, account})
+    setSubplebbits((previousSubplebbits) => ({...previousSubplebbits, [subplebbitAddress]: utils.clone(subplebbit)}))
     plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
 
     // the subplebbit has published new posts
     subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
       updatedSubplebbit = utils.clone(updatedSubplebbit)
       await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
-      debug('subplebbitsContext subplebbit update', { subplebbitAddress, updatedSubplebbit, account })
-      setSubplebbits((previousSubplebbits) => ({ ...previousSubplebbits, [subplebbitAddress]: updatedSubplebbit }))
+      debug('subplebbitsContext subplebbit update', {subplebbitAddress, updatedSubplebbit, account})
+      setSubplebbits((previousSubplebbits) => ({...previousSubplebbits, [subplebbitAddress]: updatedSubplebbit}))
     })
     subplebbit.update()
   }
@@ -58,7 +58,7 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
     subplebbitsActions,
   }
 
-  debug({ subplebbitsContext: subplebbits })
+  debug({subplebbitsContext: subplebbits})
   return <SubplebbitsContext.Provider value={subplebbitsContext}>{props.children}</SubplebbitsContext.Provider>
 }
 

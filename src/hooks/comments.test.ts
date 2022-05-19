@@ -1,12 +1,12 @@
-import { act, renderHook } from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import { useComment, useComments, setPlebbitJs } from '..'
+import {useComment, useComments, setPlebbitJs} from '..'
 import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
-import PlebbitJsMock, { Plebbit, Comment } from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForageLru.createInstance({ name: 'comments' }).clear()])
+const deleteDatabases = () => Promise.all([localForageLru.createInstance({name: 'comments'}).clear()])
 
 describe('comments', () => {
   beforeAll(() => {
@@ -23,7 +23,7 @@ describe('comments', () => {
   describe('no comments in database', () => {
     test('get comments one at a time', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), { wrapper: PlebbitProvider })
+      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
       expect(rendered.result.current).toBe(undefined)
       rendered.rerender('comment cid 1')
       try {
@@ -79,7 +79,7 @@ describe('comments', () => {
       }
 
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), { wrapper: PlebbitProvider })
+      const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
       expect(rendered2.result.current).toBe(undefined)
       rendered2.rerender('comment cid 1')
       // wait to get account loaded
@@ -113,7 +113,7 @@ describe('comments', () => {
     })
 
     test('get multiple comments at once', async () => {
-      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids), { wrapper: PlebbitProvider })
+      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids), {wrapper: PlebbitProvider})
       expect(rendered.result.current).toEqual([])
       rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
       expect(rendered.result.current).toEqual([undefined, undefined, undefined])

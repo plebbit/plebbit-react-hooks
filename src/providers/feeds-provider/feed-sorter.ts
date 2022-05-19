@@ -3,9 +3,9 @@
  * and to not incentivize communities to inflate their vote counts
  */
 const sortByTop = (feed: any[]) => {
-  const subplebbitScores: { [key: string]: number } = {}
-  const postScores: { [key: string]: number } = {}
-  const postRelativeScores: { [key: string]: number } = {}
+  const subplebbitScores: {[key: string]: number} = {}
+  const postScores: {[key: string]: number} = {}
+  const postRelativeScores: {[key: string]: number} = {}
   for (const post of feed) {
     const score = post.upvoteCount - post.downvoteCount
     if (!subplebbitScores[post.subplebbitAddress]) {
@@ -31,9 +31,9 @@ const sortByTop = (feed: any[]) => {
  * and to not incentivize communities to inflate their vote counts
  */
 const sortByControversial = (feed: any[]) => {
-  const subplebbitScores: { [key: string]: number } = {}
-  const postScores: { [key: string]: number } = {}
-  const postRelativeScores: { [key: string]: number } = {}
+  const subplebbitScores: {[key: string]: number} = {}
+  const postScores: {[key: string]: number} = {}
+  const postRelativeScores: {[key: string]: number} = {}
   for (const post of feed) {
     const magnitude = post.upvoteCount + post.downvoteCount
     const balance = post.upvoteCount > post.downvoteCount ? parseFloat(post.downvoteCount) / post.upvoteCount : parseFloat(post.upvoteCount) / post.downvoteCount
@@ -62,9 +62,9 @@ const sortByControversial = (feed: any[]) => {
  * Note: a sub with not many posts will be given very high priority
  */
 const sortByHot = (feed: any[]) => {
-  const subplebbitScores: { [key: string]: number } = {}
-  const postScores: { [key: string]: number } = {}
-  const postRelativeScores: { [key: string]: number } = {}
+  const subplebbitScores: {[key: string]: number} = {}
+  const postScores: {[key: string]: number} = {}
+  const postRelativeScores: {[key: string]: number} = {}
   const round = (number: number, decimalPlaces: number) => {
     const factorOfTen = Math.pow(10, decimalPlaces)
     return Math.round(number * factorOfTen) / factorOfTen
@@ -110,4 +110,4 @@ export const sort = (sortType: string, feed: any[]) => {
   throw Error(`FeedsProvider feedSorter sort type '${sortType}' doesn't exist`)
 }
 
-export default { sort }
+export default {sort}

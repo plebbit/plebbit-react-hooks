@@ -2,7 +2,7 @@ import localForageLru from './localforage-lru'
 
 describe('localForageLru', () => {
   test('get last recently used', async () => {
-    const testDatabase = localForageLru.createInstance({ name: 'testDatabase', size: 4 })
+    const testDatabase = localForageLru.createInstance({name: 'testDatabase', size: 4})
     await testDatabase.clear()
 
     await testDatabase.setItem('one', 1)

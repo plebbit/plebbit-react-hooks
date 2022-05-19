@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState, useContext } from 'react'
-import { useAccount } from './accounts'
-import { SubplebbitsContext } from '../providers/subplebbits-provider'
+import {useEffect, useMemo, useState, useContext} from 'react'
+import {useAccount} from './accounts'
+import {SubplebbitsContext} from '../providers/subplebbits-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
-import { Subplebbit } from '../types'
+import {Subplebbit} from '../types'
 
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
@@ -28,7 +28,7 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
     }
   }, [subplebbitAddress, account])
 
-  debug('useSubplebbit', { subplebbitsContext: subplebbitsContext.subplebbits, subplebbit, account })
+  debug('useSubplebbit', {subplebbitsContext: subplebbitsContext.subplebbits, subplebbit, account})
   return subplebbit
 }
 
@@ -59,6 +59,6 @@ export function useSubplebbits(subplebbitAddresses?: string[], accountName?: str
     }
   }, [subplebbitAddresses, account])
 
-  debug('useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits, subplebbits, account })
+  debug('useSubplebbits', {subplebbitsContext: subplebbitsContext.subplebbits, subplebbits, account})
   return subplebbits
 }

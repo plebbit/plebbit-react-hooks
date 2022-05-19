@@ -119,43 +119,43 @@ const displayNames = [
 ]
 
 const postFlairs = [
-  { text: 'Analysis' },
-  { text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850' },
-  { text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B' },
-  { text: 'General News' },
+  {text: 'Analysis'},
+  {text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850'},
+  {text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B'},
+  {text: 'General News'},
   {
     text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!',
     textColor: '#FFFFFF',
     backgroundColor: '#5B3A29',
   },
-  { text: 'education', textColor: '#000000', backgroundColor: '#4A192C' },
-  { text: 'MARKETS', backgroundColor: '#F8F32B' },
-  { text: 'IMPORTANT!!!', backgroundColor: '#C35831' },
+  {text: 'education', textColor: '#000000', backgroundColor: '#4A192C'},
+  {text: 'MARKETS', backgroundColor: '#F8F32B'},
+  {text: 'IMPORTANT!!!', backgroundColor: '#C35831'},
   {
     text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
     backgroundColor: '#AF2B1E',
   },
-  { text: 'MOON 🌕', backgroundColor: '#D36E70' },
-  { text: 'video', backgroundColor: '#924E7D' },
+  {text: 'MOON 🌕', backgroundColor: '#D36E70'},
+  {text: 'video', backgroundColor: '#924E7D'},
 ]
 
 const authorFlairs = [
-  { text: 'SCAMMER' },
-  { text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850' },
-  { text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B' },
+  {text: 'SCAMMER'},
+  {text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850'},
+  {text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B'},
   {
     text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
   },
-  { text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29' },
-  { text: 'loser', textColor: '#000000', backgroundColor: '#4A192C' },
-  { text: 'WINNER', backgroundColor: '#F8F32B' },
-  { text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831' },
+  {text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29'},
+  {text: 'loser', textColor: '#000000', backgroundColor: '#4A192C'},
+  {text: 'WINNER', backgroundColor: '#F8F32B'},
+  {text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831'},
   {
     text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!',
     backgroundColor: '#AF2B1E',
   },
-  { text: '🌕', backgroundColor: '#D36E70' },
-  { text: 'creator', backgroundColor: '#924E7D' },
+  {text: '🌕', backgroundColor: '#D36E70'},
+  {text: 'creator', backgroundColor: '#924E7D'},
 ]
 
 const reasons = [
@@ -291,10 +291,10 @@ const getPostContent = async (seed: string) => {
 }
 
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
-  const { depth, parentCid, postCid } = getReplyContentOptions
+  const {depth, parentCid, postCid} = getReplyContentOptions
   const author = await getAuthor(seed + 'author')
   const content = await getArrayItem(commentContents, seed + 'replycontent')
-  return { content, author, depth, parentCid, postCid }
+  return {content, author, depth, parentCid, postCid}
 }
 
 const getSubplebbitContent = async (seed: string) => {
@@ -334,11 +334,11 @@ const getSubplebbitContent = async (seed: string) => {
 
   const hasPostFlairs = await getArrayItem([true, false], seed + 'has post flairs')
   if (hasPostFlairs) {
-    subplebbit.flairs = { post: postFlairs }
+    subplebbit.flairs = {post: postFlairs}
   }
   const hasAuthorFlairs = await getArrayItem([true, false], seed + 'has author flairs')
   if (hasAuthorFlairs) {
-    subplebbit.flairs = { post: subplebbit.flairs?.post, author: authorFlairs }
+    subplebbit.flairs = {post: subplebbit.flairs?.post, author: authorFlairs}
   }
 
   const hasSuggested = await getArrayItem([true, false], seed + 'has suggested')
@@ -422,8 +422,8 @@ const getCommentUpdateContent = async (comment: any) => {
   }
 
   // simulate finding replies from IPNS record
-  commentUpdateContent.replies = { pages: { topAll: { nextCid: null, comments: [] } } }
-  const getReplyContentOptions = { depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid }
+  commentUpdateContent.replies = {pages: {topAll: {nextCid: null, comments: []}}}
+  const getReplyContentOptions = {depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid}
   let replyCount = commentUpdateContent.replyCount
   while (replyCount-- > 0) {
     // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
@@ -436,7 +436,7 @@ const getCommentUpdateContent = async (comment: any) => {
       ...replyContent,
     }
     const replyUpdateContent = await getCommentUpdateContent(reply)
-    commentUpdateContent.replies.pages.topAll.comments.push({ ...reply, ...replyUpdateContent })
+    commentUpdateContent.replies.pages.topAll.comments.push({...reply, ...replyUpdateContent})
   }
 
   const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
@@ -492,7 +492,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
       subplebbitAddress: subplebbit.address,
       depth: 0,
     }
-    comment = { ...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment)) }
+    comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
     page.comments.push(comment)
   }
   return page
@@ -544,7 +544,7 @@ class Plebbit {
       const depth = await getNumberBetween(1, 10, commentCid + 'reply depth')
       const parentCid = await hash(commentCid + 'parentcid')
       const postCid = depth === 1 ? parentCid : await hash(commentCid + 'postCid')
-      const getReplyContentOptions = { depth, parentCid, postCid }
+      const getReplyContentOptions = {depth, parentCid, postCid}
       commentContent = await getReplyContent(getReplyContentOptions, commentCid + 'replycontent')
     }
     const createCommentOptions = {
@@ -575,8 +575,8 @@ class Pages {
   comment: any
 
   constructor(pagesOptions?: any) {
-    Object.defineProperty(this, 'subplebbit', { value: pagesOptions?.subplebbit, enumerable: false })
-    Object.defineProperty(this, 'comment', { value: pagesOptions?.comment, enumerable: false })
+    Object.defineProperty(this, 'subplebbit', {value: pagesOptions?.subplebbit, enumerable: false})
+    Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
   }
 
   async getPage(pageCid: string) {
@@ -605,7 +605,7 @@ class Subplebbit extends EventEmitter {
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
-    this.posts = new Pages({ subplebbit: this })
+    this.posts = new Pages({subplebbit: this})
     this.pubsubTopic = createSubplebbitOptions?.pubsubTopic
     this.createdAt = createSubplebbitOptions?.createdAt
     this.updatedAt = createSubplebbitOptions?.updatedAt
@@ -616,7 +616,7 @@ class Subplebbit extends EventEmitter {
     this.features = createSubplebbitOptions?.features
     this.rules = createSubplebbitOptions?.rules
 
-    Object.defineProperty(this, 'updating', { enumerable: false, writable: true })
+    Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
     this.updating = false
   }
@@ -653,8 +653,8 @@ class Publication extends EventEmitter {
 
   constructor() {
     super()
-    Object.defineProperty(this, 'challengeRequestId', { enumerable: false, writable: true })
-    Object.defineProperty(this, 'challengeAnswerId', { enumerable: false, writable: true })
+    Object.defineProperty(this, 'challengeRequestId', {enumerable: false, writable: true})
+    Object.defineProperty(this, 'challengeAnswerId', {enumerable: false, writable: true})
     // @ts-ignore
     this.challengeRequestId = `r${++challengeRequestCount}`
     // @ts-ignore
@@ -667,7 +667,7 @@ class Publication extends EventEmitter {
   }
 
   simulateChallengeEvent() {
-    const challenge = { type: 'image', challenge: captchaImageBase64 }
+    const challenge = {type: 'image', challenge: captchaImageBase64}
     const challengeMessage = {
       type: 'CHALLENGE',
       // @ts-ignore
@@ -686,7 +686,7 @@ class Publication extends EventEmitter {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
     // @ts-ignore
     this.cid = this.content || this.title || this.link ? await hash(this.content + this.title + this.link + 'cid') : undefined
-    const publication = this.cid && { cid: this.cid }
+    const publication = this.cid && {cid: this.cid}
 
     const challengeVerificationMessage = {
       type: 'CHALLENGEVERIFICATION',
@@ -743,7 +743,7 @@ class Comment extends Publication {
     this.editTimestamp = createCommentOptions?.editTimestamp
     this.reason = createCommentOptions?.reason
 
-    Object.defineProperty(this, 'updating', { enumerable: false, writable: true })
+    Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
     this.updating = false
   }

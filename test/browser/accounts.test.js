@@ -1,6 +1,6 @@
-const { act, renderHook } = require('@testing-library/react-hooks/dom')
-const { PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs } = require('../../dist')
-const { default: PlebbitJsMock } = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+const {act, renderHook} = require('@testing-library/react-hooks/dom')
+const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs} = require('../../dist')
+const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
 setPlebbitJs(PlebbitJsMock)
 
@@ -16,8 +16,8 @@ describe('accounts', () => {
 
   describe('no accounts in database', () => {
     it('generate default account on load', async () => {
-      const rendered = renderHook(() => useAccount(), { wrapper: PlebbitProvider })
-      const waitFor = testUtils.createWaitFor(rendered, { timeout })
+      const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
       expect(rendered.result.current).to.equal(undefined)
 
@@ -47,11 +47,11 @@ describe('accounts', () => {
           const accountsActions = useAccountsActions()
           const accountVotes = useAccountVotes()
           const accountComments = useAccountComments()
-          return { account, accountVotes, accountComments, ...accountsActions }
+          return {account, accountVotes, accountComments, ...accountsActions}
         },
-        { wrapper: PlebbitProvider }
+        {wrapper: PlebbitProvider}
       )
-      waitFor = testUtils.createWaitFor(rendered, { timeout })
+      waitFor = testUtils.createWaitFor(rendered, {timeout})
 
       await waitFor(() => rendered.result.current.account.name === 'Account 1')
       expect(rendered.result.current.account.name).to.equal('Account 1')
@@ -93,7 +93,7 @@ describe('accounts', () => {
         expect(onChallengeCalled).to.equal(1)
 
         expect(challenge.type).to.equal('CHALLENGE')
-        expect(challenge.challenges[0]).to.deep.equal({ challenge: '2+2=?', type: 'text' })
+        expect(challenge.challenges[0]).to.deep.equal({challenge: '2+2=?', type: 'text'})
         expect(typeof comment.publishChallengeAnswers).to.equal('function')
       })
 
@@ -149,7 +149,7 @@ describe('accounts', () => {
         expect(onChallengeCalled).to.equal(1)
 
         expect(challenge.type).to.equal('CHALLENGE')
-        expect(challenge.challenges[0]).to.deep.equal({ challenge: '2+2=?', type: 'text' })
+        expect(challenge.challenges[0]).to.deep.equal({challenge: '2+2=?', type: 'text'})
         expect(typeof vote.publishChallengeAnswers).to.equal('function')
       })
 

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState, useContext } from 'react'
-import { useAccount } from './accounts'
-import { CommentsContext } from '../providers/comments-provider'
+import {useEffect, useMemo, useState, useContext} from 'react'
+import {useAccount} from './accounts'
+import {CommentsContext} from '../providers/comments-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
-import { Comment } from '../types'
+import {Comment} from '../types'
 
 /**
  * @param commentCid - The IPFS CID of the comment to get
@@ -28,7 +28,7 @@ export function useComment(commentCid?: string, accountName?: string) {
     }
   }, [commentCid, account])
 
-  debug('useComment', { commentsContext: commentsContext.comments, comment, account })
+  debug('useComment', {commentsContext: commentsContext.comments, comment, account})
   return comment
 }
 
@@ -59,6 +59,6 @@ export function useComments(commentCids?: string[], accountName?: string) {
     }
   }, [commentCids, account])
 
-  debug('useComments', { commentsContext: commentsContext.comments, comments, account })
+  debug('useComments', {commentsContext: commentsContext.comments, comments, account})
   return comments
 }

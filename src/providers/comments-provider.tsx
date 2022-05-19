@@ -1,25 +1,25 @@
-import React, { useState, useEffect, useContext } from 'react'
-import { AccountsContext } from './accounts-provider'
+import React, {useState, useEffect, useContext} from 'react'
+import {AccountsContext} from './accounts-provider'
 import validator from '../lib/validator'
 import assert from 'assert'
 import localForageLru from '../lib/localforage-lru'
-const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 })
+const commentsDatabase = localForageLru.createInstance({name: 'comments', size: 5000})
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:comments-provider')
-import { Props, Comment, Comments, Account } from '../types'
+import {Props, Comment, Comments, Account} from '../types'
 import utils from '../lib/utils'
 
 type CommentsContext = any
 
 export const CommentsContext = React.createContext<CommentsContext | undefined>(undefined)
 
-const plebbitGetCommentPending: { [key: string]: boolean } = {}
+const plebbitGetCommentPending: {[key: string]: boolean} = {}
 
 export default function CommentsProvider(props: Props): JSX.Element | null {
   const accountsContext = useContext(AccountsContext)
   const [comments, setComments] = useState<Comments>({})
 
-  const commentsActions: { [key: string]: Function } = {}
+  const commentsActions: {[key: string]: Function} = {}
 
   commentsActions.addCommentToContext = async (commentId: string, account: Account) => {
     // comment is in context already, do nothing
@@ -37,16 +37,16 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
       comment = await account.plebbit.getComment(commentId)
       await commentsDatabase.setItem(commentId, utils.clone(comment))
     }
-    debug('commentsActions.addCommentToContext', { commentId, comment, account })
-    setComments((previousComments) => ({ ...previousComments, [commentId]: utils.clone(comment) }))
+    debug('commentsActions.addCommentToContext', {commentId, comment, account})
+    setComments((previousComments) => ({...previousComments, [commentId]: utils.clone(comment)}))
     plebbitGetCommentPending[commentId + account.id] = false
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
     comment.on('update', async (updatedComment: Comment) => {
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
-      debug('commentsContext comment update', { commentId, updatedComment, account })
-      setComments((previousComments) => ({ ...previousComments, [commentId]: updatedComment }))
+      debug('commentsContext comment update', {commentId, updatedComment, account})
+      setComments((previousComments) => ({...previousComments, [commentId]: updatedComment}))
     })
     comment.update()
 
@@ -67,7 +67,7 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
     commentsActions,
   }
 
-  debug({ commentsContext: comments })
+  debug({commentsContext: comments})
   return <CommentsContext.Provider value={commentsContext}>{props.children}</CommentsContext.Provider>
 }
 

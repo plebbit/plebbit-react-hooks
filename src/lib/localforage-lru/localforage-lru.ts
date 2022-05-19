@@ -4,7 +4,7 @@ function createLocalForageInstance(localForageLruOptions: any): any {
   if (typeof localForageLruOptions?.size !== 'number') {
     throw Error(`LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`)
   }
-  const localForageOptions = { ...localForageLruOptions }
+  const localForageOptions = {...localForageLruOptions}
   delete localForageOptions.size
   let database1: any,
     database2: any,
@@ -81,7 +81,7 @@ function createLocalForageInstance(localForageLruOptions: any): any {
     try {
       await database1.setItem(key, value)
     } catch (e) {
-      console.error('TODO: figure out sure why this error happens', { localForageLruOptions, databaseSize })
+      console.error('TODO: figure out sure why this error happens', {localForageLruOptions, databaseSize})
       console.error(e)
     }
     databaseSize++
@@ -118,4 +118,4 @@ const createInstance = (localForageLruOptions: any) => {
   return instances[localForageLruOptions.name]
 }
 
-export default { createInstance }
+export default {createInstance}

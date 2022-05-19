@@ -69,7 +69,7 @@ module.exports = function (config) {
     },
 
     // chrome with disabled security
-    customLaunchers: { CustomChrome },
+    customLaunchers: {CustomChrome},
 
     // list of browsers to run the tests in
     browsers,

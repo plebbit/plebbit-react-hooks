@@ -10,16 +10,16 @@ describe('utils', () => {
             pages: {
               new: {
                 comments: [
-                  { cid: '4' },
+                  {cid: '4'},
                   {
                     cid: '5',
                     replies: {
                       pages: {
                         topAll: {
-                          comments: [{ cid: '6' }, { cid: '7' }],
+                          comments: [{cid: '6'}, {cid: '7'}],
                         },
                         new: {
-                          comments: [{ cid: '7' }],
+                          comments: [{cid: '7'}],
                         },
                       },
                     },
@@ -29,8 +29,8 @@ describe('utils', () => {
             },
           },
         },
-        { cid: '2' },
-        { cid: '3' },
+        {cid: '2'},
+        {cid: '3'},
       ],
     }
 
@@ -45,12 +45,12 @@ describe('utils', () => {
     expect(flattedReplies[6].cid).toBe('7')
 
     const pagesInstance = {
-      pages: { new: page },
+      pages: {new: page},
     }
     const flattedReplies2 = utils.flattenCommentsPages(pagesInstance)
     expect(flattedReplies2).toEqual(flattedReplies)
 
-    const pagesdotpagesInstance = { new: page }
+    const pagesdotpagesInstance = {new: page}
     const flattedReplies3 = utils.flattenCommentsPages(pagesdotpagesInstance)
     expect(flattedReplies3).toEqual(flattedReplies)
   })

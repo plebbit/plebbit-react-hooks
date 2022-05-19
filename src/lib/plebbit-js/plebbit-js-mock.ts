@@ -60,6 +60,10 @@ export class Plebbit {
   async createVote() {
     return new Vote()
   }
+
+  async createCommentEdit(createCommentEditOptions: any) {
+    return new CommentEdit(createCommentEditOptions)
+  }
 }
 
 export class Pages {
@@ -69,8 +73,8 @@ export class Pages {
   comment: any
 
   constructor(pagesOptions?: any) {
-    Object.defineProperty(this, 'subplebbit', { value: pagesOptions?.subplebbit, enumerable: false })
-    Object.defineProperty(this, 'comment', { value: pagesOptions?.comment, enumerable: false })
+    Object.defineProperty(this, 'subplebbit', {value: pagesOptions?.subplebbit, enumerable: false})
+    Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
   }
 
   async getPage(pageCid: string) {
@@ -91,7 +95,7 @@ export class Subplebbit extends EventEmitter {
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
-    this.posts = new Pages({ subplebbit: this })
+    this.posts = new Pages({subplebbit: this})
   }
 
   update() {
@@ -157,7 +161,7 @@ class Publication extends EventEmitter {
   }
 
   simulateChallengeEvent() {
-    const challenge = { type: 'text', challenge: '2+2=?' }
+    const challenge = {type: 'text', challenge: '2+2=?'}
     const challengeMessage = {
       type: 'CHALLENGE',
       challengeRequestId: this.challengeRequestId,
@@ -174,7 +178,7 @@ class Publication extends EventEmitter {
   simulateChallengeVerificationEvent() {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
     this.cid = this.content && `${this.content} cid`
-    const publication = this.cid && { cid: this.cid }
+    const publication = this.cid && {cid: this.cid}
 
     const challengeVerificationMessage = {
       type: 'CHALLENGEVERIFICATION',
@@ -208,7 +212,7 @@ export class Comment extends Publication {
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
-    this.replies = new Pages({ comment: this })
+    this.replies = new Pages({comment: this})
   }
 
   update() {
@@ -241,6 +245,8 @@ export class Comment extends Publication {
 }
 
 export class Vote extends Publication {}
+
+export class CommentEdit extends Publication {}
 
 export default async function () {
   return new Plebbit()

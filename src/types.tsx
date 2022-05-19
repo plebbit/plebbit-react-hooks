@@ -19,40 +19,40 @@ export type AccountNotification = any
 /**
  * Subplebbits and comments provider
  */
-export type Subplebbits = { [subplebbitAddress: string]: Subplebbit }
-export type Comments = { [commendCid: string]: Comment }
+export type Subplebbits = {[subplebbitAddress: string]: Subplebbit}
+export type Comments = {[commendCid: string]: Comment}
 
 /**
  * Accounts provider
  */
-export type Accounts = { [accountId: string]: Account }
-export type AccountNamesToAccountIds = { [accountName: string]: string }
+export type Accounts = {[accountId: string]: Account}
+export type AccountNamesToAccountIds = {[accountName: string]: string}
 export interface AccountComment extends Comment {
   index: number
   accountId: string
 }
 export type AccountComments = AccountComment[]
-export type AccountsComments = { [accountId: string]: AccountComments }
+export type AccountsComments = {[accountId: string]: AccountComments}
 export interface AccountCommentReply extends Comment {
   markedAsRead: boolean
 }
-export type AccountCommentsReplies = { [replyCid: string]: AccountCommentReply }
-export type AccountsCommentsReplies = { [accountId: string]: AccountCommentsReplies }
+export type AccountCommentsReplies = {[replyCid: string]: AccountCommentReply}
+export type AccountsCommentsReplies = {[accountId: string]: AccountCommentsReplies}
 export type AccountNotifications = AccountNotification[]
-export type AccountsNotifications = { [accountId: string]: AccountNotifications }
+export type AccountsNotifications = {[accountId: string]: AccountNotifications}
 
 /**
  * Feeds provider
  */
 export type Feed = Comment[]
-export type Feeds = { [feedName: string]: Feed }
+export type Feeds = {[feedName: string]: Feed}
 export type FeedOptions = {
   subplebbitAddresses: string[]
   sortType: string
   account: Account
   pageNumber: number
 }
-export type FeedsOptions = { [feedName: string]: FeedOptions }
+export type FeedsOptions = {[feedName: string]: FeedOptions}
 export type SubplebbitPostsInfo = {
   firstPageCid: string
   account: Account
@@ -60,7 +60,7 @@ export type SubplebbitPostsInfo = {
   sortType: string
   bufferedPostCount: number
 }
-export type SubplebbitsPostsInfo = { [infoName: string]: SubplebbitPostsInfo }
+export type SubplebbitsPostsInfo = {[infoName: string]: SubplebbitPostsInfo}
 export type SubplebbitPageInfo = {
   pageCid: string
   page?: SubplebbitPage
@@ -68,12 +68,12 @@ export type SubplebbitPageInfo = {
   subplebbitAddress: string
   sortType: string
 }
-export type SubplebbitsPagesInfo = { [infoName: string]: SubplebbitPageInfo }
+export type SubplebbitsPagesInfo = {[infoName: string]: SubplebbitPageInfo}
 export type SubplebbitPage = {
   nextCid: string
   comments: Comment[]
 }
-export type SubplebbitsPages = { [pageCid: string]: SubplebbitPage }
+export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
 
 /**
  * Accounts hooks
@@ -101,4 +101,4 @@ export type UseBufferedFeedOptions = {
 /**
  * Utils
  */
-export type Props = { children?: React.ReactChild }
+export type Props = {children?: React.ReactChild}

@@ -3,9 +3,9 @@ import validator from '../../lib/validator'
 import assert from 'assert'
 import localForage from 'localforage'
 import localForageLru from '../../lib/localforage-lru'
-const accountsDatabase = localForage.createInstance({ name: 'accounts' })
-const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
-import { Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies } from '../../types'
+const accountsDatabase = localForage.createInstance({name: 'accounts'})
+const accountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
+import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
 
 const getAccounts = async (accountIds: string[]) => {
@@ -44,7 +44,7 @@ const addAccount = async (account: Account) => {
   }
 
   // handle updating accounts database
-  const accountToPutInDatabase = { ...account, plebbit: undefined }
+  const accountToPutInDatabase = {...account, plebbit: undefined}
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
 
   // handle updating accountNamesToAccountIds database
@@ -74,7 +74,7 @@ const accountsCommentsDatabases: any = {}
 const getAccountCommentsDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountCommentsDatabase '${accountId}' not a string`)
   if (!accountsCommentsDatabases[accountId]) {
-    accountsCommentsDatabases[accountId] = localForage.createInstance({ name: `accountComments-${accountId}` })
+    accountsCommentsDatabases[accountId] = localForage.createInstance({name: `accountComments-${accountId}`})
   }
   return accountsCommentsDatabases[accountId]
 }
@@ -82,7 +82,7 @@ const getAccountCommentsDatabase = (accountId: string) => {
 const addAccountComment = async (accountId: string, comment: CreateCommentOptions | Comment, accountCommentIndex?: number) => {
   const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
   const length = (await accountCommentsDatabase.getItem('length')) || 0
-  comment = utils.clone({ ...comment, signer: undefined })
+  comment = utils.clone({...comment, signer: undefined})
   if (typeof accountCommentIndex === 'number') {
     assert(accountCommentIndex < length, `addAccountComment cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`)
     await accountCommentsDatabase.setItem(String(accountCommentIndex), comment)
@@ -128,7 +128,7 @@ const accountsVotesDatabases: any = {}
 const getAccountVotesDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountVotesDatabase '${accountId}' not a string`)
   if (!accountsVotesDatabases[accountId]) {
-    accountsVotesDatabases[accountId] = localForage.createInstance({ name: `accountVotes-${accountId}` })
+    accountsVotesDatabases[accountId] = localForage.createInstance({name: `accountVotes-${accountId}`})
   }
   return accountsVotesDatabases[accountId]
 }

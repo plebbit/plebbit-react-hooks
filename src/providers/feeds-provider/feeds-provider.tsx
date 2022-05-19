@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react'
-import { AccountsContext } from '../accounts-provider'
-import { SubplebbitsContext } from '../subplebbits-provider'
+import React, {useState, useEffect, useContext, useMemo} from 'react'
+import {AccountsContext} from '../accounts-provider'
+import {SubplebbitsContext} from '../subplebbits-provider'
 import validator from '../../lib/validator'
 import feedSorter from './feed-sorter'
 import assert from 'assert'
@@ -8,21 +8,9 @@ import localForageLru from '../../lib/localforage-lru'
 import utils from '../../lib/utils'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:feeds-provider')
-import {
-  Props,
-  Feed,
-  Feeds,
-  Subplebbits,
-  Account,
-  Accounts,
-  SubplebbitPage,
-  SubplebbitsPages,
-  SubplebbitsPagesInfo,
-  SubplebbitsPostsInfo,
-  FeedsOptions,
-} from '../../types'
+import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
 
-const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 })
+const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbitsPages', size: 500})
 
 type FeedsContext = any
 
@@ -59,7 +47,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   useEffect(() => {
     const loadedFeedsMissingPosts: Feeds = {}
     for (const feedName in feedsOptions) {
-      const { pageNumber } = feedsOptions[feedName]
+      const {pageNumber} = feedsOptions[feedName]
       const loadedFeedPostCount = pageNumber * postsPerPage
       const currentLoadedFeed = loadedFeeds[feedName] || []
       const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
@@ -86,11 +74,11 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       for (const feedName in loadedFeedsMissingPosts) {
         newLoadedFeeds[feedName] = [...(previousLoadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
       }
-      return { ...previousLoadedFeeds, ...newLoadedFeeds }
+      return {...previousLoadedFeeds, ...newLoadedFeeds}
     })
   }, [bufferedFeeds, feedsOptions])
 
-  const feedsActions: { [key: string]: Function } = {}
+  const feedsActions: {[key: string]: Function} = {}
 
   feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) => {
     // feed is in context already, do nothing
@@ -99,20 +87,20 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
       return
     }
     // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = { subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1 }
+    const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
     debug('feedsActions.addFeedToContext', feedOptions)
     setFeedsOptions((previousFeedsOptions) => {
       // make sure to never overwrite a feed already added
       if (previousFeedsOptions[feedName]) {
         return previousFeedsOptions
       }
-      return { ...previousFeedsOptions, [feedName]: feedOptions }
+      return {...previousFeedsOptions, [feedName]: feedOptions}
     })
   }
 
   feedsActions.incrementFeedPageNumber = (feedName: string) => {
     assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
-    debug('feedsActions.incrementFeedPageNumber', { feedName })
+    debug('feedsActions.incrementFeedPageNumber', {feedName})
     setFeedsOptions((previousFeedsOptions) => {
       assert(
         previousFeedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
@@ -122,7 +110,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
         ...previousFeedsOptions[feedName],
         pageNumber: previousFeedsOptions[feedName].pageNumber + 1,
       }
-      return { ...previousFeedsOptions, [feedName]: feedOptions }
+      return {...previousFeedsOptions, [feedName]: feedOptions}
     })
   }
 
@@ -156,7 +144,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
  */
 function useFeedsLengths(feeds: Feeds) {
   return useMemo(() => {
-    const feedsLengths: { [key: string]: number } = {}
+    const feedsLengths: {[key: string]: number} = {}
     for (const feedName in feeds) {
       if (feeds[feedName]) {
         feedsLengths[feedName] = feeds[feedName].length || 0
@@ -171,7 +159,7 @@ function useFeedsLengths(feeds: Feeds) {
  */
 function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, bufferedFeeds: Feeds) {
   return useMemo(() => {
-    const feedsHaveMore: { [key: string]: boolean } = {}
+    const feedsHaveMore: {[key: string]: boolean} = {}
     feedsLoop: for (const feedName in feedsOptions) {
       // if the feed still has buffered posts, then it still has more
       if (bufferedFeeds[feedName]?.length) {
@@ -179,7 +167,7 @@ function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, 
         continue
       }
 
-      const { subplebbitAddresses, sortType } = feedsOptions[feedName]
+      const {subplebbitAddresses, sortType} = feedsOptions[feedName]
       for (const subplebbitAddress of subplebbitAddresses) {
         const subplebbit = subplebbits[subplebbitAddress]
         // if at least 1 subplebbit hasn't loaded yet, then the feed still has more
@@ -221,7 +209,7 @@ function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, 
 function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbitsPages: SubplebbitsPages, loadedFeeds: Feeds) {
   return useMemo(() => {
     // contruct a list of posts already loaded to remove them from buffered feeds
-    const loadedFeedsPosts: { [key: string]: Set<string> } = {}
+    const loadedFeedsPosts: {[key: string]: Set<string>} = {}
     for (const feedName in loadedFeeds) {
       loadedFeedsPosts[feedName] = new Set()
       for (const post of loadedFeeds[feedName]) {
@@ -232,7 +220,7 @@ function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, subplebbitsPosts
     // calculate each feed
     let newBufferedFeeds: Feeds = {}
     for (const feedName in feedsOptions) {
-      const { subplebbitAddresses, sortType, account } = feedsOptions[feedName]
+      const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
 
       // find all fetched posts
       const bufferedFeedPosts = []
@@ -300,7 +288,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
   const subplebbitsPagesInfo = useMemo(() => {
     const newSubplebbitsPagesInfo: SubplebbitsPagesInfo = {}
     for (const infoName in subplebbitsPostsInfo) {
-      const { firstPageCid, account, subplebbitAddress, sortType, bufferedPostCount } = subplebbitsPostsInfo[infoName]
+      const {firstPageCid, account, subplebbitAddress, sortType, bufferedPostCount} = subplebbitsPostsInfo[infoName]
       // add first page
       const subplebbitFirstPageInfo = {
         pageCid: firstPageCid,
@@ -335,7 +323,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
   // once a page is added, it's never removed
   useEffect(() => {
     for (const infoName in subplebbitsPagesInfo) {
-      const { pageCid, account, subplebbitAddress, page } = subplebbitsPagesInfo[infoName]
+      const {pageCid, account, subplebbitAddress, page} = subplebbitsPagesInfo[infoName]
       // page already fetched or fetching
       if (subplebbitsPages[pageCid] || getSubplebbitPagePending[account.id + pageCid]) {
         continue
@@ -362,7 +350,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
         }
 
         getSubplebbitPagePending[account.id + pageCid] = true
-        const subplebbit = await account.plebbit.createSubplebbit({ address: subplebbitAddress })
+        const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
         const fetchedSubplebbitPage = await subplebbit.posts.getPage(pageCid)
         await subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage)
         debug('FeedsProvider useSubplebbitsPages subplebbit.posts.getPage', {
@@ -395,7 +383,7 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
 
   return subplebbitsPages
 }
-const getSubplebbitPagePending: { [key: string]: boolean } = {}
+const getSubplebbitPagePending: {[key: string]: boolean} = {}
 
 /**
  * Util function to gather in an array all loaded `SubplebbitPage` pages of a subplebbit/sort
@@ -427,7 +415,7 @@ function useSubplebbitsPostsInfo(feedsOptions: FeedsOptions, subplebbits: Subple
   return useMemo(() => {
     const subplebbitsPostsInfo: SubplebbitsPostsInfo = {}
     for (const feedName in feedsOptions) {
-      const { subplebbitAddresses, sortType, account } = feedsOptions[feedName]
+      const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
       for (const subplebbitAddress of subplebbitAddresses) {
         const subplebbit = subplebbits[subplebbitAddress]
         const pageCid = subplebbit?.posts?.pageCids?.[sortType]
@@ -489,7 +477,7 @@ function useSubplebbits(feedsOptions: FeedsOptions) {
     }
   }, [subplebbitAddressesAndAccounts])
 
-  debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits })
+  debug('FeedsProvider useSubplebbits', {subplebbitsContext: subplebbitsContext.subplebbits})
   return subplebbits
 }
 

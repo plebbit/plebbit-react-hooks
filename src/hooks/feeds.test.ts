@@ -1,19 +1,19 @@
-import { act, renderHook } from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import { useFeed, useBufferedFeeds, useAccountsActions, setPlebbitJs } from '..'
+import {useFeed, useBufferedFeeds, useAccountsActions, setPlebbitJs} from '..'
 import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
 import localForage from 'localforage'
-import PlebbitJsMock, { Plebbit, Subplebbit, Pages, simulateLoadingTime } from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () =>
   Promise.all([
-    localForage.createInstance({ name: 'accountsMetadata' }).clear(),
-    localForage.createInstance({ name: 'accounts' }).clear(),
-    localForageLru.createInstance({ name: 'subplebbits' }).clear(),
-    localForageLru.createInstance({ name: 'comments' }).clear(),
-    localForageLru.createInstance({ name: 'subplebbitsPages' }).clear(),
+    localForage.createInstance({name: 'accountsMetadata'}).clear(),
+    localForage.createInstance({name: 'accounts'}).clear(),
+    localForageLru.createInstance({name: 'subplebbits'}).clear(),
+    localForageLru.createInstance({name: 'comments'}).clear(),
+    localForageLru.createInstance({name: 'subplebbitsPages'}).clear(),
   ])
 
 describe('feeds', () => {
@@ -69,7 +69,7 @@ describe('feeds', () => {
 
     test('get feed page 1 with 1 subplebbit sorted by default (hot)', async () => {
       // get feed with 1 sub
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'] })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
       // initial state
       expect(typeof rendered.result.current.hasMore).toBe('boolean')
       expect(typeof rendered.result.current.loadMore).toBe('function')
@@ -94,7 +94,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
-      const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1']), { wrapper: PlebbitProvider })
+      const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1']), {wrapper: PlebbitProvider})
       expect(rendered2.result.current.feed).toBe(undefined)
       // only wait for 1 render because subplebbit is stored in db
       try {
@@ -107,7 +107,7 @@ describe('feeds', () => {
     })
 
     test('change subplebbit addresses and sort type', async () => {
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
       } catch (e) {
@@ -117,7 +117,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change subplebbit addresses
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'hot' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'hot'})
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
       } catch (e) {
@@ -129,7 +129,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change sort type
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new'})
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
       } catch (e) {
@@ -141,7 +141,7 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change subplebbit addresses and sort type
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5'], sortType: 'topAll' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5'], sortType: 'topAll'})
       try {
         await rendered.waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (4|5)/))
       } catch (e) {
@@ -153,7 +153,7 @@ describe('feeds', () => {
 
     test('get feed with 1 subplebbit and scroll to multiple pages', async () => {
       // get feed with 1 sub
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'] })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
       // wait for posts to be added, should get full first page
       try {
         await rendered.waitFor(() => rendered.result.current.feed.length > 0)
@@ -202,7 +202,7 @@ describe('feeds', () => {
       }
 
       // get feed with 1 sub sorted by new page 1
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
       try {
         await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
       } catch (e) {
@@ -376,10 +376,10 @@ describe('feeds', () => {
         rendered = renderHook<any, any>(
           (props: any) => {
             const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-            const bufferedFeeds = useBufferedFeeds([{ subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType }], props?.accountName)
-            return { ...feed, bufferedFeed: bufferedFeeds[0] }
+            const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
+            return {...feed, bufferedFeed: bufferedFeeds[0]}
           },
-          { wrapper: PlebbitProvider }
+          {wrapper: PlebbitProvider}
         )
 
         // get feed with 1 sub
@@ -448,9 +448,9 @@ describe('feeds', () => {
               subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'],
               sortType: 'topAll',
             },
-            { subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9'] },
+            {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
           ]),
-        { wrapper: PlebbitProvider }
+        {wrapper: PlebbitProvider}
       )
 
       // should get empty arrays after 1 render
@@ -476,10 +476,10 @@ describe('feeds', () => {
       rendered = renderHook<any, any>(
         (props: any) => {
           const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-          const { createAccount } = useAccountsActions()
-          return { ...feed, createAccount }
+          const {createAccount} = useAccountsActions()
+          return {...feed, createAccount}
         },
-        { wrapper: PlebbitProvider }
+        {wrapper: PlebbitProvider}
       )
 
       // wait for createAccount to render
@@ -496,7 +496,7 @@ describe('feeds', () => {
         await rendered.result.current.createAccount('custom name')
       })
 
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new', accountName: 'custom name' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new', accountName: 'custom name'})
       expect(typeof rendered.result.current.hasMore).toBe('boolean')
       expect(typeof rendered.result.current.loadMore).toBe('function')
 
@@ -537,9 +537,9 @@ describe('feeds', () => {
               subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'],
               sortType: `doesnt exist`,
             },
-            { subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9'] },
+            {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
           ]),
-        { wrapper: PlebbitProvider }
+        {wrapper: PlebbitProvider}
       )
       try {
         await rendered.waitForNextUpdate()
@@ -557,7 +557,7 @@ describe('feeds', () => {
           // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
           await simulateLoadingTime()
           await simulateLoadingTime()
-          const page: any = { nextCid: null, comments: [] }
+          const page: any = {nextCid: null, comments: []}
           const postCount = 100
           let index = 0
           while (index++ < postCount) {
@@ -574,7 +574,7 @@ describe('feeds', () => {
         Pages.prototype.getPage = getPage
       })
       test(`1 subplebbit, scroll to end of feed, hasMore becomes false`, async () => {
-        rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new' })
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
         // hasMore should be true before the feed is loaded
         expect(rendered.result.current.hasMore).toBe(true)
         expect(typeof rendered.result.current.loadMore).toBe('function')
@@ -666,7 +666,7 @@ describe('feeds', () => {
       })
 
       test(`don't increment page number if loaded feed hasn't increased yet`, async () => {
-        rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'] })
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
         try {
           await rendered.waitFor(() => rendered.result.current.feed.length > 0)
         } catch (e) {
@@ -698,14 +698,14 @@ describe('feeds', () => {
           if (!pageCid.match('next')) {
             throw Error(`subplebbit.getPage() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`)
           }
-          return { nextCid: null, comments: [] }
+          return {nextCid: null, comments: []}
         }
       })
       afterEach(() => {
         Pages.prototype.getPage = getPage
       })
       test(`get feed sorted by hot, don't call subplebbit.getPage() because already included in IPNS record`, async () => {
-        rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot' })
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
         try {
           await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
         } catch (e) {
@@ -727,14 +727,14 @@ describe('feeds', () => {
       rendered = renderHook<any, any>(
         (props: any) => {
           const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-          const bufferedFeeds = useBufferedFeeds([{ subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType }], props?.accountName)
-          return { ...feed, bufferedFeed: bufferedFeeds[0] }
+          const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
+          return {...feed, bufferedFeed: bufferedFeeds[0]}
         },
-        { wrapper: PlebbitProvider }
+        {wrapper: PlebbitProvider}
       )
 
       // get feed with 1 sub
-      rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'topAll' })
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'topAll'})
       try {
         await rendered.waitFor(() => rendered.result.current.feed.length > 0)
       } catch (e) {
@@ -787,7 +787,7 @@ describe('feeds', () => {
         Pages.prototype.getPage = getPage
       })
       test(`store page pages in database`, async () => {
-        rendered.rerender({ subplebbitAddresses: ['subplebbit address 1'], sortType: 'new' })
+        rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
         try {
           await rendered.waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
         } catch (e) {

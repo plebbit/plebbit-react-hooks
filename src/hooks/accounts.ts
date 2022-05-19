@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState, useContext } from 'react'
-import { AccountsContext } from '../providers/accounts-provider'
+import {useEffect, useMemo, useState, useContext} from 'react'
+import {AccountsContext} from '../providers/accounts-provider'
 import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
-import type { UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications } from '../types'
+import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications} from '../types'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -26,7 +26,7 @@ export function useAccount(accountName?: string) {
   const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
   const account = accountsContext?.accounts[accountId]
-  debug('useAccount', { accountId, account, accountName: account?.name })
+  debug('useAccount', {accountId, account, accountName: account?.name})
   return account
 }
 
@@ -43,7 +43,7 @@ export function useAccounts() {
     }
     return accounts
   }
-  debug('useAccounts', { accounts, accountIds: accountsContext?.accountIds })
+  debug('useAccounts', {accounts, accountIds: accountsContext?.accountIds})
   return accounts
 }
 
@@ -81,8 +81,8 @@ export function useAccountNotifications(accountName?: string) {
     }
     accountsContext?.markAccountNotificationsAsRead(account)
   }
-  debug('useAccountNotifications', { notifications })
-  return { notifications, markAsRead }
+  debug('useAccountNotifications', {notifications})
+  return {notifications, markAsRead}
 }
 
 /**
@@ -108,7 +108,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
     return accountComments
   }, [accountComments, useAccountCommentsOptions])
 
-  debug('useAccountComments', { accountId, filteredAccountComments, accountComments, useAccountCommentsOptions })
+  debug('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
   return filteredAccountComments
 }
 
@@ -139,7 +139,7 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
     return accountVotesArray
   }, [accountVotes, useAccountVotesOptions])
 
-  debug('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions })
+  debug('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
   return filteredAccountVotesArray
 }
 
@@ -147,9 +147,9 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
  * Returns an account's single vote on a comment, e.g. to know if you already voted on a comment.
  */
 export function useAccountVote(commentCid?: string, accountName?: string) {
-  const useAccountVotesOptions: UseAccountCommentsOptions = { accountName }
+  const useAccountVotesOptions: UseAccountCommentsOptions = {accountName}
   if (commentCid) {
-    useAccountVotesOptions.filter = { commentCids: [commentCid] }
+    useAccountVotesOptions.filter = {commentCids: [commentCid]}
   }
   const accountVotes = useAccountVotes(useAccountVotesOptions)
   return accountVotes && accountVotes[0]
