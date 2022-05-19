@@ -46,10 +46,9 @@ describe('feeds', () => {
 
     beforeEach(async () => {
       // @ts-ignore
-      rendered = renderHook<any, any>(
-        (props: any) => useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName),
-        { wrapper: PlebbitProvider }
-      )
+      rendered = renderHook<any, any>((props: any) => useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName), {
+        wrapper: PlebbitProvider,
+      })
       // wait for account to init
       try {
         await rendered.waitForNextUpdate()
@@ -236,14 +235,10 @@ describe('feeds', () => {
       // get page 3 and 4, it should show new posts from the recalculated buffer
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(200)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next page cid 1 comment cid 200'
-      )
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 1 next page cid 1 comment cid 200')
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(175)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next page cid 1 comment cid 175'
-      )
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 1 next page cid 1 comment cid 175')
 
       // scroll 2 more times to get to buffered feeds length 50 and trigger a new buffer refill
       await scrollOnePage()
@@ -258,14 +253,10 @@ describe('feeds', () => {
       // next pages should have recalculated buffered feed that starts at 300
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(300)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next page cid 2 comment cid 300'
-      )
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 1 next page cid 2 comment cid 300')
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(275)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next page cid 2 comment cid 275'
-      )
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 1 next page cid 2 comment cid 275')
 
       // restore mock
       Pages.prototype.getPage = getPage
@@ -325,10 +316,7 @@ describe('feeds', () => {
       // at this point the buffered feed has gotten page 1 from all subs
       try {
         await rendered.waitFor(
-          () =>
-            getPageCalledTimes['subplebbit address 1'] === 1 &&
-            getPageCalledTimes['subplebbit address 2'] === 1 &&
-            getPageCalledTimes['subplebbit address 3'] === 1
+          () => getPageCalledTimes['subplebbit address 1'] === 1 && getPageCalledTimes['subplebbit address 2'] === 1 && getPageCalledTimes['subplebbit address 3'] === 1
         )
       } catch (e) {
         console.error(e)
@@ -341,12 +329,8 @@ describe('feeds', () => {
       await scrollOnePage()
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(100)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].timestamp).toBe(100)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 2 page cid new comment cid 100'
-      )
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe(
-        'subplebbit address 3 page cid new comment cid 100'
-      )
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 2 page cid new comment cid 100')
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe('subplebbit address 3 page cid new comment cid 100')
 
       // scroll until the next buffered feed that needs to be refilled
       await scrollOnePage()
@@ -356,10 +340,7 @@ describe('feeds', () => {
       // at this point the buffered feed has gotten page 2 from all subs
       try {
         await rendered.waitFor(
-          () =>
-            getPageCalledTimes['subplebbit address 1'] === 2 &&
-            getPageCalledTimes['subplebbit address 2'] === 2 &&
-            getPageCalledTimes['subplebbit address 3'] === 2
+          () => getPageCalledTimes['subplebbit address 1'] === 2 && getPageCalledTimes['subplebbit address 2'] === 2 && getPageCalledTimes['subplebbit address 3'] === 2
         )
       } catch (e) {
         console.error(e)
@@ -373,15 +354,9 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(200)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].timestamp).toBe(200)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 2].timestamp).toBe(200)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe(
-        'subplebbit address 1 next page cid 1 comment cid 200'
-      )
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe(
-        'subplebbit address 2 next page cid 1 comment cid 200'
-      )
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 2].cid).toBe(
-        'subplebbit address 3 next page cid 1 comment cid 200'
-      )
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 1 next page cid 1 comment cid 200')
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe('subplebbit address 2 next page cid 1 comment cid 200')
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 2].cid).toBe('subplebbit address 3 next page cid 1 comment cid 200')
 
       // restore mock
       Pages.prototype.getPage = getPage
@@ -401,10 +376,7 @@ describe('feeds', () => {
         rendered = renderHook<any, any>(
           (props: any) => {
             const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-            const bufferedFeeds = useBufferedFeeds(
-              [{ subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType }],
-              props?.accountName
-            )
+            const bufferedFeeds = useBufferedFeeds([{ subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType }], props?.accountName)
             return { ...feed, bufferedFeed: bufferedFeeds[0] }
           },
           { wrapper: PlebbitProvider }
@@ -447,9 +419,7 @@ describe('feeds', () => {
         try {
           await rendered.waitFor(() => {
             bufferedFeedString = JSON.stringify(rendered.result.current.bufferedFeed)
-            return Boolean(
-              bufferedFeedString.match('subplebbit address 2') && bufferedFeedString.match('subplebbit address 3')
-            )
+            return Boolean(bufferedFeedString.match('subplebbit address 2') && bufferedFeedString.match('subplebbit address 3'))
           })
         } catch (e) {
           console.error(e)
@@ -459,12 +429,8 @@ describe('feeds', () => {
 
         // the second page first posts should be sub 2 and 3 with the highest upvotes
         await scrollOnePage()
-        expect(rendered.result.current.feed[postsPerPage].cid).toMatch(
-          /subplebbit address (2|3) page cid topAll comment cid (99|100)/
-        )
-        expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(
-          /subplebbit address (2|3) page cid topAll comment cid (99|100)/
-        )
+        expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid (99|100)/)
+        expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid (99|100)/)
         expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBeGreaterThan(98)
         expect(rendered.result.current.feed[postsPerPage + 1].upvoteCount).toBeGreaterThan(98)
       })
@@ -497,12 +463,7 @@ describe('feeds', () => {
 
       // should eventually buffer posts for all feeds
       try {
-        await rendered.waitFor(
-          () =>
-            rendered.result.current[0].length > 299 &&
-            rendered.result.current[1].length > 299 &&
-            rendered.result.current[2].length > 299
-        )
+        await rendered.waitFor(() => rendered.result.current[0].length > 299 && rendered.result.current[1].length > 299 && rendered.result.current[2].length > 299)
       } catch (e) {
         console.error(e)
       }
@@ -724,9 +685,7 @@ describe('feeds', () => {
               rendered.result.current.loadMore()
               rendered.result.current.loadMore()
             }
-          }).rejects.toThrow(
-            'feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded'
-          )
+          }).rejects.toThrow('feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded')
         })
       })
     })
@@ -737,9 +696,7 @@ describe('feeds', () => {
         Pages.prototype.getPage = async function (pageCid: string) {
           // it can get called with a next cid to fetch the second page
           if (!pageCid.match('next')) {
-            throw Error(
-              `subplebbit.getPage() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`
-            )
+            throw Error(`subplebbit.getPage() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`)
           }
           return { nextCid: null, comments: [] }
         }
@@ -770,10 +727,7 @@ describe('feeds', () => {
       rendered = renderHook<any, any>(
         (props: any) => {
           const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-          const bufferedFeeds = useBufferedFeeds(
-            [{ subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType }],
-            props?.accountName
-          )
+          const bufferedFeeds = useBufferedFeeds([{ subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType }], props?.accountName)
           return { ...feed, bufferedFeed: bufferedFeeds[0] }
         },
         { wrapper: PlebbitProvider }
@@ -808,9 +762,7 @@ describe('feeds', () => {
       // more testing in production will have to be done to figure out if emptying the buffered feed while waiting
       // for new posts causes problems.
       try {
-        await rendered.waitFor(
-          () => rendered.result.current.bufferedFeed[0].cid === 'updated page cid topAll comment cid 100'
-        )
+        await rendered.waitFor(() => rendered.result.current.bufferedFeed[0].cid === 'updated page cid topAll comment cid 100')
       } catch (e) {
         console.error(e)
       }
@@ -858,9 +810,7 @@ describe('feeds', () => {
 
     // TODO: not implemented
     // at the moment a comment already inside a loaded feed will ignore all updates from future pages
-    test.todo(
-      `if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`
-    )
+    test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`)
 
     // TODO: not implemented
     test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`)

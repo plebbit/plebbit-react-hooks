@@ -4,12 +4,7 @@ import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
-import type {
-  UseAccountCommentsFilter,
-  UseAccountCommentsOptions,
-  AccountComments,
-  AccountNotifications,
-} from '../types'
+import type { UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications } from '../types'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -169,16 +164,10 @@ const filterPublications = (publications: any, filter: UseAccountCommentsFilter)
     assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`)
   }
   for (const subplebbitAddress of filter.subplebbitAddresses || []) {
-    assert(
-      subplebbitAddress && typeof subplebbitAddress === 'string',
-      `accountCommentsFilter subplebbitAddress '${subplebbitAddress}' not a string`
-    )
+    assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountCommentsFilter subplebbitAddress '${subplebbitAddress}' not a string`)
   }
   for (const commentCid of filter.commentCids || []) {
-    assert(
-      commentCid && typeof commentCid === 'string',
-      `accountCommentsFilter commentCid '${commentCid}' not a string`
-    )
+    assert(commentCid && typeof commentCid === 'string', `accountCommentsFilter commentCid '${commentCid}' not a string`)
   }
   for (const parentCid of filter.parentCids || []) {
     assert(parentCid && typeof parentCid === 'string', `accountCommentsFilter parentCid '${parentCid}' not a string`)

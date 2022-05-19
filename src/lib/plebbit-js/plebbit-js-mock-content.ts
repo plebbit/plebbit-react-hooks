@@ -195,17 +195,17 @@ const getArrayItem = async (array: any[], seed: string) => {
 }
 
 const getImageUrl = async (seed: string) => {
-  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(
+  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(10, 2000, seed + 2)}/${await getNumberBetween(
     10,
     2000,
-    seed + 2
-  )}/${await getNumberBetween(10, 2000, seed + 3)}.jpg`
+    seed + 3
+  )}.jpg`
 
-  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 4)}/${await getNumberBetween(
+  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 4)}/${await getNumberBetween(10, 2000, seed + 5)}/${await getNumberBetween(
     10,
     2000,
-    seed + 5
-  )}/${await getNumberBetween(10, 2000, seed + 6)}.webp`
+    seed + 6
+  )}.webp`
 
   const imageUrls = [
     // jpg & webp
@@ -346,18 +346,9 @@ const getSubplebbitContent = async (seed: string) => {
     subplebbit.suggested = {
       primaryColor: (await getArrayItem(postFlairs, seed + 'suggested primary color')).backgroundColor,
       secondaryColor: (await getArrayItem(postFlairs, seed + 'suggested secondary color')).backgroundColor,
-      avatarUrl: await getArrayItem(
-        [undefined, await getImageUrl(seed + 'suggested avatar url')],
-        seed + 'suggested avatar url'
-      ),
-      bannerUrl: await getArrayItem(
-        [undefined, await getImageUrl(seed + 'suggested banner url')],
-        seed + 'suggested banner url'
-      ),
-      backgroundUrl: await getArrayItem(
-        [undefined, await getImageUrl(seed + 'suggested background url')],
-        seed + 'suggested background url'
-      ),
+      avatarUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
+      bannerUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
+      backgroundUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
       language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language'),
     }
   }
@@ -413,10 +404,8 @@ const getCommentUpdateContent = async (comment: any) => {
 
   const commentUpdateContent: any = {}
   // simulate finding vote counts on an IPNS record
-  commentUpdateContent.upvoteCount =
-    typeof comment.upvoteCount === 'number' ? comment.upvoteCount + upvotesPerUpdate : upvotesPerUpdate
-  commentUpdateContent.downvoteCount =
-    typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate
+  commentUpdateContent.upvoteCount = typeof comment.upvoteCount === 'number' ? comment.upvoteCount + upvotesPerUpdate : upvotesPerUpdate
+  commentUpdateContent.downvoteCount = typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate
 
   // find the number of replies
   commentUpdateContent.replyCount = 0
@@ -450,29 +439,7 @@ const getCommentUpdateContent = async (comment: any) => {
     commentUpdateContent.replies.pages.topAll.comments.push({ ...reply, ...replyUpdateContent })
   }
 
-  const rareTrue = [
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]
+  const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
 
   const isSpoiler = await getArrayItem(rareTrue, comment.cid + 'is spoiler')
   if (isSpoiler) {
@@ -717,8 +684,8 @@ class Publication extends EventEmitter {
 
   async simulateChallengeVerificationEvent() {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
-    this.cid = // @ts-ignore
-      this.content || this.title || this.link ? await hash(this.content + this.title + this.link + 'cid') : undefined
+    // @ts-ignore
+    this.cid = this.content || this.title || this.link ? await hash(this.content + this.title + this.link + 'cid') : undefined
     const publication = this.cid && { cid: this.cid }
 
     const challengeVerificationMessage = {

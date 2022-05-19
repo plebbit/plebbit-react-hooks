@@ -36,10 +36,7 @@ const sortByControversial = (feed: any[]) => {
   const postRelativeScores: { [key: string]: number } = {}
   for (const post of feed) {
     const magnitude = post.upvoteCount + post.downvoteCount
-    const balance =
-      post.upvoteCount > post.downvoteCount
-        ? parseFloat(post.downvoteCount) / post.upvoteCount
-        : parseFloat(post.upvoteCount) / post.downvoteCount
+    const balance = post.upvoteCount > post.downvoteCount ? parseFloat(post.downvoteCount) / post.upvoteCount : parseFloat(post.upvoteCount) / post.downvoteCount
     const score = Math.pow(magnitude, balance)
     if (!subplebbitScores[post.subplebbitAddress]) {
       subplebbitScores[post.subplebbitAddress] = 0

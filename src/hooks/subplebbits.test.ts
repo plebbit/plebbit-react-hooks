@@ -68,9 +68,7 @@ describe('subplebbits', () => {
       const simulateUpdateEvent = Subplebbit.prototype.simulateUpdateEvent
       // mock getSubplebbit on the Plebbit class
       Plebbit.prototype.getSubplebbit = (subplebbitAddress) => {
-        throw Error(
-          `plebbit.getSubplebbit called with subplebbit address '${subplebbitAddress}' should not be called when getting subplebbit from database`
-        )
+        throw Error(`plebbit.getSubplebbit called with subplebbit address '${subplebbitAddress}' should not be called when getting subplebbit from database`)
       }
       // don't simulate 'update' event during this test to see if the updates were saved to database
       let throwOnSubplebbitUpdateEvent = false

@@ -5,16 +5,7 @@ import localForage from 'localforage'
 import localForageLru from '../../lib/localforage-lru'
 const accountsDatabase = localForage.createInstance({ name: 'accounts' })
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' })
-import {
-  Accounts,
-  AccountNamesToAccountIds,
-  CreateCommentOptions,
-  Account,
-  Comment,
-  AccountsComments,
-  AccountCommentReply,
-  AccountsCommentsReplies,
-} from '../../types'
+import { Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies } from '../../types'
 import utils from '../../lib/utils'
 
 const getAccounts = async (accountIds: string[]) => {
@@ -57,9 +48,7 @@ const addAccount = async (account: Account) => {
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
 
   // handle updating accountNamesToAccountIds database
-  let accountNamesToAccountIds: AccountNamesToAccountIds | null = await accountsMetadataDatabase.getItem(
-    'accountNamesToAccountIds'
-  )
+  let accountNamesToAccountIds: AccountNamesToAccountIds | null = await accountsMetadataDatabase.getItem('accountNamesToAccountIds')
   if (!accountNamesToAccountIds) {
     accountNamesToAccountIds = {}
   }
@@ -90,25 +79,15 @@ const getAccountCommentsDatabase = (accountId: string) => {
   return accountsCommentsDatabases[accountId]
 }
 
-const addAccountComment = async (
-  accountId: string,
-  comment: CreateCommentOptions | Comment,
-  accountCommentIndex?: number
-) => {
+const addAccountComment = async (accountId: string, comment: CreateCommentOptions | Comment, accountCommentIndex?: number) => {
   const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
   const length = (await accountCommentsDatabase.getItem('length')) || 0
   comment = utils.clone({ ...comment, signer: undefined })
   if (typeof accountCommentIndex === 'number') {
-    assert(
-      accountCommentIndex < length,
-      `addAccountComment cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`
-    )
+    assert(accountCommentIndex < length, `addAccountComment cannot edit comment no comment in database at accountCommentIndex '${accountCommentIndex}'`)
     await accountCommentsDatabase.setItem(String(accountCommentIndex), comment)
   } else {
-    await Promise.all([
-      accountCommentsDatabase.setItem(String(length), comment),
-      accountCommentsDatabase.setItem('length', length + 1),
-    ])
+    await Promise.all([accountCommentsDatabase.setItem(String(length), comment), accountCommentsDatabase.setItem('length', length + 1)])
   }
 }
 

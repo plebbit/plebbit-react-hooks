@@ -34,10 +34,7 @@ describe('comments', () => {
       expect(rendered.result.current.cid).toBe('comment cid 1')
       // wait for comment.on('update') to fetch the ipns
       try {
-        await rendered.waitFor(
-          () =>
-            typeof rendered.result.current.cid === 'string' && typeof rendered.result.current.upvoteCount === 'number'
-        )
+        await rendered.waitFor(() => typeof rendered.result.current.cid === 'string' && typeof rendered.result.current.upvoteCount === 'number')
       } catch (e) {
         console.error(e)
       }
@@ -71,9 +68,7 @@ describe('comments', () => {
       const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       // mock getComment on the Plebbit class
       Plebbit.prototype.getComment = (commentCid) => {
-        throw Error(
-          `plebbit.getComment called with comment cid '${commentCid}' should not be called when getting comments from database`
-        )
+        throw Error(`plebbit.getComment called with comment cid '${commentCid}' should not be called when getting comments from database`)
       }
       // don't simulate 'update' event during this test to see if the updates were saved to database
       let throwOnCommentUpdateEvent = false
@@ -125,9 +120,7 @@ describe('comments', () => {
       try {
         await rendered.waitFor(
           () =>
-            typeof rendered.result.current[0].cid === 'string' &&
-            typeof rendered.result.current[1].cid === 'string' &&
-            typeof rendered.result.current[2].cid === 'string'
+            typeof rendered.result.current[0].cid === 'string' && typeof rendered.result.current[1].cid === 'string' && typeof rendered.result.current[2].cid === 'string'
         )
       } catch (e) {
         console.error(e)

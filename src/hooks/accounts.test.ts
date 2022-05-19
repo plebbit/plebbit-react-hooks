@@ -18,11 +18,7 @@ import localForage from 'localforage'
 import PlebbitJsMock, { Plebbit, Comment, Subplebbit, Pages } from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () =>
-  Promise.all([
-    localForage.createInstance({ name: 'accountsMetadata' }).clear(),
-    localForage.createInstance({ name: 'accounts' }).clear(),
-  ])
+const deleteDatabases = () => Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()])
 
 describe('accounts', () => {
   beforeAll(() => {
@@ -269,9 +265,7 @@ describe('accounts', () => {
       newAccount.author.displayName = 'display name john'
       newAccount.id = 'something incorrect'
       await act(async () => {
-        expect(rendered.result.current.setAccount(newAccount)).rejects.toThrow(
-          `cannot set account with account.id 'something incorrect' id does not exist in database`
-        )
+        expect(rendered.result.current.setAccount(newAccount)).rejects.toThrow(`cannot set account with account.id 'something incorrect' id does not exist in database`)
       })
     })
 
@@ -293,9 +287,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[2].name).toBe('Account 3')
       expect(rendered.result.current.accounts[3].name).toBe('custom name')
       await act(async () => {
-        expect(() =>
-          rendered.result.current.setAccountsOrder(['wrong account name', 'Account 3', 'Account 2', 'Account 1'])
-        ).rejects.toThrow()
+        expect(() => rendered.result.current.setAccountsOrder(['wrong account name', 'Account 3', 'Account 2', 'Account 1'])).rejects.toThrow()
         await rendered.result.current.setAccountsOrder(['custom name', 'Account 3', 'Account 2', 'Account 1'])
       })
       expect(rendered.result.current.accounts[0].name).toBe('custom name')
@@ -557,10 +549,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
       expect(rendered.result.current.accountComments[2].content).toBe('content 3')
-      expectAccountCommentsToHaveIndexAndAccountId(
-        rendered.result.current.accountComments,
-        rendered.result.current.account.id
-      )
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
     })
 
     test(`get account comment and add cid to it when receive challengeVerification`, async () => {
@@ -590,10 +579,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
       expect(rendered.result.current.accountComments[1].cid).toBe('content 2 cid')
       expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
-      expectAccountCommentsToHaveIndexAndAccountId(
-        rendered.result.current.accountComments,
-        rendered.result.current.account.id
-      )
+      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
 
       // check if cids are in database after getting a new context
       const activeAccountId = rendered.result.current.account.id
@@ -780,9 +766,7 @@ describe('accounts', () => {
 
     test(`account has karma after comments are published`, async () => {
       try {
-        await rendered.waitFor(() =>
-          Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2])
-        )
+        await rendered.waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
       } catch (e) {
         console.error(e)
       }

@@ -25,10 +25,7 @@ describe('comments', () => {
 
       expect(rendered.result.current.cid).to.equal('comment cid 1')
       // wait for comment.on('update') to fetch the ipns
-      await waitFor(
-        () =>
-          typeof rendered.result.current?.cid === 'string' && typeof rendered.result.current?.upvoteCount === 'number'
-      )
+      await waitFor(() => typeof rendered.result.current?.cid === 'string' && typeof rendered.result.current?.upvoteCount === 'number')
       expect(rendered.result.current?.cid).to.equal('comment cid 1')
       expect(rendered.result.current?.upvoteCount).to.equal(3)
 

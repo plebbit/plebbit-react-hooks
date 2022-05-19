@@ -43,12 +43,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   const subplebbits = useSubplebbits(feedsOptions)
   const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
   const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits)
-  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(
-    feedsOptions,
-    subplebbitsPostsInfo,
-    subplebbitsPages,
-    loadedFeeds
-  )
+  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds)
   const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds)
 
   // handle buffered feeds
@@ -97,13 +92,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
 
   const feedsActions: { [key: string]: Function } = {}
 
-  feedsActions.addFeedToContext = (
-    feedName: string,
-    subplebbitAddresses: string[],
-    sortType: string,
-    account: Account,
-    isBufferedFeed?: boolean
-  ) => {
+  feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) => {
     // feed is in context already, do nothing
     // if the feed already exist but is at page 1, reset it to page 1
     if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
@@ -122,10 +111,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   }
 
   feedsActions.incrementFeedPageNumber = (feedName: string) => {
-    assert(
-      feedsOptions[feedName],
-      `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`
-    )
+    assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
     debug('feedsActions.incrementFeedPageNumber', { feedName })
     setFeedsOptions((previousFeedsOptions) => {
       assert(
@@ -183,12 +169,7 @@ function useFeedsLengths(feeds: Feeds) {
 /**
  * List of which feeds have more posts, i.e. have no reached the final page of all subs
  */
-function useFeedsHaveMore(
-  feedsOptions: FeedsOptions,
-  subplebbits: Subplebbits,
-  subplebbitsPages: SubplebbitsPages,
-  bufferedFeeds: Feeds
-) {
+function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, bufferedFeeds: Feeds) {
   return useMemo(() => {
     const feedsHaveMore: { [key: string]: boolean } = {}
     feedsLoop: for (const feedName in feedsOptions) {
@@ -237,12 +218,7 @@ function useFeedsHaveMore(
  * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
  * and remove the posts already loaded in loadedFeeds
  */
-function useCalculatedBufferedFeeds(
-  feedsOptions: FeedsOptions,
-  subplebbitsPostsInfo: SubplebbitsPostsInfo,
-  subplebbitsPages: SubplebbitsPages,
-  loadedFeeds: Feeds
-) {
+function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbitsPages: SubplebbitsPages, loadedFeeds: Feeds) {
   return useMemo(() => {
     // contruct a list of posts already loaded to remove them from buffered feeds
     const loadedFeedsPosts: { [key: string]: Set<string> } = {}

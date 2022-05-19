@@ -18,10 +18,7 @@ const deleteCaches = () =>
   ])
 
 const deleteAccountsDatabases = () =>
-  Promise.all([
-    localForage.createInstance({ name: 'accountsMetadata' }).clear(),
-    localForage.createInstance({ name: 'accounts' }).clear(),
-  ])
+  Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()])
 
 const deleteNonAccountsDatabases = () =>
   Promise.all([

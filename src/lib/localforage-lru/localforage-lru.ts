@@ -2,9 +2,7 @@ import localForage from 'localforage'
 
 function createLocalForageInstance(localForageLruOptions: any): any {
   if (typeof localForageLruOptions?.size !== 'number') {
-    throw Error(
-      `LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`
-    )
+    throw Error(`LocalForageLru.createInstance localForageLruOptions.size '${localForageLruOptions?.size}' not a number`)
   }
   const localForageOptions = { ...localForageLruOptions }
   delete localForageOptions.size
@@ -108,15 +106,11 @@ const instances: any = {}
 
 const createInstance = (localForageLruOptions: any) => {
   if (typeof localForageLruOptions?.name !== 'string') {
-    throw Error(
-      `LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`
-    )
+    throw Error(`LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions?.name}' not a string`)
   }
   if (instances[localForageLruOptions.name]) {
     if (localForageLruOptions.size) {
-      throw Error(
-        `LocalForageLru.createInstance with name '${localForageLruOptions.name}' already created, remove localForageLruOptions.size, size cannot be changed`
-      )
+      throw Error(`LocalForageLru.createInstance with name '${localForageLruOptions.name}' already created, remove localForageLruOptions.size, size cannot be changed`)
     }
     return instances[localForageLruOptions.name]
   }

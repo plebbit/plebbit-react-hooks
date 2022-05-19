@@ -91,13 +91,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
       }
       if (!feedsContext.bufferedFeeds[feedName || '']) {
         const isBufferedFeed = true
-        feedsContext.feedsActions.addFeedToContext(
-          feedName,
-          uniqueSubplebbitAddresses,
-          sortType,
-          account,
-          isBufferedFeed
-        )
+        feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed)
       }
     }
   }, [feedNames])
