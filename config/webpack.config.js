@@ -102,7 +102,7 @@ fs.removeSync(outputFolder)
 // if a new test file is found, restart webpack watcher
 // this is needed because the webpack entries cannot be
 // modified dynamically while watching, a new file is a new entry
-chokidar.watch(testFolder).on('all', async (event, path) => {
+chokidar.watch(testFolder, { persistent: false }).on('all', async (event, path) => {
   glob(testGlob, (err, files) => {
     if (JSON.stringify(files.sort()) !== JSON.stringify(testFiles)) {
       console.log('karma test files changed, restarting webpack watcher')
@@ -112,7 +112,7 @@ chokidar.watch(testFolder).on('all', async (event, path) => {
 })
 
 // restart when a node package is installed otherwise bugs out
-chokidar.watch(lockFile).on('all', async (event, path) => {
+chokidar.watch(lockFile, { persistent: false }).on('all', async (event, path) => {
   if (event === 'change' || event === 'unlink') {
     console.log('lock file changed, restarting webpack watcher')
     process.exit()

@@ -22,6 +22,7 @@
     "prebuild": "rm -rf dist",
     "build": "tsc --project config/tsconfig.json",
     "build:watch": "tsc --project config/tsconfig.json --watch",
+    "webpack": "webpack --mode development --config config/webpack.config.js",
     "webpack:watch": "while true; do webpack watch --mode development --config config/webpack.config.js; sleep 1; done",
     "test": "jest --config config/jest.config.cjs",
     "test:e2e": "karma start config/karma.conf.js",
