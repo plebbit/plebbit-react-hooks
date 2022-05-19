@@ -8,6 +8,7 @@ try {
   }
 } catch (e) {}
 
+import { setPlebbitJs } from './lib/plebbit-js'
 import PlebbitProvider from './providers/plebbit-provider'
 import {
   useAccount,
@@ -41,6 +42,7 @@ export {
   useSubplebbits,
   useFeed,
   useBufferedFeeds,
+  setPlebbitJs,
   debugUtils,
 }
 
@@ -58,6 +60,7 @@ const hooks = {
   useSubplebbits,
   useFeed,
   useBufferedFeeds,
+  setPlebbitJs,
   debugUtils,
 }
 

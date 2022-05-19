@@ -1,8 +1,15 @@
 const { act, renderHook } = require('@testing-library/react-hooks/dom')
-const { PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments } = require('../../dist')
-const { mockPlebbitJs, default: PlebbitJsMock } = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+const {
+  PlebbitProvider,
+  useAccount,
+  useAccountsActions,
+  useAccountVotes,
+  useAccountComments,
+  setPlebbitJs,
+} = require('../../dist')
+const { default: PlebbitJsMock } = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
-mockPlebbitJs(PlebbitJsMock)
+setPlebbitJs(PlebbitJsMock)
 
 const timeout = 10000
 

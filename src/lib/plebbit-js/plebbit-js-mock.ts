@@ -1,5 +1,4 @@
 import EventEmitter from 'events'
-export { mockPlebbitJs as mockPlebbitJs } from '.'
 
 // TODO: make load time changeable with env variable
 // so the frontend can test with latency
