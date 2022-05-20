@@ -34,6 +34,10 @@ export class Plebbit {
     return subplebbit
   }
 
+  async listSubplebbits() {
+    return ['list subplebbit address 1', 'list subplebbit address 2']
+  }
+
   async createComment(createCommentOptions: any) {
     return new Comment(createCommentOptions)
   }

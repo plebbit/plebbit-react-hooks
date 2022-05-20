@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useSubplebbit, useSubplebbits, setPlebbitJs} from '..'
+import {useListSubplebbits} from './subplebbits'
 import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
@@ -151,5 +152,12 @@ describe('subplebbits', () => {
       expect(rendered.result.current[1].description).toBe('subplebbit address 2 description updated')
       expect(rendered.result.current[2].description).toBe('subplebbit address 3 description updated')
     })
+  })
+
+  test('useListSubplebbits', async () => {
+    const rendered = renderHook<any, any>(() => useListSubplebbits(), {wrapper: PlebbitProvider})
+    const waitFor = testUtils.createWaitFor(rendered)
+    await waitFor(() => rendered.result.current.length > 0)
+    expect(rendered.result.current).toEqual(['list subplebbit address 1', 'list subplebbit address 2'])
   })
 })

@@ -22,6 +22,9 @@
   AccountsVotes (each database named accountVotes-[accountId]) {
     [commentCid: string]: AccountVote
   }
+  AccountsSubplebbits {
+    [subplebbitAddress: string]: AccountSubplebbit
+  }
   Subplebbits {
     [subplebbitAddress: string]: Subplebbit // last recently used database, delete oldest data
   }
@@ -98,6 +101,12 @@ useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[]) // preload or buffer fe
 useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
 ```
 
+#### Util functions
+```
+setPlebbitJs(PlebbitJs) // set which plebbit-js version to use, e.g. to mock content for frontend dev or to use the node version in Electron
+debugUtils // reset the databases and other dev utils
+```
+
 ### Schema
 
 > For full schema see https://github.com/plebbit/plebbit-js#schema
@@ -147,6 +156,9 @@ Karma {
   upvoteCount
   downvoteCount
   score
+}
+AccountSubplebbit {
+  autoStart: boolean
 }
 AccountComment extends Comment {
   index: number // the index of the comment in the AccountComments array and database
