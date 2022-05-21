@@ -90,5 +90,6 @@ export function useListSubplebbits() {
     immediate
   )
 
+  debug('useListSubplebbits', {subplebbitAddresses})
   return subplebbitAddresses
 }

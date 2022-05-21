@@ -22,9 +22,6 @@
   AccountsVotes (each database named accountVotes-[accountId]) {
     [commentCid: string]: AccountVote
   }
-  AccountsSubplebbits {
-    [subplebbitAddress: string]: AccountSubplebbit
-  }
   Subplebbits {
     [subplebbitAddress: string]: Subplebbit // last recently used database, delete oldest data
   }
@@ -142,9 +139,9 @@ Account {
   subscriptions: SubplebbitAddress[],
   blockedAddresses: {[address: Address]: boolean}, // hide address from feed and notifications
   limitedAddresses: {[address: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
-  theme: 'light' | 'dark
   karma: Karma
   unreadNotificationCount: number
+  subplebbits: {[subplebbitAddress: Address]: AccountSubplebbit} // the subplebbits moderated or created by the user
 }
 Karma {
   commentUpvoteCount
@@ -157,8 +154,8 @@ Karma {
   downvoteCount
   score
 }
-AccountSubplebbit {
-  autoStart: boolean
+AccountSubplebbit { // the subplebbits moderated or created by the user
+  autoStart: boolean // default true, the subplebbit should start publishing (subplebbit.start()) when the app is launched
 }
 AccountComment extends Comment {
   index: number // the index of the comment in the AccountComments array and database

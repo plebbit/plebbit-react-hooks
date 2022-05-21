@@ -40,6 +40,10 @@ export type AccountCommentsReplies = {[replyCid: string]: AccountCommentReply}
 export type AccountsCommentsReplies = {[accountId: string]: AccountCommentsReplies}
 export type AccountNotifications = AccountNotification[]
 export type AccountsNotifications = {[accountId: string]: AccountNotifications}
+export type AccountSubplebbit = {
+  role: 'onwer' | 'admin' | 'moderator'
+  autoStart?: boolean
+}
 
 /**
  * Feeds provider

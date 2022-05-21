@@ -10,7 +10,16 @@ try {
 
 import {setPlebbitJs} from './lib/plebbit-js'
 import PlebbitProvider from './providers/plebbit-provider'
-import {useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountNotifications} from './hooks/accounts'
+import {
+  useAccount,
+  useAccounts,
+  useAccountsActions,
+  useAccountComments,
+  useAccountVotes,
+  useAccountVote,
+  useAccountNotifications,
+  useAccountSubplebbits,
+} from './hooks/accounts'
 
 import {useComment, useComments} from './hooks/comments'
 import {useSubplebbit, useSubplebbits} from './hooks/subplebbits'
@@ -27,6 +36,7 @@ export {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountSubplebbits,
   useAccountNotifications,
   useComment,
   useComments,
@@ -46,6 +56,7 @@ const hooks = {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountSubplebbits,
   useAccountNotifications,
   useComment,
   useSubplebbit,

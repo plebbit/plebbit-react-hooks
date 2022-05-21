@@ -8,6 +8,7 @@ import {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountSubplebbits,
   UseAccountCommentsOptions,
   useComment,
   useAccountNotifications,
@@ -1145,6 +1146,22 @@ describe('accounts', () => {
       expect(rendered2.result.current.notifications[1].markedAsRead).toBe(true)
       expect(rendered2.result.current.notifications[2].markedAsRead).toBe(true)
       expect(rendered2.result.current.notifications[3].markedAsRead).toBe(true)
+    })
+  })
+
+  describe('useAccountSubplebbits', () => {
+    let rendered: any
+    let waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>(() => useAccountSubplebbits(), {wrapper: PlebbitProvider})
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    test('returns account subplebbits', async () => {
+      await waitFor(() => rendered.result.current['list subplebbit address 1'])
+      expect(rendered.result.current['list subplebbit address 1'].role).toBe('owner')
+      expect(rendered.result.current['list subplebbit address 2'].role).toBe('owner')
     })
   })
 })

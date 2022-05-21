@@ -45,6 +45,9 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
       debug('subplebbitsContext subplebbit update', {subplebbitAddress, updatedSubplebbit, account})
       setSubplebbits((previousSubplebbits) => ({...previousSubplebbits, [subplebbitAddress]: updatedSubplebbit}))
+
+      // TODO: if one of the user account is a moderator, add the subplebbit to account.subplebbit
+      // if one of the account has been removed as a moderator, remove it from account.subplebbit
     })
     subplebbit.update()
   }
