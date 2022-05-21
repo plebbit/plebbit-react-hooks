@@ -13,6 +13,7 @@ import {
   useComment,
   useAccountNotifications,
   useFeed,
+  useSubplebbit,
   setPlebbitJs,
 } from '..'
 import localForage from 'localforage'
@@ -1150,40 +1151,97 @@ describe('accounts', () => {
   })
 
   describe('useAccountSubplebbits', () => {
-    let rendered: any
-    let waitFor: Function
+    describe('with setup', () => {
+      let rendered: any
+      let waitFor: Function
 
-    beforeEach(async () => {
-      rendered = renderHook<any, any>(
-        () => {
+      beforeEach(async () => {
+        rendered = renderHook<any, any>(
+          () => {
+            const accountSubplebbits = useAccountSubplebbits()
+            const account = useAccount()
+            const {setAccount} = useAccountsActions()
+            return {accountSubplebbits, setAccount, account}
+          },
+          {wrapper: PlebbitProvider}
+        )
+        waitFor = testUtils.createWaitFor(rendered)
+
+        await waitFor(() => rendered.result.current.account.name)
+        const {account, setAccount} = rendered.result.current
+        const role = {role: 'moderator'}
+        const subplebbits = {'subplebbit address 1': {role}}
+        await act(async () => {
+          await setAccount({...account, subplebbits})
+        })
+      })
+
+      test('returns owner subplebbits', async () => {
+        await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+        expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
+        expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
+      })
+
+      test('returns moderator subplebbits after setting them', async () => {
+        await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
+        expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
+        await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+        expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
+        expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
+      })
+
+      test('remove subplebbit role to account.subplebbits[subplebbitAddress].role after encountering it removed a subplebbit', async () => {
+        await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
+        expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
+        // subplebbit address 1 doesn't have account.author.address as role, so it gets removed from accountSubplebbits
+        // after a render
+        await waitFor(() => !rendered.result.current.accountSubplebbits['subplebbit address 1'])
+        expect(rendered.result.current.accountSubplebbits['subplebbit address 1']).toBe(undefined)
+      })
+    })
+
+    test('add subplebbit role to account.subplebbits[subplebbitAddress].role after encountering it in a subplebbit', async () => {
+      // don't use the same setup or test doesnt work
+
+      // mock the roles on a new subplebbit
+      const moderatorAuthorAddress = 'author address'
+      const moderatingSubplebbitAddress = 'moderating subplebbit address'
+      const rolesToGet = Subplebbit.prototype.rolesToGet
+      Subplebbit.prototype.rolesToGet = () => ({
+        [moderatorAuthorAddress]: {role: 'moderator'},
+      })
+
+      const rendered = renderHook<any, any>(
+        (subplebbitAddress) => {
           const accountSubplebbits = useAccountSubplebbits()
           const account = useAccount()
           const {setAccount} = useAccountsActions()
+          const subplebbit = useSubplebbit(subplebbitAddress)
           return {accountSubplebbits, setAccount, account}
         },
         {wrapper: PlebbitProvider}
       )
-      waitFor = testUtils.createWaitFor(rendered)
-    })
+      const waitFor = testUtils.createWaitFor(rendered)
+      await waitFor(() => rendered.result.current.account)
 
-    test('returns owner subplebbits', async () => {
-      await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
-      expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role).toBe('owner')
-      expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role).toBe('owner')
-    })
-
-    test('returns moderator subplebbits after setting them', async () => {
-      await waitFor(() => rendered.result.current.account.name)
-      const {account, setAccount} = rendered.result.current
-      const subplebbits = {'subplebbit address 1': {role: 'moderator'}}
+      // change author address
       await act(async () => {
-        await setAccount({...account, subplebbits})
+        await rendered.result.current.setAccount({...rendered.result.current.account, author: {address: moderatorAuthorAddress}})
       })
-      await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
-      expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role).toBe('moderator')
-      await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
-      expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role).toBe('owner')
-      expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role).toBe('owner')
+      await waitFor(() => rendered.result.current.account.author.address === moderatorAuthorAddress)
+      // account subplebbits are not yet added, will be added after we fetch the sub
+      expect(rendered.result.current.accountSubplebbits[moderatingSubplebbitAddress]).toBe(undefined)
+      expect(rendered.result.current.account.subplebbits[moderatingSubplebbitAddress]).toBe(undefined)
+
+      // fetch the moderating subplebbit from the moderator account
+      rendered.rerender(moderatingSubplebbitAddress)
+      await waitFor(() => rendered.result.current.accountSubplebbits[moderatingSubplebbitAddress])
+      expect(rendered.result.current.accountSubplebbits[moderatingSubplebbitAddress].role.role).toBe('moderator')
+      await waitFor(() => rendered.result.current.account.subplebbits[moderatingSubplebbitAddress])
+      expect(rendered.result.current.account.subplebbits[moderatingSubplebbitAddress].role.role).toBe('moderator')
+
+      // unmock the roles
+      Subplebbit.prototype.rolesToGet = rolesToGet
     })
   })
 })

@@ -99,9 +99,10 @@ export function useAccountSubplebbits(accountName?: string) {
   // add listSubplebbits data
   for (const subplebbitAddress in accountSubplebbits) {
     if (ownerSubplebbitAddresses.includes(subplebbitAddress)) {
-      accountSubplebbits[subplebbitAddress].role = 'owner'
+      accountSubplebbits[subplebbitAddress].role = {role: 'owner'}
     }
   }
+  debug('useAccountSubplebbits', {accountSubplebbits})
   return accountSubplebbits
 }
 

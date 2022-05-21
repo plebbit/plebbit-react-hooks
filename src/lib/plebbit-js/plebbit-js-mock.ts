@@ -127,7 +127,19 @@ export class Subplebbit extends EventEmitter {
     this.description = this.address + ' description updated'
     this.emit('update', this)
   }
+
+  // use getting to easily mock it
+  get roles() {
+    return this.rolesToGet()
+  }
+
+  // mock this method to get different roles
+  rolesToGet() {
+    return {}
+  }
 }
+// make roles enumarable so it acts like a regular prop
+Object.defineProperty(Subplebbit.prototype, 'roles', {enumerable: true})
 
 // define it here because also used it plebbit.getSubplebbit()
 const getCommentsPage = (pageCid: string, subplebbit: any) => {

@@ -155,6 +155,7 @@ Karma {
   score
 }
 AccountSubplebbit { // the subplebbits moderated or created by the user
+  role: Role
   autoStart: boolean // default true, the subplebbit should start publishing (subplebbit.start()) when the app is launched
 }
 AccountComment extends Comment {

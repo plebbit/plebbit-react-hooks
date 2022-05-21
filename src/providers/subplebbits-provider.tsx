@@ -6,6 +6,7 @@ const subplebbitsDatabase = localForageLru.createInstance({name: 'subplebbits', 
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:subplebbits-provider')
 import {Props, Subplebbit, Subplebbits, Account} from '../types'
+import {AccountsContext} from './accounts-provider'
 import utils from '../lib/utils'
 
 type SubplebbitsContext = any
@@ -15,6 +16,7 @@ export const SubplebbitsContext = React.createContext<SubplebbitsContext | undef
 const plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
 
 export default function SubplebbitsProvider(props: Props): JSX.Element | null {
+  const accountsContext: any = useContext(AccountsContext)
   const [subplebbits, setSubplebbits] = useState<Subplebbits>({})
 
   const subplebbitsActions: {[key: string]: Function} = {}
@@ -46,8 +48,8 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       debug('subplebbitsContext subplebbit update', {subplebbitAddress, updatedSubplebbit, account})
       setSubplebbits((previousSubplebbits) => ({...previousSubplebbits, [subplebbitAddress]: updatedSubplebbit}))
 
-      // TODO: if one of the user account is a moderator, add the subplebbit to account.subplebbit
-      // if one of the account has been removed as a moderator, remove it from account.subplebbit
+      // if a subplebbit has a role with an account's address add it to the account.subplebbits
+      accountsContext.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
     })
     subplebbit.update()
   }

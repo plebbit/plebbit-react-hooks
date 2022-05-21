@@ -20,6 +20,7 @@ import {
   CreateCommentOptions,
   CreateVoteOptions,
   Comment,
+  Subplebbit,
   AccountComment,
   AccountsComments,
   AccountsNotifications,
@@ -320,6 +321,65 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
   }
 
+  // internal accounts action: if a subplebbit has a role with an account's address
+  // add it to the account.subplebbits database
+  const addSubplebbitRoleToAccountsSubplebbits = async (subplebbit: Subplebbit) => {
+    if (!subplebbit) {
+      return
+    }
+    assert(accounts, `can't use AccountContext.accountActions before initialized`)
+
+    // find subplebbit roles to add and remove
+    const getChange = (accounts: any, subplebbit: any) => {
+      const toAdd: string[] = []
+      const toRemove: string[] = []
+      for (const accountId in accounts) {
+        const account = accounts[accountId]
+        if (!subplebbit.roles?.[account.author.address]) {
+          if (account.subplebbits[subplebbit.address]) {
+            toRemove.push(accountId)
+          }
+        } else {
+          if (!account.subplebbits[subplebbit.address]) {
+            toAdd.push(accountId)
+          }
+        }
+      }
+      return {toAdd, toRemove, hasChange: toAdd.length !== 0 || toRemove.length !== 0}
+    }
+
+    const {hasChange} = getChange(accounts, subplebbit)
+    if (!hasChange) {
+      return
+    }
+
+    setAccounts((previousAccounts) => {
+      const {toAdd, toRemove, hasChange} = getChange(previousAccounts, subplebbit)
+      const nextAccounts = {...previousAccounts}
+
+      // edit databases and build next accounts
+      for (const accountId of toAdd) {
+        const account = {...nextAccounts[accountId]}
+        account.subplebbits = {
+          ...account.subplebbits,
+          [subplebbit.address]: {role: subplebbit.roles[account.author.address]},
+        }
+        nextAccounts[accountId] = account
+        accountsDatabase.addAccount(account)
+      }
+      for (const accountId of toRemove) {
+        const account = {...nextAccounts[accountId]}
+        account.subplebbits = {...account.subplebbits}
+        delete account.subplebbits[subplebbit.address]
+        nextAccounts[accountId] = account
+        accountsDatabase.addAccount(account)
+      }
+
+      debug('accountsActions.addSubplebbitRoleToAccountsSubplebbits', {subplebbit, toAdd, toRemove})
+      return nextAccounts
+    })
+  }
+
   // internal accounts action: mark an account's notifications as read
   const markAccountNotificationsAsRead = async (account: Account) => {
     assert(typeof account?.id === 'string', `AccountContext.markAccountNotificationsAsRead invalid account argument '${account}'`)
@@ -497,6 +557,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       // internal accounts actions
       addCidToAccountComment,
       markAccountNotificationsAsRead,
+      addSubplebbitRoleToAccountsSubplebbits,
     }
   }
 
