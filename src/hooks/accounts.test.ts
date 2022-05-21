@@ -1154,14 +1154,36 @@ describe('accounts', () => {
     let waitFor: Function
 
     beforeEach(async () => {
-      rendered = renderHook<any, any>(() => useAccountSubplebbits(), {wrapper: PlebbitProvider})
+      rendered = renderHook<any, any>(
+        () => {
+          const accountSubplebbits = useAccountSubplebbits()
+          const account = useAccount()
+          const {setAccount} = useAccountsActions()
+          return {accountSubplebbits, setAccount, account}
+        },
+        {wrapper: PlebbitProvider}
+      )
       waitFor = testUtils.createWaitFor(rendered)
     })
 
-    test('returns account subplebbits', async () => {
-      await waitFor(() => rendered.result.current['list subplebbit address 1'])
-      expect(rendered.result.current['list subplebbit address 1'].role).toBe('owner')
-      expect(rendered.result.current['list subplebbit address 2'].role).toBe('owner')
+    test('returns owner subplebbits', async () => {
+      await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+      expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role).toBe('owner')
+      expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role).toBe('owner')
+    })
+
+    test('returns moderator subplebbits after setting them', async () => {
+      await waitFor(() => rendered.result.current.account.name)
+      const {account, setAccount} = rendered.result.current
+      const subplebbits = {'subplebbit address 1': {role: 'moderator'}}
+      await act(async () => {
+        await setAccount({...account, subplebbits})
+      })
+      await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
+      expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role).toBe('moderator')
+      await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+      expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role).toBe('owner')
+      expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role).toBe('owner')
     })
   })
 })
