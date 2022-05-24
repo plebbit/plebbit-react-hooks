@@ -8,7 +8,7 @@ const subplebbitAddress = signers[0].address
 
 const timeout = 600000
 
-describe('accounts', () => {
+describe.skip('accounts', () => {
   before(() => {
     testUtils.silenceUpdateUnmountedComponentWarning()
   })

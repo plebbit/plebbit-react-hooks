@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, debugUtils} = require('../../dist')
+const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const signers = require('../fixtures/signers')
@@ -8,7 +8,7 @@ const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 
 const timeout = 60000
 
-describe.only('subplebbits (plebbit-js mock)', () => {
+describe.skip('subplebbits (plebbit-js mock)', () => {
   before(() => {
     testUtils.silenceUpdateUnmountedComponentWarning()
   })
@@ -22,12 +22,13 @@ describe.only('subplebbits (plebbit-js mock)', () => {
 
     before(async () => {
       rendered = renderHook(
-        (subplebbitAddress) => {
+        ({subplebbitAddress, commentCid} = {}) => {
           const account = useAccount()
           const accountsActions = useAccountsActions()
           const subplebbit = useSubplebbit(subplebbitAddress)
           const accountVotes = useAccountVotes()
-          return {account, subplebbit, accountVotes, ...accountsActions}
+          const comment = useComment(commentCid)
+          return {account, subplebbit, comment, accountVotes, ...accountsActions}
         },
         {wrapper: PlebbitProvider}
       )
@@ -55,7 +56,7 @@ describe.only('subplebbits (plebbit-js mock)', () => {
     })
 
     it('get subplebbits one at a time', async () => {
-      rendered.rerender(subplebbitAddress)
+      rendered.rerender({subplebbitAddress})
       await waitFor(() => typeof rendered.result.current.subplebbit.address === 'string')
       expect(rendered.result.current.subplebbit.address).to.equal(subplebbitAddress)
       await waitFor(() => rendered.result.current.subplebbit.posts.pages.hot.comments[0])
@@ -120,6 +121,19 @@ describe.only('subplebbits (plebbit-js mock)', () => {
       // await waitFor(() => typeof rendered.result.current.accountVotes[0].commentCid === 'string')
       // expect(rendered.result.current.accountVotes.length).to.equal(1)
       // expect(rendered.result.current.accountVotes[0].commentCid).to.equal(commentCid)
+    })
+
+    it('get comments one at a time', async () => {
+      console.log('before getting comment')
+      rendered.rerender({subplebbitAddress, commentCid})
+      await waitFor(() => typeof rendered.result.current.comment.cid === 'string')
+      console.log('after getting comment')
+      expect(rendered.result.current.comment?.cid).to.equal(commentCid)
+      // wait for comment.on('update') to fetch the ipns
+      await waitFor(() => typeof rendered.result.current.comment.cid === 'string' && typeof rendered.result.current.comment.upvoteCount === 'number')
+      console.log('after getting comment update')
+      expect(rendered.result.current.comment?.cid).to.equal(commentCid)
+      expect(rendered.result.current.comment?.upvoteCount).to.equal(1)
     })
   })
 })
