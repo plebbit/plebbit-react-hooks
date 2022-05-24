@@ -1,7 +1,9 @@
 // NOTE: don't import plebbit-js directly to be able to replace the implementation
 
 import PlebbitJsMockContent from './plebbit-js-mock-content'
-const Plebbit = (options: any): any => ({})
+import Debug from 'debug'
+import Plebbit from '@plebbit/plebbit-js'
+const debug = Debug('plebbit-react-hooks:plebbit-js')
 
 const PlebbitJs = {
   Plebbit: Plebbit,
@@ -15,6 +17,12 @@ const PlebbitJs = {
  */
 export function setPlebbitJs(_Plebbit: any) {
   PlebbitJs.Plebbit = _Plebbit
+  debug('setPlebbitJs', _Plebbit?.constructor?.name)
+}
+
+export function restorePlebbitJs() {
+  PlebbitJs.Plebbit = Plebbit
+  debug('restorePlebbitJs')
 }
 
 try {

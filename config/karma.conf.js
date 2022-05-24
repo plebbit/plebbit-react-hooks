@@ -4,7 +4,7 @@ require('dotenv').config()
 
 // same as .mocharc.js
 const mochaConfig = {
-  timeout: 30000,
+  timeout: 600000,
 }
 
 // possible to add flags when launching the browser
@@ -14,11 +14,17 @@ const CustomChrome = {
   debug: true,
 }
 
+const DebugChrome = {
+  base: 'Chrome',
+  flags: ['--disable-web-security', '--auto-open-devtools-for-tabs', '--window-size=800,600'],
+  debug: true,
+}
+
 // choose which browser you prefer
 const browsers = [
   // 'FirefoxHeadless',
-  'CustomChrome',
-  // 'Chrome'
+  // 'CustomChrome',
+  'DebugChrome',
 ]
 
 // add firefox during CI
@@ -69,7 +75,7 @@ module.exports = function (config) {
     },
 
     // chrome with disabled security
-    customLaunchers: {CustomChrome},
+    customLaunchers: {CustomChrome, DebugChrome},
 
     // list of browsers to run the tests in
     browsers,
@@ -84,6 +90,8 @@ module.exports = function (config) {
     port: 9371,
     colors: true,
     logLevel: config.LOG_INFO,
+    // logLevel: config.LOG_DEBUG,
+    browserNoActivityTimeout: mochaConfig.timeout,
   })
 }
 

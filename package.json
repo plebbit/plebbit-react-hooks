@@ -29,10 +29,12 @@
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git",
     "@types/debug": "4.1.7",
     "@types/uuid": "8.3.4",
     "assert": "2.0.0",
     "debug": "4.3.3",
+    "git": "^0.1.5",
     "localforage": "1.10.0",
     "uuid": "8.3.2"
   },
@@ -57,6 +59,7 @@
     "eslint-plugin-react-hooks": "4.3.0",
     "eslint-plugin-tsdoc": "0.2.14",
     "fs-extra": "10.1.0",
+    "go-ipfs": "^0.12.2",
     "husky": "4.3.8",
     "jest": "27.2.4",
     "karma": "6.3.20",
@@ -73,6 +76,7 @@
     "react-dom": "17.0.2",
     "react-test-renderer": "17.0.2",
     "sinon": "14.0.0",
+    "tempy": "1.0.1",
     "ts-jest": "27.0.5",
     "typescript": "4.5.4",
     "webpack": "5.72.1",

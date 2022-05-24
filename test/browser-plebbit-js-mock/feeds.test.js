@@ -1,17 +1,19 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useFeed, setPlebbitJs} = require('../../dist')
+const {PlebbitProvider, useFeed, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
-setPlebbitJs(PlebbitJsMock)
 
 const timeout = 10000
 
-describe('feeds', () => {
+describe('feeds (plebbit-js mock)', () => {
   before(() => {
+    setPlebbitJs(PlebbitJsMock)
     testUtils.silenceUpdateUnmountedComponentWarning()
   })
-  after(() => {
+  after(async () => {
     testUtils.restoreAll()
+    await debugUtils.deleteDatabases()
+    restorePlebbitJs()
   })
 
   describe('get feed', () => {

@@ -2,6 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   rootDir: '../src',
+  setupFilesAfterEnv: ['../config/jest.setup.js'],
 
   /* no need for ignore when only testing rootDir ../src
      might change later to include some tests in ../test

@@ -8,7 +8,7 @@ try {
   }
 } catch (e) {}
 
-import {setPlebbitJs} from './lib/plebbit-js'
+import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
 import PlebbitProvider from './providers/plebbit-provider'
 import {
   useAccount,
@@ -45,6 +45,7 @@ export {
   useFeed,
   useBufferedFeeds,
   setPlebbitJs,
+  restorePlebbitJs,
   debugUtils,
 }
 
