@@ -3,6 +3,8 @@ const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAcco
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
+const signers = require('../fixtures/signers')
+const subplebbitAddress = signers[0].address
 
 const timeout = 600000
 
@@ -40,9 +42,8 @@ describe('accounts', () => {
     })
   })
 
-  describe.only('publish', () => {
+  describe('publish', () => {
     let rendered, waitFor, publishedCid
-    const subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 
     before(async () => {
       rendered = renderHook(
@@ -78,7 +79,7 @@ describe('accounts', () => {
       console.log('after set account')
     })
 
-    describe.only(`create comment`, () => {
+    describe(`create comment`, () => {
       let onChallengeCalled = 0
       let challenge, comment
       const onChallenge = (_challenge, _comment) => {
@@ -145,61 +146,6 @@ describe('accounts', () => {
         // expect(typeof rendered.result.current.accountComments[0].cid).to.equal('string')
         // publishedCid = rendered.result.current.accountComments[0].cid
         // console.log('after cid', publishedCid)
-      })
-    })
-
-    describe(`create vote`, () => {
-      let onChallengeCalled = 0
-      let challenge, vote
-      const onChallenge = (_challenge, _vote) => {
-        challenge = _challenge
-        vote = _vote
-        onChallengeCalled++
-      }
-      let onChallengeVerificationCalled = 0
-      let challengeVerification, voteVerified
-      const onChallengeVerification = (_challengeVerification, _voteVerified) => {
-        challengeVerification = _challengeVerification
-        voteVerified = _voteVerified
-        onChallengeVerificationCalled++
-      }
-
-      it('publish vote', async () => {
-        const publishVoteOptions = {
-          subplebbitAddress,
-          commentCid: publishedCid,
-          vote: 1,
-          onChallenge,
-          onChallengeVerification,
-        }
-        await act(async () => {
-          await rendered.result.current.publishVote(publishVoteOptions)
-        })
-      })
-
-      it('onChallenge gets called', async () => {
-        // onChallenge gets call backed once
-        await waitFor(() => onChallengeCalled > 0)
-        expect(onChallengeCalled).to.equal(1)
-
-        expect(challenge.type).to.equal('CHALLENGE')
-        expect(typeof vote.publishChallengeAnswers).to.equal('function')
-      })
-
-      it('onChallengeVerification gets called', async () => {
-        // publish challenge answer and wait for verification
-        vote.publishChallengeAnswers(['2'])
-        await waitFor(() => onChallengeVerificationCalled > 0)
-        expect(onChallengeVerificationCalled).to.equal(1)
-        expect(challengeVerification.type).to.equal('CHALLENGEVERIFICATION')
-        expect(voteVerified.constructor.name).to.equal('Vote')
-      })
-
-      it('published vote is in account votes', async () => {
-        await waitFor(() => rendered.result.current.accountVotes.length > 0)
-        await waitFor(() => typeof rendered.result.current.accountVotes[0].commentCid === 'string')
-        expect(rendered.result.current.accountVotes.length).to.equal(1)
-        expect(rendered.result.current.accountVotes[0].commentCid).to.equal('Qm...')
       })
     })
   })

@@ -43,12 +43,15 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
 
-  const plebbit = await Plebbit({
+  const plebbitOptions = {
     ipfsHttpClientOptions: `http://localhost:${offlineIpfs.apiPort}/api/v0`,
     // pubsubHttpClientOptions: `http://localhost:${pubsubIpfs.apiPort}/api/v0`,
     pubsubHttpClientOptions: `https://pubsubprovider.xyz/api/v0`,
     dataPath: plebbitDataPath,
-  })
+  }
+
+  const plebbit = await Plebbit(plebbitOptions)
+  const plebbit2 = await Plebbit(plebbitOptions)
   const signer = await plebbit.createSigner({privateKey, type: 'rsa'})
 
   console.log(`creating subplebbit with address '${signer.address}'...`)
@@ -68,12 +71,18 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
   console.log('subplebbit created')
 
   console.log('starting subplebbit...')
-  try {
-    await subplebbit.start()
-  } catch (e) {
-    console.log('subplebbit.start() error:', e.message)
-    console.log(e)
-  }
-  await subplebbit.start()
+  await subplebbit.start(500)
   console.log(`subplebbit started with address ${signer.address}`)
+
+  console.log('publish test comment')
+  const comment = await plebbit2.createComment({
+    title: 'comment title',
+    content: 'comment content',
+    subplebbitAddress: signer.address,
+    signer,
+    author: {address: signer.address},
+  })
+  comment.once('challenge', () => comment.publishChallengeAnswers(['2']))
+  await comment.publish()
+  console.log('test comment published')
 })()
