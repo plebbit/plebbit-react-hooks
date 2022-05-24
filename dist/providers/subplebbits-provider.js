@@ -7,15 +7,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import localForageLru from '../lib/localforage-lru';
 const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 });
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:providers:subplebbitsprovider');
+const debug = Debug('plebbit-react-hooks:providers:subplebbits-provider');
+import { AccountsContext } from './accounts-provider';
 import utils from '../lib/utils';
 export const SubplebbitsContext = React.createContext(undefined);
 const plebbitGetSubplebbitPending = {};
 export default function SubplebbitsProvider(props) {
+    const accountsContext = useContext(AccountsContext);
     const [subplebbits, setSubplebbits] = useState({});
     const subplebbitsActions = {};
     subplebbitsActions.addSubplebbitToContext = (subplebbitAddress, account) => __awaiter(this, void 0, void 0, function* () {
@@ -41,6 +43,8 @@ export default function SubplebbitsProvider(props) {
             yield subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit);
             debug('subplebbitsContext subplebbit update', { subplebbitAddress, updatedSubplebbit, account });
             setSubplebbits((previousSubplebbits) => (Object.assign(Object.assign({}, previousSubplebbits), { [subplebbitAddress]: updatedSubplebbit })));
+            // if a subplebbit has a role with an account's address add it to the account.subplebbits
+            accountsContext.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit);
         }));
         subplebbit.update();
     });

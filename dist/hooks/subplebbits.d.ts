@@ -10,3 +10,7 @@ export declare function useSubplebbit(subplebbitAddress?: string, accountName?: 
  * the active account.
  */
 export declare function useSubplebbits(subplebbitAddresses?: string[], accountName?: string): any[];
+/**
+ * Returns all the subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
+ */
+export declare function useListSubplebbits(): string[];

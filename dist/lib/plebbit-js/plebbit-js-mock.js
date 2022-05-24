@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import EventEmitter from 'events';
-export { mockPlebbitJs as mockPlebbitJs } from '.';
 // TODO: make load time changeable with env variable
 // so the frontend can test with latency
 const loadingTime = 10;
@@ -18,7 +17,7 @@ export class Plebbit {
         return __awaiter(this, void 0, void 0, function* () {
             return {
                 privateKey: 'private key',
-                address: 'address'
+                address: 'address',
             };
         });
     }
@@ -45,6 +44,11 @@ export class Plebbit {
             return subplebbit;
         });
     }
+    listSubplebbits() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return ['list subplebbit address 1', 'list subplebbit address 2'];
+        });
+    }
     createComment(createCommentOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Comment(createCommentOptions);
@@ -68,6 +72,11 @@ export class Plebbit {
     createVote() {
         return __awaiter(this, void 0, void 0, function* () {
             return new Vote();
+        });
+    }
+    createCommentEdit(createCommentEditOptions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new CommentEdit(createCommentEditOptions);
         });
     }
 }
@@ -116,7 +125,17 @@ export class Subplebbit extends EventEmitter {
         this.description = this.address + ' description updated';
         this.emit('update', this);
     }
+    // use getting to easily mock it
+    get roles() {
+        return this.rolesToGet();
+    }
+    // mock this method to get different roles
+    rolesToGet() {
+        return {};
+    }
 }
+// make roles enumarable so it acts like a regular prop
+Object.defineProperty(Subplebbit.prototype, 'roles', { enumerable: true });
 // define it here because also used it plebbit.getSubplebbit()
 const getCommentsPage = (pageCid, subplebbit) => {
     const page = {
@@ -220,6 +239,8 @@ export class Comment extends Publication {
     }
 }
 export class Vote extends Publication {
+}
+export class CommentEdit extends Publication {
 }
 export default function () {
     return __awaiter(this, void 0, void 0, function* () {

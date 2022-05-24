@@ -11,7 +11,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import validator from '../../lib/validator';
 import assert from 'assert';
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:providers:accountsprovider');
+const debug = Debug('plebbit-react-hooks:providers:accounts-provider');
 import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
 import utils from '../../lib/utils';
@@ -116,7 +116,7 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
-        let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions);
+        let createCommentOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions), { onChallenge: undefined, onChallengeVerification: undefined });
         let accountCommentIndex;
         let comment = yield account.plebbit.createComment(createCommentOptions);
         const publishAndRetryFailedChallengeVerification = () => {
@@ -161,7 +161,32 @@ export default function AccountsProvider(props) {
         });
     });
     accountsActions.publishCommentEdit = (publishCommentEditOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
-        throw Error('TODO: not implemented');
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        validator.validateAccountsActionsPublishCommentEditArguments({ publishCommentEditOptions, accountName, account });
+        let createCommentEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentEditOptions), { onChallenge: undefined, onChallengeVerification: undefined });
+        let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
+        const publishAndRetryFailedChallengeVerification = () => {
+            commentEdit.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
+                publishCommentEditOptions.onChallenge(challenge, commentEdit);
+            }));
+            commentEdit.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+                publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit);
+                if (!challengeVerification.challengeSuccess) {
+                    // publish again automatically on fail
+                    createCommentEditOptions = Object.assign(Object.assign({}, createCommentEditOptions), { timestamp: Math.round(Date.now() / 1000) });
+                    commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
+                    publishAndRetryFailedChallengeVerification();
+                }
+            }));
+            commentEdit.publish();
+        };
+        publishAndRetryFailedChallengeVerification();
+        debug('accountsActions.createCommentEdit', { createCommentEditOptions });
     });
     accountsActions.deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
@@ -174,7 +199,7 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
-        let createVoteOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
+        let createVoteOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions), { onChallenge: undefined, onChallengeVerification: undefined });
         let vote = yield account.plebbit.createVote(createVoteOptions);
         const publishAndRetryFailedChallengeVerification = () => {
             vote.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
@@ -184,6 +209,7 @@ export default function AccountsProvider(props) {
                 publishVoteOptions.onChallengeVerification(challengeVerification, vote);
                 if (!challengeVerification.challengeSuccess) {
                     // publish again automatically on fail
+                    createVoteOptions = Object.assign(Object.assign({}, createVoteOptions), { timestamp: Math.round(Date.now() / 1000) });
                     vote = yield account.plebbit.createVote(createVoteOptions);
                     publishAndRetryFailedChallengeVerification();
                 }
@@ -194,7 +220,6 @@ export default function AccountsProvider(props) {
         yield accountsDatabase.addAccountVote(account.id, createVoteOptions);
         debug('accountsActions.publishVote', { createVoteOptions });
         setAccountsVotes(Object.assign(Object.assign({}, accountsVotes), { [account.id]: Object.assign(Object.assign({}, accountsVotes[account.id]), { [createVoteOptions.commentCid]: createVoteOptions }) }));
-        return vote;
     });
     accountsActions.blockAddress = (address, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
@@ -226,6 +251,58 @@ export default function AccountsProvider(props) {
                 break;
             }
         }
+    });
+    // internal accounts action: if a subplebbit has a role with an account's address
+    // add it to the account.subplebbits database
+    const addSubplebbitRoleToAccountsSubplebbits = (subplebbit) => __awaiter(this, void 0, void 0, function* () {
+        if (!subplebbit) {
+            return;
+        }
+        assert(accounts, `can't use AccountContext.accountActions before initialized`);
+        // find subplebbit roles to add and remove
+        const getChange = (accounts, subplebbit) => {
+            var _a;
+            const toAdd = [];
+            const toRemove = [];
+            for (const accountId in accounts) {
+                const account = accounts[accountId];
+                if (!((_a = subplebbit.roles) === null || _a === void 0 ? void 0 : _a[account.author.address])) {
+                    if (account.subplebbits[subplebbit.address]) {
+                        toRemove.push(accountId);
+                    }
+                }
+                else {
+                    if (!account.subplebbits[subplebbit.address]) {
+                        toAdd.push(accountId);
+                    }
+                }
+            }
+            return { toAdd, toRemove, hasChange: toAdd.length !== 0 || toRemove.length !== 0 };
+        };
+        const { hasChange } = getChange(accounts, subplebbit);
+        if (!hasChange) {
+            return;
+        }
+        setAccounts((previousAccounts) => {
+            const { toAdd, toRemove, hasChange } = getChange(previousAccounts, subplebbit);
+            const nextAccounts = Object.assign({}, previousAccounts);
+            // edit databases and build next accounts
+            for (const accountId of toAdd) {
+                const account = Object.assign({}, nextAccounts[accountId]);
+                account.subplebbits = Object.assign(Object.assign({}, account.subplebbits), { [subplebbit.address]: { role: subplebbit.roles[account.author.address] } });
+                nextAccounts[accountId] = account;
+                accountsDatabase.addAccount(account);
+            }
+            for (const accountId of toRemove) {
+                const account = Object.assign({}, nextAccounts[accountId]);
+                account.subplebbits = Object.assign({}, account.subplebbits);
+                delete account.subplebbits[subplebbit.address];
+                nextAccounts[accountId] = account;
+                accountsDatabase.addAccount(account);
+            }
+            debug('accountsActions.addSubplebbitRoleToAccountsSubplebbits', { subplebbit, toAdd, toRemove });
+            return nextAccounts;
+        });
     });
     // internal accounts action: mark an account's notifications as read
     const markAccountNotificationsAsRead = (account) => __awaiter(this, void 0, void 0, function* () {
@@ -296,9 +373,7 @@ export default function AccountsProvider(props) {
                 (_g = (_f = updatedComment.replies) === null || _f === void 0 ? void 0 : _f.pages) === null || _g === void 0 ? void 0 : _g.old,
                 (_j = (_h = updatedComment.replies) === null || _h === void 0 ? void 0 : _h.pages) === null || _j === void 0 ? void 0 : _j.controversialAll,
             ];
-            const hasReplies = replyPageArray
-                .map((replyPage) => { var _a; return ((_a = replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; })
-                .reduce((prev, curr) => prev + curr) > 0;
+            const hasReplies = replyPageArray.map((replyPage) => { var _a; return ((_a = replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
             if (hasReplies) {
                 setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
                     var _a, _b;
@@ -328,7 +403,10 @@ export default function AccountsProvider(props) {
     useEffect(() => {
         ;
         (() => __awaiter(this, void 0, void 0, function* () {
-            let accountIds, activeAccountId, accounts, accountNamesToAccountIds;
+            let accountIds;
+            let activeAccountId;
+            let accounts;
+            let accountNamesToAccountIds;
             accountIds = (yield accountsDatabase.accountsMetadataDatabase.getItem('accountIds')) || undefined;
             // get accounts from database if any
             if (accountIds === null || accountIds === void 0 ? void 0 : accountIds.length) {
@@ -389,6 +467,7 @@ export default function AccountsProvider(props) {
             // internal accounts actions
             addCidToAccountComment,
             markAccountNotificationsAsRead,
+            addSubplebbitRoleToAccountsSubplebbits,
         };
     }
     debug({

@@ -13,6 +13,10 @@ export declare function useAccounts(): any[] | undefined;
  */
 export declare function useAccountsActions(): any;
 /**
+ * Returns all subplebbits where the account is a creator or moderator
+ */
+export declare function useAccountSubplebbits(accountName?: string): any;
+/**
  * Returns an account's notifications in an array. Unread notifications have a field markedAsRead: false.
  *
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return

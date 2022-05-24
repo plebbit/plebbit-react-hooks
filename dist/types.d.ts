@@ -53,6 +53,10 @@ export declare type AccountNotifications = AccountNotification[];
 export declare type AccountsNotifications = {
     [accountId: string]: AccountNotifications;
 };
+export declare type AccountSubplebbit = {
+    role: 'onwer' | 'admin' | 'moderator';
+    autoStart?: boolean;
+};
 /**
  * Feeds provider
  */

@@ -69,11 +69,98 @@ const urlSuffixes = [
     '?query=string',
     '?query=string&yes=1',
 ];
-const firstNames = ['james', 'robert', 'john', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua'];
-const displayNames = ['COVERCADIGMENTS!', 'Everco__Evidehovi', 'fermind-flashyte', 'FlirtyraForeguiGoldhil_', 'Hanmiddie Headro Herdman', 'Hurigher Irongmug', 'Islandvi   Jumbinte', 'Lackapac Lorvalow', 'MarsEdgyMedprin', 'parispn!!!', 'personna', '  popic😃', 'Riderix\n', 'Romantec__', 'Sellakuk23', '--TickoAim2$', 'Transia4\t', 'Trippah+512', '😃', 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa'];
-const postFlairs = [{ text: 'Analysis' }, { text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850' }, { text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B' }, { text: 'General News' }, { text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!', textColor: '#FFFFFF', backgroundColor: '#5B3A29' }, { text: 'education', textColor: '#000000', backgroundColor: '#4A192C' }, { text: 'MARKETS', backgroundColor: '#F8F32B' }, { text: 'IMPORTANT!!!', backgroundColor: '#C35831' }, { text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', backgroundColor: '#AF2B1E' }, { text: 'MOON 🌕', backgroundColor: '#D36E70' }, { text: 'video', backgroundColor: '#924E7D' },];
-const authorFlairs = [{ text: 'SCAMMER' }, { text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850' }, { text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B' }, { text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }, { text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29' }, { text: 'loser', textColor: '#000000', backgroundColor: '#4A192C' }, { text: 'WINNER', backgroundColor: '#F8F32B' }, { text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831' }, { text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!', backgroundColor: '#AF2B1E' }, { text: '🌕', backgroundColor: '#D36E70' }, { text: 'creator', backgroundColor: '#924E7D' },];
-const reasons = ['SPAM', 'this is spam', 'repeated spamming', 'User is a known scammer', 'NSFW', 'SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'];
+const firstNames = [
+    'james',
+    'robert',
+    'john',
+    'michael',
+    'william',
+    'david',
+    'richard',
+    'joseph',
+    'thomas',
+    'charles',
+    'christopher',
+    'daniel',
+    'matthew',
+    'anthony',
+    'mark',
+    'donald',
+    'steven',
+    'paul',
+    'andrew',
+    'joshua',
+];
+const displayNames = [
+    'COVERCADIGMENTS!',
+    'Everco__Evidehovi',
+    'fermind-flashyte',
+    'FlirtyraForeguiGoldhil_',
+    'Hanmiddie Headro Herdman',
+    'Hurigher Irongmug',
+    'Islandvi   Jumbinte',
+    'Lackapac Lorvalow',
+    'MarsEdgyMedprin',
+    'parispn!!!',
+    'personna',
+    '  popic😃',
+    'Riderix\n',
+    'Romantec__',
+    'Sellakuk23',
+    '--TickoAim2$',
+    'Transia4\t',
+    'Trippah+512',
+    '😃',
+    'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh',
+    'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa',
+];
+const postFlairs = [
+    { text: 'Analysis' },
+    { text: 'ADVICE', textColor: '#000000', backgroundColor: '#252850' },
+    { text: 'comedy', textColor: '#FFFFFF', backgroundColor: '#23282B' },
+    { text: 'General News' },
+    {
+        text: 'Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam Probably a scam!!!!!!!!!!!!!!!!!!!!!!',
+        textColor: '#FFFFFF',
+        backgroundColor: '#5B3A29',
+    },
+    { text: 'education', textColor: '#000000', backgroundColor: '#4A192C' },
+    { text: 'MARKETS', backgroundColor: '#F8F32B' },
+    { text: 'IMPORTANT!!!', backgroundColor: '#C35831' },
+    {
+        text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        backgroundColor: '#AF2B1E',
+    },
+    { text: 'MOON 🌕', backgroundColor: '#D36E70' },
+    { text: 'video', backgroundColor: '#924E7D' },
+];
+const authorFlairs = [
+    { text: 'SCAMMER' },
+    { text: 'Medical Doctor', textColor: '#000000', backgroundColor: '#252850' },
+    { text: 'pro', textColor: '#FFFFFF', backgroundColor: '#23282B' },
+    {
+        text: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    },
+    { text: 'Probably a scammer', textColor: '#FFFFFF', backgroundColor: '#5B3A29' },
+    { text: 'loser', textColor: '#000000', backgroundColor: '#4A192C' },
+    { text: 'WINNER', backgroundColor: '#F8F32B' },
+    { text: 'IMPORTANT VIP!!!', backgroundColor: '#C35831' },
+    {
+        text: 'BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN BE CAREFUL OF THIS MAN!!!!!!!!!!!!!!!!!!',
+        backgroundColor: '#AF2B1E',
+    },
+    { text: '🌕', backgroundColor: '#D36E70' },
+    { text: 'creator', backgroundColor: '#924E7D' },
+];
+const reasons = [
+    'SPAM',
+    'this is spam',
+    'repeated spamming',
+    'User is a known scammer',
+    'NSFW',
+    'SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM SPAM',
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+];
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     assert(string, `cant hash string '${string}'`);
     // if (!window.TextEncoder) {
@@ -102,7 +189,10 @@ const getImageUrl = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     const webp = `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed + 4)}/${yield getNumberBetween(10, 2000, seed + 5)}/${yield getNumberBetween(10, 2000, seed + 6)}.webp`;
     const imageUrls = [
         // jpg & webp
-        jpg, jpg, webp, webp,
+        jpg,
+        jpg,
+        webp,
+        webp,
         'https://samplelib.com/lib/preview/png/sample-bumblebee-400x300.png',
         'https://c.tenor.com/WHs8ooxWJUIAAAAM/really-great-example-right-here-echo-gaming.gif',
         'https://filesamples.com/samples/image/bmp/sample_640%C3%97426.bmp',
@@ -114,7 +204,7 @@ const getImageUrl = (seed) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     const author = {
-        address: yield hash(seed + 'author address')
+        address: yield hash(seed + 'author address'),
     };
     const hasEns = yield getArrayItem([true, false, false, false], seed + 'has ens');
     if (hasEns) {
@@ -130,8 +220,14 @@ const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     if (hasNftAvatar) {
         author.avatar = {
             chainTicker: 'eth',
-            address: yield getArrayItem(['0xed5af388653567af2f388e6224dc7c4b3241c544', '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '0x60e4d786628fea6478f785a6d7e704777c86a7c6', '0x79fcdef22feed20eddacbb2587640e45491b757f', '0x0000000000000000000000000000000000000dead'], seed + 'nft avatar address'),
-            index: yield getNumberBetween(1, 2000, seed + 'nft avatar index')
+            address: yield getArrayItem([
+                '0xed5af388653567af2f388e6224dc7c4b3241c544',
+                '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
+                '0x60e4d786628fea6478f785a6d7e704777c86a7c6',
+                '0x79fcdef22feed20eddacbb2587640e45491b757f',
+                '0x0000000000000000000000000000000000000dead',
+            ], seed + 'nft avatar address'),
+            index: yield getNumberBetween(1, 2000, seed + 'nft avatar index'),
         };
     }
     const hasFlair = yield getArrayItem(rareTrue, seed + 'has author flair');
@@ -144,7 +240,7 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
     const postContent = {
         depth: 0,
         author: yield getAuthor(seed + 'author'),
-        title: yield getArrayItem(commentTitles, seed + 'title')
+        title: yield getArrayItem(commentTitles, seed + 'title'),
     };
     const hasFlair = yield getArrayItem([true, false, false, false], seed + 'has flair');
     if (hasFlair) {
@@ -179,7 +275,7 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
     const subplebbit = {
         pubsubTopic: yield hash(seed + 'pubsub topic'),
         createdAt: yield getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
-        updatedAt: yield getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at')
+        updatedAt: yield getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at'),
     };
     const hasChallengeTypes = yield getArrayItem([true, false], seed + 'has challenge types');
     if (hasChallengeTypes) {
@@ -222,7 +318,7 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
             avatarUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
             bannerUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
             backgroundUrl: yield getArrayItem([undefined, yield getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
-            language: yield getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language')
+            language: yield getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language'),
         };
     }
     const hasFeatures = yield getArrayItem([true, false], seed + 'has features');
@@ -259,7 +355,7 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
             'be nice',
             'Do not link to CNN.',
             'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-            'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO '
+            'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO ',
         ];
     }
     return subplebbit;
@@ -271,17 +367,15 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
     const downvotesPerUpdate = yield getNumberBetween(1, 1000, comment.cid + 'downvoteupdate');
     const commentUpdateContent = {};
     // simulate finding vote counts on an IPNS record
-    commentUpdateContent.upvoteCount =
-        typeof comment.upvoteCount === 'number' ? comment.upvoteCount + upvotesPerUpdate : upvotesPerUpdate;
-    commentUpdateContent.downvoteCount =
-        typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate;
+    commentUpdateContent.upvoteCount = typeof comment.upvoteCount === 'number' ? comment.upvoteCount + upvotesPerUpdate : upvotesPerUpdate;
+    commentUpdateContent.downvoteCount = typeof comment.downvoteCount === 'number' ? comment.downvoteCount + downvotesPerUpdate : downvotesPerUpdate;
     // find the number of replies
     commentUpdateContent.replyCount = 0;
     const hasReplies = yield getArrayItem([true, false, false, false], comment.cid + 'has replies');
     if (hasReplies) {
         commentUpdateContent.replyCount = yield getNumberBetween(0, 30, comment.cid + 'reply count');
         if (comment.depth > 0) {
-            commentUpdateContent.replyCount = commentUpdateContent.replyCount / (Math.pow((comment.depth + 1), 2));
+            commentUpdateContent.replyCount = commentUpdateContent.replyCount / Math.pow((comment.depth + 1), 2);
         }
         if (commentUpdateContent.replyCount < 1) {
             commentUpdateContent.replyCount = 0;
@@ -347,7 +441,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
             timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, pageCid + index),
             cid: yield hash(pageCid + index),
             subplebbitAddress: subplebbit.address,
-            depth: 0
+            depth: 0,
         };
         comment = Object.assign(Object.assign(Object.assign({}, comment), (yield getPostContent(comment.cid))), (yield getCommentUpdateContent(comment)));
         page.comments.push(comment);
@@ -359,7 +453,7 @@ class Plebbit {
         return __awaiter(this, void 0, void 0, function* () {
             return {
                 privateKey: 'private key',
-                address: 'address'
+                address: 'address',
             };
         });
     }
@@ -514,7 +608,7 @@ class Publication extends EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
             // @ts-ignore
-            this.cid = (this.content || this.title || this.link) ? yield hash(this.content + this.title + this.link + 'cid') : undefined;
+            this.cid = this.content || this.title || this.link ? yield hash(this.content + this.title + this.link + 'cid') : undefined;
             const publication = this.cid && { cid: this.cid };
             const challengeVerificationMessage = {
                 type: 'CHALLENGEVERIFICATION',

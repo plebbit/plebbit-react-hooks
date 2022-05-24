@@ -3,7 +3,7 @@ import { useAccount } from './accounts';
 import { FeedsContext } from '../providers/feeds-provider';
 import validator from '../lib/validator';
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:hooks:feeds');
+const debug = Debug('plebbit-react-hooks:hooks:feeds');
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'

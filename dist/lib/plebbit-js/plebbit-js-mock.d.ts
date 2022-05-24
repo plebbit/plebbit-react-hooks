@@ -1,6 +1,5 @@
 /// <reference types="node" />
 import EventEmitter from 'events';
-export { mockPlebbitJs as mockPlebbitJs } from '.';
 export declare const simulateLoadingTime: () => Promise<unknown>;
 export declare class Plebbit {
     createSigner(): Promise<{
@@ -9,10 +8,12 @@ export declare class Plebbit {
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
+    listSubplebbits(): Promise<string[]>;
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     commentToGet(): {};
     createVote(): Promise<Vote>;
+    createCommentEdit(createCommentEditOptions: any): Promise<CommentEdit>;
 }
 export declare class Pages {
     pageCids: any;
@@ -32,6 +33,8 @@ export declare class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions?: any);
     update(): void;
     simulateUpdateEvent(): void;
+    get roles(): {};
+    rolesToGet(): {};
 }
 declare class Publication extends EventEmitter {
     timestamp: number | undefined;
@@ -60,4 +63,7 @@ export declare class Comment extends Publication {
 }
 export declare class Vote extends Publication {
 }
+export declare class CommentEdit extends Publication {
+}
 export default function (): Promise<Plebbit>;
+export {};

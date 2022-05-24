@@ -15,7 +15,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
     const plebbitOptions = {
         ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
         ipfsHttpClientOptions: undefined,
-        pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0'
+        pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
     };
     const plebbit = yield PlebbitJs.Plebbit(plebbitOptions);
     const signer = yield plebbit.createSigner();
@@ -24,6 +24,8 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         address: signer.address,
     };
     const accountName = yield getNextAvailableDefaultAccountName();
+    // subplebbits where the account has a role, like moderator, admin, owner, etc.
+    const subplebbits = {};
     const account = {
         id: uuid(),
         name: accountName,
@@ -33,6 +35,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         plebbitOptions,
         subscriptions: [],
         blockedAddresses: {},
+        subplebbits,
     };
     return account;
 });

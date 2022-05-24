@@ -12,7 +12,7 @@ import { AccountsContext } from './accounts-provider';
 import localForageLru from '../lib/localforage-lru';
 const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 });
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:providers:commentsprovider');
+const debug = Debug('plebbit-react-hooks:providers:comments-provider');
 import utils from '../lib/utils';
 export const CommentsContext = React.createContext(undefined);
 const plebbitGetCommentPending = {};

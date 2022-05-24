@@ -3,7 +3,7 @@ import { useAccount } from './accounts';
 import { CommentsContext } from '../providers/comments-provider';
 import validator from '../lib/validator';
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:hooks:comments');
+const debug = Debug('plebbit-react-hooks:hooks:comments');
 /**
  * @param commentCid - The IPFS CID of the comment to get
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use

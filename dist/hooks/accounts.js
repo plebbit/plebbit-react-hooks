@@ -1,8 +1,9 @@
 import { useMemo, useContext } from 'react';
 import { AccountsContext } from '../providers/accounts-provider';
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:hooks:accounts');
+const debug = Debug('plebbit-react-hooks:hooks:accounts');
 import assert from 'assert';
+import { useListSubplebbits, useSubplebbits } from './subplebbits';
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account id.
@@ -54,6 +55,42 @@ export function useAccountsActions() {
     // e.g. const {createAccount} = useAccountsActions()
     // TODO: possibly return functions that throw 'not ready', or promises that wait until ready
     return {};
+}
+/**
+ * Returns all subplebbits where the account is a creator or moderator
+ */
+export function useAccountSubplebbits(accountName) {
+    const account = useAccount(accountName);
+    // get all unique account subplebbit addresses
+    const ownerSubplebbitAddresses = useListSubplebbits();
+    const accountSubplebbitAddresses = [];
+    if (account === null || account === void 0 ? void 0 : account.subplebbits) {
+        for (const subplebbitAddress in account.subplebbits) {
+            accountSubplebbitAddresses.push(subplebbitAddress);
+        }
+    }
+    const uniqueSubplebbitAddresses = [...new Set([...ownerSubplebbitAddresses, ...accountSubplebbitAddresses])].sort();
+    // fetch all subplebbit data
+    const subplebbitsArray = useSubplebbits(uniqueSubplebbitAddresses, accountName);
+    const subplebbits = {};
+    for (const [i, subplebbit] of subplebbitsArray.entries()) {
+        subplebbits[uniqueSubplebbitAddresses[i]] = subplebbit || {};
+    }
+    // merged subplebbit data with account.subplebbits data
+    const accountSubplebbits = Object.assign({}, subplebbits);
+    if (account === null || account === void 0 ? void 0 : account.subplebbits) {
+        for (const subplebbitAddress in account.subplebbits) {
+            accountSubplebbits[subplebbitAddress] = Object.assign(Object.assign({}, accountSubplebbits[subplebbitAddress]), account.subplebbits[subplebbitAddress]);
+        }
+    }
+    // add listSubplebbits data
+    for (const subplebbitAddress in accountSubplebbits) {
+        if (ownerSubplebbitAddresses.includes(subplebbitAddress)) {
+            accountSubplebbits[subplebbitAddress].role = { role: 'owner' };
+        }
+    }
+    debug('useAccountSubplebbits', { accountSubplebbits });
+    return accountSubplebbits;
 }
 /**
  * Returns an account's notifications in an array. Unread notifications have a field markedAsRead: false.
@@ -172,8 +209,7 @@ const filterPublications = (publications, filter) => {
         if (((_d = filter.parentCids) === null || _d === void 0 ? void 0 : _d.length) && !filter.parentCids.includes(publication.parentCid)) {
             isFilteredOut = true;
         }
-        if (typeof filter.hasParentCid === 'boolean' &&
-            filter.hasParentCid !== Boolean(publication.parentCid)) {
+        if (typeof filter.hasParentCid === 'boolean' && filter.hasParentCid !== Boolean(publication.parentCid)) {
             isFilteredOut = true;
         }
         if (!isFilteredOut) {

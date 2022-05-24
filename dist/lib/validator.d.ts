@@ -1,5 +1,6 @@
-export declare const validateAccountsActionsPublishCommentArguments: ({ publishCommentOptions, accountName, account, }: any) => void;
+export declare const validateAccountsActionsPublishCommentArguments: ({ publishCommentOptions, accountName, account }: any) => void;
 export declare const validateAccountsActionsPublishVoteArguments: ({ publishVoteOptions, accountName, account }: any) => void;
+export declare const validateAccountsActionsPublishCommentEditArguments: ({ publishCommentEditOptions, accountName, account }: any) => void;
 export declare const validateAccountsActionsExportAccountArguments: (accountName: any) => void;
 export declare const validateAccountsActionsSetAccountsOrderArguments: (newOrderedAccountNames: any, accountNames: any) => void;
 export declare const validateAccountsActionsSetAccountArguments: (account: any) => void;
@@ -13,7 +14,8 @@ export declare const validateUseSubplebbitArguments: (subplebbitAddress: any, ac
 export declare const validateUseSubplebbitsArguments: (subplebbitAddresses: any, account: any) => void;
 export declare const validateFeedSortType: (sortType: any) => void;
 declare const validator: {
-    validateAccountsActionsPublishCommentArguments: ({ publishCommentOptions, accountName, account, }: any) => void;
+    validateAccountsActionsPublishCommentArguments: ({ publishCommentOptions, accountName, account }: any) => void;
+    validateAccountsActionsPublishCommentEditArguments: ({ publishCommentEditOptions, accountName, account }: any) => void;
     validateAccountsActionsPublishVoteArguments: ({ publishVoteOptions, accountName, account }: any) => void;
     validateAccountsActionsExportAccountArguments: (accountName: any) => void;
     validateAccountsActionsSetAccountsOrderArguments: (newOrderedAccountNames: any, accountNames: any) => void;

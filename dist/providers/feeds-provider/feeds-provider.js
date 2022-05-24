@@ -15,7 +15,7 @@ import assert from 'assert';
 import localForageLru from '../../lib/localforage-lru';
 import utils from '../../lib/utils';
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:providers:feedsprovider');
+const debug = Debug('plebbit-react-hooks:providers:feeds-provider');
 const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 });
 // reddit loads approximately 25 posts per page
 // while infinite scrolling

@@ -1,9 +1,10 @@
-import { useEffect, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useAccount } from './accounts';
 import { SubplebbitsContext } from '../providers/subplebbits-provider';
 import validator from '../lib/validator';
 import Debug from 'debug';
-const debug = Debug('plebbitreacthooks:hooks:subplebbits');
+const debug = Debug('plebbit-react-hooks:hooks:subplebbits');
+import useInterval from './utils/use-interval';
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -53,4 +54,27 @@ export function useSubplebbits(subplebbitAddresses, accountName) {
     }, [subplebbitAddresses, account]);
     debug('useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits, subplebbits, account });
     return subplebbits;
+}
+/**
+ * Returns all the subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
+ */
+export function useListSubplebbits() {
+    const account = useAccount();
+    const [subplebbitAddresses, setSubplebbitAddresses] = useState([]);
+    const delay = 1000;
+    const immediate = true;
+    useInterval(() => {
+        // TODO: find a way to know the plebbit runtime and don't call the function if browser
+        if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
+            return;
+        }
+        account.plebbit.listSubplebbits().then((_subplebbitAddresses) => {
+            if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
+                return;
+            }
+            setSubplebbitAddresses(_subplebbitAddresses);
+        });
+    }, delay, immediate);
+    debug('useListSubplebbits', { subplebbitAddresses });
+    return subplebbitAddresses;
 }
