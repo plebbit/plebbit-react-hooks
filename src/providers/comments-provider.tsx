@@ -86,8 +86,10 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
   }
 
   // add potential missing data from the Pages API
-  comment.replies.pages = utils.merge(commentData?.replies?.pages || {}, comment?.replies?.pages || {})
-  comment.replies.pageCids = utils.merge(commentData?.replies?.pageCids || {}, comment?.replies?.pageCids || {})
+  if (comment.replies) {
+    comment.replies.pages = utils.merge(commentData?.replies?.pages || {}, comment?.replies?.pages || {})
+    comment.replies.pageCids = utils.merge(commentData?.replies?.pageCids || {}, comment?.replies?.pageCids || {})
+  }
 
   // NOTE: adding missing data is probably not needed with a full implementation of plebbit-js with no bugs
   // but the plebbit mock is barely implemented
