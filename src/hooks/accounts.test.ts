@@ -58,6 +58,55 @@ describe('accounts', () => {
       expect(account.plebbitOptions.pubsubHttpClientOptions).toBe('https://pubsubprovider.xyz/api/v0')
     })
 
+    test(`default plebbit options are not saved to database`, async () => {
+      const plebbitOptions = {ipfsHttpClientOptions: 'http://one:5001/api/v0'}
+      // @ts-ignore
+      window.DefaultPlebbitOptions = plebbitOptions
+
+      const rendered = renderHook(
+        () => {
+          const account = useAccount()
+          const {setAccount} = useAccountsActions()
+          return {account, setAccount}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      const waitFor = testUtils.createWaitFor(rendered)
+      await waitFor(() => rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions === plebbitOptions.ipfsHttpClientOptions)
+      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
+
+      plebbitOptions.ipfsHttpClientOptions = 'http://two:5001/api/v0'
+
+      await act(async () => {
+        const author = {...rendered.result.current.account.author, displayName: 'john'}
+        const account = {...rendered.result.current.account, author}
+        await rendered.result.current.setAccount(account)
+      })
+
+      await waitFor(() => rendered.result.current.account.author.displayName === 'john')
+      console.log(rendered.result.current.account)
+      expect(rendered.result.current.account.author.displayName).toBe('john')
+      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
+
+      plebbitOptions.ipfsHttpClientOptions = 'http://three:5001/api/v0'
+
+      // on second render get the account from database
+      const rendered2 = renderHook(
+        () => {
+          const account = useAccount()
+          return {account}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.account)
+      expect(rendered2.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
+      expect(rendered2.result.current.account.author.displayName).toBe('john')
+
+      // @ts-ignore
+      delete window.DefaultPlebbitOptions
+    })
+
     test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
 
     test('create new accounts', async () => {

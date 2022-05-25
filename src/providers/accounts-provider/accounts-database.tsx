@@ -7,6 +7,7 @@ const accountsDatabase = localForage.createInstance({name: 'accounts'})
 const accountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
 import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
+import {getDefaultPlebbitOptions} from './account-generator'
 
 const getAccounts = async (accountIds: string[]) => {
   validator.validateAccountsDatabaseGetAccountsArguments(accountIds)
@@ -19,6 +20,10 @@ const getAccounts = async (accountIds: string[]) => {
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
     accounts[accountId] = accountsArray[i]
+    // plebbit options aren't saved to database if they are default
+    if (!accounts[accountId].plebbitOptions) {
+      accounts[accountId].plebbitOptions = getDefaultPlebbitOptions()
+    }
     accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
   }
   return accounts
@@ -45,6 +50,10 @@ const addAccount = async (account: Account) => {
 
   // handle updating accounts database
   const accountToPutInDatabase = {...account, plebbit: undefined}
+  // don't save default plebbit options in database in case they change
+  if (JSON.stringify(accountToPutInDatabase.plebbitOptions) === JSON.stringify(getDefaultPlebbitOptions())) {
+    delete accountToPutInDatabase.plebbitOptions
+  }
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
 
   // handle updating accountNamesToAccountIds database

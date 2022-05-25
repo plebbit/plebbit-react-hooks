@@ -4,13 +4,25 @@ import {v4 as uuid} from 'uuid'
 import accountsDatabase from './accounts-database'
 import {Accounts, AccountSubplebbit} from '../../types'
 
-export const generateDefaultAccount = async () => {
-  const plebbitOptions = {
+// default options aren't saved to database so they can be changed
+export const getDefaultPlebbitOptions = () => {
+  // default plebbit options defined by the electron process
+  // @ts-ignore
+  if (window.DefaultPlebbitOptions) {
+    // @ts-ignore
+    return window.DefaultPlebbitOptions
+  }
+  // default plebbit options for web client
+  return {
     ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
     ipfsHttpClientOptions: undefined,
     pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
   }
-  const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
+}
+
+export const generateDefaultAccount = async () => {
+  const plebbitOptions = getDefaultPlebbitOptions()
+  const plebbit = await PlebbitJs.Plebbit()
   const signer = await plebbit.createSigner()
   const author = {
     displayName: null,
@@ -27,8 +39,8 @@ export const generateDefaultAccount = async () => {
     name: accountName,
     author,
     signer,
-    plebbit: plebbit,
     plebbitOptions,
+    plebbit: plebbit,
     subscriptions: [],
     blockedAddresses: {},
     subplebbits,
@@ -63,6 +75,7 @@ const getNextAvailableDefaultAccountName = async () => {
 
 const accountGenerator = {
   generateDefaultAccount,
+  getDefaultPlebbitOptions,
 }
 
 export default accountGenerator

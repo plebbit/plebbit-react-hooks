@@ -15,6 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 const accountsDatabase = localForage.createInstance({ name: 'accounts' });
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' });
 import utils from '../../lib/utils';
+import { getDefaultPlebbitOptions } from './account-generator';
 const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
     validator.validateAccountsDatabaseGetAccountsArguments(accountIds);
     const accounts = {};
@@ -26,6 +27,10 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     for (const [i, accountId] of accountIds.entries()) {
         assert(accountsArray[i], `accountId '${accountId}' not found in database`);
         accounts[accountId] = accountsArray[i];
+        // plebbit options aren't saved to database if they are default
+        if (!accounts[accountId].plebbitOptions) {
+            accounts[accountId].plebbitOptions = getDefaultPlebbitOptions();
+        }
         accounts[accountId].plebbit = yield PlebbitJs.Plebbit(accounts[accountId].plebbitOptions);
     }
     return accounts;
@@ -48,6 +53,10 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     }
     // handle updating accounts database
     const accountToPutInDatabase = Object.assign(Object.assign({}, account), { plebbit: undefined });
+    // don't save default plebbit options in database in case they change
+    if (JSON.stringify(accountToPutInDatabase.plebbitOptions) === JSON.stringify(getDefaultPlebbitOptions())) {
+        delete accountToPutInDatabase.plebbitOptions;
+    }
     yield accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase);
     // handle updating accountNamesToAccountIds database
     let accountNamesToAccountIds = yield accountsMetadataDatabase.getItem('accountNamesToAccountIds');
