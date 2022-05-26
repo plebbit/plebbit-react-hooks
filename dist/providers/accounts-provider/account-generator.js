@@ -75,6 +75,6 @@ const getNextAvailableDefaultAccountName = () => __awaiter(void 0, void 0, void 
 });
 const accountGenerator = {
     generateDefaultAccount,
-    getDefaultPlebbitOptions
+    getDefaultPlebbitOptions,
 };
 export default accountGenerator;
