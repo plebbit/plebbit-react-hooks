@@ -84,7 +84,6 @@ describe('accounts', () => {
       })
 
       await waitFor(() => rendered.result.current.account.author.displayName === 'john')
-      console.log(rendered.result.current.account)
       expect(rendered.result.current.account.author.displayName).toBe('john')
       expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
 

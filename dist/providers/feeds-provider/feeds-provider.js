@@ -94,8 +94,12 @@ export default function FeedsProvider(props) {
     feedsActions.incrementFeedPageNumber = (feedName) => {
         assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`);
         debug('feedsActions.incrementFeedPageNumber', { feedName });
+        assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
         setFeedsOptions((previousFeedsOptions) => {
-            assert(previousFeedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
+            // don't increment page number before the current page has loaded
+            if (previousFeedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
+                return previousFeedsOptions;
+            }
             const feedOptions = Object.assign(Object.assign({}, previousFeedsOptions[feedName]), { pageNumber: previousFeedsOptions[feedName].pageNumber + 1 });
             return Object.assign(Object.assign({}, previousFeedsOptions), { [feedName]: feedOptions });
         });
