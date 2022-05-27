@@ -1,8 +1,5 @@
 {
   "name": "@plebbit/plebbit-react-hooks",
-  "engines": {
-    "node": "^14 || ^16"
-  },
   "keywords": [
     "plebbit",
     "subplebbit"
