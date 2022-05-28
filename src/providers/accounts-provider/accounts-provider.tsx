@@ -118,6 +118,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     // warn user to back up his private key or lose his account permanently
   }
 
+  accountsActions.deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
+    throw Error('TODO: not implemented')
+  }
+
   accountsActions.importAccount = async (serializedAccount: string | Buffer) => {
     throw Error('TODO: not implemented')
     // TODO: deserialize account, import account, if account.name already exists, add ' 2', don't overwrite
@@ -239,8 +243,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     debug('accountsActions.createCommentEdit', {createCommentEditOptions})
   }
 
-  accountsActions.deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
+  accountsActions.publishSubplebbitEdit = async (publishSubplebbitEditOptions: any, accountName?: string) => {
     throw Error('TODO: not implemented')
+    // TODO: a moderator can publish an edit to the subplebbit settings over the pubsub
+    // and the subplebbit owner node will update the subplebbit
   }
 
   accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {

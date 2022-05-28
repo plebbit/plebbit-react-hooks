@@ -118,8 +118,9 @@ AccountsActions {
   importAccount(serializedAccount: string | buffer)
   exportAccount(accountName: string) // don't allow undefined to prevent catastrophic bugs
   publishComment(comment: Comment, accountName?: string)
-  publishCommentEdit(comment: Comment, accountName?: string)
+  publishCommentEdit(commentEdit: CommentEdit, accountName?: string)
   publishVote(vote: Vote, accountName?: string)
+  publishSubplebbitEdit(subplebbitEdit: SubplebbitEdit, accountName?: string)
   publishReport(report: Report, accountName?: string)
   deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string)
   blockAddress(address: string, accountName?: string) // block a subplebbit address or author address from showing on your feed
