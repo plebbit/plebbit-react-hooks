@@ -34,6 +34,16 @@ const getAccount = async (accountId: string) => {
   return accounts[accountId]
 }
 
+const getAccountJson = async (accountId: string) => {
+  assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`)
+  // do not serialize or instanciate anything (unlike getAccount)
+  const account = await accountsDatabase.getItem(accountId)
+  if (!account) {
+    throw Error(`getAccountJson no account in database with accountId '${accountId}'`)
+  }
+  return JSON.stringify(account)
+}
+
 const addAccount = async (account: Account) => {
   validator.validateAccountsDatabaseAddAccountArguments(account)
   let accountIds: string[] | null = await accountsMetadataDatabase.getItem('accountIds')
@@ -251,6 +261,7 @@ const database = {
   getAccountComments,
   addAccountComment,
   addAccount,
+  getAccountJson,
   getAccounts,
   getAccount,
   addAccountCommentReply,

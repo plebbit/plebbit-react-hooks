@@ -39,6 +39,15 @@ const getAccount = (accountId) => __awaiter(void 0, void 0, void 0, function* ()
     const accounts = yield getAccounts([accountId]);
     return accounts[accountId];
 });
+const getAccountJson = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
+    assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`);
+    // do not serialize or instanciate anything (unlike getAccount)
+    const account = yield accountsDatabase.getItem(accountId);
+    if (!account) {
+        throw Error(`getAccountJson no account in database with accountId '${accountId}'`);
+    }
+    return JSON.stringify(account);
+});
 const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     validator.validateAccountsDatabaseAddAccountArguments(account);
     let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
@@ -230,6 +239,7 @@ const database = {
     getAccountComments,
     addAccountComment,
     addAccount,
+    getAccountJson,
     getAccounts,
     getAccount,
     addAccountCommentReply,

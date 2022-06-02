@@ -177,7 +177,7 @@ describe('accounts', () => {
   })
 
   describe('multiple accounts in database', () => {
-    let rendered: any
+    let rendered: any, waitFor: Function
 
     beforeEach(async () => {
       // on first render, the account is undefined because it's not yet loaded from database
@@ -190,6 +190,7 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
+      waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
       try {
@@ -323,13 +324,86 @@ describe('accounts', () => {
 
     test.todo(`fail to edit account.address that doesn't match signer private key`)
 
-    test.todo('export account')
+    test('export account', async () => {
+      let exportedAccountJson: any, exportedAccount: any
+      await act(async () => {
+        exportedAccountJson = await rendered.result.current.exportAccount()
+      })
+      try {
+        exportedAccount = JSON.parse(exportedAccountJson)
+      } catch (e) {
+        console.error(e)
+      }
+      expect(typeof exportedAccountJson).toBe('string')
+      expect(typeof exportedAccount?.id).toBe('string')
+      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
+    })
 
-    test.todo('import account')
+    test('import account', async () => {
+      let exportedAccount: any
+      await act(async () => {
+        try {
+          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
+        } catch (e) {}
+      })
+      expect(typeof exportedAccount?.id).toBe('string')
+      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
 
-    test.todo(`import account with duplicate account name succeeds by adding ' 2' to account name`)
+      exportedAccount.author.name = 'imported author name'
+      exportedAccount.name = 'imported account name'
+      exportedAccount.id = 'imported account id' // this should get reset
+      await act(async () => {
+        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      })
+      rendered.rerender(exportedAccount.name)
 
-    test.todo(`import account with duplicate account id succeeds because account id is reset on import`)
+      await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
+      expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
+      expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
+    })
+
+    test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
+      let exportedAccount: any
+      await act(async () => {
+        try {
+          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
+        } catch (e) {}
+      })
+      expect(typeof exportedAccount?.id).toBe('string')
+      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
+
+      exportedAccount.author.name = 'imported author name'
+      exportedAccount.id = 'imported account id' // this should get reset
+      await act(async () => {
+        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      })
+      // if the imported account name already exists, ' 2' get added to the name
+      rendered.rerender(exportedAccount.name + ' 2')
+
+      await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
+      expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
+    })
+
+    test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
+      let exportedAccount: any
+      await act(async () => {
+        try {
+          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
+        } catch (e) {}
+      })
+      expect(typeof exportedAccount?.id).toBe('string')
+      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
+
+      exportedAccount.name = 'imported account name'
+      await act(async () => {
+        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      })
+      rendered.rerender(exportedAccount.name)
+
+      await waitFor(() => rendered.result.current.account.id)
+      expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
+      expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
+    })
 
     test(`change account order`, async () => {
       expect(rendered.result.current.accounts[0].name).toBe('Account 1')

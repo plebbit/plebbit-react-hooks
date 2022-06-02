@@ -68,11 +68,7 @@ export default function AccountsProvider(props) {
         yield accountsDatabase.accountsMetadataDatabase.setItem('accountIds', accountIds);
         setAccountIds(accountIds);
     });
-    accountsActions.createAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
-        const newAccount = yield accountGenerator.generateDefaultAccount();
-        if (accountName) {
-            newAccount.name = accountName;
-        }
+    const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(this, void 0, void 0, function* () {
         yield accountsDatabase.addAccount(newAccount);
         const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
         const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = yield Promise.all([
@@ -80,12 +76,19 @@ export default function AccountsProvider(props) {
             accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
             accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
         ]);
-        debug('accountsActions.createAccount', { accountName, account: newAccount });
         setAccounts(newAccounts);
         setAccountIds(newAccountIds);
         setAccountNamesToAccountIds(accountNamesToAccountIds);
         setAccountsComments(Object.assign(Object.assign({}, accountsComments), { [newAccount.id]: [] }));
         setAccountsVotes(Object.assign(Object.assign({}, accountsVotes), { [newAccount.id]: {} }));
+    });
+    accountsActions.createAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
+        const newAccount = yield accountGenerator.generateDefaultAccount();
+        if (accountName) {
+            newAccount.name = accountName;
+        }
+        yield addNewAccountToDatabaseAndState(newAccount);
+        debug('accountsActions.createAccount', { accountName, account: newAccount });
     });
     accountsActions.deleteAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
@@ -94,18 +97,41 @@ export default function AccountsProvider(props) {
         // handle the edge case of a user deleting all his account and having none
         // warn user to back up his private key or lose his account permanently
     });
-    accountsActions.importAccount = (serializedAccount) => __awaiter(this, void 0, void 0, function* () {
+    accountsActions.deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
-        // TODO: deserialize account, import account, if account.name already exists, add ' 2', don't overwrite
-        // the 'account' will contain AccountComments and AccountVotes
+    });
+    accountsActions.importAccount = (serializedAccount) => __awaiter(this, void 0, void 0, function* () {
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account;
+        try {
+            account = JSON.parse(serializedAccount);
+        }
+        catch (e) { }
+        assert(account && (account === null || account === void 0 ? void 0 : account.id) && (account === null || account === void 0 ? void 0 : account.name), `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`);
+        // if account.name already exists, add ' 2', don't overwrite
+        if (accountNamesToAccountIds[account.name]) {
+            account.name += ' 2';
+        }
+        // create a new account id
+        const { id } = yield accountGenerator.generateDefaultAccount();
+        const newAccount = Object.assign(Object.assign({}, account), { id });
+        yield addNewAccountToDatabaseAndState(newAccount);
+        debug('accountsActions.importAccount', { account: newAccount });
+        // TODO: the 'account' should contain AccountComments and AccountVotes
         // TODO: add options to only import private key, account settings, or include all account comments/votes history
     });
     accountsActions.exportAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
-        throw Error('TODO: not implemented');
-        // don't allow no account name to avoid catastrophic bugs
-        validator.validateAccountsActionsExportAccountArguments(accountName);
-        // TODO: return account as serialized JSON string for copy paste or save as file
-        // the 'account' will contain AccountComments and AccountVotes
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.exportAccount error account.id '${account === null || account === void 0 ? void 0 : account.id}' activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        const accountJson = yield accountsDatabase.getAccountJson(account.id);
+        debug('accountsActions.exportAccount', { accountJson });
+        return accountJson;
+        // TODO: the 'account' should contain AccountComments and AccountVotes
         // TODO: add options to only export private key, account settings, or include all account comments/votes history
     });
     accountsActions.publishComment = (publishCommentOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
@@ -188,8 +214,10 @@ export default function AccountsProvider(props) {
         publishAndRetryFailedChallengeVerification();
         debug('accountsActions.createCommentEdit', { createCommentEditOptions });
     });
-    accountsActions.deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(this, void 0, void 0, function* () {
+    accountsActions.publishSubplebbitEdit = (publishSubplebbitEditOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
+        // TODO: a moderator can publish an edit to the subplebbit settings over the pubsub
+        // and the subplebbit owner node will update the subplebbit
     });
     accountsActions.publishVote = (publishVoteOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
         assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);

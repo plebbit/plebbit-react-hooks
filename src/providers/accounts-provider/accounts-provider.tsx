@@ -90,11 +90,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     setAccountIds(accountIds)
   }
 
-  accountsActions.createAccount = async (accountName?: string) => {
-    const newAccount = await accountGenerator.generateDefaultAccount()
-    if (accountName) {
-      newAccount.name = accountName
-    }
+  const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
     await accountsDatabase.addAccount(newAccount)
     const newAccounts = {...accounts, [newAccount.id]: newAccount}
     const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all<any>([
@@ -102,12 +98,20 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ])
-    debug('accountsActions.createAccount', {accountName, account: newAccount})
     setAccounts(newAccounts)
     setAccountIds(newAccountIds)
     setAccountNamesToAccountIds(accountNamesToAccountIds)
     setAccountsComments({...accountsComments, [newAccount.id]: []})
     setAccountsVotes({...accountsVotes, [newAccount.id]: {}})
+  }
+
+  accountsActions.createAccount = async (accountName?: string) => {
+    const newAccount = await accountGenerator.generateDefaultAccount()
+    if (accountName) {
+      newAccount.name = accountName
+    }
+    await addNewAccountToDatabaseAndState(newAccount)
+    debug('accountsActions.createAccount', {accountName, account: newAccount})
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
@@ -122,19 +126,42 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     throw Error('TODO: not implemented')
   }
 
-  accountsActions.importAccount = async (serializedAccount: string | Buffer) => {
-    throw Error('TODO: not implemented')
-    // TODO: deserialize account, import account, if account.name already exists, add ' 2', don't overwrite
-    // the 'account' will contain AccountComments and AccountVotes
+  accountsActions.importAccount = async (serializedAccount: string) => {
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account
+    try {
+      account = JSON.parse(serializedAccount)
+    } catch (e) {}
+    assert(account && account?.id && account?.name, `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`)
+
+    // if account.name already exists, add ' 2', don't overwrite
+    if (accountNamesToAccountIds[account.name]) {
+      account.name += ' 2'
+    }
+
+    // create a new account id
+    const {id} = await accountGenerator.generateDefaultAccount()
+    const newAccount = {...account, id}
+    await addNewAccountToDatabaseAndState(newAccount)
+    debug('accountsActions.importAccount', {account: newAccount})
+
+    // TODO: the 'account' should contain AccountComments and AccountVotes
     // TODO: add options to only import private key, account settings, or include all account comments/votes history
   }
 
-  accountsActions.exportAccount = async (accountName: string) => {
-    throw Error('TODO: not implemented')
-    // don't allow no account name to avoid catastrophic bugs
-    validator.validateAccountsActionsExportAccountArguments(accountName)
-    // TODO: return account as serialized JSON string for copy paste or save as file
-    // the 'account' will contain AccountComments and AccountVotes
+  accountsActions.exportAccount = async (accountName?: string) => {
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    assert(account?.id, `accountsActions.exportAccount error account.id '${account?.id}' activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+    const accountJson = await accountsDatabase.getAccountJson(account.id)
+    debug('accountsActions.exportAccount', {accountJson})
+    return accountJson
+
+    // TODO: the 'account' should contain AccountComments and AccountVotes
     // TODO: add options to only export private key, account settings, or include all account comments/votes history
   }
 
