@@ -52,7 +52,7 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     validator.validateAccountsDatabaseAddAccountArguments(account);
     let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
     // handle no duplicate names
-    if (accountIds) {
+    if (accountIds === null || accountIds === void 0 ? void 0 : accountIds.length) {
         const accounts = yield getAccounts(accountIds);
         for (const accountId of accountIds) {
             if (accountId !== account.id && accounts[accountId].name === account.name) {
@@ -85,6 +85,40 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     // handle updating activeAccountId database
     if (accountIds.length === 1) {
         yield accountsMetadataDatabase.setItem('activeAccountId', account.id);
+    }
+});
+const removeAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
+    assert((account === null || account === void 0 ? void 0 : account.id) && typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `accountsDatabase.removeAccount invalid account.id '${account.id}'`);
+    // handle updating accounts database
+    yield accountsDatabase.removeItem(account.id);
+    // handle updating accountNamesToAccountIds database
+    let accountNamesToAccountIds = yield accountsMetadataDatabase.getItem('accountNamesToAccountIds');
+    if (!accountNamesToAccountIds) {
+        accountNamesToAccountIds = {};
+    }
+    delete accountNamesToAccountIds[account.name];
+    yield accountsMetadataDatabase.setItem('accountNamesToAccountIds', accountNamesToAccountIds);
+    // handle updating accountIds database
+    let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
+    accountIds = (accountIds || []).filter(accountId => accountId !== account.id);
+    yield accountsMetadataDatabase.setItem('accountIds', accountIds);
+    // handle updating activeAccountId database
+    const activeAccountId = yield accountsMetadataDatabase.getItem('activeAccountId');
+    if (activeAccountId === account.id) {
+        if (accountIds.length) {
+            yield accountsMetadataDatabase.setItem('activeAccountId', accountIds[0]);
+        }
+        else {
+            yield accountsMetadataDatabase.removeItem('activeAccountId');
+        }
+    }
+    const accountCommentsDatabase = yield getAccountCommentsDatabase(account.id);
+    if (accountCommentsDatabase) {
+        yield accountCommentsDatabase.clear();
+    }
+    const accountVotesDatabase = yield getAccountVotesDatabase(account.id);
+    if (accountVotesDatabase) {
+        yield accountVotesDatabase.clear();
     }
 });
 const accountsCommentsDatabases = {};
@@ -239,6 +273,7 @@ const database = {
     getAccountComments,
     addAccountComment,
     addAccount,
+    removeAccount,
     getAccountJson,
     getAccounts,
     getAccount,

@@ -9,6 +9,7 @@ declare const database: {
     getAccountComments: (accountId: string) => Promise<any[]>;
     addAccountComment: (accountId: string, comment: CreateCommentOptions | Comment, accountCommentIndex?: number | undefined) => Promise<void>;
     addAccount: (account: Account) => Promise<void>;
+    removeAccount: (account: Account) => Promise<void>;
     getAccountJson: (accountId: string) => Promise<string>;
     getAccounts: (accountIds: string[]) => Promise<Accounts>;
     getAccount: (accountId: string) => Promise<any>;

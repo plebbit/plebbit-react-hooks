@@ -61,7 +61,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     assert(accounts?.[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`)
     // use this function to serialize and update all databases
     await accountsDatabase.addAccount(account)
-    const [newAccount, accountNamesToAccountIds] = await Promise.all<any>([
+    const [newAccount, newAccountNamesToAccountIds] = await Promise.all<any>([
       // use this function to deserialize
       accountsDatabase.getAccount(account.id),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
@@ -69,7 +69,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     const newAccounts = {...accounts, [newAccount.id]: newAccount}
     debug('accountsActions.setAccount', {account: newAccount})
     setAccounts(newAccounts)
-    setAccountNamesToAccountIds(accountNamesToAccountIds)
+    setAccountNamesToAccountIds(newAccountNamesToAccountIds)
   }
 
   accountsActions.setAccountsOrder = async (newOrderedAccountNames: string[]) => {
@@ -93,16 +93,21 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
     await accountsDatabase.addAccount(newAccount)
     const newAccounts = {...accounts, [newAccount.id]: newAccount}
-    const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = await Promise.all<any>([
+    const [newAccountIds, newAccountNamesToAccountIds] = await Promise.all<any>([
       accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
-      accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ])
     setAccounts(newAccounts)
     setAccountIds(newAccountIds)
-    setAccountNamesToAccountIds(accountNamesToAccountIds)
+    setAccountNamesToAccountIds(newAccountNamesToAccountIds)
     setAccountsComments({...accountsComments, [newAccount.id]: []})
     setAccountsVotes({...accountsVotes, [newAccount.id]: {}})
+
+    // if there is only 1 account, make it active
+    // otherwise stay on the same active account
+    if (newAccountIds.length === 1) {
+      setActiveAccountId(newAccount.id)
+    }
   }
 
   accountsActions.createAccount = async (accountName?: string) => {
@@ -115,11 +120,31 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   }
 
   accountsActions.deleteAccount = async (accountName?: string) => {
-    throw Error('TODO: not implemented')
-    // TODO: delete account from provider and from persistant storage
-    // change active account to another active account
-    // handle the edge case of a user deleting all his account and having none
-    // warn user to back up his private key or lose his account permanently
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    assert(account?.id, `accountsActions.deleteAccount account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+    await accountsDatabase.removeAccount(account)
+    const newAccounts = {...accounts}
+    delete newAccounts[account.id]
+    const [newAccountIds, newActiveAccountId, newAccountNamesToAccountIds] = await Promise.all<any>([
+      accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
+      accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
+      accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+    ])
+    const newAccountsComments = {...accountsComments}
+    delete newAccountsComments[account.id]
+    const newAccountsVotes = {...accountsVotes}
+    delete newAccountsVotes[account.id]
+    setAccounts(newAccounts)
+    setAccountIds(newAccountIds)
+    setActiveAccountId(newActiveAccountId)
+    setAccountNamesToAccountIds(newAccountNamesToAccountIds)
+    setAccountsComments(newAccountsComments)
+    setAccountsVotes(newAccountsVotes)
   }
 
   accountsActions.deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
@@ -156,7 +181,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    assert(account?.id, `accountsActions.exportAccount error account.id '${account?.id}' activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+    assert(account?.id, `accountsActions.exportAccount account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
     const accountJson = await accountsDatabase.getAccountJson(account.id)
     debug('accountsActions.exportAccount', {accountJson})
     return accountJson

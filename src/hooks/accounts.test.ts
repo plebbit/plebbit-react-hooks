@@ -322,7 +322,9 @@ describe('accounts', () => {
 
     test.todo('edited account can still sign and publish comments')
 
-    test.todo(`fail to edit account.address that doesn't match signer private key`)
+    test.todo(`fail to edit account.author.address that doesn't match signer private key`)
+
+    test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
 
     test('export account', async () => {
       let exportedAccountJson: any, exportedAccount: any
@@ -360,6 +362,13 @@ describe('accounts', () => {
       await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
       expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
       expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
+
+      // imported account persists in database after context reset
+      const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
+      expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
+      expect(rendered2.result.current.name).toBe(exportedAccount.name)
     })
 
     test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
@@ -432,9 +441,98 @@ describe('accounts', () => {
       expect(rendered2.result.current[3].name).toBe('Account 1')
     })
 
-    test.todo(`delete active account, active account switches second account in accountNames`)
+    test(`delete account non-active account`, async () => {
+      const activeAccountIdBefore = rendered.result.current.account.id
+      const accountCountBefore = rendered.result.current.accounts.length
+      await act(async () => {
+        await rendered.result.current.deleteAccount('Account 2')
+      })
 
-    test.todo(`delete all accounts and create a new one, which becomes active`)
+      // deleting a non-active account doesn't affect the active account
+      await waitFor(() => rendered.result.current.accounts.length === accountCountBefore - 1)
+      expect(rendered.result.current.account.id).toBe(activeAccountIdBefore)
+
+      // check that account is deleted
+      rendered.rerender('Account 2')
+      await waitFor(() => rendered.result.current.account === undefined)
+      await waitFor(() => rendered.result.current.accounts.length === accountCountBefore - 1)
+      expect(rendered.result.current.account).toBe(undefined)
+      expect(rendered.result.current.accounts.length).toBe(accountCountBefore - 1)
+      expect(rendered.result.current.accounts[0].name).toBe('Account 1')
+      expect(rendered.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered.result.current.accounts[2].name).toBe('custom name')
+
+      // account deleted persists in database after context reset
+      const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.length > 0)
+      expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
+      expect(rendered2.result.current[0].name).toBe('Account 1')
+      expect(rendered2.result.current[1].name).toBe('Account 3')
+      expect(rendered2.result.current[2].name).toBe('custom name')
+    })
+
+    test(`delete active account, active account switches second account in accountNames`, async () => {
+      const activeAccountIdBefore = rendered.result.current.account.id
+      const accountCountBefore = rendered.result.current.accounts.length
+      await act(async () => {
+        await rendered.result.current.deleteAccount()
+      })
+
+      // deleting active account 'Account 1' switches active account to 'Account 2'
+      await waitFor(() => rendered.result.current.accounts.length === accountCountBefore - 1)
+      expect(rendered.result.current.account.id).not.toBe(activeAccountIdBefore)
+      expect(rendered.result.current.account.name).toBe('Account 2')
+      expect(rendered.result.current.accounts.length).toBe(accountCountBefore - 1)
+
+      // check that account is deleted
+      rendered.rerender('Account 1')
+      await waitFor(() => rendered.result.current.account === undefined)
+      await waitFor(() => rendered.result.current.accounts.length === accountCountBefore - 1)
+      expect(rendered.result.current.account).toBe(undefined)
+      expect(rendered.result.current.accounts.length).toBe(accountCountBefore - 1)
+      expect(rendered.result.current.accounts[0].name).toBe('Account 2')
+      expect(rendered.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered.result.current.accounts[2].name).toBe('custom name')
+
+      // account deleted persists in database after context reset
+      const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.length > 0)
+      expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
+      expect(rendered2.result.current[0].name).toBe('Account 2')
+      expect(rendered2.result.current[1].name).toBe('Account 3')
+      expect(rendered2.result.current[2].name).toBe('custom name')
+    })
+
+    test(`delete all accounts and create a new one, which becomes active`, async () => {
+      let accountCount = rendered.result.current.accounts.length
+      while (accountCount--) {
+        await act(async () => {
+          await rendered.result.current.deleteAccount()
+        })
+        await waitFor(() => rendered.result.current.accounts.length === accountCount)
+      }
+
+      // all accounts have been deleted
+      expect(rendered.result.current.accounts.length).toBe(0)
+      expect(rendered.result.current.account).toBe(undefined)
+
+      // create new account
+      await act(async () => {
+        await rendered.result.current.createAccount()
+      })
+      await waitFor(() => rendered.result.current.accounts.length === 1)
+      await waitFor(() => rendered.result.current.account)
+      expect(rendered.result.current.accounts.length).toBe(1)
+      expect(rendered.result.current.account.name).toBe('Account 1')
+    })
+
+    // already implemented but not tested
+    test.todo('deleting account deletes account comments')
+
+    // already implemented but not tested
+    test.todo('deleting account deletes account votes')
   })
 
   describe('no comments or votes in database', () => {

@@ -41,7 +41,7 @@ export default function AccountsProvider(props) {
         assert(accounts === null || accounts === void 0 ? void 0 : accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`);
         // use this function to serialize and update all databases
         yield accountsDatabase.addAccount(account);
-        const [newAccount, accountNamesToAccountIds] = yield Promise.all([
+        const [newAccount, newAccountNamesToAccountIds] = yield Promise.all([
             // use this function to deserialize
             accountsDatabase.getAccount(account.id),
             accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
@@ -49,7 +49,7 @@ export default function AccountsProvider(props) {
         const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
         debug('accountsActions.setAccount', { account: newAccount });
         setAccounts(newAccounts);
-        setAccountNamesToAccountIds(accountNamesToAccountIds);
+        setAccountNamesToAccountIds(newAccountNamesToAccountIds);
     });
     accountsActions.setAccountsOrder = (newOrderedAccountNames) => __awaiter(this, void 0, void 0, function* () {
         assert(accounts && accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
@@ -71,16 +71,20 @@ export default function AccountsProvider(props) {
     const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(this, void 0, void 0, function* () {
         yield accountsDatabase.addAccount(newAccount);
         const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
-        const [newAccountIds, newActiveAccountId, accountNamesToAccountIds] = yield Promise.all([
+        const [newAccountIds, newAccountNamesToAccountIds] = yield Promise.all([
             accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
-            accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
             accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
         ]);
         setAccounts(newAccounts);
         setAccountIds(newAccountIds);
-        setAccountNamesToAccountIds(accountNamesToAccountIds);
+        setAccountNamesToAccountIds(newAccountNamesToAccountIds);
         setAccountsComments(Object.assign(Object.assign({}, accountsComments), { [newAccount.id]: [] }));
         setAccountsVotes(Object.assign(Object.assign({}, accountsVotes), { [newAccount.id]: {} }));
+        // if there is only 1 account, make it active
+        // otherwise stay on the same active account
+        if (newAccountIds.length === 1) {
+            setActiveAccountId(newAccount.id);
+        }
     });
     accountsActions.createAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
         const newAccount = yield accountGenerator.generateDefaultAccount();
@@ -91,11 +95,31 @@ export default function AccountsProvider(props) {
         debug('accountsActions.createAccount', { accountName, account: newAccount });
     });
     accountsActions.deleteAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
-        throw Error('TODO: not implemented');
-        // TODO: delete account from provider and from persistant storage
-        // change active account to another active account
-        // handle the edge case of a user deleting all his account and having none
-        // warn user to back up his private key or lose his account permanently
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.deleteAccount account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        yield accountsDatabase.removeAccount(account);
+        const newAccounts = Object.assign({}, accounts);
+        delete newAccounts[account.id];
+        const [newAccountIds, newActiveAccountId, newAccountNamesToAccountIds] = yield Promise.all([
+            accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
+            accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
+            accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+        ]);
+        const newAccountsComments = Object.assign({}, accountsComments);
+        delete newAccountsComments[account.id];
+        const newAccountsVotes = Object.assign({}, accountsVotes);
+        delete newAccountsVotes[account.id];
+        setAccounts(newAccounts);
+        setAccountIds(newAccountIds);
+        setActiveAccountId(newActiveAccountId);
+        setAccountNamesToAccountIds(newAccountNamesToAccountIds);
+        setAccountsComments(newAccountsComments);
+        setAccountsVotes(newAccountsVotes);
     });
     accountsActions.deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');
@@ -127,7 +151,7 @@ export default function AccountsProvider(props) {
             const accountId = accountNamesToAccountIds[accountName];
             account = accounts[accountId];
         }
-        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.exportAccount error account.id '${account === null || account === void 0 ? void 0 : account.id}' activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.exportAccount account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
         const accountJson = yield accountsDatabase.getAccountJson(account.id);
         debug('accountsActions.exportAccount', { accountJson });
         return accountJson;

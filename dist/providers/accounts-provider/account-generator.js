@@ -53,7 +53,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
 const getNextAvailableDefaultAccountName = () => __awaiter(void 0, void 0, void 0, function* () {
     const accountIds = yield accountsDatabase.accountsMetadataDatabase.getItem('accountIds');
     const accountNames = [];
-    if (accountIds) {
+    if (accountIds === null || accountIds === void 0 ? void 0 : accountIds.length) {
         const accounts = yield accountsDatabase.getAccounts(accountIds);
         for (const accountId of accountIds) {
             accountNames.push(accounts[accountId].name);

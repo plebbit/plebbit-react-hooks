@@ -7,7 +7,7 @@ export declare function useAccount(accountName?: string): any;
 /**
  * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
-export declare function useAccounts(): any[] | undefined;
+export declare function useAccounts(): any[];
 /**
  * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
  */

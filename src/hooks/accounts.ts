@@ -5,7 +5,7 @@ import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from './subplebbits'
-import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications} from '../types'
+import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../types'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -36,9 +36,8 @@ export function useAccount(accountName?: string) {
  */
 export function useAccounts() {
   const accountsContext = useContext(AccountsContext)
-  let accounts
+  const accounts: Account[] = []
   if (accountsContext?.accountIds?.length && accountsContext?.accounts) {
-    accounts = []
     for (const accountId of accountsContext.accountIds) {
       accounts.push(accountsContext.accounts[accountId])
     }

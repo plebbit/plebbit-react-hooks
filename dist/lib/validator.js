@@ -55,7 +55,7 @@ export const validateAccountsActionsSetActiveAccountArguments = (accountName) =>
 };
 export const validateAccountsDatabaseGetAccountsArguments = (accountIds) => {
     assert(Array.isArray(accountIds), `accountsDatabase.getAccounts accountIds '${accountIds}' not an array`);
-    assert(accountIds.length > 0, `accountsDatabase.getAccounts accountIds '${accountIds}' is empty`);
+    assert(accountIds.length > 0, `accountsDatabase.getAccounts accountIds array is empty`);
     for (const accountId of accountIds) {
         assert(typeof accountId === 'string', `accountsDatabase.getAccountsaccountIds '${accountIds}' accountId '${accountId}' not a string`);
         assert(accountId !== '', `accountsDatabase.getAccounts accountIds '${accountIds}' an accountId argument is empty string`);

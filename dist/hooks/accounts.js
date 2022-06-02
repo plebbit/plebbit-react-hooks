@@ -32,9 +32,8 @@ export function useAccount(accountName) {
 export function useAccounts() {
     var _a;
     const accountsContext = useContext(AccountsContext);
-    let accounts;
+    const accounts = [];
     if (((_a = accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.accountIds) === null || _a === void 0 ? void 0 : _a.length) && (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.accounts)) {
-        accounts = [];
         for (const accountId of accountsContext.accountIds) {
             accounts.push(accountsContext.accounts[accountId]);
         }

@@ -49,7 +49,7 @@ const addAccount = async (account: Account) => {
   let accountIds: string[] | null = await accountsMetadataDatabase.getItem('accountIds')
 
   // handle no duplicate names
-  if (accountIds) {
+  if (accountIds?.length) {
     const accounts: Accounts = await getAccounts(accountIds)
     for (const accountId of accountIds) {
       if (accountId !== account.id && accounts[accountId].name === account.name) {
@@ -86,6 +86,46 @@ const addAccount = async (account: Account) => {
   // handle updating activeAccountId database
   if (accountIds.length === 1) {
     await accountsMetadataDatabase.setItem('activeAccountId', account.id)
+  }
+}
+
+const removeAccount = async (account: Account) => {
+  assert(account?.id && typeof account?.id === 'string', `accountsDatabase.removeAccount invalid account.id '${account.id}'`)
+
+  // handle updating accounts database
+  await accountsDatabase.removeItem(account.id)
+
+  // handle updating accountNamesToAccountIds database
+  let accountNamesToAccountIds: AccountNamesToAccountIds | null = await accountsMetadataDatabase.getItem('accountNamesToAccountIds')
+  if (!accountNamesToAccountIds) {
+    accountNamesToAccountIds = {}
+  }
+  delete accountNamesToAccountIds[account.name]
+  await accountsMetadataDatabase.setItem('accountNamesToAccountIds', accountNamesToAccountIds)
+
+  // handle updating accountIds database
+  let accountIds: string[] | null = await accountsMetadataDatabase.getItem('accountIds')
+  accountIds = (accountIds || []).filter((accountId) => accountId !== account.id)
+  await accountsMetadataDatabase.setItem('accountIds', accountIds)
+
+  // handle updating activeAccountId database
+  const activeAccountId = await accountsMetadataDatabase.getItem('activeAccountId')
+  if (activeAccountId === account.id) {
+    if (accountIds.length) {
+      await accountsMetadataDatabase.setItem('activeAccountId', accountIds[0])
+    } else {
+      await accountsMetadataDatabase.removeItem('activeAccountId')
+    }
+  }
+
+  const accountCommentsDatabase = await getAccountCommentsDatabase(account.id)
+  if (accountCommentsDatabase) {
+    await accountCommentsDatabase.clear()
+  }
+
+  const accountVotesDatabase = await getAccountVotesDatabase(account.id)
+  if (accountVotesDatabase) {
+    await accountVotesDatabase.clear()
   }
 }
 
@@ -261,6 +301,7 @@ const database = {
   getAccountComments,
   addAccountComment,
   addAccount,
+  removeAccount,
   getAccountJson,
   getAccounts,
   getAccount,
