@@ -187,14 +187,11 @@ Author {
 }
 Signer {
   privateKey?: string | buffer
-  type: 'plebbit1'
+  type: 'rsa'
 }
 Challenge {
   type: 'image' | 'text' | 'audio' | 'video' | 'html' // tells the client how to display the challenge, start with implementing image and text only first
-  challenge: buffer // data required to complete the challenge, could be html, png, etc.
-}
-FeedItem {
-  cid?: string // Currently feeds are used to reference comments, but might reference other stuff later
+  challenge: string // data required to complete the challenge, could be html, png, etc.
 }
 ```
 
