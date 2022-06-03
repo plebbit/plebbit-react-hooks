@@ -280,6 +280,15 @@ export default function AccountsProvider(props) {
         // limit how many times per feed page an address can appear, limitPercent 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
         throw Error('TODO: not implemented');
     });
+    accountsActions.createSubplebbit = (createSubplebbitOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        return account.plebbit.createSubplebbit(createSubplebbitOptions);
+    });
     // internal accounts action: the comment CID is not known at the time of publishing, so every time
     // we fetch a new comment, check if its our own, and attempt to add the CID
     const addCidToAccountComment = (comment) => __awaiter(this, void 0, void 0, function* () {

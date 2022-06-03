@@ -10,6 +10,7 @@ export declare type PublishCommentEditOptions = any;
 export declare type Challenge = any;
 export declare type ChallengeVerification = any;
 export declare type CreateCommentOptions = any;
+export declare type CreateSubplebbitOptions = any;
 export declare type CreateVoteOptions = any;
 export declare type Comment = any;
 export declare type Subplebbit = any;

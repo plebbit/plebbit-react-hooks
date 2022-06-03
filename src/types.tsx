@@ -11,6 +11,7 @@ export type PublishCommentEditOptions = any
 export type Challenge = any
 export type ChallengeVerification = any
 export type CreateCommentOptions = any
+export type CreateSubplebbitOptions = any
 export type CreateVoteOptions = any
 export type Comment = any
 export type Subplebbit = any

@@ -100,7 +100,7 @@ const removeAccount = (account) => __awaiter(void 0, void 0, void 0, function* (
     yield accountsMetadataDatabase.setItem('accountNamesToAccountIds', accountNamesToAccountIds);
     // handle updating accountIds database
     let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
-    accountIds = (accountIds || []).filter(accountId => accountId !== account.id);
+    accountIds = (accountIds || []).filter((accountId) => accountId !== account.id);
     yield accountsMetadataDatabase.setItem('accountIds', accountIds);
     // handle updating activeAccountId database
     const activeAccountId = yield accountsMetadataDatabase.getItem('activeAccountId');

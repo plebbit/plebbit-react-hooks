@@ -1464,4 +1464,24 @@ describe('accounts', () => {
       Subplebbit.prototype.rolesToGet = rolesToGet
     })
   })
+
+  test('createSublebbit', async () => {
+    const rendered = renderHook<any, any>(
+      () => {
+        const account = useAccount()
+        const accountsActions = useAccountsActions()
+        return {account, ...accountsActions}
+      },
+      {wrapper: PlebbitProvider}
+    )
+    const waitFor = testUtils.createWaitFor(rendered)
+    await waitFor(() => rendered.result.current.account)
+
+    const address = 'subplebbit address'
+    let subplebbit: any
+    await act(async () => {
+      subplebbit = await rendered.result.current.createSubplebbit({address})
+    })
+    expect(subplebbit?.address).toBe(address)
+  })
 })

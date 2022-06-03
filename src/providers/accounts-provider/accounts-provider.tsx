@@ -18,6 +18,7 @@ import {
   Challenge,
   ChallengeVerification,
   CreateCommentOptions,
+  CreateSubplebbitOptions,
   CreateVoteOptions,
   Comment,
   Subplebbit,
@@ -352,6 +353,16 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   accountsActions.limitAddress = async (address: string | number, limitPercent: number, accountName?: string) => {
     // limit how many times per feed page an address can appear, limitPercent 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
     throw Error('TODO: not implemented')
+  }
+
+  accountsActions.createSubplebbit = async (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string) => {
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    return account.plebbit.createSubplebbit(createSubplebbitOptions)
   }
 
   // internal accounts action: the comment CID is not known at the time of publishing, so every time
