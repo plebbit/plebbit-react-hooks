@@ -310,7 +310,47 @@ publishComment({
 
 #### Create a vote
 
+```js
+const {publishVote} = useAccountsActions()
+
+publishVote({
+  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+  vote: 1,
+  subplebbitAddress: 'news.eth',
+  onChallenge,
+  onChallengeVerification
+})
+```
+
 #### Create a comment edit
+
+```js
+const {publishCommentEdit} = useAccountsActions()
+
+publishCommentEdit({
+  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+  content: 'edited content',
+  subplebbitAddress: 'news.eth',
+  onChallenge,
+  onChallengeVerification
+})
+```
+
+#### Delete a comment
+
+```js
+const {publishCommentEdit} = useAccountsActions()
+
+publishCommentEdit({
+  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+  removed: true,
+  subplebbitAddress: 'news.eth',
+  onChallenge,
+  onChallengeVerification
+})
+
+// TODO: implement accountActions.deleteComment to remove your comment from your local accountComments database
+```
 
 #### Get feed
 
@@ -347,6 +387,20 @@ const author: {...account.author, displayName: 'John'}
 const editedAccount = {...account, author}
 
 await setAccount(editedAccount)
+```
+
+#### Delete account
+
+> Note: deleting account is unrecoverable, warn the user to export/backup his account before deleting
+
+```js
+const {deleteAccount} = useAccountsActions()
+
+// delete active account
+await deleteAccount()
+
+// delete account by name
+await deleteAccount('Account 2')
 ```
 
 #### Get your own comments and votes
@@ -406,19 +460,53 @@ const accounts = useAccounts()
 const accountsUnreadNotificationsCounts = accounts?.map(account => account.unreadNotificationCount)
 ```
 
-#### Create a subplebbit
+#### (Desktop only) Create a subplebbit
 
-```
+```js
+const {createSubplebbit} = useAccountsActions()
+const subplebbit = await createSubplebbit(createSubplebbitOptions)
+
+// after the subplebbit is created, fetch it using
+const subplebbits = useAccountSubplebbits()
+// or
+const _subplebbit = useSubplebbit(subplebbit.address)
 ```
 
-#### Edit your subplebbit settings
+#### (Desktop only) List the subplebbits you created
 
-```
+```js
+const subplebbits = useAccountSubplebbits()
 ```
 
-#### Edit a comment
+#### (Desktop only) Edit your subplebbit settings
 
+```js
+const subplebbit = useSubplebbit('your-subplebbit-address.eth')
+await subplebbit.edit(editSubplebbitOptions)
 ```
+
+#### Export and import account
+
+```js
+const {exportAccount, importAccount, setActiveAccount, setAccountsOrder} = useAccountsActions()
+
+// get active account 'Account 1'
+const activeAccount = useAccount()
+
+// export active account, tell user to copy or download this json
+const activeAccountJson = await exportAccount()
+
+// import account
+await importAccount(activeAccountJson)
+
+// get imported account 'Account 1 2' (' 2' gets added to account.name if account.name already exists)
+const importedAccount = useAccount('Account 1 2')
+
+// make imported account active account
+await setActiveAccount('Account 1 2')
+
+// reorder the accounts list
+await setAccountsOrder(['Account 1 2', 'Account 1'])
 ```
 
 ### Algorithms
