@@ -205,9 +205,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       author: account.author,
       signer: account.signer,
       ...publishCommentOptions,
-      onChallenge: undefined,
-      onChallengeVerification: undefined,
     }
+    delete createCommentOptions.onChallenge
+    delete createCommentOptions.onChallengeVerification
 
     let accountCommentIndex: number
 
@@ -271,9 +271,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       author: account.author,
       signer: account.signer,
       ...publishCommentEditOptions,
-      onChallenge: undefined,
-      onChallengeVerification: undefined,
     }
+    delete createCommentEditOptions.onChallenge
+    delete createCommentEditOptions.onChallengeVerification
 
     let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
     const publishAndRetryFailedChallengeVerification = () => {
@@ -316,9 +316,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       author: account.author,
       signer: account.signer,
       ...publishVoteOptions,
-      onChallenge: undefined,
-      onChallengeVerification: undefined,
     }
+    delete createVoteOptions.onChallenge
+    delete createVoteOptions.onChallengeVerification
 
     let vote = await account.plebbit.createVote(createVoteOptions)
     const publishAndRetryFailedChallengeVerification = () => {

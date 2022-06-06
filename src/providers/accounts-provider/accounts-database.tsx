@@ -199,13 +199,11 @@ const addAccountVote = async (accountId: string, createVoteOptions: CreateCommen
   )
   const accountVotesDatabase = getAccountVotesDatabase(accountId)
   const length = (await accountVotesDatabase.getItem('length')) || 0
-  const vote = {
-    ...createVoteOptions,
-    signer: undefined,
-    author: undefined,
-    onChallenge: undefined,
-    onChallengeVerification: undefined,
-  }
+  const vote = {...createVoteOptions}
+  delete vote.signer
+  delete vote.author
+  delete vote.onChallenge
+  delete vote.onChallengeVerification
   await Promise.all([
     accountVotesDatabase.setItem(vote.commentCid, vote),
     accountVotesDatabase.setItem(String(length), vote),
