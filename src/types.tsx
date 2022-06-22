@@ -16,6 +16,8 @@ export type CreateVoteOptions = any
 export type Comment = any
 export type Subplebbit = any
 export type AccountNotification = any
+export type Nft = any
+export type Author = any
 
 /**
  * Subplebbits and comments provider
@@ -107,3 +109,12 @@ export type UseBufferedFeedOptions = {
  * Utils
  */
 export type Props = {children?: React.ReactChild}
+
+/**
+ * Other
+ */
+export type BlockchainProvider = {
+  chainId?: number
+  url?: string
+}
+export type BlockchainProviders = {[chainTicker: string]: BlockchainProvider}

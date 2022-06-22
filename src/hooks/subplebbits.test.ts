@@ -1,8 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useSubplebbit, useSubplebbits, setPlebbitJs} from '..'
+import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider} from '..'
 import {useListSubplebbits} from './subplebbits'
-import PlebbitProvider from '../providers/plebbit-provider'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)

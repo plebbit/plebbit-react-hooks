@@ -47,7 +47,7 @@ describe('accounts', () => {
       }
       const account = rendered.result.current
       expect(account.name).toBe('Account 1')
-      expect(account.author.displayName).toBe(null)
+      expect(account.author.displayName).toBe(undefined)
       expect(typeof account.author.address).toBe('string')
       expect(Array.isArray(account.subscriptions)).toBe(true)
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').toBe(true)
@@ -265,7 +265,7 @@ describe('accounts', () => {
     test('edit non active account display name', async () => {
       rendered.rerender('Account 2')
       expect(rendered.result.current.account.name).toBe('Account 2')
-      expect(rendered.result.current.account.author.displayName).toBe(null)
+      expect(rendered.result.current.account.author.displayName).toBe(undefined)
       const newAccount = JSON.parse(JSON.stringify({...rendered.result.current.account}))
       newAccount.author.displayName = 'display name john'
       await act(async () => {
@@ -288,7 +288,7 @@ describe('accounts', () => {
 
     test('edit active account name and display name', async () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
-      expect(rendered.result.current.account.author.displayName).toBe(null)
+      expect(rendered.result.current.account.author.displayName).toBe(undefined)
       const newAccount = JSON.parse(JSON.stringify({...rendered.result.current.account}))
       newAccount.author.displayName = 'display name john'
       newAccount.name = 'account name john'
