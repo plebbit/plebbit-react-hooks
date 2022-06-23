@@ -97,6 +97,11 @@ useFeed(subplebbitAddresses: string[], sortType?: string): {feed: Feed, loadMore
 useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[]) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
 ```
+#### Authors Hooks
+```
+useResolvedAuthorAddress(authorAddress?: string, accountName?: string): string | undefined
+useAuthorAvatarImageUrl(author?: Author, accountName?: string): string | undefined
+```
 
 #### Util functions
 ```
@@ -249,6 +254,9 @@ const post = useComment(commentCid)
 ```js
 const comment = useComment(commentCid)
 const comments = useComments([commentCid1, commentCid2, commentCid3])
+
+// get the nft avatar image url of the comment author
+const authorAvatarImageUrl = useAuthorAvatarImageUrl(comment.author)
 ```
 
 #### Get a subplebbit
@@ -384,6 +392,10 @@ const author: {...account.author, displayName: 'John'}
 const editedAccount = {...account, author}
 
 await setAccount(editedAccount)
+
+// check if the user has set his ENS name properly
+const resolvedAuthorAddress = useResolvedAuthorAddress('username.eth')
+// resolvedAuthorAddress should equal to account.signer.address
 ```
 
 #### Delete account

@@ -8,6 +8,21 @@ import {Nft, BlockchainProviders, Author} from '../types'
 import {ethers} from 'ethers'
 
 /**
+ * @param author - The Author object to resolve the avatar image URL of.
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+// NOTE: useAuthorAvatarImageUrl tests are skipped, if changes are made they must be tested manually
+export function useAuthorAvatarImageUrl(author?: Author, accountName?: string) {
+  const verified = useVerifiedAuthorAvatarSignature(author, accountName)
+  // don't try to get avatar image url at all if signature isn't verified
+  const avatar = verified ? author?.avatar : undefined
+  const nftImageUrl = useNftImageUrl(avatar, accountName)
+  debug('useAuthorAvatarImageUrl', {author, verified, nftImageUrl})
+  return nftImageUrl
+}
+
+/**
  * @param nft - The NFT object to resolve the image URL of.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
@@ -38,15 +53,6 @@ export function useNftImageUrl(nft?: Nft, accountName?: string) {
   return nftImageUrl
 }
 
-export function useAuthorAvatarImageUrl(author?: Author, accountName?: string) {
-  const verified = useVerifiedAuthorAvatarSignature(author, accountName)
-  // don't try to get avatar image url at all if signature isn't verified
-  const avatar = verified ? author?.avatar : undefined
-  const nftImageUrl = useNftImageUrl(avatar, accountName)
-  debug('useAuthorAvatarImageUrl', {author, verified, nftImageUrl})
-  return nftImageUrl
-}
-
 // NOTE: useVerifiedAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
 export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: string) {
   const account = useAccount(accountName)
@@ -67,6 +73,11 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
       }
     })()
   }, [author?.avatar, author?.address, blockchainProviders])
+
+  // don't verify nft signature when using mock content during development
+  if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
+    return true
+  }
 
   debug('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
   return verified
