@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useAuthorAvatarImageUrl, useResolvedAuthorAddress, PlebbitProvider, setPlebbitJs, useAccount} from '..'
-import {getNftImageUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './authors'
+import {getNftImageUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock from '../lib/plebbit-js/plebbit-js-mock'
 import {ethers} from 'ethers'
@@ -126,6 +126,42 @@ describe('authors', () => {
       // manually check the logs to see if it actually works on not
       await waitFor(() => typeof rendered.result.current === 'string')
       expect(rendered.result.current).toBe(undefined)
+    })
+  })
+
+  describe('author address', () => {
+    const timeout = 30000
+    jest.setTimeout(timeout)
+
+    // skip because uses internet and not deterministic
+    test.skip('useResolvedAuthorAddress', async () => {
+      const rendered = renderHook<any, any>((authorAddress) => useResolvedAuthorAddress(authorAddress), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current).toBe(undefined)
+
+      // test eth network
+      rendered.rerender('plebbit.eth')
+      await waitFor(() => typeof rendered.result.current === 'string')
+      expect(rendered.result.current).toBe('QmX18Ls7iss1BLXYjZqP5faFoXih7YYSUkADdATHxiXmnu')
+    })
+
+    // skip because uses internet and not deterministic
+    // also cache and pending is difficult to test without console logging it
+    test.skip('resolveAuthorAddress (cache and pending)', async () => {
+      const rendered = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      await waitFor(() => rendered.result.current)
+      expect(rendered.result.current).not.toBe(undefined)
+      console.log(rendered.result.current)
+      const blockchainProviders = rendered.result.current?.plebbitOptions?.blockchainProviders
+
+      // const res = await resolveAuthorAddress('plebbit.eth', blockchainProviders)
+      // console.log(res)
+      // const cachedRes = await resolveAuthorAddress('plebbit.eth', blockchainProviders)
+      // console.log(cachedRes)
+
+      const res = await Promise.all([resolveAuthorAddress('plebbit.eth', blockchainProviders), resolveAuthorAddress('plebbit.eth', blockchainProviders)])
+      console.log(res)
     })
   })
 })

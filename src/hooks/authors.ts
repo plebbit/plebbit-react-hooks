@@ -180,14 +180,73 @@ export const getNftImageUrl = async (nft: Nft, ipfsGatewayUrl: string, blockchai
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
+// NOTE: useResolvedAuthorAddress tests are skipped, if changes are made they must be tested manually
 export function useResolvedAuthorAddress(authorAddress?: string, accountName?: string) {
   const account = useAccount(accountName)
-  let resolvedAuthorAddress
+  // possible to use account.plebbit instead of account.plebbitOptions
+  const blockchainProviders = account?.plebbitOptions?.blockchainProviders
+  const [resolvedAuthorAddress, setResolvedAuthorAddress] = useState<string>()
 
-  // TODO: implement this
+  useEffect(() => {
+    // only support resolving '.eth' for now
+    if (!authorAddress?.endsWith('.eth')) {
+      return
+    }
+    if (!account || !authorAddress) {
+      return
+    }
+    ;(async () => {
+      try {
+        const res = await resolveAuthorAddress(authorAddress, blockchainProviders)
+        setResolvedAuthorAddress(res)
+      } catch (error) {
+        debug('useResolvedAuthorAddress resolveAuthorAddress error', {authorAddress, blockchainProviders, error})
+      }
+    })()
+  }, [authorAddress, blockchainProviders])
 
-  debug('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress})
+  debug('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
   return resolvedAuthorAddress
+}
+
+// NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
+const resolveAuthorAddressPendingPromises: any = {}
+const resolveAuthorAddressCache: any = {}
+export const resolveAuthorAddress = async (authorAddress: string, blockchainProviders: BlockchainProviders) => {
+  // cache the result
+  const cacheKey = JSON.stringify({authorAddress, blockchainProviders})
+  if (resolveAuthorAddressCache[cacheKey]) {
+    return resolveAuthorAddressCache[cacheKey]
+  }
+
+  // don't request the same url twice if fetching is pending
+  if (resolveAuthorAddressPendingPromises[cacheKey]) {
+    return resolveAuthorAddressPendingPromises[cacheKey]
+  }
+  let resolve
+  let resolveAuthorAddressPromise = new Promise((_resolve) => {
+    resolve = _resolve
+  })
+  resolveAuthorAddressPendingPromises[cacheKey] = resolveAuthorAddressPromise
+
+  let resolvedAuthorAddress
+  if (authorAddress.endsWith('.eth')) {
+    resolvedAuthorAddress = await resolveEnsTxtRecord(authorAddress, 'plebbit-author-address', blockchainProviders)
+  } else {
+    throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`)
+  }
+
+  resolveAuthorAddressCache[cacheKey] = resolvedAuthorAddress
+  // @ts-ignore
+  resolve(resolvedAuthorAddress)
+  return resolvedAuthorAddress
+}
+
+const resolveEnsTxtRecord = async (ensName: string, txtRecordName: string, blockchainProviders: BlockchainProviders) => {
+  const blockchainProvider = getBlockchainProvider('eth', blockchainProviders)
+  const resolver = await blockchainProvider.getResolver(ensName)
+  const txtRecordResult = await resolver.getText(txtRecordName)
+  return txtRecordResult
 }
 
 // cache the blockchain providers because only 1 should be running at the same time
