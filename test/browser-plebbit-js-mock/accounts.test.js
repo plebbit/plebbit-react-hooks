@@ -27,7 +27,7 @@ describe('accounts (plebbit-js mock)', () => {
 
       const account = rendered.result.current
       expect(account.name).to.equal('Account 1')
-      expect(account.author.displayName).to.equal(null)
+      expect(account.author.displayName).to.equal(undefined)
       expect(typeof account.author.address).to.equal('string')
       expect(Array.isArray(account.subscriptions)).to.equal(true)
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').to.equal(true)
