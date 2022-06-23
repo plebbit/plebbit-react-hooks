@@ -16,10 +16,11 @@ import {ethers} from 'ethers'
 // NOTE: useAuthorAvatarImageUrl tests are skipped, if changes are made they must be tested manually
 export function useAuthorAvatarImageUrl(author?: Author, accountName?: string) {
   const verified = useVerifiedAuthorAvatarSignature(author, accountName)
-  // don't try to get avatar image url at all if signature isn't verified
-  const avatar = verified ? author?.avatar : undefined
+  const isWhitelisted = useAuthorAvatarIsWhitelisted(author?.avatar)
+  // don't try to get avatar image url at all if signature isn't verified and whitelisted
+  const avatar = verified && isWhitelisted ? author?.avatar : undefined
   const nftImageUrl = useNftImageUrl(avatar, accountName)
-  debug('useAuthorAvatarImageUrl', {author, verified, nftImageUrl})
+  debug('useAuthorAvatarImageUrl', {author, verified, isWhitelisted, nftImageUrl})
   return nftImageUrl
 }
 
@@ -82,6 +83,31 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
 
   debug('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
   return verified
+}
+
+function useAuthorAvatarIsWhitelisted(nft?: Nft) {
+  // TODO: make a list that a dao can vote it, get the list from plebbit.getDefaults()
+  // TODO: make subplebbit owners able to whitelist their own nfts in their subplebbits
+  // TODO: make each user able to whitelist/blacklist any nft they want for their own client
+  // TODO: make hook to list which default nfts are whitelisted to display to the user
+  const whitelistedTokenAddresses: any = {
+    // xpleb nfts
+    '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed': true,
+    // random nfts contracts used in mock content and tests
+    '0xed5af388653567af2f388e6224dc7c4b3241c544': true,
+    '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d': true,
+    '0x60e4d786628fea6478f785a6d7e704777c86a7c6': true,
+    '0x79fcdef22feed20eddacbb2587640e45491b757f': true,
+    '0xf6d8e606c862143556b342149a7fe0558c220375': true,
+  }
+
+  // make sure lower case version exists
+  for (const i in whitelistedTokenAddresses) {
+    whitelistedTokenAddresses[i.toLowerCase()] = whitelistedTokenAddresses[i]
+  }
+
+  const isWhitelisted = nft?.address && Boolean(whitelistedTokenAddresses[nft?.address?.toLowerCase()])
+  return isWhitelisted
 }
 
 // NOTE: verifyAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
