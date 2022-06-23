@@ -130,7 +130,7 @@ describe('authors', () => {
   })
 
   describe('author address', () => {
-    const timeout = 30000
+    const timeout = 60000
     jest.setTimeout(timeout)
 
     // skip because uses internet and not deterministic
@@ -139,7 +139,6 @@ describe('authors', () => {
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
-      // test eth network
       rendered.rerender('plebbit.eth')
       await waitFor(() => typeof rendered.result.current === 'string')
       expect(rendered.result.current).toBe('QmX18Ls7iss1BLXYjZqP5faFoXih7YYSUkADdATHxiXmnu')
