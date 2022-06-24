@@ -44,7 +44,7 @@ export type AccountsCommentsReplies = {[accountId: string]: AccountCommentsRepli
 export type AccountNotifications = AccountNotification[]
 export type AccountsNotifications = {[accountId: string]: AccountNotifications}
 export type AccountSubplebbit = {
-  role: 'onwer' | 'admin' | 'moderator'
+  role: 'owner' | 'admin' | 'moderator'
   autoStart?: boolean
 }
 
@@ -77,7 +77,7 @@ export type SubplebbitPageInfo = {
 }
 export type SubplebbitsPagesInfo = {[infoName: string]: SubplebbitPageInfo}
 export type SubplebbitPage = {
-  nextCid: string
+  nextCid: string | null
   comments: Comment[]
 }
 export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}

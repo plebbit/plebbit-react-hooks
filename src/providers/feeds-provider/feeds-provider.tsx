@@ -403,7 +403,7 @@ const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: SubplebbitsP
   pages.push(firstPage)
   while (true) {
     const nextCid = pages[pages.length - 1]?.nextCid
-    const subplebbitPage = subplebbitsPages[nextCid]
+    const subplebbitPage = nextCid && subplebbitsPages[nextCid]
     if (!subplebbitPage) {
       return pages
     }
