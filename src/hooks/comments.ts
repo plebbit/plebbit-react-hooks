@@ -24,7 +24,9 @@ export function useComment(commentCid?: string, accountName?: string) {
     validator.validateUseCommentArguments(commentCid, account)
     if (!comment) {
       // if comment isn't already in context, add it
-      commentsContext.commentsActions.addCommentToContext(commentCid, account)
+      commentsContext.commentsActions
+        .addCommentToContext(commentCid, account)
+        .catch((error: unknown) => debug('useComment addCommentToContext error', {commentCid, error}))
     }
   }, [commentCid, account])
 
@@ -54,7 +56,9 @@ export function useComments(commentCids?: string[], accountName?: string) {
     for (const commentCid of uniqueCommentCids) {
       // if comment isn't already in context, add it
       if (!commentsContext.comments[commentCid]) {
-        commentsContext.commentsActions.addCommentToContext(commentCid, account)
+        commentsContext.commentsActions
+          .addCommentToContext(commentCid, account)
+          .catch((error: unknown) => debug('useComments addCommentToContext error', {commentCid, error}))
       }
     }
   }, [commentCids, account])
