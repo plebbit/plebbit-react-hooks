@@ -309,18 +309,18 @@ const getSubplebbitContent = async (seed: string) => {
     subplebbit.challengeTypes = ['image']
   }
 
-  const hasModeratorAddresses = await getArrayItem([true, false], seed + 'has moderator addresses')
-  if (hasModeratorAddresses) {
-    subplebbit.moderatorAddresses = [
-      (await getAuthor(seed + 'mod address 1')).address,
-      (await getAuthor(seed + 'mod address 2')).address,
-      (await getAuthor(seed + 'mod address 3')).address,
-      (await getAuthor(seed + 'mod address 4')).address,
-      (await getAuthor(seed + 'mod address 5')).address,
-      (await getAuthor(seed + 'mod address 6')).address,
-      (await getAuthor(seed + 'mod address 7')).address,
-      (await getAuthor(seed + 'mod address 8')).address,
-    ]
+  const hasRoles = await getArrayItem([true, false], seed + 'has roles')
+  if (hasRoles) {
+    subplebbit.roles = {
+      [(await getAuthor(seed + 'mod address 1')).address]: {role: 'owner'},
+      [(await getAuthor(seed + 'mod address 2')).address]: {role: 'admin'},
+      [(await getAuthor(seed + 'mod address 3')).address]: {role: 'moderator'},
+      [(await getAuthor(seed + 'mod address 4')).address]: {role: 'moderator'},
+      [(await getAuthor(seed + 'mod address 5')).address]: {role: 'moderator'},
+      [(await getAuthor(seed + 'mod address 6')).address]: {role: 'moderator'},
+      [(await getAuthor(seed + 'mod address 7')).address]: {role: 'moderator'},
+      [(await getAuthor(seed + 'mod address 8')).address]: {role: 'moderator'},
+    }
   }
 
   const title = await getArrayItem([undefined, ...subplebbitTitles], seed + 'title')
@@ -501,13 +501,15 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
 class Plebbit {
   async createSigner() {
     return {
-      privateKey: 'private key',
-      address: 'address',
+      privateKey:
+        'private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key',
+      address: await hash('address' + Math.random()),
     }
   }
 
   async createSubplebbit(createSubplebbitOptions: any) {
-    return new Subplebbit(createSubplebbitOptions)
+    const signer = await this.createSigner()
+    return new Subplebbit({signer, ...createSubplebbitOptions})
   }
 
   async getSubplebbit(subplebbitAddress: string) {
@@ -596,29 +598,53 @@ class Subplebbit extends EventEmitter {
   createdAt: number | undefined
   updatedAt: number | undefined
   challengeTypes: string[] | undefined
-  moderatorAddresses: string[] | undefined
+  roles: any | undefined
   flairs: any | undefined
   suggested: any | undefined
   features: any | undefined
   rules: string[] | undefined
+  signer: any | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
-    this.posts = new Pages({subplebbit: this})
     this.pubsubTopic = createSubplebbitOptions?.pubsubTopic
     this.createdAt = createSubplebbitOptions?.createdAt
     this.updatedAt = createSubplebbitOptions?.updatedAt
     this.challengeTypes = createSubplebbitOptions?.challengeTypes
-    this.moderatorAddresses = createSubplebbitOptions?.moderatorAddresses
+    this.roles = createSubplebbitOptions?.roles
     this.flairs = createSubplebbitOptions?.flairs
     this.suggested = createSubplebbitOptions?.suggested
     this.features = createSubplebbitOptions?.features
     this.rules = createSubplebbitOptions?.rules
+    this.title = createSubplebbitOptions?.title
+    this.description = createSubplebbitOptions?.description
+
+    for (const prop in createSubplebbitOptions) {
+      if (createSubplebbitOptions[prop]) {
+        // @ts-ignore
+        this[prop] = createSubplebbitOptions[prop]
+      }
+    }
+    this.posts = new Pages({subplebbit: this})
+
+    if (!this.address && this.signer?.address) {
+      this.address = this.signer.address
+    }
 
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
     this.updating = false
+  }
+
+  async edit(editSubplebbitOptions: any) {
+    assert(editSubplebbitOptions && typeof editSubplebbitOptions === 'object', `invalid editSubplebbitOptions '${editSubplebbitOptions}'`)
+    for (const prop in editSubplebbitOptions) {
+      if (editSubplebbitOptions[prop]) {
+        // @ts-ignore
+        this[prop] = editSubplebbitOptions[prop]
+      }
+    }
   }
 
   update() {

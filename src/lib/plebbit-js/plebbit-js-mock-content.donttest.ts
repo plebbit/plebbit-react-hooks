@@ -194,4 +194,29 @@ describe('mock content', () => {
       console.error(e)
     }
   })
+
+  test('create subplebbit', async () => {
+    const rendered = renderHook<any, any>(() => useAccountsActions(), {
+      wrapper: PlebbitProvider,
+    })
+
+    try {
+      await rendered.waitFor(() => typeof rendered.result.current.createSubplebbit === 'function', {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+
+    console.log('creating subplebbit')
+    const subplebbit = await rendered.result.current.createSubplebbit({
+      title: 'title',
+      description: 'description',
+    })
+    console.log({subplebbit})
+
+    console.log('editing subplebbit')
+    await subplebbit.edit({
+      address: 'name.eth',
+    })
+    console.log({subplebbit})
+  })
 })
