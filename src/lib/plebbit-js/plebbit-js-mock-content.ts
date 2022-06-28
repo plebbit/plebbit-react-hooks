@@ -498,6 +498,9 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
   return page
 }
 
+// array of subplebbits probably created by the user
+let createdSubplebbits: any = []
+
 class Plebbit {
   async createSigner() {
     return {
@@ -509,7 +512,14 @@ class Plebbit {
 
   async createSubplebbit(createSubplebbitOptions: any) {
     const signer = await this.createSigner()
-    return new Subplebbit({signer, ...createSubplebbitOptions})
+    const subplebbit = new Subplebbit({signer, ...createSubplebbitOptions})
+
+    // keep a list of subplebbits the user probably created himself to use with listSubplebbits
+    if (!createSubplebbitOptions?.address) {
+      createdSubplebbits.push(subplebbit)
+    }
+
+    return subplebbit
   }
 
   async getSubplebbit(subplebbitAddress: string) {
@@ -532,6 +542,11 @@ class Plebbit {
       subplebbit[prop] = subplebbitContent[prop]
     }
     return subplebbit
+  }
+
+  async listSubplebbits() {
+    const subplebbitAddresses = createdSubplebbits.map((subplebbit: any) => subplebbit.address)
+    return [...new Set(subplebbitAddresses)]
   }
 
   async createComment(createCommentOptions: any) {

@@ -10,7 +10,7 @@ process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
 
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useComment, useSubplebbit, useFeed, useAccountsActions} from '../../index'
+import {useComment, useSubplebbit, useFeed, useAccountsActions, useAccountSubplebbits} from '../../index'
 import PlebbitProvider from '../../providers/plebbit-provider'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
@@ -109,6 +109,56 @@ describe('mock content', () => {
     }
     // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
     console.log(rendered.result.current)
+  })
+
+  test('use account subplebbits', async () => {
+    const rendered = renderHook<any, any>(
+      () => {
+        const {createSubplebbit} = useAccountsActions()
+        const accountSubplebbits = useAccountSubplebbits()
+        return {createSubplebbit, accountSubplebbits}
+      },
+      {
+        wrapper: PlebbitProvider,
+      }
+    )
+
+    try {
+      await rendered.waitFor(() => typeof rendered.result.current?.createSubplebbit === 'function', {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+    console.log(rendered.result.current?.accountSubplebbits)
+
+    console.log('creating subplebbit')
+    const subplebbit = await rendered.result.current.createSubplebbit({
+      title: 'title',
+      description: 'description',
+    })
+    console.log({subplebbit})
+
+    // wait for account subplebbits
+    try {
+      await rendered.waitFor(() => JSON.stringify(rendered.result.current?.accountSubplebbits) !== '{}', {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+    const previousAccountSubplebbits = rendered.result.current?.accountSubplebbits
+    console.log(rendered.result.current?.accountSubplebbits)
+
+    console.log('editing subplebbit')
+    await subplebbit.edit({
+      address: 'name.eth',
+    })
+    console.log({subplebbit})
+
+    // wait for account subplebbits address update
+    try {
+      await rendered.waitFor(() => JSON.stringify(rendered.result.current?.accountSubplebbits) !== JSON.stringify(previousAccountSubplebbits), {timeout: 60000})
+    } catch (e) {
+      console.error(e)
+    }
+    console.log(rendered.result.current?.accountSubplebbits)
   })
 
   test.only('use feed', async () => {
