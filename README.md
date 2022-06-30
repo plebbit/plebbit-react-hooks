@@ -473,10 +473,13 @@ const accountsUnreadNotificationsCounts = accounts?.map(account => account.unrea
 
 ```js
 const {createSubplebbit} = useAccountsActions()
+const createSubplebbitOptions = {title: 'My subplebbit title'}
 const subplebbit = await createSubplebbit(createSubplebbitOptions)
 
 // after the subplebbit is created, fetch it using
-const subplebbits = useAccountSubplebbits()
+const accountSubplebbits = useAccountSubplebbits()
+const accountSubplebbitAddresses = Object.keys(accountSubplebbits)
+const subplebbits = useSubplebbits(accountSubplebbitAddresses)
 // or
 const _subplebbit = useSubplebbit(subplebbit.address)
 ```
@@ -484,7 +487,9 @@ const _subplebbit = useSubplebbit(subplebbit.address)
 #### (Desktop only) List the subplebbits you created
 
 ```js
-const subplebbits = useAccountSubplebbits()
+const accountSubplebbits = useAccountSubplebbits()
+const ownerSubplebbitAddresses = Object.keys(accountSubplebbits).map(subplebbitAddress => accountSubplebbits[subplebbitAddress].role === 'owner')
+const subplebbits = useSubplebbits(ownerSubplebbitAddresses)
 ```
 
 #### (Desktop only) Edit your subplebbit settings
