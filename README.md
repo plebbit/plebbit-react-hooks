@@ -128,12 +128,20 @@ AccountsActions {
   publishSubplebbitEdit(subplebbitEdit: SubplebbitEdit, accountName?: string)
   publishReport(report: Report, accountName?: string)
   deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string)
+  subscribe(subplebbitAddress: string, , accountName?: string) // subscribe to a subplebbit or multisub
+  unsubscribe(subplebbitAddress: string, , accountName?: string)
   blockAddress(address: string, accountName?: string) // block a subplebbit address or author address from showing on your feed
+  unblockAddress(address: string, accountName?: string)
   limitAddress(address: string | number, limitPercent: number, accountName?: string) // instead of blocking, limit the percent of your feed an address can take
+  unlimitAddress(address: string | number, limitPercent: number, accountName?: string)
   saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
+  unsaveComment(commentCid: string, accountName?: string)
   followComment(commentCid: string, accountName?: string) // get notifications for comments that aren't your own
+  unfollowComment(commentCid: string, accountName?: string)
   hideComment(commentCid: string, accountName?: string) // hide a comment from showing up anywhere
+  unhideComment(commentCid: string, accountName?: string)
   followAuthor(authorAddress: string, accountName?: string) // no method to do this in the backend yet, could use IPNS
+  unfollowAuthor(authorAddress: string, accountName?: string)
 }
 Account {
   id: string // random immutable string
