@@ -346,6 +346,55 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     })
   }
 
+  accountsActions.subscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+    assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.subscribe invalid subplebbitAddress '${subplebbitAddress}'`)
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    assert(account?.id, `accountsActions.subscribe account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+    const subscriptions: string[] = account.subscriptions || []
+    if (subscriptions.includes(subplebbitAddress)) {
+      throw Error(`account '${account.id}' already subscribed to '${subplebbitAddress}'`)
+    }
+    subscriptions.push(subplebbitAddress)
+
+    const updatedAccount = {...account, subscriptions}
+    // update account in db
+    await accountsDatabase.addAccount(updatedAccount)
+    const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+    debug('accountsActions.subscribe', {account: updatedAccount, accountName, subplebbitAddress})
+    setAccounts(updatedAccounts)
+  }
+
+  accountsActions.unsubscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+    assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.unsubscribe invalid subplebbitAddress '${subplebbitAddress}'`)
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    assert(account?.id, `accountsActions.unsubscribe account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+    let subscriptions: string[] = account.subscriptions || []
+    if (!subscriptions.includes(subplebbitAddress)) {
+      throw Error(`account '${account.id}' already unsubscribed from '${subplebbitAddress}'`)
+    }
+    // remove subplebbitAddress
+    subscriptions = subscriptions.filter((address) => address !== subplebbitAddress)
+
+    const updatedAccount = {...account, subscriptions}
+    // update account in db
+    await accountsDatabase.addAccount(updatedAccount)
+    const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+    debug('accountsActions.unsubscribe', {account: updatedAccount, accountName, subplebbitAddress})
+    setAccounts(updatedAccounts)
+  }
+
   accountsActions.blockAddress = async (address: string | number, accountName?: string) => {
     throw Error('TODO: not implemented')
   }

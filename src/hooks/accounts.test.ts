@@ -528,6 +528,56 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
     })
 
+    test(`subscribe and unsubscribe to subplebbit`, async () => {
+      const subplebbitAddress = 'tosubscribeto.eth'
+      const subplebbitAddress2 = 'tosubscribeto2.eth'
+
+      // subscribe to 1 sub
+      await act(async () => {
+        await rendered.result.current.subscribe(subplebbitAddress)
+      })
+      await waitFor(() => rendered.result.current.account.subscriptions.length === 1)
+      expect(rendered.result.current.account.subscriptions).toEqual([subplebbitAddress])
+
+      // fail subscribing twice
+      await act(async () => {
+        await expect(() => rendered.result.current.subscribe(subplebbitAddress)).rejects.toThrow()
+      })
+
+      // unsubscribe
+      await act(async () => {
+        await rendered.result.current.unsubscribe(subplebbitAddress)
+      })
+      await waitFor(() => rendered.result.current.account.subscriptions.length === 0)
+      expect(rendered.result.current.account.subscriptions).toEqual([])
+
+      // fail unsubscribing twice
+      await act(async () => {
+        await expect(() => rendered.result.current.unsubscribe(subplebbitAddress)).rejects.toThrow()
+      })
+
+      // subscribe to 2 subs
+      await act(async () => {
+        await rendered.result.current.subscribe(subplebbitAddress)
+        await rendered.result.current.subscribe(subplebbitAddress2)
+      })
+      await waitFor(() => rendered.result.current.account.subscriptions.length === 2)
+      expect(rendered.result.current.account.subscriptions).toEqual([subplebbitAddress, subplebbitAddress2])
+
+      // unsubscribe with 2 subs
+      await act(async () => {
+        await rendered.result.current.unsubscribe(subplebbitAddress)
+      })
+      await waitFor(() => rendered.result.current.account.subscriptions.length === 1)
+      expect(rendered.result.current.account.subscriptions).toEqual([subplebbitAddress2])
+
+      // subscribing persists in database after context reset
+      const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.subscriptions.length === 1)
+      expect(rendered2.result.current.subscriptions).toEqual([subplebbitAddress2])
+    })
+
     // already implemented but not tested
     test.todo('deleting account deletes account comments')
 
