@@ -365,6 +365,26 @@ publishCommentEdit({
 // TODO: implement accountActions.deleteComment to remove your comment from your local accountComments database
 ```
 
+#### Subscribe to a subplebbit
+
+```js
+const {subscribe, unsubscribe} = useAccountsActions()
+await subscribe('news.eth')
+await subscribe('QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui')
+await subscribe('tech.eth')
+
+// view subscriptions
+const account = useAccount()
+console.log(account.subscriptions) // ['news.eth', 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui', 'tech.eth']
+
+// unsubscribe
+await unsubscribe('news.eth')
+
+// get a feed of subscriptions
+const {feed, hasMore, loadMore} = useFeed(account.subscriptions, 'topAll')
+console.log(feed)
+```
+
 #### Get feed
 
 ```js
