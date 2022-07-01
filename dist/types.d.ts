@@ -15,6 +15,8 @@ export declare type CreateVoteOptions = any;
 export declare type Comment = any;
 export declare type Subplebbit = any;
 export declare type AccountNotification = any;
+export declare type Nft = any;
+export declare type Author = any;
 /**
  * Subplebbits and comments provider
  */
@@ -55,7 +57,7 @@ export declare type AccountsNotifications = {
     [accountId: string]: AccountNotifications;
 };
 export declare type AccountSubplebbit = {
-    role: 'onwer' | 'admin' | 'moderator';
+    role: 'owner' | 'admin' | 'moderator';
     autoStart?: boolean;
 };
 /**
@@ -95,7 +97,7 @@ export declare type SubplebbitsPagesInfo = {
     [infoName: string]: SubplebbitPageInfo;
 };
 export declare type SubplebbitPage = {
-    nextCid: string;
+    nextCid: string | null;
     comments: Comment[];
 };
 export declare type SubplebbitsPages = {
@@ -127,4 +129,14 @@ export declare type UseBufferedFeedOptions = {
  */
 export declare type Props = {
     children?: React.ReactChild;
+};
+/**
+ * Other
+ */
+export declare type BlockchainProvider = {
+    chainId?: number;
+    url?: string;
+};
+export declare type BlockchainProviders = {
+    [chainTicker: string]: BlockchainProvider;
 };

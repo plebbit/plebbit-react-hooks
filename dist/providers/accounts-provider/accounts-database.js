@@ -184,7 +184,11 @@ const addAccountVote = (accountId, createVoteOptions) => __awaiter(void 0, void 
     assert((createVoteOptions === null || createVoteOptions === void 0 ? void 0 : createVoteOptions.commentCid) && typeof (createVoteOptions === null || createVoteOptions === void 0 ? void 0 : createVoteOptions.commentCid) === 'string', `addAccountVote createVoteOptions.commentCid '${createVoteOptions === null || createVoteOptions === void 0 ? void 0 : createVoteOptions.commentCid}' not a string`);
     const accountVotesDatabase = getAccountVotesDatabase(accountId);
     const length = (yield accountVotesDatabase.getItem('length')) || 0;
-    const vote = Object.assign(Object.assign({}, createVoteOptions), { signer: undefined, author: undefined, onChallenge: undefined, onChallengeVerification: undefined });
+    const vote = Object.assign({}, createVoteOptions);
+    delete vote.signer;
+    delete vote.author;
+    delete vote.onChallenge;
+    delete vote.onChallengeVerification;
     yield Promise.all([
         accountVotesDatabase.setItem(vote.commentCid, vote),
         accountVotesDatabase.setItem(String(length), vote),

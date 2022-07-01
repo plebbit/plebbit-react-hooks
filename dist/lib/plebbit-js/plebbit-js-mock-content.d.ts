@@ -7,6 +7,7 @@ declare class Plebbit {
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
+    listSubplebbits(): Promise<unknown[]>;
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     createVote(): Promise<Vote>;
@@ -29,12 +30,14 @@ declare class Subplebbit extends EventEmitter {
     createdAt: number | undefined;
     updatedAt: number | undefined;
     challengeTypes: string[] | undefined;
-    moderatorAddresses: string[] | undefined;
+    roles: any | undefined;
     flairs: any | undefined;
     suggested: any | undefined;
     features: any | undefined;
     rules: string[] | undefined;
+    signer: any | undefined;
     constructor(createSubplebbitOptions?: any);
+    edit(editSubplebbitOptions: any): Promise<void>;
     update(): void;
     simulateUpdateEvent(): void;
 }

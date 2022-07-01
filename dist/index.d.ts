@@ -4,9 +4,10 @@ import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAcc
 import { useComment, useComments } from './hooks/comments';
 import { useSubplebbit, useSubplebbits } from './hooks/subplebbits';
 import { useFeed, useBufferedFeeds } from './hooks/feeds';
+import { useAuthorAvatarImageUrl, useResolvedAuthorAddress } from './hooks/authors';
 import debugUtils from './lib/debug-utils';
 export * from './types';
-export { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountSubplebbits, useAccountNotifications, useComment, useComments, useSubplebbit, useSubplebbits, useFeed, useBufferedFeeds, setPlebbitJs, restorePlebbitJs, debugUtils, };
+export { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountSubplebbits, useAccountNotifications, useComment, useComments, useSubplebbit, useSubplebbits, useFeed, useBufferedFeeds, setPlebbitJs, restorePlebbitJs, useAuthorAvatarImageUrl, useResolvedAuthorAddress, debugUtils, };
 declare const hooks: {
     PlebbitProvider: typeof PlebbitProvider;
     useAccount: typeof useAccount;

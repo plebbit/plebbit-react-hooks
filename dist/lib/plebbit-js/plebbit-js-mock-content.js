@@ -279,18 +279,18 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
     if (hasChallengeTypes) {
         subplebbit.challengeTypes = ['image'];
     }
-    const hasModeratorAddresses = yield getArrayItem([true, false], seed + 'has moderator addresses');
-    if (hasModeratorAddresses) {
-        subplebbit.moderatorAddresses = [
-            (yield getAuthor(seed + 'mod address 1')).address,
-            (yield getAuthor(seed + 'mod address 2')).address,
-            (yield getAuthor(seed + 'mod address 3')).address,
-            (yield getAuthor(seed + 'mod address 4')).address,
-            (yield getAuthor(seed + 'mod address 5')).address,
-            (yield getAuthor(seed + 'mod address 6')).address,
-            (yield getAuthor(seed + 'mod address 7')).address,
-            (yield getAuthor(seed + 'mod address 8')).address,
-        ];
+    const hasRoles = yield getArrayItem([true, false], seed + 'has roles');
+    if (hasRoles) {
+        subplebbit.roles = {
+            [(yield getAuthor(seed + 'mod address 1')).address]: { role: 'owner' },
+            [(yield getAuthor(seed + 'mod address 2')).address]: { role: 'admin' },
+            [(yield getAuthor(seed + 'mod address 3')).address]: { role: 'moderator' },
+            [(yield getAuthor(seed + 'mod address 4')).address]: { role: 'moderator' },
+            [(yield getAuthor(seed + 'mod address 5')).address]: { role: 'moderator' },
+            [(yield getAuthor(seed + 'mod address 6')).address]: { role: 'moderator' },
+            [(yield getAuthor(seed + 'mod address 7')).address]: { role: 'moderator' },
+            [(yield getAuthor(seed + 'mod address 8')).address]: { role: 'moderator' },
+        };
     }
     const title = yield getArrayItem([undefined, ...subplebbitTitles], seed + 'title');
     if (title) {
@@ -446,18 +446,26 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
     }
     return page;
 });
+// array of subplebbits probably created by the user
+let createdSubplebbits = [];
 class Plebbit {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
             return {
-                privateKey: 'private key',
-                address: 'address',
+                privateKey: 'private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key',
+                address: yield hash('address' + Math.random()),
             };
         });
     }
     createSubplebbit(createSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {
-            return new Subplebbit(createSubplebbitOptions);
+            const signer = yield this.createSigner();
+            const subplebbit = new Subplebbit(Object.assign({ signer }, createSubplebbitOptions));
+            // keep a list of subplebbits the user probably created himself to use with listSubplebbits
+            if (!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address)) {
+                createdSubplebbits.push(subplebbit);
+            }
+            return subplebbit;
         });
     }
     getSubplebbit(subplebbitAddress) {
@@ -480,6 +488,12 @@ class Plebbit {
                 subplebbit[prop] = subplebbitContent[prop];
             }
             return subplebbit;
+        });
+    }
+    listSubplebbits() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const subplebbitAddresses = createdSubplebbits.map((subplebbit) => subplebbit.address);
+            return [...new Set(subplebbitAddresses)];
         });
     }
     createComment(createCommentOptions) {
@@ -532,21 +546,44 @@ class Pages {
 }
 class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
+        var _a;
         super();
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
-        this.posts = new Pages({ subplebbit: this });
         this.pubsubTopic = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.pubsubTopic;
         this.createdAt = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.createdAt;
         this.updatedAt = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.updatedAt;
         this.challengeTypes = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.challengeTypes;
-        this.moderatorAddresses = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.moderatorAddresses;
+        this.roles = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.roles;
         this.flairs = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.flairs;
         this.suggested = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.suggested;
         this.features = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.features;
         this.rules = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.rules;
+        this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
+        this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
+        for (const prop in createSubplebbitOptions) {
+            if (createSubplebbitOptions[prop]) {
+                // @ts-ignore
+                this[prop] = createSubplebbitOptions[prop];
+            }
+        }
+        this.posts = new Pages({ subplebbit: this });
+        if (!this.address && ((_a = this.signer) === null || _a === void 0 ? void 0 : _a.address)) {
+            this.address = this.signer.address;
+        }
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
+    }
+    edit(editSubplebbitOptions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            assert(editSubplebbitOptions && typeof editSubplebbitOptions === 'object', `invalid editSubplebbitOptions '${editSubplebbitOptions}'`);
+            for (const prop in editSubplebbitOptions) {
+                if (editSubplebbitOptions[prop]) {
+                    // @ts-ignore
+                    this[prop] = editSubplebbitOptions[prop];
+                }
+            }
+        });
     }
     update() {
         // is ipnsName is known, look for updates and emit updates immediately after creation

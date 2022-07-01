@@ -166,7 +166,9 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
-        let createCommentOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions), { onChallenge: undefined, onChallengeVerification: undefined });
+        let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions);
+        delete createCommentOptions.onChallenge;
+        delete createCommentOptions.onChallengeVerification;
         let accountCommentIndex;
         let comment = yield account.plebbit.createComment(createCommentOptions);
         const publishAndRetryFailedChallengeVerification = () => {
@@ -218,7 +220,9 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishCommentEditArguments({ publishCommentEditOptions, accountName, account });
-        let createCommentEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentEditOptions), { onChallenge: undefined, onChallengeVerification: undefined });
+        let createCommentEditOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentEditOptions);
+        delete createCommentEditOptions.onChallenge;
+        delete createCommentEditOptions.onChallengeVerification;
         let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
         const publishAndRetryFailedChallengeVerification = () => {
             commentEdit.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
@@ -251,7 +255,9 @@ export default function AccountsProvider(props) {
             account = accounts[accountId];
         }
         validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
-        let createVoteOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions), { onChallenge: undefined, onChallengeVerification: undefined });
+        let createVoteOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
+        delete createVoteOptions.onChallenge;
+        delete createVoteOptions.onChallengeVerification;
         let vote = yield account.plebbit.createVote(createVoteOptions);
         const publishAndRetryFailedChallengeVerification = () => {
             vote.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
@@ -272,6 +278,49 @@ export default function AccountsProvider(props) {
         yield accountsDatabase.addAccountVote(account.id, createVoteOptions);
         debug('accountsActions.publishVote', { createVoteOptions });
         setAccountsVotes(Object.assign(Object.assign({}, accountsVotes), { [account.id]: Object.assign(Object.assign({}, accountsVotes[account.id]), { [createVoteOptions.commentCid]: createVoteOptions }) }));
+    });
+    accountsActions.subscribe = (subplebbitAddress, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.subscribe invalid subplebbitAddress '${subplebbitAddress}'`);
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.subscribe account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        const subscriptions = account.subscriptions || [];
+        if (subscriptions.includes(subplebbitAddress)) {
+            throw Error(`account '${account.id}' already subscribed to '${subplebbitAddress}'`);
+        }
+        subscriptions.push(subplebbitAddress);
+        const updatedAccount = Object.assign(Object.assign({}, account), { subscriptions });
+        // update account in db
+        yield accountsDatabase.addAccount(updatedAccount);
+        const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
+        debug('accountsActions.subscribe', { account: updatedAccount, accountName, subplebbitAddress });
+        setAccounts(updatedAccounts);
+    });
+    accountsActions.unsubscribe = (subplebbitAddress, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.unsubscribe invalid subplebbitAddress '${subplebbitAddress}'`);
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.unsubscribe account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        let subscriptions = account.subscriptions || [];
+        if (!subscriptions.includes(subplebbitAddress)) {
+            throw Error(`account '${account.id}' already unsubscribed from '${subplebbitAddress}'`);
+        }
+        // remove subplebbitAddress
+        subscriptions = subscriptions.filter((address) => address !== subplebbitAddress);
+        const updatedAccount = Object.assign(Object.assign({}, account), { subscriptions });
+        // update account in db
+        yield accountsDatabase.addAccount(updatedAccount);
+        const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
+        debug('accountsActions.unsubscribe', { account: updatedAccount, accountName, subplebbitAddress });
+        setAccounts(updatedAccounts);
     });
     accountsActions.blockAddress = (address, accountName) => __awaiter(this, void 0, void 0, function* () {
         throw Error('TODO: not implemented');

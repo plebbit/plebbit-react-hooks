@@ -357,7 +357,7 @@ const getSubplebbitPages = (firstPageCid, subplebbitsPages) => {
     pages.push(firstPage);
     while (true) {
         const nextCid = (_a = pages[pages.length - 1]) === null || _a === void 0 ? void 0 : _a.nextCid;
-        const subplebbitPage = subplebbitsPages[nextCid];
+        const subplebbitPage = nextCid && subplebbitsPages[nextCid];
         if (!subplebbitPage) {
             return pages;
         }

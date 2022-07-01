@@ -10,7 +10,7 @@ useInterval(
 import { useEffect, useRef } from 'react';
 /** keep typescript happy */
 const noop = () => { };
-export function useInterval(callback, delay, immediate) {
+export function useInterval(callback, delay, immediate, dependencies = []) {
     const savedCallback = useRef(noop);
     // Remember the latest callback.
     useEffect(() => {
@@ -23,7 +23,7 @@ export function useInterval(callback, delay, immediate) {
         if (delay === null || delay === false)
             return;
         savedCallback.current();
-    }, [immediate]);
+    }, [immediate, ...dependencies]);
     // Set up the interval.
     useEffect(() => {
         if (delay === null || delay === false)

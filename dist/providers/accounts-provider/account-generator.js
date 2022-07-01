@@ -11,11 +11,41 @@ import PlebbitJs from '../../lib/plebbit-js';
 import validator from '../../lib/validator';
 import { v4 as uuid } from 'uuid';
 import accountsDatabase from './accounts-database';
+// default blockchain providers
+const blockchainProviders = {
+    eth: {
+        // default should not use a url, but rather ethers' default provider
+        url: 'ethers.getDefaultProvider()',
+        chainId: 1,
+    },
+    avax: {
+        url: 'https://api.avax.network/ext/bc/C/rpc',
+        chainId: 43114,
+    },
+    matic: {
+        url: 'https://polygon-rpc.com',
+        chainId: 137,
+    },
+};
 // default options aren't saved to database so they can be changed
 export const getDefaultPlebbitOptions = () => {
     // default plebbit options defined by the electron process
     // @ts-ignore
     if (window.DefaultPlebbitOptions) {
+        // add missing blockchain providers
+        // mutate the window.DefaultPlebbitOptions on purpose instead of replacing it or it breaks the tests
+        // @ts-ignore
+        if (!window.DefaultPlebbitOptions.blockchainProviders) {
+            // @ts-ignore
+            window.DefaultPlebbitOptions.blockchainProviders = {};
+        }
+        for (const chainTicker in blockchainProviders) {
+            // @ts-ignore
+            if (!window.DefaultPlebbitOptions.blockchainProviders[chainTicker]) {
+                // @ts-ignore
+                window.DefaultPlebbitOptions.blockchainProviders[chainTicker] = blockchainProviders[chainTicker];
+            }
+        }
         // @ts-ignore
         return window.DefaultPlebbitOptions;
     }
@@ -24,6 +54,7 @@ export const getDefaultPlebbitOptions = () => {
         ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
         ipfsHttpClientOptions: undefined,
         pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
+        blockchainProviders,
     };
 };
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -31,7 +62,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
     const plebbit = yield PlebbitJs.Plebbit();
     const signer = yield plebbit.createSigner();
     const author = {
-        displayName: null,
+        displayName: undefined,
         address: signer.address,
     };
     const accountName = yield getNextAvailableDefaultAccountName();
