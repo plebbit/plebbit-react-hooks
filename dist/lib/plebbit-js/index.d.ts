@@ -1,5 +1,5 @@
 declare const PlebbitJs: {
-    Plebbit: (plebbitOptions?: any) => import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit;
+    Plebbit: (plebbitOptions?: import("@plebbit/plebbit-js/dist/node/types").PlebbitOptions | undefined) => Promise<import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit>;
 };
 /**
  * replace PlebbitJs with a different implementation, for

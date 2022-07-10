@@ -21,7 +21,7 @@ const testEntries = testFiles.reduce((acc, file) => {
 
 // debug build paths if needed
 // console.log({rootFolder, testFiles, testEntries, outputFolder, testFolder, lockFile})
-console.log('watching karma test files:')
+console.log('karma test files:')
 console.log(Object.keys(testEntries))
 
 module.exports = {
