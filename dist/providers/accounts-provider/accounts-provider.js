@@ -323,11 +323,46 @@ export default function AccountsProvider(props) {
         setAccounts(updatedAccounts);
     });
     accountsActions.blockAddress = (address, accountName) => __awaiter(this, void 0, void 0, function* () {
-        throw Error('TODO: not implemented');
+        assert(address && typeof address === 'string', `accountsActions.blockAddress invalid address '${address}'`);
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.blockAddress account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        const blockedAddresses = Object.assign({}, account.blockedAddresses);
+        if (blockedAddresses[address] === true) {
+            throw Error(`account '${account.id}' already blocked address '${address}'`);
+        }
+        blockedAddresses[address] = true;
+        const updatedAccount = Object.assign(Object.assign({}, account), { blockedAddresses });
+        // update account in db
+        yield accountsDatabase.addAccount(updatedAccount);
+        const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
+        debug('accountsActions.blockAddress', { account: updatedAccount, accountName, address });
+        setAccounts(updatedAccounts);
     });
-    accountsActions.limitAddress = (address, limitPercent, accountName) => __awaiter(this, void 0, void 0, function* () {
-        // limit how many times per feed page an address can appear, limitPercent 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
-        throw Error('TODO: not implemented');
+    accountsActions.unblockAddress = (address, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(address && typeof address === 'string', `accountsActions.unblockAddress invalid address '${address}'`);
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.unblockAddress account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+        const blockedAddresses = Object.assign({}, account.blockedAddresses);
+        if (!blockedAddresses[address]) {
+            throw Error(`account '${account.id}' already blocked address '${address}'`);
+        }
+        delete blockedAddresses[address];
+        const updatedAccount = Object.assign(Object.assign({}, account), { blockedAddresses });
+        // update account in db
+        yield accountsDatabase.addAccount(updatedAccount);
+        const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
+        debug('accountsActions.unblockAddress', { account: updatedAccount, accountName, address });
+        setAccounts(updatedAccounts);
     });
     accountsActions.createSubplebbit = (createSubplebbitOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
         assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
