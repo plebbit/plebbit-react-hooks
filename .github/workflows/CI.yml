@@ -4,9 +4,23 @@ on:
   pull_request:
     branches:
       - master
+    paths:
+      - 'test/**'
+      - 'src/**'
+      - 'config/**'
+      - '.github/**'
+      - 'package.json'
+      - 'yarn.lock'
   push:
     branches:
       - master
+    paths:
+      - 'test/**'
+      - 'src/**'
+      - 'config/**'
+      - '.github/**'
+      - 'package.json'
+      - 'yarn.lock'
 
 jobs:
   test:
@@ -32,4 +46,5 @@ jobs:
       - run: yarn test
       - run: yarn build
       - run: yarn webpack
+      - run: yarn test:server & yarn test:server:wait-on
       - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e
