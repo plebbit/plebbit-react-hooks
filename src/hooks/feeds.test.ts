@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useFeed, useBufferedFeeds, useAccountsActions, setPlebbitJs, PlebbitProvider} from '..'
+import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs, PlebbitProvider} from '..'
 import localForageLru from '../lib/localforage-lru'
 import localForage from 'localforage'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
@@ -805,6 +805,92 @@ describe('feeds', () => {
         }
         expect(rendered2.result.current.feed?.length).toBe(postsPerPage)
       })
+    })
+
+    test(`feed doesn't contain blocked addresses`, async () => {
+      const expectFeedToHaveSubplebbitAddresses = (feed: any[], subplebbitAddresses: string[]) => {
+        for (const subplebbitAddress of subplebbitAddresses) {
+          // feed posts are missing a subplebbitAddress expected in `subplebbitAddresses` argument
+          const feedSubplebbitAddresses = feed.map((feedPost) => feedPost.subplebbitAddress)
+          expect(feedSubplebbitAddresses).toContain(subplebbitAddress)
+          // feed posts contain a subplebbitAddress not expected in `subplebbitAddresses` argument
+          for (const feedPost of feed) {
+            expect(subplebbitAddresses).toContain(feedPost.subplebbitAddress)
+          }
+        }
+        return true
+      }
+      const expectFeedToHaveAuthorAddresses = (feed: any[], authorAddress: string) => {
+        const authorAddresses = feed.map((comment) => comment?.author?.address)
+        expect(authorAddresses).toContain(authorAddress)
+        return true
+      }
+      const expectFeedNotToHaveAuthorAddresses = (feed: any[], authorAddress: string) => {
+        const authorAddresses = feed.map((comment) => comment?.author?.address)
+        expect(authorAddresses).not.toContain(authorAddress)
+        return true
+      }
+
+      const rendered = renderHook<any, any>(
+        (props: any) => {
+          const [bufferedFeed] = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'}])
+          const {blockAddress, unblockAddress} = useAccountsActions()
+          const account = useAccount()
+          return {bufferedFeed, blockAddress, unblockAddress, account}
+        },
+        {
+          wrapper: PlebbitProvider,
+        }
+      )
+      const waitFor = testUtils.createWaitFor(rendered)
+      await waitFor(() => typeof rendered.result.current.blockAddress === 'function')
+
+      const blockedSubplebbitAddress = 'blocked.eth'
+      const unblockedSubplebbitAddress = 'unblocked-address.eth'
+      const blockedAuthorAddress = `${blockedSubplebbitAddress} page cid new author address 1`
+
+      // render feed before blocking
+      rendered.rerender({subplebbitAddresses: [unblockedSubplebbitAddress, blockedSubplebbitAddress]})
+      // wait until feed contains both blocked and unblocked addresses
+      await waitFor(() => rendered.result.current.bufferedFeed.length > 0)
+      expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [blockedSubplebbitAddress, unblockedSubplebbitAddress])
+
+      // block subplebbit address
+      await act(async () => {
+        await rendered.result.current.blockAddress(blockedSubplebbitAddress)
+      })
+      await waitFor(
+        () =>
+          Object.keys(rendered.result.current.account.blockedAddresses).length === 1 &&
+          expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [unblockedSubplebbitAddress])
+      )
+      expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [unblockedSubplebbitAddress])
+
+      // unblock subplebbit address
+      await act(async () => {
+        await rendered.result.current.unblockAddress(blockedSubplebbitAddress)
+      })
+      await waitFor(
+        () =>
+          Object.keys(rendered.result.current.account.blockedAddresses).length === 0 &&
+          expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [blockedSubplebbitAddress, unblockedSubplebbitAddress])
+      )
+      expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [blockedSubplebbitAddress, unblockedSubplebbitAddress])
+
+      // feed has blocked author address before blocking
+      expectFeedToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
+
+      // block author address
+      await act(async () => {
+        await rendered.result.current.blockAddress(blockedAuthorAddress)
+      })
+      await waitFor(
+        () =>
+          Object.keys(rendered.result.current.account.blockedAddresses).length === 1 &&
+          expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
+      )
+      // feed doesnt have blocked author address
+      expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
     })
 
     // TODO: not implemented

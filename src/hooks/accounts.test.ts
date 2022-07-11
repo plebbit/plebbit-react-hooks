@@ -578,6 +578,56 @@ describe('accounts', () => {
       expect(rendered2.result.current.subscriptions).toEqual([subplebbitAddress2])
     })
 
+    test(`block and unblock to address`, async () => {
+      const address1 = 'subplebbit.eth'
+      const address2 = 'author.eth'
+
+      // block address 1
+      await act(async () => {
+        await rendered.result.current.blockAddress(address1)
+      })
+      await waitFor(() => Object.keys(rendered.result.current.account.blockedAddresses).length === 1)
+      expect(rendered.result.current.account.blockedAddresses).toEqual({[address1]: true})
+
+      // fail subscribing twice
+      await act(async () => {
+        await expect(() => rendered.result.current.blockAddress(address1)).rejects.toThrow()
+      })
+
+      // unblock
+      await act(async () => {
+        await rendered.result.current.unblockAddress(address1)
+      })
+      await waitFor(() => Object.keys(rendered.result.current.account.blockedAddresses).length === 0)
+      expect(rendered.result.current.account.blockedAddresses).toEqual({})
+
+      // fail unblocking twice
+      await act(async () => {
+        await expect(() => rendered.result.current.unblockAddress(address1)).rejects.toThrow()
+      })
+
+      // block address 1 and 2
+      await act(async () => {
+        await rendered.result.current.blockAddress(address1)
+        await rendered.result.current.blockAddress(address2)
+      })
+      await waitFor(() => Object.keys(rendered.result.current.account.blockedAddresses).length === 2)
+      expect(rendered.result.current.account.blockedAddresses).toEqual({[address1]: true, [address2]: true})
+
+      // unblock with 2 blocked addresses
+      await act(async () => {
+        await rendered.result.current.unblockAddress(address1)
+      })
+      await waitFor(() => Object.keys(rendered.result.current.account.blockedAddresses).length === 1)
+      expect(rendered.result.current.account.blockedAddresses).toEqual({[address2]: true})
+
+      // blocking persists in database after context reset
+      const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => Object.keys(rendered2.result.current.blockedAddresses).length === 1)
+      expect(rendered2.result.current.blockedAddresses).toEqual({[address2]: true})
+    })
+
     // already implemented but not tested
     test.todo('deleting account deletes account comments')
 
@@ -1088,55 +1138,64 @@ describe('accounts', () => {
       expect(rendered.result.current.account.karma.linkDownvoteCount).toBe(0)
     })
 
-    test(`account has karma after comments are published`, async () => {
-      try {
-        await rendered.waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
-      } catch (e) {
-        console.error(e)
-      }
-      // answer challenges to get the comments published
-      onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
-      onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
-      onChallenge.mock.calls[2][1].publishChallengeAnswers(['4'])
+    // flaky because of react concurrency so retry several times
+    describe('retry on fail', () => {
+      beforeAll(() => {
+        jest.retryTimes(5)
+      })
+      afterAll(() => {
+        jest.retryTimes(0)
+      })
+      test(`account has karma after comments are published`, async () => {
+        try {
+          await rendered.waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
+        } catch (e) {
+          console.error(e)
+        }
+        // answer challenges to get the comments published
+        onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
+        onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
+        onChallenge.mock.calls[2][1].publishChallengeAnswers(['4'])
 
-      try {
-        await rendered.waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9)
-      } catch (e) {
-        console.error(e)
-      }
-      expect(rendered.result.current.account.karma.score).toBe(6)
-      expect(rendered.result.current.account.karma.upvoteCount).toBe(9)
-      expect(rendered.result.current.account.karma.downvoteCount).toBe(3)
-      expect(rendered.result.current.account.karma.commentScore).toBe(2)
-      expect(rendered.result.current.account.karma.commentUpvoteCount).toBe(3)
-      expect(rendered.result.current.account.karma.commentDownvoteCount).toBe(1)
-      expect(rendered.result.current.account.karma.linkScore).toBe(4)
-      expect(rendered.result.current.account.karma.linkUpvoteCount).toBe(6)
-      expect(rendered.result.current.account.karma.linkDownvoteCount).toBe(2)
+        try {
+          await rendered.waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9)
+        } catch (e) {
+          console.error(e)
+        }
+        expect(rendered.result.current.account.karma.score).toBe(6)
+        expect(rendered.result.current.account.karma.upvoteCount).toBe(9)
+        expect(rendered.result.current.account.karma.downvoteCount).toBe(3)
+        expect(rendered.result.current.account.karma.commentScore).toBe(2)
+        expect(rendered.result.current.account.karma.commentUpvoteCount).toBe(3)
+        expect(rendered.result.current.account.karma.commentDownvoteCount).toBe(1)
+        expect(rendered.result.current.account.karma.linkScore).toBe(4)
+        expect(rendered.result.current.account.karma.linkUpvoteCount).toBe(6)
+        expect(rendered.result.current.account.karma.linkDownvoteCount).toBe(2)
 
-      // get the karma from database by created new context
-      const rendered2 = renderHook<any, any>(
-        () => {
-          const account = useAccount()
-          const accountComments = useAccountComments()
-          return {account, accountComments}
-        },
-        {wrapper: PlebbitProvider}
-      )
-      try {
-        await rendered2.waitFor(() => rendered2.result.current.account.karma.upvoteCount >= 9)
-      } catch (e) {
-        console.error(e)
-      }
-      expect(rendered2.result.current.account.karma.score).toBe(6)
-      expect(rendered2.result.current.account.karma.upvoteCount).toBe(9)
-      expect(rendered2.result.current.account.karma.downvoteCount).toBe(3)
-      expect(rendered2.result.current.account.karma.commentScore).toBe(2)
-      expect(rendered2.result.current.account.karma.commentUpvoteCount).toBe(3)
-      expect(rendered2.result.current.account.karma.commentDownvoteCount).toBe(1)
-      expect(rendered2.result.current.account.karma.linkScore).toBe(4)
-      expect(rendered2.result.current.account.karma.linkUpvoteCount).toBe(6)
-      expect(rendered2.result.current.account.karma.linkDownvoteCount).toBe(2)
+        // get the karma from database by created new context
+        const rendered2 = renderHook<any, any>(
+          () => {
+            const account = useAccount()
+            const accountComments = useAccountComments()
+            return {account, accountComments}
+          },
+          {wrapper: PlebbitProvider}
+        )
+        try {
+          await rendered2.waitFor(() => rendered2.result.current.account.karma.upvoteCount === 9 && rendered2.result.current.account.karma.score === 6)
+        } catch (e) {
+          console.error(e)
+        }
+        expect(rendered2.result.current.account.karma.score).toBe(6)
+        expect(rendered2.result.current.account.karma.upvoteCount).toBe(9)
+        expect(rendered2.result.current.account.karma.downvoteCount).toBe(3)
+        expect(rendered2.result.current.account.karma.commentScore).toBe(2)
+        expect(rendered2.result.current.account.karma.commentUpvoteCount).toBe(3)
+        expect(rendered2.result.current.account.karma.commentDownvoteCount).toBe(1)
+        expect(rendered2.result.current.account.karma.linkScore).toBe(4)
+        expect(rendered2.result.current.account.karma.linkUpvoteCount).toBe(6)
+        expect(rendered2.result.current.account.karma.linkDownvoteCount).toBe(2)
+      })
     })
 
     test(`get all account votes`, async () => {

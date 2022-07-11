@@ -23,6 +23,7 @@ const subplebbitPostsLeftBeforeNextPage = 50
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
+  const accountsContext = useContext(AccountsContext)
   const [feedsOptions, setFeedsOptions] = useState<FeedsOptions>({})
   const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
   const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
@@ -31,7 +32,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   const subplebbits = useSubplebbits(feedsOptions)
   const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
   const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits)
-  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds)
+  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, accountsContext?.accounts || {})
   const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds)
 
   // handle buffered feeds
@@ -211,7 +212,20 @@ function useFeedsHaveMore(feedsOptions: FeedsOptions, subplebbits: Subplebbits, 
  * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
  * and remove the posts already loaded in loadedFeeds
  */
-function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbitsPages: SubplebbitsPages, loadedFeeds: Feeds) {
+function useCalculatedBufferedFeeds(
+  feedsOptions: FeedsOptions,
+  subplebbitsPostsInfo: SubplebbitsPostsInfo,
+  subplebbitsPages: SubplebbitsPages,
+  loadedFeeds: Feeds,
+  accounts: Accounts
+) {
+  // recalculate feeds if accounts blocked addresses change
+  const accountsBlockedAddresses: {[accountId: string]: {[address: string]: boolean}} = {}
+  for (const accountId in accounts) {
+    accountsBlockedAddresses[accountId] = accounts[accountId].blockedAddresses
+  }
+  const accountsBlockedAddressesString = JSON.stringify(accountsBlockedAddresses)
+
   return useMemo(() => {
     // contruct a list of posts already loaded to remove them from buffered feeds
     const loadedFeedsPosts: {[key: string]: Set<string>} = {}
@@ -265,10 +279,10 @@ function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, subplebbitsPosts
           continue
         }
 
-        // TODO: filter blocked addresses
-        // if (account.blockedAddresses[post.subplebbitAddress] || account.blockedAddresses[post.author.address]) {
-        //   continue
-        // }
+        // don't use feedOption 'account' because it doesn't contain updated blocked addresses
+        if (accounts[account.id].blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[account.id].blockedAddresses[post.author.address])) {
+          continue
+        }
 
         filteredSortedBufferedFeedPosts.push(post)
       }
@@ -276,7 +290,7 @@ function useCalculatedBufferedFeeds(feedsOptions: FeedsOptions, subplebbitsPosts
       newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts
     }
     return newBufferedFeeds
-  }, [feedsOptions, subplebbitsPages, loadedFeeds])
+  }, [feedsOptions, subplebbitsPages, loadedFeeds, accountsBlockedAddressesString])
 }
 
 /**
