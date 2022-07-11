@@ -393,7 +393,9 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
         if (accountsContext?.addCidToAccountComment) {
           const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage)
           for (const comment of flattenedReplies) {
-            accountsContext.addCidToAccountComment(comment)
+            accountsContext
+              .addCidToAccountComment(comment)
+              .catch((error: unknown) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', {comment, error}))
           }
         }
       })()

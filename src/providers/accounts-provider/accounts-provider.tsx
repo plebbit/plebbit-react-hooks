@@ -236,7 +236,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
               return {...previousAccountsComments, [account.id]: updatedAccountComments}
             })
 
-            startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
+            startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex).catch((error: unknown) =>
+              console.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error})
+            )
           }
         }
       })
@@ -472,7 +474,14 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
           return {...previousAccountsComments, [accountComment.accountId]: updatedAccountComments}
         })
 
-        startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index)
+        startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index).catch((error: unknown) =>
+          console.error('accountsActions.addCidToAccountComment startUpdatingAccountCommentOnCommentUpdateEvents error', {
+            comment,
+            account: accounts[accountComment.accountId],
+            accountCommentIndex: accountComment.index,
+            error,
+          })
+        )
         break
       }
     }

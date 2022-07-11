@@ -23,6 +23,8 @@
     "webpack:watch": "while true; do webpack watch --mode development --config config/webpack.config.js; sleep 1; done",
     "test": "jest --config config/jest.config.cjs",
     "test:e2e": "karma start config/karma.conf.js",
+    "test:server": "node test/test-server",
+    "test:server:wait-on": "wait-on http://localhost:59281",
     "test:mock-content": "jest --config config/jest.config.cjs --testRegex plebbit-js-mock-content.donttest.ts",
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
@@ -77,6 +79,7 @@
     "tempy": "1.0.1",
     "ts-jest": "27.0.5",
     "typescript": "4.5.4",
+    "wait-on": "6.0.1",
     "webpack": "5.72.1",
     "webpack-cli": "4.9.2",
     "webpack-watch-files-plugin": "1.2.1"

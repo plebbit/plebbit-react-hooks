@@ -34,6 +34,10 @@ const clone = (obj: any) => {
     if (obj[i] === undefined || obj[i] === null) {
       continue
     }
+    // plebbit-js has a bug where plebbit instances have circular deps
+    if (obj[i]?.constructor?.name === 'Plebbit') {
+      continue
+    }
     clonedObj[i] = obj[i]
   }
   return JSON.parse(JSON.stringify(clonedObj))

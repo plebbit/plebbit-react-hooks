@@ -8,7 +8,7 @@ const subplebbitAddress = signers[0].address
 
 const timeout = 600000
 
-describe.skip('accounts', () => {
+describe('accounts', () => {
   before(() => {
     testUtils.silenceUpdateUnmountedComponentWarning()
   })
@@ -28,7 +28,7 @@ describe.skip('accounts', () => {
 
       const account = rendered.result.current
       expect(account.name).to.equal('Account 1')
-      expect(account.author.displayName).to.equal(null)
+      expect(account.author.displayName).to.equal(undefined)
       expect(account.signer.privateKey).to.match(/^-----BEGIN ENCRYPTED PRIVATE KEY-----/)
       expect(account.signer.address).to.equal(account.author.address)
       expect(typeof account.author.address).to.equal('string')
@@ -67,10 +67,15 @@ describe.skip('accounts', () => {
 
       console.log('before set account')
       const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
+      const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
+      const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
       await act(async () => {
         const plebbitOptions = {
           ...rendered.result.current.account.plebbitOptions,
           ipfsGatewayUrl: localGatewayUrl,
+          pubsubHttpClientOptions: localPubsubProviderUrl,
+          // TODO: also test without ipfsHttpClientOptions when plebbit-js fetch bug is fixed
+          ipfsHttpClientOptions: localIpfsProviderUrl,
         }
         const account = {...rendered.result.current.account, plebbitOptions}
         await rendered.result.current.setAccount(account)
@@ -140,6 +145,9 @@ describe.skip('accounts', () => {
         console.log('after comment in accountComments')
         console.log(rendered.result.current.accountComments)
         console.log('before cid')
+        // for unknown reason 'setAccountsComments' in accountsActions.publishComment comment.once('challengeverification')
+        // never gets triggered, so we can't test if the cid gets added to accounts comments
+        // it could be because of a race condition between the 2 setAccountsComments calls
         console.log(`TODO: figure out why cid doesn't get added to accountComments`)
         // await waitFor(() => typeof rendered.result.current.accountComments[0].cid === 'string')
         // console.log(rendered.result.current.accountComments)

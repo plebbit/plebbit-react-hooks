@@ -8,7 +8,7 @@ const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 
 const timeout = 60000
 
-describe.skip('subplebbits (plebbit-js mock)', () => {
+describe('subplebbits', () => {
   before(() => {
     testUtils.silenceUpdateUnmountedComponentWarning()
   })
@@ -43,10 +43,15 @@ describe.skip('subplebbits (plebbit-js mock)', () => {
 
       console.log('before set account')
       const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
+      const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
+      const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
       await act(async () => {
         const plebbitOptions = {
           ...rendered.result.current.account.plebbitOptions,
           ipfsGatewayUrl: localGatewayUrl,
+          pubsubHttpClientOptions: localPubsubProviderUrl,
+          // TODO: also test without ipfsHttpClientOptions when plebbit-js fetch bug is fixed
+          ipfsHttpClientOptions: localIpfsProviderUrl,
         }
         const account = {...rendered.result.current.account, plebbitOptions}
         await rendered.result.current.setAccount(account)
@@ -116,6 +121,8 @@ describe.skip('subplebbits (plebbit-js mock)', () => {
     })
 
     it('published vote is in account votes', async () => {
+      // for unknown reason 'setAccountsVotes' in accountsActions.publishVote vote.once('challengeverification')
+      // never gets triggered, so we can't test if the cid gets added to accounts comments
       console.log(`TODO: figure out why vote doesn't get added to accountVotes`)
       // await waitFor(() => rendered.result.current.accountVotes.length > 0)
       // await waitFor(() => typeof rendered.result.current.accountVotes[0].commentCid === 'string')
@@ -133,7 +140,8 @@ describe.skip('subplebbits (plebbit-js mock)', () => {
       await waitFor(() => typeof rendered.result.current.comment.cid === 'string' && typeof rendered.result.current.comment.upvoteCount === 'number')
       console.log('after getting comment update')
       expect(rendered.result.current.comment?.cid).to.equal(commentCid)
-      expect(rendered.result.current.comment?.upvoteCount).to.equal(1)
+      // could be greater than 1 if code is ran several times with the same test server
+      expect(rendered.result.current.comment?.upvoteCount).to.be.greaterThan(0)
     })
   })
 })

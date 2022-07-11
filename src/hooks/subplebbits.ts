@@ -27,7 +27,7 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
       // if subplebbit isn't already in context, add it
       subplebbitsContext.subplebbitsActions
         .addSubplebbitToContext(subplebbitAddress, account)
-        .catch((error: unknown) => debug('useSubplebbit addSubplebbitToContext error', {subplebbitAddress, error}))
+        .catch((error: unknown) => console.error('useSubplebbit addSubplebbitToContext error', {subplebbitAddress, error}))
     }
   }, [subplebbitAddress, account])
 
@@ -59,7 +59,7 @@ export function useSubplebbits(subplebbitAddresses?: string[], accountName?: str
       if (!subplebbitsContext.subplebbits[subplebbitAddress]) {
         subplebbitsContext.subplebbitsActions
           .addSubplebbitToContext(subplebbitAddress, account)
-          .catch((error: unknown) => debug('useSubplebbits addSubplebbitToContext error', {subplebbitAddress, error}))
+          .catch((error: unknown) => console.error('useSubplebbits addSubplebbitToContext error', {subplebbitAddress, error}))
       }
     }
   }, [subplebbitAddresses, account])

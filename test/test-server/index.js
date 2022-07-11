@@ -45,8 +45,8 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
 
   const plebbitOptions = {
     ipfsHttpClientOptions: `http://localhost:${offlineIpfs.apiPort}/api/v0`,
-    // pubsubHttpClientOptions: `http://localhost:${pubsubIpfs.apiPort}/api/v0`,
-    pubsubHttpClientOptions: `https://pubsubprovider.xyz/api/v0`,
+    pubsubHttpClientOptions: `http://localhost:${pubsubIpfs.apiPort}/api/v0`,
+    // pubsubHttpClientOptions: `https://pubsubprovider.xyz/api/v0`,
     dataPath: plebbitDataPath,
   }
 
@@ -85,4 +85,12 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
   comment.once('challenge', () => comment.publishChallengeAnswers(['2']))
   await comment.publish()
   console.log('test comment published')
+  console.log('test server ready')
+
+  // create a test server to be able to use npm module 'wait-on'
+  // to know when the test server is finished getting ready
+  // and able to start the automated tests
+  require('http')
+    .createServer((req, res) => res.end('test server ready'))
+    .listen(59281)
 })()
