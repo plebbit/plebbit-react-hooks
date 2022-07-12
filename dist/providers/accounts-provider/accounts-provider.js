@@ -255,7 +255,10 @@ export default function AccountsProvider(props) {
         // account is the owner of the subplebbit and can edit it locally, no need to publish
         const localSubplebbitAddresses = yield account.plebbit.listSubplebbits();
         if (localSubplebbitAddresses.includes(subplebbitAddress)) {
-            return subplebbitsContext.subplebbitsActions.editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account);
+            yield subplebbitsContext.subplebbitsActions.editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account);
+            // create fake success challenge verification for consistent behavior with remote subplebbit edit
+            publishSubplebbitEditOptions.onChallengeVerification({ challengeSuccess: true });
+            return;
         }
         let createSubplebbitEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishSubplebbitEditOptions), { 
             // not possible to edit subplebbit.address over pubsub, only locally
