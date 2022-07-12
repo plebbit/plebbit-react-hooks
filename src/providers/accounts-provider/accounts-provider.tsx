@@ -313,7 +313,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     // account is the owner of the subplebbit and can edit it locally, no need to publish
     const localSubplebbitAddresses = await account.plebbit.listSubplebbits()
     if (localSubplebbitAddresses.includes(subplebbitAddress)) {
-      return subplebbitsContext.subplebbitsActions.editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account)
+      await subplebbitsContext.subplebbitsActions.editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account)
+      // create fake success challenge verification for consistent behavior with remote subplebbit edit
+      publishSubplebbitEditOptions.onChallengeVerification({challengeSuccess: true})
+      return
     }
 
     let createSubplebbitEditOptions = {

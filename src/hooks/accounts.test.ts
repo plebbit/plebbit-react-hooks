@@ -686,7 +686,7 @@ describe('accounts', () => {
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
         try {
-          await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -704,7 +704,7 @@ describe('accounts', () => {
         // publish challenge answer and wait for verification
         comment.publishChallengeAnswers(['4'])
         try {
-          await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -738,7 +738,7 @@ describe('accounts', () => {
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
         try {
-          await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -756,7 +756,7 @@ describe('accounts', () => {
         // publish challenge answer and wait for verification
         vote.publishChallengeAnswers(['4'])
         try {
-          await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -790,7 +790,7 @@ describe('accounts', () => {
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
         try {
-          await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -808,7 +808,7 @@ describe('accounts', () => {
         // publish challenge answer and wait for verification
         commentEdit.publishChallengeAnswers(['4'])
         try {
-          await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -841,7 +841,7 @@ describe('accounts', () => {
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
         try {
-          await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -859,7 +859,7 @@ describe('accounts', () => {
         // publish challenge answer and wait for verification
         subplebbitEdit.publishChallengeAnswers(['4'])
         try {
-          await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
         } catch (e) {
           console.error(e)
         }
@@ -1563,7 +1563,7 @@ describe('accounts', () => {
       })
 
       test('returns moderator subplebbits after setting them', async () => {
-        await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
+        await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role === 'moderator')
         expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
         await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
         expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
@@ -1657,8 +1657,8 @@ describe('accounts', () => {
 
     // publishSubplebbitEdit
     const editedTitle = 'edited title'
-    const onChallenge = () => {}
-    const onChallengeVerification = () => {}
+    const onChallenge = jest.fn()
+    const onChallengeVerification = jest.fn()
     await act(async () => {
       await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
     })
@@ -1666,5 +1666,10 @@ describe('accounts', () => {
     // it could cause a bug where the subplebbits react state doesn't update after an edit
     // await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
     // expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+    // onChallengeVerification should be called with success even if the sub is edited locally
+    await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+    expect(onChallengeVerification).toBeCalledTimes(1)
+    expect(onChallengeVerification.mock.calls[0][0].challengeSuccess).toBe(true)
   })
 })
