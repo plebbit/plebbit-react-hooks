@@ -319,6 +319,10 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       return
     }
 
+    assert(
+      !publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress,
+      `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`
+    )
     let createSubplebbitEditOptions = {
       timestamp: Math.round(Date.now() / 1000),
       author: account.author,
