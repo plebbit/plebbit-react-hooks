@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react'
+import React, {useState, useEffect, useMemo, useContext} from 'react'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
@@ -6,6 +6,7 @@ const debug = Debug('plebbit-react-hooks:providers:accounts-provider')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import utils from '../../lib/utils'
+import {SubplebbitsContext} from '../subplebbits-provider'
 import {
   Props,
   AccountNamesToAccountIds,
@@ -14,6 +15,7 @@ import {
   AccountsActions,
   PublishCommentOptions,
   PublishCommentEditOptions,
+  PublishSubplebbitEditOptions,
   PublishVoteOptions,
   Challenge,
   ChallengeVerification,
@@ -35,6 +37,7 @@ type AccountsContext = any
 export const AccountsContext = React.createContext<AccountsContext | undefined>(undefined)
 
 export default function AccountsProvider(props: Props): JSX.Element | null {
+  const subplebbitsContext = useContext(SubplebbitsContext)
   const [accounts, setAccounts] = useState<Accounts | undefined>(undefined)
   const [accountIds, setAccountIds] = useState<string[] | undefined>(undefined)
   const [activeAccountId, setActiveAccountId] = useState<string | undefined>(undefined)
@@ -295,13 +298,54 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
     }
 
     publishAndRetryFailedChallengeVerification()
-    debug('accountsActions.createCommentEdit', {createCommentEditOptions})
+    debug('accountsActions.publishCommentEdit', {createCommentEditOptions})
   }
 
-  accountsActions.publishSubplebbitEdit = async (publishSubplebbitEditOptions: any, accountName?: string) => {
-    throw Error('TODO: not implemented')
-    // TODO: a moderator can publish an edit to the subplebbit settings over the pubsub
-    // and the subplebbit owner node will update the subplebbit
+  accountsActions.publishSubplebbitEdit = async (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string) => {
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`)
+    let account = accounts[activeAccountId]
+    if (accountName) {
+      const accountId = accountNamesToAccountIds[accountName]
+      account = accounts[accountId]
+    }
+    validator.validateAccountsActionsPublishSubplebbitEditArguments({subplebbitAddress, publishSubplebbitEditOptions, accountName, account})
+
+    // account is the owner of the subplebbit and can edit it locally, no need to publish
+    const localSubplebbitAddresses = await account.plebbit.listSubplebbits()
+    if (localSubplebbitAddresses.includes(subplebbitAddress)) {
+      return subplebbitsContext.subplebbitsActions.editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account)
+    }
+
+    let createSubplebbitEditOptions = {
+      timestamp: Math.round(Date.now() / 1000),
+      author: account.author,
+      signer: account.signer,
+      ...publishSubplebbitEditOptions,
+      // not possible to edit subplebbit.address over pubsub, only locally
+      address: subplebbitAddress,
+    }
+    delete createSubplebbitEditOptions.onChallenge
+    delete createSubplebbitEditOptions.onChallengeVerification
+
+    let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
+    const publishAndRetryFailedChallengeVerification = () => {
+      subplebbitEdit.once('challenge', async (challenge: Challenge) => {
+        publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit)
+      })
+      subplebbitEdit.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+        publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit)
+        if (!challengeVerification.challengeSuccess) {
+          // publish again automatically on fail
+          createSubplebbitEditOptions = {...createSubplebbitEditOptions, timestamp: Math.round(Date.now() / 1000)}
+          subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
+          publishAndRetryFailedChallengeVerification()
+        }
+      })
+      subplebbitEdit.publish()
+    }
+
+    publishAndRetryFailedChallengeVerification()
+    debug('accountsActions.publishSubplebbitEdit', {createSubplebbitEditOptions})
   }
 
   accountsActions.publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {

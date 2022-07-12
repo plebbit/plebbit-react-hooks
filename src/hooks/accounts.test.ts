@@ -819,6 +819,57 @@ describe('accounts', () => {
         expect(commentEditVerified.constructor.name).toBe('CommentEdit')
       })
     })
+
+    describe(`create subplebbit edit`, () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
+
+      test('publish subplebbit edit', async () => {
+        const subplebbitAddress = 'Qm...'
+        const publishSubplebbitEditOptions = {
+          title: 'edited title',
+          onChallenge,
+          onChallengeVerification,
+        }
+        await act(async () => {
+          await rendered.result.current.publishSubplebbitEdit(subplebbitAddress, publishSubplebbitEditOptions)
+        })
+      })
+
+      let subplebbitEdit: any
+
+      test('onChallenge gets called', async () => {
+        // onChallenge gets call backed once
+        try {
+          await rendered.waitFor(() => expect(onChallenge).toBeCalledTimes(1))
+        } catch (e) {
+          console.error(e)
+        }
+        expect(onChallenge.mock.calls.length).toBe(1)
+
+        // onChallenge arguments are [challenge, comment]
+        const challenge = onChallenge.mock.calls[0][0]
+        subplebbitEdit = onChallenge.mock.calls[0][1]
+        expect(challenge.type).toBe('CHALLENGE')
+        expect(challenge.challenges[0]).toEqual({challenge: '2+2=?', type: 'text'})
+        expect(typeof subplebbitEdit.publishChallengeAnswers).toBe('function')
+      })
+
+      test('onChallengeVerification gets called', async () => {
+        // publish challenge answer and wait for verification
+        subplebbitEdit.publishChallengeAnswers(['4'])
+        try {
+          await rendered.waitFor(() => expect(onChallengeVerification).toBeCalledTimes(1))
+        } catch (e) {
+          console.error(e)
+        }
+        expect(onChallengeVerification.mock.calls.length).toBe(1)
+        const challengeVerification = onChallengeVerification.mock.calls[0][0]
+        const subplebbitEditVerified = onChallengeVerification.mock.calls[0][1]
+        expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
+        expect(subplebbitEditVerified.constructor.name).toBe('SubplebbitEdit')
+      })
+    })
   })
 
   describe('multiple comments and votes in database', () => {
@@ -1574,23 +1625,46 @@ describe('accounts', () => {
     })
   })
 
-  test('createSublebbit', async () => {
+  test('createSublebbit locally and edit it', async () => {
     const rendered = renderHook<any, any>(
-      () => {
+      (subplebbitAddress?: string) => {
         const account = useAccount()
         const accountsActions = useAccountsActions()
-        return {account, ...accountsActions}
+        const accountSubplebbits = useAccountSubplebbits()
+        const subplebbit = useSubplebbit(subplebbitAddress)
+        return {account, subplebbit, accountSubplebbits, ...accountsActions}
       },
       {wrapper: PlebbitProvider}
     )
     const waitFor = testUtils.createWaitFor(rendered)
     await waitFor(() => rendered.result.current.account)
 
-    const address = 'subplebbit address'
+    const createdSubplebbitAddress = 'created subplebbit address'
     let subplebbit: any
     await act(async () => {
-      subplebbit = await rendered.result.current.createSubplebbit({address})
+      subplebbit = await rendered.result.current.createSubplebbit()
     })
-    expect(subplebbit?.address).toBe(address)
+    expect(subplebbit?.address).toBe(createdSubplebbitAddress)
+
+    // wait for subplebbit to be added to account subplebbits
+    await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
+    expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).toBe('owner')
+
+    // can useSubplebbit
+    rendered.rerender(createdSubplebbitAddress)
+    await waitFor(() => rendered.result.current.subplebbit)
+    expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+
+    // publishSubplebbitEdit
+    const editedTitle = 'edited title'
+    const onChallenge = () => {}
+    const onChallengeVerification = () => {}
+    await act(async () => {
+      await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
+    })
+    // TODO: assertion fails because the plebbit-js mock cannot edit a subplebbit instance
+    // it could cause a bug where the subplebbits react state doesn't update after an edit
+    // await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
+    // expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
   })
 })

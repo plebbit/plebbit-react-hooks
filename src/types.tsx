@@ -8,6 +8,7 @@ export type AccountsActions = any
 export type PublishCommentOptions = any
 export type PublishVoteOptions = any
 export type PublishCommentEditOptions = any
+export type PublishSubplebbitEditOptions = any
 export type Challenge = any
 export type ChallengeVerification = any
 export type CreateCommentOptions = any

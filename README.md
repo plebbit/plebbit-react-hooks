@@ -125,7 +125,7 @@ AccountsActions {
   publishComment(comment: Comment, accountName?: string)
   publishCommentEdit(commentEdit: CommentEdit, accountName?: string)
   publishVote(vote: Vote, accountName?: string)
-  publishSubplebbitEdit(subplebbitEdit: SubplebbitEdit, accountName?: string)
+  publishSubplebbitEdit(subplebbitAddress: string, subplebbitEdit: SubplebbitEdit, accountName?: string)
   publishReport(report: Report, accountName?: string)
   deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string)
   subscribe(subplebbitAddress: string, , accountName?: string) // subscribe to a subplebbit or multisub
@@ -523,8 +523,44 @@ const subplebbits = useSubplebbits(ownerSubplebbitAddresses)
 #### (Desktop only) Edit your subplebbit settings
 
 ```js
-const subplebbit = useSubplebbit('your-subplebbit-address.eth')
-await subplebbit.edit(editSubplebbitOptions)
+const {publishSubplebbitEdit} = useAccountsActions()
+
+const onChallenge = async (challenges: Challenge[], comment: Comment) => {
+  let challengeAnswers: string[]
+  try {
+    // ask the user to complete the challenges in a modal window
+    challengeAnswers = await getChallengeAnswersFromUser(challenges)
+  }
+  catch (e) {
+    // if he declines, throw error and don't get a challenge answer
+  }
+  if (challengeAnswers) {
+    // if user declines, publishChallengeAnswers is not called, retry loop stops
+    await comment.publishChallengeAnswers(challengeAnswers)
+  }
+}
+
+const onChallengeVerification = (challengeVerification, comment) => {
+  // if the challengeVerification fails, a new challenge request will be sent automatically
+  // to break the loop, the user must decline to send a challenge answer
+  // if the subplebbit owner sends more than 1 challenge for the same challenge request, subsequents will be ignored
+  console.log('challenge verified', challengeVerification)
+}
+
+// add ENS to your subplebbit
+const subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
+const editSubplebbitOptions = {
+  address: 'your-subplebbit-address.eth', onChallenge, onChallengeVerification
+}
+await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
+
+// edit other subplebbit settings
+const subplebbitAddress = 'your-subplebbit-address.eth'
+const editSubplebbitOptions = {
+  title: 'Your title', description: 'Your description',
+  onChallenge, onChallengeVerification
+}
+await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
 ```
 
 #### Export and import account

@@ -21,7 +21,9 @@ const merge = (...args: any) => {
 
 const clone = (obj: any) => {
   assert(obj && typeof obj === 'object', `utils.clone argument '${obj}' not an object`)
-  const clonedObj: any = {}
+  let clonedObj: any = {}
+
+  // clean the object to be cloned
   for (const i in obj) {
     // remove functions
     if (typeof obj[i] === 'function') {
@@ -40,7 +42,10 @@ const clone = (obj: any) => {
     }
     clonedObj[i] = obj[i]
   }
-  return JSON.parse(JSON.stringify(clonedObj))
+
+  // clone the object
+  clonedObj = JSON.parse(JSON.stringify(clonedObj))
+  return clonedObj
 }
 
 const sortTypes = [

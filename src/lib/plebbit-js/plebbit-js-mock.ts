@@ -5,6 +5,9 @@ import EventEmitter from 'events'
 const loadingTime = 10
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
+// array of subplebbit addresses probably created by the user
+const createdSubplebbitAddresses: any = []
+
 export class Plebbit {
   async createSigner() {
     return {
@@ -14,6 +17,13 @@ export class Plebbit {
   }
 
   async createSubplebbit(createSubplebbitOptions: any) {
+    if (!createSubplebbitOptions) {
+      createSubplebbitOptions = {}
+    }
+    if (!createSubplebbitOptions.address) {
+      createSubplebbitOptions = {...createSubplebbitOptions, address: 'created subplebbit address'}
+      createdSubplebbitAddresses.push('created subplebbit address')
+    }
     return new Subplebbit(createSubplebbitOptions)
   }
 
@@ -35,7 +45,7 @@ export class Plebbit {
   }
 
   async listSubplebbits() {
-    return ['list subplebbit address 1', 'list subplebbit address 2']
+    return [...new Set(['list subplebbit address 1', 'list subplebbit address 2', ...createdSubplebbitAddresses])]
   }
 
   async createComment(createCommentOptions: any) {
@@ -67,6 +77,10 @@ export class Plebbit {
 
   async createCommentEdit(createCommentEditOptions: any) {
     return new CommentEdit(createCommentEditOptions)
+  }
+
+  async createSubplebbitEdit(createSubplebbitEditOptions: any) {
+    return new SubplebbitEdit(createSubplebbitEditOptions)
   }
 }
 
@@ -136,6 +150,15 @@ export class Subplebbit extends EventEmitter {
   // mock this method to get different roles
   rolesToGet() {
     return {}
+  }
+
+  async edit(editSubplebbitOptions: any) {
+    for (const prop in editSubplebbitOptions) {
+      if (editSubplebbitOptions[prop]) {
+        // @ts-ignore
+        this[prop] = editSubplebbitOptions[prop]
+      }
+    }
   }
 }
 // make roles enumarable so it acts like a regular prop
@@ -266,6 +289,8 @@ export class Comment extends Publication {
 export class Vote extends Publication {}
 
 export class CommentEdit extends Publication {}
+
+export class SubplebbitEdit extends Publication {}
 
 export default async function () {
   return new Plebbit()

@@ -59,7 +59,7 @@
     "eslint-plugin-react-hooks": "4.3.0",
     "eslint-plugin-tsdoc": "0.2.14",
     "fs-extra": "10.1.0",
-    "go-ipfs": "0.12.2",
+    "go-ipfs": "0.13.1",
     "husky": "4.3.8",
     "jest": "27.2.4",
     "karma": "6.3.20",

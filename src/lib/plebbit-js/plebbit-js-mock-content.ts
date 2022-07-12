@@ -499,7 +499,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
 }
 
 // array of subplebbits probably created by the user
-let createdSubplebbits: any = []
+const createdSubplebbits: any = []
 
 class Plebbit {
   async createSigner() {
@@ -582,6 +582,14 @@ class Plebbit {
 
   async createVote() {
     return new Vote()
+  }
+
+  async createCommentEdit() {
+    return new CommentEdit()
+  }
+
+  async createSubplebbitEdit() {
+    return new SubplebbitEdit()
   }
 }
 
@@ -821,6 +829,10 @@ class Comment extends Publication {
 }
 
 class Vote extends Publication {}
+
+export class CommentEdit extends Publication {}
+
+export class SubplebbitEdit extends Publication {}
 
 export default async function () {
   return new Plebbit()

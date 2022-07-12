@@ -10,13 +10,16 @@ export default function PlebbitProvider(props: Props): JSX.Element | null {
     return null
   }
 
+  // AccountsProvider needs SubplebbitsProvider and vice versa so wrap SubplebbitsProvider twice
   return (
-    <AccountsProvider>
-      <SubplebbitsProvider>
-        <CommentsProvider>
-          <FeedsProvider>{props.children}</FeedsProvider>
-        </CommentsProvider>
-      </SubplebbitsProvider>
-    </AccountsProvider>
+    <SubplebbitsProvider>
+      <AccountsProvider>
+        <SubplebbitsProvider>
+          <CommentsProvider>
+            <FeedsProvider>{props.children}</FeedsProvider>
+          </CommentsProvider>
+        </SubplebbitsProvider>
+      </AccountsProvider>
+    </SubplebbitsProvider>
   )
 }

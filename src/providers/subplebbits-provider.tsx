@@ -54,6 +54,30 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
     subplebbit.update()
   }
 
+  // user is the owner of the subplebbit and can edit it locally
+  subplebbitsActions.editSubplebbit = async (subplebbitAddress: string, subplebbitEditOptions: any, account: Account) => {
+    assert(
+      subplebbitAddress !== '' && typeof subplebbitAddress === 'string',
+      `subplebbitsActions.editSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`
+    )
+    assert(
+      subplebbitEditOptions && typeof subplebbitEditOptions === 'object',
+      `subplebbitsActions.editSubplebbit invalid subplebbitEditOptions argument '${subplebbitEditOptions}'`
+    )
+    assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsActions.editSubplebbit invalid account argument '${account}'`)
+
+    // `subplebbitAddress` is different from  `subplebbitEditOptions.address` when editing the subplebbit address
+    const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+    await subplebbit.edit(subplebbitEditOptions)
+    debug('subplebbitsActions.editSubplebbit', {subplebbitAddress, subplebbitEditOptions, subplebbit, account})
+    setSubplebbits((previousSubplebbits) => ({
+      ...previousSubplebbits,
+      // edit react state of both old and new subplebbit address to not break the UI
+      [subplebbitAddress]: utils.clone(subplebbit),
+      [subplebbit.address]: utils.clone(subplebbit),
+    }))
+  }
+
   if (!props.children) {
     return null
   }
