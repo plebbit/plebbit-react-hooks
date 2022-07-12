@@ -25,15 +25,26 @@ export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions
     assert(!publishVoteOptions.timestamp || typeof publishVoteOptions.timestamp === 'number', 'publishVote publishVoteOptions.timestamp is not a number');
 };
 export const validateAccountsActionsPublishCommentEditArguments = ({ publishCommentEditOptions, accountName, account }) => {
-    assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`);
-    assert(accountName !== '', `publishComment accountName argument is empty string`);
-    assert(!accountName || account, `publishComment no account with name '${accountName}' in AccountsContext`);
-    assert(publishCommentEditOptions && typeof publishCommentEditOptions === 'object', 'publishComment publishCommentEditOptions not an object');
-    assert(typeof publishCommentEditOptions.onChallenge === 'function', 'publishComment publishCommentEditOptions.onChallenge not a function');
-    assert(typeof publishCommentEditOptions.onChallengeVerification === 'function', 'publishComment publishCommentEditOptions.onChallengeVerification not a function');
-    assert(typeof publishCommentEditOptions.subplebbitAddress === 'string', 'publishComment publishCommentEditOptions.subplebbitAddress not a string');
-    assert(typeof publishCommentEditOptions.commentCid === 'string', 'publishComment publishCommentEditOptions.commentCid not a string');
-    assert(!publishCommentEditOptions.timestamp || typeof publishCommentEditOptions.timestamp === 'number', 'publishComment publishCommentEditOptions.timestamp is not a number');
+    assert(!accountName || typeof accountName === 'string', `publishCommentEdit accountName '${accountName}' not a string`);
+    assert(accountName !== '', `publishCommentEdit accountName argument is empty string`);
+    assert(!accountName || account, `publishCommentEdit no account with name '${accountName}' in AccountsContext`);
+    assert(publishCommentEditOptions && typeof publishCommentEditOptions === 'object', 'publishCommentEdit publishCommentEditOptions not an object');
+    assert(typeof publishCommentEditOptions.onChallenge === 'function', 'publishCommentEdit publishCommentEditOptions.onChallenge not a function');
+    assert(typeof publishCommentEditOptions.onChallengeVerification === 'function', 'publishCommentEdit publishCommentEditOptions.onChallengeVerification not a function');
+    assert(typeof publishCommentEditOptions.subplebbitAddress === 'string', 'publishCommentEdit publishCommentEditOptions.subplebbitAddress not a string');
+    assert(typeof publishCommentEditOptions.commentCid === 'string', 'publishCommentEdit publishCommentEditOptions.commentCid not a string');
+    assert(!publishCommentEditOptions.timestamp || typeof publishCommentEditOptions.timestamp === 'number', 'publishCommentEdit publishCommentEditOptions.timestamp is not a number');
+};
+export const validateAccountsActionsPublishSubplebbitEditArguments = ({ subplebbitAddress, publishSubplebbitEditOptions, accountName, account }) => {
+    assert(!accountName || typeof accountName === 'string', `publishSubplebbitEdit accountName '${accountName}' not a string`);
+    assert(accountName !== '', `publishSubplebbitEdit accountName argument is empty string`);
+    assert(!accountName || account, `publishSubplebbitEdit no account with name '${accountName}' in AccountsContext`);
+    assert(publishSubplebbitEditOptions && typeof publishSubplebbitEditOptions === 'object', 'publishSubplebbitEdit publishSubplebbitEditOptions not an object');
+    assert(typeof publishSubplebbitEditOptions.onChallenge === 'function', 'publishSubplebbitEdit publishSubplebbitEditOptions.onChallenge not a function');
+    assert(typeof publishSubplebbitEditOptions.onChallengeVerification === 'function', 'publishSubplebbitEdit publishSubplebbitEditOptions.onChallengeVerification not a function');
+    assert(subplebbitAddress !== '', `publishSubplebbitEdit subplebbitAddress argument is empty string`);
+    assert(typeof subplebbitAddress === 'string', 'publishSubplebbitEdit subplebbitAddress not a string');
+    assert(!publishSubplebbitEditOptions.timestamp || typeof publishSubplebbitEditOptions.timestamp === 'number', 'publishSubplebbitEdit publishSubplebbitEditOptions.timestamp is not a number');
 };
 export const validateAccountsActionsExportAccountArguments = (accountName) => {
     assert(typeof accountName === 'string', `exportAccount accountName '${accountName}' not a string`);
@@ -118,6 +129,7 @@ export const validateFeedSortType = (sortType) => {
 const validator = {
     validateAccountsActionsPublishCommentArguments,
     validateAccountsActionsPublishCommentEditArguments,
+    validateAccountsActionsPublishSubplebbitEditArguments,
     validateAccountsActionsPublishVoteArguments,
     validateAccountsActionsExportAccountArguments,
     validateAccountsActionsSetAccountsOrderArguments,

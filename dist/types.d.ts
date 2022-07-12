@@ -7,6 +7,7 @@ export declare type AccountsActions = any;
 export declare type PublishCommentOptions = any;
 export declare type PublishVoteOptions = any;
 export declare type PublishCommentEditOptions = any;
+export declare type PublishSubplebbitEditOptions = any;
 export declare type Challenge = any;
 export declare type ChallengeVerification = any;
 export declare type CreateCommentOptions = any;

@@ -73,7 +73,7 @@ export function useAccountSubplebbits(accountName) {
     const subplebbitsArray = useSubplebbits(uniqueSubplebbitAddresses, accountName);
     const subplebbits = {};
     for (const [i, subplebbit] of subplebbitsArray.entries()) {
-        subplebbits[uniqueSubplebbitAddresses[i]] = subplebbit || {};
+        subplebbits[uniqueSubplebbitAddresses[i]] = Object.assign({}, subplebbit);
     }
     // merged subplebbit data with account.subplebbits data
     const accountSubplebbits = Object.assign({}, subplebbits);

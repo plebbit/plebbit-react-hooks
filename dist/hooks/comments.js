@@ -22,7 +22,7 @@ export function useComment(commentCid, accountName) {
             // if comment isn't already in context, add it
             commentsContext.commentsActions
                 .addCommentToContext(commentCid, account)
-                .catch((error) => debug('useComment addCommentToContext error', { commentCid, error }));
+                .catch((error) => console.error('useComment addCommentToContext error', { commentCid, error }));
         }
     }, [commentCid, account]);
     debug('useComment', { commentsContext: commentsContext.comments, comment, account });
@@ -51,7 +51,7 @@ export function useComments(commentCids, accountName) {
             if (!commentsContext.comments[commentCid]) {
                 commentsContext.commentsActions
                     .addCommentToContext(commentCid, account)
-                    .catch((error) => debug('useComments addCommentToContext error', { commentCid, error }));
+                    .catch((error) => console.error('useComments addCommentToContext error', { commentCid, error }));
             }
         }
     }, [commentCids, account]);

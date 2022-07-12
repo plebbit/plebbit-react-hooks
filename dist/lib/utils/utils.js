@@ -18,8 +18,10 @@ const merge = (...args) => {
     return mergedObj;
 };
 const clone = (obj) => {
+    var _a, _b;
     assert(obj && typeof obj === 'object', `utils.clone argument '${obj}' not an object`);
-    const clonedObj = {};
+    let clonedObj = {};
+    // clean the object to be cloned
     for (const i in obj) {
         // remove functions
         if (typeof obj[i] === 'function') {
@@ -32,9 +34,15 @@ const clone = (obj) => {
         if (obj[i] === undefined || obj[i] === null) {
             continue;
         }
+        // plebbit-js has a bug where plebbit instances have circular deps
+        if (((_b = (_a = obj[i]) === null || _a === void 0 ? void 0 : _a.constructor) === null || _b === void 0 ? void 0 : _b.name) === 'Plebbit') {
+            continue;
+        }
         clonedObj[i] = obj[i];
     }
-    return JSON.parse(JSON.stringify(clonedObj));
+    // clone the object
+    clonedObj = JSON.parse(JSON.stringify(clonedObj));
+    return clonedObj;
 };
 const sortTypes = [
     'hot',

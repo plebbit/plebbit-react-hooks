@@ -11,6 +11,8 @@ declare class Plebbit {
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     createVote(): Promise<Vote>;
+    createCommentEdit(): Promise<CommentEdit>;
+    createSubplebbitEdit(): Promise<SubplebbitEdit>;
 }
 declare class Pages {
     pageCids: any;
@@ -75,6 +77,10 @@ declare class Comment extends Publication {
     simulateUpdateEvent(): Promise<void>;
 }
 declare class Vote extends Publication {
+}
+export declare class CommentEdit extends Publication {
+}
+export declare class SubplebbitEdit extends Publication {
 }
 export default function (): Promise<Plebbit>;
 export {};

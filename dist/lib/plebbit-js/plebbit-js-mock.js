@@ -12,6 +12,8 @@ import EventEmitter from 'events';
 // so the frontend can test with latency
 const loadingTime = 10;
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
+// array of subplebbit addresses probably created by the user
+const createdSubplebbitAddresses = [];
 export class Plebbit {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -23,6 +25,13 @@ export class Plebbit {
     }
     createSubplebbit(createSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!createSubplebbitOptions) {
+                createSubplebbitOptions = {};
+            }
+            if (!createSubplebbitOptions.address) {
+                createSubplebbitOptions = Object.assign(Object.assign({}, createSubplebbitOptions), { address: 'created subplebbit address' });
+                createdSubplebbitAddresses.push('created subplebbit address');
+            }
             return new Subplebbit(createSubplebbitOptions);
         });
     }
@@ -46,7 +55,7 @@ export class Plebbit {
     }
     listSubplebbits() {
         return __awaiter(this, void 0, void 0, function* () {
-            return ['list subplebbit address 1', 'list subplebbit address 2'];
+            return [...new Set(['list subplebbit address 1', 'list subplebbit address 2', ...createdSubplebbitAddresses])];
         });
     }
     createComment(createCommentOptions) {
@@ -77,6 +86,11 @@ export class Plebbit {
     createCommentEdit(createCommentEditOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             return new CommentEdit(createCommentEditOptions);
+        });
+    }
+    createSubplebbitEdit(createSubplebbitEditOptions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new SubplebbitEdit(createSubplebbitEditOptions);
         });
     }
 }
@@ -132,6 +146,16 @@ export class Subplebbit extends EventEmitter {
     // mock this method to get different roles
     rolesToGet() {
         return {};
+    }
+    edit(editSubplebbitOptions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const prop in editSubplebbitOptions) {
+                if (editSubplebbitOptions[prop]) {
+                    // @ts-ignore
+                    this[prop] = editSubplebbitOptions[prop];
+                }
+            }
+        });
     }
 }
 // make roles enumarable so it acts like a regular prop
@@ -244,6 +268,8 @@ export class Comment extends Publication {
 export class Vote extends Publication {
 }
 export class CommentEdit extends Publication {
+}
+export class SubplebbitEdit extends Publication {
 }
 export default function () {
     return __awaiter(this, void 0, void 0, function* () {

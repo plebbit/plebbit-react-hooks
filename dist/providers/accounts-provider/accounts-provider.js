@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import validator from '../../lib/validator';
 import assert from 'assert';
 import Debug from 'debug';
@@ -15,8 +15,10 @@ const debug = Debug('plebbit-react-hooks:providers:accounts-provider');
 import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
 import utils from '../../lib/utils';
+import { SubplebbitsContext } from '../subplebbits-provider';
 export const AccountsContext = React.createContext(undefined);
 export default function AccountsProvider(props) {
+    const subplebbitsContext = useContext(SubplebbitsContext);
     const [accounts, setAccounts] = useState(undefined);
     const [accountIds, setAccountIds] = useState(undefined);
     const [activeAccountId, setActiveAccountId] = useState(undefined);
@@ -196,7 +198,7 @@ export default function AccountsProvider(props) {
                             updatedAccountComments[accountCommentIndex] = updatedAccountComment;
                             return Object.assign(Object.assign({}, previousAccountsComments), { [account.id]: updatedAccountComments });
                         });
-                        startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex);
+                        startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex).catch((error) => console.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', { comment, account, accountCommentIndex, error }));
                     }
                 }
             }));
@@ -240,12 +242,44 @@ export default function AccountsProvider(props) {
             commentEdit.publish();
         };
         publishAndRetryFailedChallengeVerification();
-        debug('accountsActions.createCommentEdit', { createCommentEditOptions });
+        debug('accountsActions.publishCommentEdit', { createCommentEditOptions });
     });
-    accountsActions.publishSubplebbitEdit = (publishSubplebbitEditOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
-        throw Error('TODO: not implemented');
-        // TODO: a moderator can publish an edit to the subplebbit settings over the pubsub
-        // and the subplebbit owner node will update the subplebbit
+    accountsActions.publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
+        assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
+        let account = accounts[activeAccountId];
+        if (accountName) {
+            const accountId = accountNamesToAccountIds[accountName];
+            account = accounts[accountId];
+        }
+        validator.validateAccountsActionsPublishSubplebbitEditArguments({ subplebbitAddress, publishSubplebbitEditOptions, accountName, account });
+        // account is the owner of the subplebbit and can edit it locally, no need to publish
+        const localSubplebbitAddresses = yield account.plebbit.listSubplebbits();
+        if (localSubplebbitAddresses.includes(subplebbitAddress)) {
+            return subplebbitsContext.subplebbitsActions.editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account);
+        }
+        let createSubplebbitEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishSubplebbitEditOptions), { 
+            // not possible to edit subplebbit.address over pubsub, only locally
+            address: subplebbitAddress });
+        delete createSubplebbitEditOptions.onChallenge;
+        delete createSubplebbitEditOptions.onChallengeVerification;
+        let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
+        const publishAndRetryFailedChallengeVerification = () => {
+            subplebbitEdit.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
+                publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit);
+            }));
+            subplebbitEdit.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+                publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit);
+                if (!challengeVerification.challengeSuccess) {
+                    // publish again automatically on fail
+                    createSubplebbitEditOptions = Object.assign(Object.assign({}, createSubplebbitEditOptions), { timestamp: Math.round(Date.now() / 1000) });
+                    subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
+                    publishAndRetryFailedChallengeVerification();
+                }
+            }));
+            subplebbitEdit.publish();
+        };
+        publishAndRetryFailedChallengeVerification();
+        debug('accountsActions.publishSubplebbitEdit', { createSubplebbitEditOptions });
     });
     accountsActions.publishVote = (publishVoteOptions, accountName) => __awaiter(this, void 0, void 0, function* () {
         assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountActions before initialized`);
@@ -392,7 +426,12 @@ export default function AccountsProvider(props) {
                     updatedAccountComments[accountComment.index] = commentWithCid;
                     return Object.assign(Object.assign({}, previousAccountsComments), { [accountComment.accountId]: updatedAccountComments });
                 });
-                startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index);
+                startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index).catch((error) => console.error('accountsActions.addCidToAccountComment startUpdatingAccountCommentOnCommentUpdateEvents error', {
+                    comment,
+                    account: accounts[accountComment.accountId],
+                    accountCommentIndex: accountComment.index,
+                    error,
+                }));
                 break;
             }
         }

@@ -23,7 +23,7 @@ export function useSubplebbit(subplebbitAddress, accountName) {
             // if subplebbit isn't already in context, add it
             subplebbitsContext.subplebbitsActions
                 .addSubplebbitToContext(subplebbitAddress, account)
-                .catch((error) => debug('useSubplebbit addSubplebbitToContext error', { subplebbitAddress, error }));
+                .catch((error) => console.error('useSubplebbit addSubplebbitToContext error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddress, account]);
     debug('useSubplebbit', { subplebbitsContext: subplebbitsContext.subplebbits, subplebbit, account });
@@ -52,7 +52,7 @@ export function useSubplebbits(subplebbitAddresses, accountName) {
             if (!subplebbitsContext.subplebbits[subplebbitAddress]) {
                 subplebbitsContext.subplebbitsActions
                     .addSubplebbitToContext(subplebbitAddress, account)
-                    .catch((error) => debug('useSubplebbits addSubplebbitToContext error', { subplebbitAddress, error }));
+                    .catch((error) => console.error('useSubplebbits addSubplebbitToContext error', { subplebbitAddress, error }));
             }
         }
     }, [subplebbitAddresses, account]);

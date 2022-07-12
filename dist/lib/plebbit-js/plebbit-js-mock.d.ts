@@ -8,12 +8,13 @@ export declare class Plebbit {
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    listSubplebbits(): Promise<string[]>;
+    listSubplebbits(): Promise<any[]>;
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     commentToGet(): {};
     createVote(): Promise<Vote>;
     createCommentEdit(createCommentEditOptions: any): Promise<CommentEdit>;
+    createSubplebbitEdit(createSubplebbitEditOptions: any): Promise<SubplebbitEdit>;
 }
 export declare class Pages {
     pageCids: any;
@@ -35,6 +36,7 @@ export declare class Subplebbit extends EventEmitter {
     simulateUpdateEvent(): void;
     get roles(): {};
     rolesToGet(): {};
+    edit(editSubplebbitOptions: any): Promise<void>;
 }
 declare class Publication extends EventEmitter {
     timestamp: number | undefined;
@@ -64,6 +66,8 @@ export declare class Comment extends Publication {
 export declare class Vote extends Publication {
 }
 export declare class CommentEdit extends Publication {
+}
+export declare class SubplebbitEdit extends Publication {
 }
 export default function (): Promise<Plebbit>;
 export {};

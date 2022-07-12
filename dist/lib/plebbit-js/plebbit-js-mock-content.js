@@ -447,7 +447,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
     return page;
 });
 // array of subplebbits probably created by the user
-let createdSubplebbits = [];
+const createdSubplebbits = [];
 class Plebbit {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -526,6 +526,16 @@ class Plebbit {
     createVote() {
         return __awaiter(this, void 0, void 0, function* () {
             return new Vote();
+        });
+    }
+    createCommentEdit() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new CommentEdit();
+        });
+    }
+    createSubplebbitEdit() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new SubplebbitEdit();
         });
     }
 }
@@ -716,6 +726,10 @@ class Comment extends Publication {
     }
 }
 class Vote extends Publication {
+}
+export class CommentEdit extends Publication {
+}
+export class SubplebbitEdit extends Publication {
 }
 export default function () {
     return __awaiter(this, void 0, void 0, function* () {

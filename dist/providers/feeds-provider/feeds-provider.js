@@ -341,7 +341,9 @@ function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                 if (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.addCidToAccountComment) {
                     const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage);
                     for (const comment of flattenedReplies) {
-                        accountsContext.addCidToAccountComment(comment);
+                        accountsContext
+                            .addCidToAccountComment(comment)
+                            .catch((error) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', { comment, error }));
                     }
                 }
             }))();
