@@ -523,42 +523,39 @@ const subplebbits = useSubplebbits(ownerSubplebbitAddresses)
 #### (Desktop only) Edit your subplebbit settings
 
 ```js
-const {publishSubplebbitEdit} = useAccountsActions()
-
-const onChallenge = async (challenges: Challenge[], comment: Comment) => {
+const onChallenge = async (challenges: Challenge[], subplebbitEdit: SubplebbitEdit) => {
   let challengeAnswers: string[]
   try {
-    // ask the user to complete the challenges in a modal window
     challengeAnswers = await getChallengeAnswersFromUser(challenges)
   }
-  catch (e) {
-    // if he declines, throw error and don't get a challenge answer
-  }
+  catch (e) {}
   if (challengeAnswers) {
-    // if user declines, publishChallengeAnswers is not called, retry loop stops
-    await comment.publishChallengeAnswers(challengeAnswers)
+    await subplebbitEdit.publishChallengeAnswers(challengeAnswers)
   }
 }
 
-const onChallengeVerification = (challengeVerification, comment) => {
-  // if the challengeVerification fails, a new challenge request will be sent automatically
-  // to break the loop, the user must decline to send a challenge answer
-  // if the subplebbit owner sends more than 1 challenge for the same challenge request, subsequents will be ignored
+const onChallengeVerification = (challengeVerification, subplebbitEdit) => {
   console.log('challenge verified', challengeVerification)
 }
+
+const {publishSubplebbitEdit} = useAccountsActions()
 
 // add ENS to your subplebbit
 const subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 const editSubplebbitOptions = {
-  address: 'your-subplebbit-address.eth', onChallenge, onChallengeVerification
+  address: 'your-subplebbit-address.eth', 
+  onChallenge, 
+  onChallengeVerification
 }
 await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
 
 // edit other subplebbit settings
 const subplebbitAddress = 'your-subplebbit-address.eth'
 const editSubplebbitOptions = {
-  title: 'Your title', description: 'Your description',
-  onChallenge, onChallengeVerification
+  title: 'Your title', 
+  description: 'Your description',
+  onChallenge, 
+  onChallengeVerification
 }
 await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
 ```
