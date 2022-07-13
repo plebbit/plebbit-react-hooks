@@ -22,6 +22,12 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
   const subplebbitsActions: {[key: string]: Function} = {}
 
   subplebbitsActions.addSubplebbitToContext = async (subplebbitAddress: string, account: Account) => {
+    assert(
+      subplebbitAddress !== '' && typeof subplebbitAddress === 'string',
+      `subplebbitsActions.addSubplebbitToContext invalid subplebbitAddress argument '${subplebbitAddress}'`
+    )
+    assert(typeof account?.plebbit?.getSubplebbit === 'function', `subplebbitsActions.addSubplebbitToContext invalid account argument '${account}'`)
+
     // subplebbit is in context already, do nothing
     let subplebbit: Subplebbit | undefined = subplebbits[subplebbitAddress]
     if (subplebbit || plebbitGetSubplebbitPending[subplebbitAddress + account.id]) {

@@ -260,6 +260,7 @@ export default function AccountsProvider(props) {
             publishSubplebbitEditOptions.onChallengeVerification({ challengeSuccess: true });
             return;
         }
+        assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
         let createSubplebbitEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishSubplebbitEditOptions), { 
             // not possible to edit subplebbit.address over pubsub, only locally
             address: subplebbitAddress });
@@ -407,6 +408,10 @@ export default function AccountsProvider(props) {
         if (accountName) {
             const accountId = accountNamesToAccountIds[accountName];
             account = accounts[accountId];
+        }
+        // TODO: bug with plebbit-js, can't create a subplebbit without a signer
+        if (!createSubplebbitOptions || !createSubplebbitOptions.signer) {
+            createSubplebbitOptions = Object.assign(Object.assign({}, createSubplebbitOptions), { signer: yield account.plebbit.createSigner() });
         }
         return account.plebbit.createSubplebbit(createSubplebbitOptions);
     });

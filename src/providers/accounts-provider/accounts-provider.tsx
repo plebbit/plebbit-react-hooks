@@ -503,6 +503,13 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
+    // TODO: bug with plebbit-js, can't create a subplebbit without a signer
+    if (!createSubplebbitOptions || !createSubplebbitOptions.signer) {
+      createSubplebbitOptions = {
+        ...createSubplebbitOptions,
+        signer: await account.plebbit.createSigner(),
+      }
+    }
     return account.plebbit.createSubplebbit(createSubplebbitOptions)
   }
 

@@ -22,6 +22,9 @@ export default function SubplebbitsProvider(props) {
     const [subplebbits, setSubplebbits] = useState({});
     const subplebbitsActions = {};
     subplebbitsActions.addSubplebbitToContext = (subplebbitAddress, account) => __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        assert(subplebbitAddress !== '' && typeof subplebbitAddress === 'string', `subplebbitsActions.addSubplebbitToContext invalid subplebbitAddress argument '${subplebbitAddress}'`);
+        assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `subplebbitsActions.addSubplebbitToContext invalid account argument '${account}'`);
         // subplebbit is in context already, do nothing
         let subplebbit = subplebbits[subplebbitAddress];
         if (subplebbit || plebbitGetSubplebbitPending[subplebbitAddress + account.id]) {
@@ -51,10 +54,10 @@ export default function SubplebbitsProvider(props) {
     });
     // user is the owner of the subplebbit and can edit it locally
     subplebbitsActions.editSubplebbit = (subplebbitAddress, subplebbitEditOptions, account) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _b;
         assert(subplebbitAddress !== '' && typeof subplebbitAddress === 'string', `subplebbitsActions.editSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`);
         assert(subplebbitEditOptions && typeof subplebbitEditOptions === 'object', `subplebbitsActions.editSubplebbit invalid subplebbitEditOptions argument '${subplebbitEditOptions}'`);
-        assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsActions.editSubplebbit invalid account argument '${account}'`);
+        assert(typeof ((_b = account === null || account === void 0 ? void 0 : account.plebbit) === null || _b === void 0 ? void 0 : _b.createSubplebbit) === 'function', `subplebbitsActions.editSubplebbit invalid account argument '${account}'`);
         // `subplebbitAddress` is different from  `subplebbitEditOptions.address` when editing the subplebbit address
         const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
         yield subplebbit.edit(subplebbitEditOptions);
