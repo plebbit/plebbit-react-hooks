@@ -1,25 +1,19 @@
-# CI for src folder
-name: CI
+# CI for dist folder
+name: CI dist
 
 on:
   pull_request:
     branches:
       - master
     paths:
-      - 'test/**'
-      - 'src/**'
-      - 'config/**'
-      # - '.github/**'
+      - 'dist/**'
       - 'package.json'
       - 'yarn.lock'
   push:
     branches:
       - master
     paths:
-      - 'test/**'
-      - 'src/**'
-      - 'config/**'
-      # - '.github/**'
+      - 'dist/**'
       - 'package.json'
       - 'yarn.lock'
 
@@ -44,8 +38,6 @@ jobs:
           cache: 'yarn'
 
       - run: yarn
-      - run: yarn test
-      - run: yarn build
       - run: yarn webpack
       - run: yarn test:server & yarn test:server:wait-on
       - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e
