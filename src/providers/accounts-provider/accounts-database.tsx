@@ -36,7 +36,7 @@ const getAccount = async (accountId: string) => {
 
 const getAccountJson = async (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`)
-  // do not serialize or instanciate anything (unlike getAccount)
+  // do not serialize or instantiate anything (unlike getAccount)
   const account = await accountsDatabase.getItem(accountId)
   if (!account) {
     throw Error(`getAccountJson no account in database with accountId '${accountId}'`)
