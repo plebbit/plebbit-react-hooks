@@ -6,7 +6,10 @@ const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 
-const timeout = 600000
+let timeout = 600000
+if (process.env.CI) {
+  timeout = 30000
+}
 
 describe('accounts', () => {
   before(() => {
