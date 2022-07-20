@@ -159,12 +159,12 @@ Account {
   subplebbits: {[subplebbitAddress: Address]: AccountSubplebbit} // the subplebbits moderated or created by the user
 }
 Karma {
-  commentUpvoteCount
-  commentDownvoteCount
-  commentScore
-  linkUpvoteCount
-  linkDownvoteCount
-  linkScore
+  replyUpvoteCount
+  replyDownvoteCount
+  replyScore
+  postUpvoteCount
+  postDownvoteCount
+  postScore
   upvoteCount
   downvoteCount
   score
