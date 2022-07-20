@@ -1532,6 +1532,14 @@ describe('accounts', () => {
 
   describe('useAccountSubplebbits', () => {
     describe('with setup', () => {
+      // roles tests are flaky
+      beforeAll(() => {
+        jest.retryTimes(5)
+      })
+      afterAll(() => {
+        jest.retryTimes(0)
+      })
+
       let rendered: any
       let waitFor: Function
 

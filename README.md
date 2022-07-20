@@ -88,14 +88,15 @@ useComments(commentCid[], accountName?: string): Comment[]
 ```
 #### Subplebbits Hooks
 ```
-useSubplebbit(subplebbitAddress): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
-useSubplebbits(subplebbitAddress[]): Subplebbits[]
+useSubplebbit(subplebbitAddress: string, accountName?: string): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
+useSubplebbits(subplebbitAddress[]: string[], accountName?: string): Subplebbits[]
+useResolvedSubplebbitAddress(subplebbitAddress: string, accountName?: string): string | undefined
 ```
 #### Feeds Hooks
 ```
 useFeed(subplebbitAddresses: string[], sortType?: string): {feed: Feed, loadMore: function, hasMore: boolean}
 useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[]) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
-useAuthorComments(authorAddress) // there are no way to fetch all comments from an author, you need to build it from your own cache
+useAuthorComments(authorAddress): string | undefined // there are no way to fetch all comments from an author, you need to build it from your own cache
 ```
 #### Authors Hooks
 ```
@@ -558,6 +559,10 @@ const editSubplebbitOptions = {
   onChallengeVerification
 }
 await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
+
+// verify if ENS was set correctly
+const resolvedSubplebbitAddress = useResolvedSubplebbitAddress('your-subplebbit-address.eth')
+console.log('ENS set correctly', resolvedSubplebbitAddress === subplebbit.signer.address)
 ```
 
 #### Export and import account

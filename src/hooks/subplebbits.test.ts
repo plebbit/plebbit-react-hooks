@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider} from '..'
-import {useListSubplebbits} from './subplebbits'
+import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider, useResolvedSubplebbitAddress, useAccount} from '..'
+import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
@@ -158,5 +158,40 @@ describe('subplebbits', () => {
     const waitFor = testUtils.createWaitFor(rendered)
     await waitFor(() => rendered.result.current.length > 0)
     expect(rendered.result.current).toEqual(['list subplebbit address 1', 'list subplebbit address 2'])
+  })
+
+  describe('subplebbit address', () => {
+    const timeout = 60000
+    jest.setTimeout(timeout)
+
+    // skip because uses internet and not deterministic
+    test.skip('useResolvedSubplebbitAddress', async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress(subplebbitAddress), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current).toBe(undefined)
+
+      rendered.rerender('plebbit.eth')
+      await waitFor(() => typeof rendered.result.current === 'string')
+      expect(rendered.result.current).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
+    })
+
+    // skip because uses internet and not deterministic
+    // also cache and pending is difficult to test without console logging it
+    test.skip('resolveSubplebbitAddress (cache and pending)', async () => {
+      const rendered = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      await waitFor(() => rendered.result.current)
+      expect(rendered.result.current).not.toBe(undefined)
+      console.log(rendered.result.current)
+      const blockchainProviders = rendered.result.current?.plebbitOptions?.blockchainProviders
+
+      // const res = await resolveSubplebbitAddress('plebbit.eth', blockchainProviders)
+      // console.log(res)
+      // const cachedRes = await resolveSubplebbitAddress('plebbit.eth', blockchainProviders)
+      // console.log(cachedRes)
+
+      const res = await Promise.all([resolveSubplebbitAddress('plebbit.eth', blockchainProviders), resolveSubplebbitAddress('plebbit.eth', blockchainProviders)])
+      console.log(res)
+    })
   })
 })

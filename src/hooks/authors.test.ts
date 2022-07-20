@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useAuthorAvatarImageUrl, useResolvedAuthorAddress, PlebbitProvider, setPlebbitJs, useAccount} from '..'
-import {getNftImageUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
+import {useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock from '../lib/plebbit-js/plebbit-js-mock'
 import {ethers} from 'ethers'
@@ -59,26 +59,6 @@ describe('authors', () => {
       rendered.rerender(avatarNft2)
       await waitFor(() => typeof rendered.result.current === 'string' && rendered.result.current !== avatarNftImageUrl1)
       expect(rendered.result.current).toBe(avatarNftImageUrl2)
-    })
-
-    // skip because uses internet and not deterministic
-    // also cache and pending is difficult to test without console logging it
-    test.skip('getNftImageUrl (cache and pending)', async () => {
-      const rendered = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
-      const waitFor = testUtils.createWaitFor(rendered, {timeout})
-      await waitFor(() => rendered.result.current)
-      expect(rendered.result.current).not.toBe(undefined)
-      console.log(rendered.result.current)
-      const ipfsGatewayUrl = rendered.result.current?.plebbitOptions?.ipfsGatewayUrl
-      const blockchainProviders = rendered.result.current?.plebbitOptions?.blockchainProviders
-
-      const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
-      console.log(url)
-      const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
-      console.log(cachedUrl)
-
-      const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders)])
-      console.log(res)
     })
 
     // skip because uses internet and not deterministic

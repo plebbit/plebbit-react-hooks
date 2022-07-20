@@ -5,8 +5,9 @@ import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
-import {Subplebbit} from '../types'
+import {Subplebbit, BlockchainProviders} from '../types'
 import useInterval from './utils/use-interval'
+import {resolveEnsTxtRecord} from '../lib/blockchain'
 
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
@@ -96,4 +97,56 @@ export function useListSubplebbits() {
 
   debug('useListSubplebbits', {subplebbitAddresses})
   return subplebbitAddresses
+}
+
+/**
+ * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to 'Qm...'.
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+// NOTE: useResolvedSubplebbitAddress tests are skipped, if changes are made they must be tested manually
+export function useResolvedSubplebbitAddress(subplebbitAddress?: string, accountName?: string) {
+  const account = useAccount(accountName)
+  // possible to use account.plebbit instead of account.plebbitOptions
+  const blockchainProviders = account?.plebbitOptions?.blockchainProviders
+  const [resolvedSubplebbitAddress, setResolvedSubplebbitAddress] = useState<string>()
+
+  useInterval(
+    () => {
+      // only support resolving '.eth' for now
+      if (!subplebbitAddress?.endsWith('.eth')) {
+        return
+      }
+      if (!account || !subplebbitAddress) {
+        return
+      }
+      ;(async () => {
+        try {
+          const res = await resolveSubplebbitAddress(subplebbitAddress, blockchainProviders)
+          if (res !== resolvedSubplebbitAddress) {
+            setResolvedSubplebbitAddress(res)
+          }
+        } catch (error) {
+          debug('useResolvedSubplebbitAddress resolveSubplebbitAddress error', {subplebbitAddress, blockchainProviders, error})
+        }
+      })()
+    },
+    15000,
+    true,
+    [subplebbitAddress, blockchainProviders]
+  )
+
+  debug('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
+  return resolvedSubplebbitAddress
+}
+
+// NOTE: resolveSubplebbitAddress tests are skipped, if changes are made they must be tested manually
+export const resolveSubplebbitAddress = async (subplebbitAddress: string, blockchainProviders: BlockchainProviders) => {
+  let resolvedSubplebbitAddress
+  if (subplebbitAddress.endsWith('.eth')) {
+    resolvedSubplebbitAddress = await resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', blockchainProviders)
+  } else {
+    throw Error(`resolveSubplebbitAddress invalid subplebbitAddress '${subplebbitAddress}'`)
+  }
+  return resolvedSubplebbitAddress
 }
