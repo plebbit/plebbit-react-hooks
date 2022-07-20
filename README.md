@@ -84,7 +84,7 @@ useAccountNotifications(accountName?: string): Notification[]
 #### Comments Hooks
 ```
 useComment(commentCid: string, accountName?: string): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
-useComments(commentCid[],  accountName?: string): Comment[]
+useComments(commentCid[], accountName?: string): Comment[]
 ```
 #### Subplebbits Hooks
 ```
