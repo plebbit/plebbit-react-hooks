@@ -45,6 +45,12 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
     throw Error(`createWaitFor invalid 'rendered' argument`)
   }
   const waitFor = async (waitForFunction: Function) => {
+    // format error stack trace for usefulness
+    const stackTraceLimit = Error.stackTraceLimit
+    Error.stackTraceLimit = 10
+    const errorWithUsefulStackTrace = new Error('waitFor')
+    Error.stackTraceLimit = stackTraceLimit
+
     if (typeof waitForFunction !== 'function') {
       throw Error(`waitFor invalid 'waitForFunction' argument`)
     }
@@ -55,7 +61,9 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
     try {
       await rendered.waitFor(() => Boolean(waitForFunction()), waitForOptions)
     } catch (e) {
-      console.error(e)
+      // @ts-ignore
+      errorWithUsefulStackTrace.message = `${e.message} ${waitForFunction.toString()}`
+      console.warn(errorWithUsefulStackTrace)
     }
   }
   return waitFor

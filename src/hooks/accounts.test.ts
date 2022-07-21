@@ -37,14 +37,11 @@ describe('accounts', () => {
     test('generate default account on load', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered)
       expect(rendered.result.current).toBe(undefined)
 
       // on second render, you get the default generated account
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.name)
       const account = rendered.result.current
       expect(account.name).toBe('Account 1')
       expect(account.author.displayName).toBe(undefined)
@@ -117,16 +114,13 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
+      const waitFor = testUtils.createWaitFor(rendered)
       // on first render, the account is undefined because it's not yet loaded from database
       expect(rendered.result.current.account).toBe(undefined)
       expect(rendered.result.current.createAccount).toBe(undefined)
 
       // on second render, you get the default generated account
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.account.name)
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.createAccount).toBe('function')
 
@@ -153,13 +147,12 @@ describe('accounts', () => {
 
       // render second context with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor2(() => rendered2.result.current.name)
+
       // default active account is account 1
       expect(rendered2.result.current.name).toBe('Account 1')
       // get all accounts by name
@@ -193,11 +186,7 @@ describe('accounts', () => {
       waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.account.name)
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.createAccount).toBe('function')
 
@@ -234,13 +223,12 @@ describe('accounts', () => {
 
       // render second context with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor2(() => rendered2.result.current.name)
+
       // active account is still 'custom name'
       expect(rendered2.result.current.name).toBe('custom name')
     })
@@ -275,13 +263,12 @@ describe('accounts', () => {
 
       // render second context with empty state to check if account change saved to database
       const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor2(() => rendered2.result.current.name)
+
       // active account display name is still 'display name john'
       expect(rendered2.result.current.author.displayName).toBe('display name john')
     })
@@ -300,13 +287,12 @@ describe('accounts', () => {
 
       // render second context with empty state to check if account change saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+
       // accounts not yet loaded from database
       expect(rendered2.result.current).toBe(undefined)
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor2(() => rendered2.result.current.name)
+
       // active account is still 'account name john'
       expect(rendered2.result.current.name).toBe('account name john')
     })
@@ -430,11 +416,9 @@ describe('accounts', () => {
 
       // render second context with empty state to check if saved to database
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current[0].name)
+
       expect(rendered2.result.current[0].name).toBe('custom name')
       expect(rendered2.result.current[1].name).toBe('Account 3')
       expect(rendered2.result.current[2].name).toBe('Account 2')
@@ -636,7 +620,7 @@ describe('accounts', () => {
   })
 
   describe('no comments or votes in database', () => {
-    let rendered: any
+    let rendered: any, waitFor: any
 
     beforeEach(async () => {
       // on first render, the account is undefined because it's not yet loaded from database
@@ -648,13 +632,10 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
+      waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.account.name)
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.publishComment).toBe('function')
       expect(typeof rendered.result.current.publishVote).toBe('function')
@@ -685,11 +666,7 @@ describe('accounts', () => {
 
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
-        try {
-          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallenge.mock.calls.length === 1)
         expect(onChallenge.mock.calls.length).toBe(1)
 
         // onChallenge arguments are [challenge, comment]
@@ -703,11 +680,8 @@ describe('accounts', () => {
       test('onChallengeVerification gets called', async () => {
         // publish challenge answer and wait for verification
         comment.publishChallengeAnswers(['4'])
-        try {
-          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+
         expect(onChallengeVerification.mock.calls.length).toBe(1)
         const challengeVerification = onChallengeVerification.mock.calls[0][0]
         const commentVerified = onChallengeVerification.mock.calls[0][1]
@@ -737,11 +711,7 @@ describe('accounts', () => {
 
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
-        try {
-          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallenge.mock.calls.length === 1)
         expect(onChallenge.mock.calls.length).toBe(1)
 
         // onChallenge arguments are [challenge, comment]
@@ -755,11 +725,8 @@ describe('accounts', () => {
       test('onChallengeVerification gets called', async () => {
         // publish challenge answer and wait for verification
         vote.publishChallengeAnswers(['4'])
-        try {
-          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+
         expect(onChallengeVerification.mock.calls.length).toBe(1)
         const challengeVerification = onChallengeVerification.mock.calls[0][0]
         const voteVerified = onChallengeVerification.mock.calls[0][1]
@@ -789,11 +756,7 @@ describe('accounts', () => {
 
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
-        try {
-          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallenge.mock.calls.length === 1)
         expect(onChallenge.mock.calls.length).toBe(1)
 
         // onChallenge arguments are [challenge, comment]
@@ -807,11 +770,8 @@ describe('accounts', () => {
       test('onChallengeVerification gets called', async () => {
         // publish challenge answer and wait for verification
         commentEdit.publishChallengeAnswers(['4'])
-        try {
-          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+
         expect(onChallengeVerification.mock.calls.length).toBe(1)
         const challengeVerification = onChallengeVerification.mock.calls[0][0]
         const commentEditVerified = onChallengeVerification.mock.calls[0][1]
@@ -840,11 +800,7 @@ describe('accounts', () => {
 
       test('onChallenge gets called', async () => {
         // onChallenge gets call backed once
-        try {
-          await rendered.waitFor(() => onChallenge.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallenge.mock.calls.length === 1)
         expect(onChallenge.mock.calls.length).toBe(1)
 
         // onChallenge arguments are [challenge, comment]
@@ -858,11 +814,8 @@ describe('accounts', () => {
       test('onChallengeVerification gets called', async () => {
         // publish challenge answer and wait for verification
         subplebbitEdit.publishChallengeAnswers(['4'])
-        try {
-          await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 1)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+
         expect(onChallengeVerification.mock.calls.length).toBe(1)
         const challengeVerification = onChallengeVerification.mock.calls[0][0]
         const subplebbitEditVerified = onChallengeVerification.mock.calls[0][1]
@@ -877,6 +830,7 @@ describe('accounts', () => {
     let onChallengeVerification: any
     let publishOptions: any
     let rendered: any
+    let waitFor: any
 
     beforeEach(async () => {
       onChallenge = jest.fn()
@@ -903,11 +857,9 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      waitFor = testUtils.createWaitFor(rendered)
+
+      await waitFor(() => rendered.result.current.account.name)
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.publishComment).toBe('function')
       expect(typeof rendered.result.current.publishVote).toBe('function')
@@ -982,21 +934,17 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
       expect(rendered.result.current.accountComments[2].content).toBe('content 3')
+
       // wait for all on challenge to be called
-      try {
-        await rendered.waitFor(() => onChallenge.mock.calls.length === 6)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => onChallenge.mock.calls.length === 6)
+
       // publish challenge answers for comment 1 and 2
       onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
       onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
+
       // wait for all on challengeverification to be called
-      try {
-        await rendered.waitFor(() => onChallengeVerification.mock.calls.length === 2)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => onChallengeVerification.mock.calls.length === 2)
+
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
@@ -1009,11 +957,9 @@ describe('accounts', () => {
       // check if cids are in database after getting a new context
       const activeAccountId = rendered.result.current.account.id
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.length)
+
       expect(rendered2.result.current.length).toBe(3)
       expect(rendered2.result.current[0].content).toBe('content 1')
       expect(rendered2.result.current[1].content).toBe('content 2')
@@ -1033,11 +979,8 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current[0].content)
+
       expect(rendered.result.current[0].content).toBe('content 1')
       expect(rendered.result.current[1].content).toBe('content 2')
       expect(rendered.result.current[0].cid).toBe(undefined)
@@ -1054,11 +997,8 @@ describe('accounts', () => {
       })
 
       rendered.rerender('content 1 cid')
-      try {
-        await rendered.waitFor(() => !!rendered.result.current[0].cid)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => !!rendered.result.current[0].cid)
+
       expect(rendered.result.current[0].content).toBe('content 1')
       expect(rendered.result.current[1].content).toBe('content 2')
       expect(rendered.result.current[0].cid).toBe('content 1 cid')
@@ -1066,11 +1006,7 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
       // make sure the account comment starts updating by checking if it received upvotes
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
       expect(rendered.result.current[0].upvoteCount).toBe(3)
 
       // mock the second comment to get from plebbit.getComment()
@@ -1081,11 +1017,8 @@ describe('accounts', () => {
       })
 
       rendered.rerender('content 2 cid')
-      try {
-        await rendered.waitFor(() => !!rendered.result.current[1].cid)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => !!rendered.result.current[1].cid)
+
       expect(rendered.result.current[0].content).toBe('content 1')
       expect(rendered.result.current[1].content).toBe('content 2')
       expect(rendered.result.current[0].cid).toBe('content 1 cid')
@@ -1097,11 +1030,9 @@ describe('accounts', () => {
 
       // check if cids are still in database after new context
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current[0].cid)
+
       expect(rendered2.result.current[0].cid).toBe('content 1 cid')
       expect(rendered2.result.current[1].cid).toBe('content 2 cid')
       expect(rendered2.result.current[2].cid).toBe(undefined)
@@ -1119,12 +1050,10 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
+      const waitFor = testUtils.createWaitFor(rendered)
+
       // wait for account comments to render
-      try {
-        await rendered.waitFor(() => rendered.result.current.accountComments?.length > 0)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.accountComments?.length > 0)
 
       // get feed page with our timestamp and author address in it
       const accountCommentTimestamp = rendered.result.current.accountComments[0].timestamp
@@ -1144,18 +1073,10 @@ describe('accounts', () => {
       rendered.rerender({subplebbitAddresses: [accountCommentSubplebbitAddress]})
 
       // wait for feed to load
-      try {
-        await rendered.waitFor(() => rendered.result.current.feed?.length > 0)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.feed?.length > 0)
 
       // wait for cid from feed to have been added to account comments
-      try {
-        await rendered.waitFor(() => rendered.result.current.accountComments[0].cid === 'cid from feed')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.accountComments[0].cid === 'cid from feed')
       expect(rendered.result.current.accountComments[0].cid).toBe('cid from feed')
 
       // restore mock
@@ -1165,11 +1086,9 @@ describe('accounts', () => {
     test(`account comments are stored to database`, async () => {
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.length)
+
       expect(rendered2.result.current.length).toBe(3)
       expect(rendered2.result.current[0].content).toBe('content 1')
       expect(rendered2.result.current[1].content).toBe('content 2')
@@ -1198,21 +1117,14 @@ describe('accounts', () => {
         jest.retryTimes(0)
       })
       test(`account has karma after comments are published`, async () => {
-        try {
-          await rendered.waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
+
         // answer challenges to get the comments published
         onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
         onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
         onChallenge.mock.calls[2][1].publishChallengeAnswers(['4'])
 
-        try {
-          await rendered.waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9)
-        } catch (e) {
-          console.error(e)
-        }
+        await waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9)
         expect(rendered.result.current.account.karma.score).toBe(6)
         expect(rendered.result.current.account.karma.upvoteCount).toBe(9)
         expect(rendered.result.current.account.karma.downvoteCount).toBe(3)
@@ -1232,11 +1144,9 @@ describe('accounts', () => {
           },
           {wrapper: PlebbitProvider}
         )
-        try {
-          await rendered2.waitFor(() => rendered2.result.current.account.karma.upvoteCount === 9 && rendered2.result.current.account.karma.score === 6)
-        } catch (e) {
-          console.error(e)
-        }
+        const waitFor2 = testUtils.createWaitFor(rendered2)
+
+        await waitFor2(() => rendered2.result.current.account.karma.upvoteCount === 9 && rendered2.result.current.account.karma.score === 6)
         expect(rendered2.result.current.account.karma.score).toBe(6)
         expect(rendered2.result.current.account.karma.upvoteCount).toBe(9)
         expect(rendered2.result.current.account.karma.downvoteCount).toBe(3)
@@ -1259,11 +1169,9 @@ describe('accounts', () => {
     test(`account votes are stored to database`, async () => {
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountVotes(), {wrapper: PlebbitProvider})
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+
+      await waitFor2(() => rendered2.result.current.length)
       expect(rendered2.result.current.length).toBe(3)
       expect(rendered2.result.current[0].commentCid).toBe('comment cid 1')
       expect(rendered2.result.current[1].commentCid).toBe('comment cid 2')
@@ -1308,11 +1216,9 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+
+      await waitFor2(() => rendered2.result.current.accountComments.length)
       expect(rendered2.result.current.accountComments.length).toBe(1)
       expect(rendered2.result.current.accountVotes.length).toBe(1)
       expect(rendered2.result.current.accountComments[0].content).toBe('account 2 content 1')
@@ -1365,7 +1271,7 @@ describe('accounts', () => {
   })
 
   describe('one comment in database', () => {
-    let rendered: any
+    let rendered: any, waitFor: any
     const updatingComments: any = []
     const commentUpdate = Comment.prototype.update
 
@@ -1385,11 +1291,9 @@ describe('accounts', () => {
         },
         {wrapper: PlebbitProvider}
       )
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      waitFor = testUtils.createWaitFor(rendered)
+
+      await waitFor(() => rendered.result.current.account?.name)
       expect(rendered.result.current.account?.name).toBe('Account 1')
       expect(rendered.result.current.notifications).toEqual([])
       expect(typeof rendered.result.current.markAsRead).toBe('function')
@@ -1415,11 +1319,7 @@ describe('accounts', () => {
     })
 
     test('get notifications', async () => {
-      try {
-        await rendered.waitFor(() => updatingComments.length > 0)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => updatingComments.length > 0)
       // we should have published 1 comment and it should be updating at this point
       expect(updatingComments.length).toBe(1)
       const comment = updatingComments[0]
@@ -1444,11 +1344,8 @@ describe('accounts', () => {
       })
 
       // wait for notifications, should be sorted by highest/newest timestamp
-      try {
-        await rendered.waitFor(() => rendered.result.current.notifications.length > 0)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.notifications.length > 0)
+
       expect(rendered.result.current.notifications.length).toBe(3)
       expect(rendered.result.current.notifications[0].cid).toBe('reply cid 3')
       expect(rendered.result.current.notifications[1].cid).toBe('reply cid 2')
@@ -1464,11 +1361,8 @@ describe('accounts', () => {
       })
 
       // should be marked as read
-      try {
-        await rendered.waitFor(() => rendered.result.current.notifications[0].markedAsRead === true)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.notifications[0].markedAsRead === true)
+
       expect(rendered.result.current.notifications.length).toBe(3)
       expect(rendered.result.current.notifications[0].cid).toBe('reply cid 3')
       expect(rendered.result.current.notifications[1].cid).toBe('reply cid 2')
@@ -1495,11 +1389,8 @@ describe('accounts', () => {
       })
 
       // comment 3 should be marked as read, comment 4 should not
-      try {
-        await rendered.waitFor(() => rendered.result.current.notifications.length >= 4)
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered.result.current.notifications.length >= 4)
+
       expect(rendered.result.current.notifications.length).toBe(4)
       expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4')
       expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3')
@@ -1513,11 +1404,9 @@ describe('accounts', () => {
 
       // check to see if in database after refreshing with a new context
       const rendered2 = renderHook<any, any>(() => useAccountNotifications(), {wrapper: PlebbitProvider})
-      try {
-        await rendered2.waitFor(() => rendered2.result.current.notifications.length >= 4)
-      } catch (e) {
-        console.error(e)
-      }
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor2(() => rendered2.result.current.notifications.length >= 4)
+
       expect(rendered2.result.current.notifications.length).toBe(4)
       expect(rendered2.result.current.notifications[0].cid).toBe('reply cid 4')
       expect(rendered2.result.current.notifications[1].cid).toBe('reply cid 3')
