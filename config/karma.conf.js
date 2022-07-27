@@ -4,7 +4,12 @@ require('dotenv').config()
 
 // same as .mocharc.js
 const mochaConfig = {
+  // set large value for manual debugging
   timeout: 600000,
+}
+if (process.env.CI) {
+  // set small value for timing out CI
+  mochaConfig.timeout = 30000
 }
 
 // possible to add flags when launching the browser
@@ -93,6 +98,8 @@ module.exports = function (config) {
     logLevel: config.LOG_INFO,
     // logLevel: config.LOG_DEBUG,
     browserNoActivityTimeout: mochaConfig.timeout,
+    browserDisconnectTimeout: mochaConfig.timeout,
+    browserDisconnectTolerance: 5,
   })
 }
 
