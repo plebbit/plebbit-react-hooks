@@ -46,6 +46,11 @@ const createWaitFor = (rendered, waitForOptions) => {
         throw Error(`createWaitFor invalid 'rendered' argument`);
     }
     const waitFor = (waitForFunction) => __awaiter(void 0, void 0, void 0, function* () {
+        // format error stack trace for usefulness
+        const stackTraceLimit = Error.stackTraceLimit;
+        Error.stackTraceLimit = 10;
+        const errorWithUsefulStackTrace = new Error('waitFor');
+        Error.stackTraceLimit = stackTraceLimit;
         if (typeof waitForFunction !== 'function') {
             throw Error(`waitFor invalid 'waitForFunction' argument`);
         }
@@ -57,7 +62,9 @@ const createWaitFor = (rendered, waitForOptions) => {
             yield rendered.waitFor(() => Boolean(waitForFunction()), waitForOptions);
         }
         catch (e) {
-            console.error(e);
+            // @ts-ignore
+            errorWithUsefulStackTrace.message = `${e.message} ${waitForFunction.toString()}`;
+            console.warn(errorWithUsefulStackTrace);
         }
     });
     return waitFor;

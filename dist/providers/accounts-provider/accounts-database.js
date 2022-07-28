@@ -41,7 +41,7 @@ const getAccount = (accountId) => __awaiter(void 0, void 0, void 0, function* ()
 });
 const getAccountJson = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
     assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`);
-    // do not serialize or instanciate anything (unlike getAccount)
+    // do not serialize or instantiate anything (unlike getAccount)
     const account = yield accountsDatabase.getItem(accountId);
     if (!account) {
         throw Error(`getAccountJson no account in database with accountId '${accountId}'`);

@@ -744,34 +744,34 @@ const useAccountsWithCalculatedProperties = (accounts, accountsComments, account
                 continue;
             }
             const karma = {
-                commentUpvoteCount: 0,
-                commentDownvoteCount: 0,
-                commentScore: 0,
-                linkUpvoteCount: 0,
-                linkDownvoteCount: 0,
-                linkScore: 0,
+                replyUpvoteCount: 0,
+                replyDownvoteCount: 0,
+                replyScore: 0,
+                postUpvoteCount: 0,
+                postDownvoteCount: 0,
+                postScore: 0,
                 upvoteCount: 0,
                 downvoteCount: 0,
                 score: 0,
             };
             for (const comment of accountComments) {
                 if (comment.parentCid && comment.upvoteCount) {
-                    karma.commentUpvoteCount += comment.upvoteCount;
+                    karma.replyUpvoteCount += comment.upvoteCount;
                 }
                 if (comment.parentCid && comment.downvoteCount) {
-                    karma.commentDownvoteCount += comment.downvoteCount;
+                    karma.replyDownvoteCount += comment.downvoteCount;
                 }
                 if (!comment.parentCid && comment.upvoteCount) {
-                    karma.linkUpvoteCount += comment.upvoteCount;
+                    karma.postUpvoteCount += comment.upvoteCount;
                 }
                 if (!comment.parentCid && comment.downvoteCount) {
-                    karma.linkDownvoteCount += comment.downvoteCount;
+                    karma.postDownvoteCount += comment.downvoteCount;
                 }
             }
-            karma.commentScore = karma.commentUpvoteCount - karma.commentDownvoteCount;
-            karma.linkScore = karma.linkUpvoteCount - karma.linkDownvoteCount;
-            karma.upvoteCount = karma.commentUpvoteCount + karma.linkUpvoteCount;
-            karma.downvoteCount = karma.commentDownvoteCount + karma.linkDownvoteCount;
+            karma.replyScore = karma.replyUpvoteCount - karma.replyDownvoteCount;
+            karma.postScore = karma.postUpvoteCount - karma.postDownvoteCount;
+            karma.upvoteCount = karma.replyUpvoteCount + karma.postUpvoteCount;
+            karma.downvoteCount = karma.replyDownvoteCount + karma.postDownvoteCount;
             karma.score = karma.upvoteCount - karma.downvoteCount;
             const accountWithCalculatedProperties = Object.assign(Object.assign({}, account), { karma });
             accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties;

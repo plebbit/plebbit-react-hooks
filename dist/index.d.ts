@@ -2,12 +2,12 @@ import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import PlebbitProvider from './providers/plebbit-provider';
 import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountNotifications, useAccountSubplebbits } from './hooks/accounts';
 import { useComment, useComments } from './hooks/comments';
-import { useSubplebbit, useSubplebbits } from './hooks/subplebbits';
+import { useSubplebbit, useSubplebbits, useResolvedSubplebbitAddress } from './hooks/subplebbits';
 import { useFeed, useBufferedFeeds } from './hooks/feeds';
 import { useAuthorAvatarImageUrl, useResolvedAuthorAddress } from './hooks/authors';
 import debugUtils from './lib/debug-utils';
 export * from './types';
-export { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountSubplebbits, useAccountNotifications, useComment, useComments, useSubplebbit, useSubplebbits, useFeed, useBufferedFeeds, setPlebbitJs, restorePlebbitJs, useAuthorAvatarImageUrl, useResolvedAuthorAddress, debugUtils, };
+export { PlebbitProvider, useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountSubplebbits, useAccountNotifications, useComment, useComments, useSubplebbit, useSubplebbits, useFeed, useBufferedFeeds, setPlebbitJs, restorePlebbitJs, useAuthorAvatarImageUrl, useResolvedAuthorAddress, useResolvedSubplebbitAddress, debugUtils, };
 declare const hooks: {
     PlebbitProvider: typeof PlebbitProvider;
     useAccount: typeof useAccount;
