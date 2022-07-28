@@ -503,14 +503,9 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    // TODO: bug with plebbit-js, can't create a subplebbit without a signer
-    if (!createSubplebbitOptions || !createSubplebbitOptions.signer) {
-      createSubplebbitOptions = {
-        ...createSubplebbitOptions,
-        signer: await account.plebbit.createSigner(),
-      }
-    }
-    return account.plebbit.createSubplebbit(createSubplebbitOptions)
+    const subplebbit = await account.plebbit.createSubplebbit(createSubplebbitOptions)
+    debug('accountsActions.createSubplebbit', {createSubplebbitOptions, subplebbit})
+    return subplebbit
   }
 
   // internal accounts action: the comment CID is not known at the time of publishing, so every time
