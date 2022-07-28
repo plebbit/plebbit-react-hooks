@@ -409,11 +409,9 @@ export default function AccountsProvider(props) {
             const accountId = accountNamesToAccountIds[accountName];
             account = accounts[accountId];
         }
-        // TODO: bug with plebbit-js, can't create a subplebbit without a signer
-        if (!createSubplebbitOptions || !createSubplebbitOptions.signer) {
-            createSubplebbitOptions = Object.assign(Object.assign({}, createSubplebbitOptions), { signer: yield account.plebbit.createSigner() });
-        }
-        return account.plebbit.createSubplebbit(createSubplebbitOptions);
+        const subplebbit = yield account.plebbit.createSubplebbit(createSubplebbitOptions);
+        debug('accountsActions.createSubplebbit', { createSubplebbitOptions, subplebbit });
+        return subplebbit;
     });
     // internal accounts action: the comment CID is not known at the time of publishing, so every time
     // we fetch a new comment, check if its our own, and attempt to add the CID
