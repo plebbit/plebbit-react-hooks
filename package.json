@@ -29,13 +29,12 @@
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#f03fa02d0c9c7d847530a4db910f4effcbc2305e",
     "@types/debug": "4.1.7",
     "@types/uuid": "8.3.4",
     "assert": "2.0.0",
     "debug": "4.3.3",
     "ethers": "5.6.9",
-    "git": "^0.1.5",
     "localforage": "1.10.0",
     "uuid": "8.3.2"
   },

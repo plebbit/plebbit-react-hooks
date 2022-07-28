@@ -9,7 +9,7 @@ const mochaConfig = {
 }
 if (process.env.CI) {
   // set small value for timing out CI
-  mochaConfig.timeout = 30000
+  mochaConfig.timeout = 120000
 }
 
 // possible to add flags when launching the browser
