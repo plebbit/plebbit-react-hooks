@@ -503,7 +503,8 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
       const accountId = accountNamesToAccountIds[accountName]
       account = accounts[accountId]
     }
-    const subplebbit = await account.plebbit.createSubplebbit(createSubplebbitOptions)
+
+    const subplebbit = await subplebbitsContext.subplebbitsActions.createSubplebbit(createSubplebbitOptions, account)
     debug('accountsActions.createSubplebbit', {createSubplebbitOptions, subplebbit})
     return subplebbit
   }

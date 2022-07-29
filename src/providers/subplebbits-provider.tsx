@@ -5,7 +5,7 @@ import localForageLru from '../lib/localforage-lru'
 const subplebbitsDatabase = localForageLru.createInstance({name: 'subplebbits', size: 500})
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:subplebbits-provider')
-import {Props, Subplebbit, Subplebbits, Account} from '../types'
+import {Props, Subplebbit, Subplebbits, Account, CreateSubplebbitOptions} from '../types'
 import {AccountsContext} from './accounts-provider'
 import utils from '../lib/utils'
 
@@ -82,6 +82,26 @@ export default function SubplebbitsProvider(props: Props): JSX.Element | null {
       [subplebbitAddress]: utils.clone(subplebbit),
       [subplebbit.address]: utils.clone(subplebbit),
     }))
+  }
+
+  // internal action called by accountsActions.createSubplebbit
+  subplebbitsActions.createSubplebbit = async (createSubplebbitOptions: CreateSubplebbitOptions, account: Account) => {
+    assert(
+      !createSubplebbitOptions || typeof createSubplebbitOptions === 'object',
+      `subplebbitsActions.createSubplebbit invalid createSubplebbitOptions argument '${createSubplebbitOptions}'`
+    )
+    if (!createSubplebbitOptions?.signer) {
+      assert(
+        !createSubplebbitOptions?.address,
+        `subplebbitsActions.createSubplebbit createSubplebbitOptions.address '${createSubplebbitOptions?.address}' must be undefined to create a subplebbit`
+      )
+    }
+    assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsActions.createSubplebbit invalid account argument '${account}'`)
+
+    const subplebbit = await account.plebbit.createSubplebbit(createSubplebbitOptions)
+    debug('subplebbitsActions.createSubplebbit', {createSubplebbitOptions, subplebbit, account})
+    setSubplebbits((previousSubplebbits) => ({...previousSubplebbits, [subplebbit.address]: utils.clone(subplebbit)}))
+    return subplebbit
   }
 
   if (!props.children) {
