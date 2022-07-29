@@ -25,7 +25,7 @@ export function useComment(commentCid, accountName) {
                 .catch((error) => console.error('useComment addCommentToContext error', { commentCid, error }));
         }
     }, [commentCid, account]);
-    debug('useComment', { commentsContext: commentsContext.comments, comment, account });
+    debug('useComment', { commentCid, commentsContext: commentsContext.comments, comment, account });
     return comment;
 }
 /**
@@ -55,6 +55,6 @@ export function useComments(commentCids, accountName) {
             }
         }
     }, [commentCids, account]);
-    debug('useComments', { commentsContext: commentsContext.comments, comments, account });
+    debug('useComments', { commentCids, commentsContext: commentsContext.comments, comments, account });
     return comments;
 }
