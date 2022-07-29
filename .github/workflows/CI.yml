@@ -37,6 +37,7 @@ jobs:
           - 16
 
     steps:
+      - run: sudo apt install -y xvfb
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
@@ -53,4 +54,6 @@ jobs:
       - run: sudo echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
       - run: yarn test:server & yarn test:server:wait-on
-      - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e
+      - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
+      # electron cannot run headless needs virtual display xvfb
+      - run: xvfb-run yarn test:e2e:electron
