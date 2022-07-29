@@ -60,6 +60,8 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
     // 'title': 'subplebbit title',
     // 'address' : signer.address,
   })
+  subplebbit.on('challengerequest', console.log)
+  subplebbit.on('challengeanswer', console.log)
   await subplebbit.setProvideCaptchaCallback((challengeRequestMessage) => {
     return [[{challenge: '1+1=?', type: 'text'}]]
   })

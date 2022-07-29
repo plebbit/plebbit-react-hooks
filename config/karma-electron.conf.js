@@ -1,8 +1,7 @@
-// this file runs the tests in test/browser*
+// this file runs the tests in test/electron*
 
-// you can add "CHROME_BIN=/usr/bin/chromium" to .env file
-// to not have to type it every time
-require('dotenv').config()
+const fs = require('fs-extra')
+const path = require('path')
 
 // same as .mocharc.js
 const mochaConfig = {
@@ -14,30 +13,13 @@ if (process.env.CI) {
   mochaConfig.timeout = 120000
 }
 
-// possible to add flags when launching the browser
-const CustomChrome = {
-  base: 'ChromeHeadless',
-  flags: ['--disable-web-security'],
-  debug: true,
-}
+// electron browser options
+let headless = false
 
-const DebugChrome = {
-  base: 'Chrome',
-  flags: ['--disable-web-security', '--auto-open-devtools-for-tabs', '--window-size=800,600'],
-  debug: true,
-}
-
-// choose which browser you prefer
-let browsers = [
-  // 'FirefoxHeadless',
-  // 'CustomChrome',
-  'DebugChrome',
-]
-
-// add firefox during CI
-// make sure non-headless DebugChrome is not included as it breaks the CI
+// CI options
 if (process.env.CI) {
-  browsers = ['CustomChrome', 'FirefoxHeadless']
+  // non headless breaks CI
+  headless = true
 }
 
 // inject browser code before each test file
@@ -50,6 +32,15 @@ if (process.env.DEBUG) {
     `
 }
 
+// electron preload.js file
+const preloadJs = `
+  // inject PlebbitJs with native modules inside plebbit-react-hooks using window.PlebbitJs
+  const PlebbitJs = require('@plebbit/plebbit-js')
+  window.PlebbitJs = PlebbitJs
+`
+const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
+fs.writeFileSync(preloadJsPath, preloadJs)
+
 module.exports = function (config) {
   config.set({
     // chai adds "expect" matchers
@@ -57,23 +48,18 @@ module.exports = function (config) {
     frameworks: ['mocha', 'chai', 'sinon'],
     client: {
       mocha: mochaConfig,
+
+      // in electron iframes don't get `nodeIntegration` but windows do
+      useIframe: false,
     },
-    plugins: [
-      require('karma-chrome-launcher'),
-      require('karma-firefox-launcher'),
-      require('karma-mocha'),
-      require('karma-chai'),
-      require('karma-sinon'),
-      require('karma-spec-reporter'),
-      injectCodeBeforePlugin,
-    ],
+    plugins: [require('karma-electron'), require('karma-mocha'), require('karma-chai'), require('karma-sinon'), require('karma-spec-reporter'), injectCodeBeforePlugin],
 
     basePath: '../',
     files: [
       // the tests are first compiled from typescript to dist/node/test
       // then they are compiled to browser with webpack to dist/browser/test
       // you must run `npm run tsc:watch` and `npm run webpack:watch` to use the karma tests
-      'test-karma-webpack/test/browser*/**/*.test.js',
+      'test-karma-webpack/test/electron*/**/*.test.js',
     ],
     exclude: [],
 
@@ -82,11 +68,30 @@ module.exports = function (config) {
       '**/*.js': ['inject-code-before'],
     },
 
-    // chrome with disabled security
-    customLaunchers: {CustomChrome, DebugChrome},
+    customLaunchers: {
+      // customimze electron browser launcher
+      CustomElectron: {
+        base: 'Electron',
+
+        // customimze electron create window options
+        browserWindowOptions: {
+          webPreferences: {
+            // TODO: enable context isolation after plebbit-js native functions api is implemented
+            nodeIntegration: true,
+            contextIsolation: false,
+
+            // the electron window preload.js file
+            preload: preloadJsPath,
+          },
+
+          // set headless to false
+          show: !headless,
+        },
+      },
+    },
 
     // list of browsers to run the tests in
-    browsers,
+    browsers: ['CustomElectron'],
 
     // don't watch, run once and exit
     singleRun: true,

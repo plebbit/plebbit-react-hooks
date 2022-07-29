@@ -3,6 +3,7 @@
 import PlebbitJsMockContent from './plebbit-js-mock-content'
 import Debug from 'debug'
 import Plebbit from '@plebbit/plebbit-js'
+import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:plebbit-js')
 
 const PlebbitJs = {
@@ -16,6 +17,7 @@ const PlebbitJs = {
  * desktop privileges in the Electron build.
  */
 export function setPlebbitJs(_Plebbit: any) {
+  assert(typeof _Plebbit === 'function', `setPlebbitJs invalid Plebbit argument '${_Plebbit}' not a function`)
   PlebbitJs.Plebbit = _Plebbit
   debug('setPlebbitJs', _Plebbit?.constructor?.name)
 }

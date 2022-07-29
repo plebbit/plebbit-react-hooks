@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {setPlebbitJs, PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const signers = require('../fixtures/signers')
@@ -20,15 +20,14 @@ const plebbitOptionsTypes = {
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubHttpClientOptions: localPubsubProviderUrl,
   },
-  'gateway and pubsub provider': {
-    ipfsGatewayUrl: localGatewayUrl,
-    pubsubHttpClientOptions: localPubsubProviderUrl,
-  },
 }
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`subplebbits (${plebbitOptionsType})`, () => {
     before(() => {
+      // set PlebbitJs with native functions defined in preload.js
+      setPlebbitJs(window.PlebbitJs)
+
       testUtils.silenceUpdateUnmountedComponentWarning()
     })
     after(async () => {
