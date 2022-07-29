@@ -30,7 +30,7 @@ export function useComment(commentCid?: string, accountName?: string) {
     }
   }, [commentCid, account])
 
-  debug('useComment', {commentsContext: commentsContext.comments, comment, account})
+  debug('useComment', {commentCid, commentsContext: commentsContext.comments, comment, account})
   return comment
 }
 
@@ -63,6 +63,6 @@ export function useComments(commentCids?: string[], accountName?: string) {
     }
   }, [commentCids, account])
 
-  debug('useComments', {commentsContext: commentsContext.comments, comments, account})
+  debug('useComments', {commentCids, commentsContext: commentsContext.comments, comments, account})
   return comments
 }

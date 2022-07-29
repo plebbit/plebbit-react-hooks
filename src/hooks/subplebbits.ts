@@ -32,7 +32,7 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
     }
   }, [subplebbitAddress, account])
 
-  debug('useSubplebbit', {subplebbitsContext: subplebbitsContext.subplebbits, subplebbit, account})
+  debug('useSubplebbit', {subplebbitAddress, subplebbitsContext: subplebbitsContext.subplebbits, subplebbit, account})
   return subplebbit
 }
 
@@ -65,7 +65,7 @@ export function useSubplebbits(subplebbitAddresses?: string[], accountName?: str
     }
   }, [subplebbitAddresses, account])
 
-  debug('useSubplebbits', {subplebbitsContext: subplebbitsContext.subplebbits, subplebbits, account})
+  debug('useSubplebbits', {subplebbitAddresses, subplebbitsContext: subplebbitsContext.subplebbits, subplebbits, account})
   return subplebbits
 }
 
