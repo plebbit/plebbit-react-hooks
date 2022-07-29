@@ -409,7 +409,7 @@ export default function AccountsProvider(props) {
             const accountId = accountNamesToAccountIds[accountName];
             account = accounts[accountId];
         }
-        const subplebbit = yield account.plebbit.createSubplebbit(createSubplebbitOptions);
+        const subplebbit = yield subplebbitsContext.subplebbitsActions.createSubplebbit(createSubplebbitOptions, account);
         debug('accountsActions.createSubplebbit', { createSubplebbitOptions, subplebbit });
         return subplebbit;
     });

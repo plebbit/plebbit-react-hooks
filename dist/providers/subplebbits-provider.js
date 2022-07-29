@@ -66,6 +66,19 @@ export default function SubplebbitsProvider(props) {
             // edit react state of both old and new subplebbit address to not break the UI
             [subplebbitAddress]: utils.clone(subplebbit), [subplebbit.address]: utils.clone(subplebbit) })));
     });
+    // internal action called by accountsActions.createSubplebbit
+    subplebbitsActions.createSubplebbit = (createSubplebbitOptions, account) => __awaiter(this, void 0, void 0, function* () {
+        var _c;
+        assert(!createSubplebbitOptions || typeof createSubplebbitOptions === 'object', `subplebbitsActions.createSubplebbit invalid createSubplebbitOptions argument '${createSubplebbitOptions}'`);
+        if (!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.signer)) {
+            assert(!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address), `subplebbitsActions.createSubplebbit createSubplebbitOptions.address '${createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address}' must be undefined to create a subplebbit`);
+        }
+        assert(typeof ((_c = account === null || account === void 0 ? void 0 : account.plebbit) === null || _c === void 0 ? void 0 : _c.createSubplebbit) === 'function', `subplebbitsActions.createSubplebbit invalid account argument '${account}'`);
+        const subplebbit = yield account.plebbit.createSubplebbit(createSubplebbitOptions);
+        debug('subplebbitsActions.createSubplebbit', { createSubplebbitOptions, subplebbit, account });
+        setSubplebbits((previousSubplebbits) => (Object.assign(Object.assign({}, previousSubplebbits), { [subplebbit.address]: utils.clone(subplebbit) })));
+        return subplebbit;
+    });
     if (!props.children) {
         return null;
     }
