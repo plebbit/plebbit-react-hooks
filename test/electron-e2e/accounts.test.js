@@ -94,6 +94,75 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         console.log('after set account')
       })
 
+      it.skip('create a subplebbit', async () => {
+        console.log('before create subplebbit')
+        const createdSubplebbitTitle = 'my title'
+        let subplebbit
+        await act(async () => {
+          subplebbit = await rendered.result.current.createSubplebbit({title: createdSubplebbitTitle})
+        })
+        const createdSubplebbitAddress = subplebbit?.address
+        expect(typeof createdSubplebbitAddress).toBe('string')
+        expect(subplebbit.title).toBe(createdSubplebbitTitle)
+        console.log('after create subplebbit', subplebbit)
+
+        // can useSubplebbit
+        rendered.rerender(createdSubplebbitAddress)
+        await waitFor(() => rendered.result.current.subplebbit.title === createdSubplebbitTitle)
+        expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+        expect(rendered.result.current.subplebbit.title).toBe(createdSubplebbitTitle)
+
+        // wait for subplebbit to be added to account subplebbits
+        await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
+        expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).toBe('owner')
+
+        console.log('before edit subplebbit address')
+        // publishSubplebbitEdit address
+        const editedSubplebbitAddress = 'my-sub.eth'
+        let onChallenge = jest.fn()
+        let onChallengeVerification = jest.fn()
+        await act(async () => {
+          await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedSubplebbitAddress, onChallenge, onChallengeVerification})
+        })
+        console.log('after edit subplebbit address')
+
+        // change useSubplebbit address
+        rendered.rerender(editedSubplebbitAddress)
+        await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
+        expect(rendered.result.current.subplebbit.address).toBe(editedSubplebbitAddress)
+        expect(rendered.result.current.subplebbit.title).toBe(createdSubplebbitTitle)
+
+        // onChallengeVerification should be called with success even if the sub is edited locally
+        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+        expect(onChallengeVerification).toBeCalledTimes(1)
+        expect(onChallengeVerification.mock.calls[0][0].challengeSuccess).toBe(true)
+
+        console.log('before edit subplebbit title')
+        // publishSubplebbitEdit title and description
+        const editedSubplebbitTitle = 'edited title'
+        const editedSubplebbitDescription = 'edited description'
+        onChallenge = jest.fn()
+        onChallengeVerification = jest.fn()
+        await act(async () => {
+          await rendered.result.current.publishSubplebbitEdit(editedSubplebbitAddress, {
+            title: editedSubplebbitTitle,
+            description: editedSubplebbitDescription,
+            onChallenge,
+            onChallengeVerification,
+          })
+        })
+
+        // wait for change
+        await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
+        expect(rendered.result.current.subplebbit.address).toBe(editedSubplebbitAddress)
+        console.log('after edit subplebbit title')
+
+        // onChallengeVerification should be called with success even if the sub is edited locally
+        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+        expect(onChallengeVerification).toBeCalledTimes(1)
+        expect(onChallengeVerification.mock.calls[0][0].challengeSuccess).toBe(true)
+      })
+
       describe(`create comment (${plebbitOptionsType})`, () => {
         let onChallengeCalled = 0
         let challenge, comment
