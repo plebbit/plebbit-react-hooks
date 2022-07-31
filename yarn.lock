@@ -1738,29 +1738,6 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#f03fa02d0c9c7d847530a4db910f4effcbc2305e":
-  version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#f03fa02d0c9c7d847530a4db910f4effcbc2305e"
-  dependencies:
-    "@keyv/sqlite" "3.5.3"
-    "@types/node-fetch" "2.6.2"
-    "@types/uuid" "8.3.4"
-    assert "2.0.0"
-    buffer "6.0.3"
-    captcha-canvas "3.1.0"
-    ethers "5.6.9"
-    form-data "4.0.0"
-    ipfs-http-client "56.0.3"
-    jose "4.8.3"
-    js-sha256 "0.9.0"
-    keyv "4.3.3"
-    knex "2.2.0"
-    libp2p-crypto "0.21.2"
-    peer-id "0.16.0"
-    sqlite3 "5.0.10"
-    tinycache "1.1.2"
-    uuid "8.3.2"
-
 "@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#f6ccda9b4e15adef4cda394e75cd9b84e7e7cb13":
   version "0.0.3"
   resolved "https://github.com/plebbit/plebbit-js.git#f6ccda9b4e15adef4cda394e75cd9b84e7e7cb13"
@@ -8573,6 +8550,11 @@ url-parse-lax@^3.0.0:
   dependencies:
     prepend-http "^2.0.0"
 
+use-sync-external-store@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.2.0.tgz#7dbefd6ef3fe4e767a0cf5d7287aacfb5846928a"
+  integrity sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==
+
 util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
@@ -8970,3 +8952,10 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zustand@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.0.0.tgz#739cba69209ffe67b31e7d6741c25b51496114a7"
+  integrity sha512-OrsfQTnRXF1LZ9/vR/IqN9ws5EXUhb149xmPjErZnUrkgxS/gAHGy2dPNIVkVvoxrVe1sIydn4JjF0dYHmGeeQ==
+  dependencies:
+    use-sync-external-store "1.2.0"

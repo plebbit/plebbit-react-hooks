@@ -1,27 +1,26 @@
-import React, {useState, useEffect, useContext} from 'react'
-import {AccountsContext} from './accounts-provider'
-import validator from '../lib/validator'
+import validator from '../../lib/validator'
 import assert from 'assert'
-import localForageLru from '../lib/localforage-lru'
-const commentsDatabase = localForageLru.createInstance({name: '_comments', size: 5000})
+import localForageLru from '../../lib/localforage-lru'
+const commentsDatabase = localForageLru.createInstance({name: 'comments', size: 5000})
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:comments-provider')
-import {Props, Comment, Comments, Account} from '../types'
-import utils from '../lib/utils'
-
-type CommentsContext = any
-
-export const CommentsContext = React.createContext<CommentsContext | undefined>(undefined)
+import {Comment, Comments, Account} from '../../types'
+import utils from '../../lib/utils'
+import create from 'zustand'
 
 const plebbitGetCommentPending: {[key: string]: boolean} = {}
 
-export default function CommentsProvider(props: Props): JSX.Element | null {
-  const accountsContext = useContext(AccountsContext)
-  const [comments, setComments] = useState<Comments>({})
+const useCommentsStore = create<any>((set: Function, get: Function) => ({
+  comments: {},
 
-  const commentsActions: {[key: string]: Function} = {}
+  // use in between tests
+  reset() {
+    set(() => ({comments: {}}))
+  },
 
-  commentsActions.addCommentToContext = async (commentId: string, account: Account) => {
+  async addCommentToStore(commentId: string, account: Account) {
+    const comments = get().comments
+
     // comment is in context already, do nothing
     let comment: Comment | undefined = comments[commentId]
     if (comment || plebbitGetCommentPending[commentId + account.id]) {
@@ -38,7 +37,8 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
       await commentsDatabase.setItem(commentId, utils.clone(comment))
     }
     debug('commentsActions.addCommentToContext', {commentId, comment, account})
-    setComments((previousComments) => ({...previousComments, [commentId]: utils.clone(comment)}))
+    // setComments((previousComments) => ({...previousComments, [commentId]: utils.clone(comment)}))
+    set((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
     plebbitGetCommentPending[commentId + account.id] = false
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
@@ -46,30 +46,20 @@ export default function CommentsProvider(props: Props): JSX.Element | null {
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
       debug('commentsContext comment update', {commentId, updatedComment, account})
-      setComments((previousComments) => ({...previousComments, [commentId]: updatedComment}))
+      // setComments((previousComments) => ({...previousComments, [commentId]: updatedComment}))
+      set((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
     comment.update()
 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
     // comment, and if yes, add the CID to your account comments database
-    if (accountsContext?.addCidToAccountComment) {
-      await accountsContext.addCidToAccountComment(comment)
-    }
-  }
-
-  if (!props.children) {
-    return null
-  }
-
-  const commentsContext: CommentsContext = {
-    comments,
-    commentsActions,
-  }
-
-  debug({commentsContext: comments})
-  return <CommentsContext.Provider value={commentsContext}>{props.children}</CommentsContext.Provider>
-}
+    // TODO ZUSTAND
+    // if (accountsContext?.addCidToAccountComment) {
+    // await accountsContext.addCidToAccountComment(comment)
+    // }
+  },
+}))
 
 const getCommentFromDatabase = async (commentId: string, account: Account) => {
   const commentData: any = await commentsDatabase.getItem(commentId)
@@ -95,3 +85,5 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
   // but the plebbit mock is barely implemented
   return comment
 }
+
+export default useCommentsStore

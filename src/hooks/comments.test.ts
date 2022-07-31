@@ -3,6 +3,7 @@ import testUtils from '../lib/test-utils'
 import {useComment, useComments, setPlebbitJs, PlebbitProvider} from '..'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
+import useCommentsStore from '../stores/comments-store'
 setPlebbitJs(PlebbitJsMock)
 
 const deleteDatabases = () => Promise.all([localForageLru.createInstance({name: 'comments'}).clear()])
@@ -16,6 +17,8 @@ describe('comments', () => {
   })
 
   afterEach(async () => {
+    // reset zustand store after each
+    useCommentsStore.getState().reset()
     await deleteDatabases()
   })
 
