@@ -14,9 +14,11 @@ export default function PlebbitProvider(props: Props): JSX.Element | null {
   return (
     <SubplebbitsProvider>
       <AccountsProvider>
-        <CommentsProvider>
-          <FeedsProvider>{props.children}</FeedsProvider>
-        </CommentsProvider>
+        <SubplebbitsProvider>
+          <CommentsProvider>
+            <FeedsProvider>{props.children}</FeedsProvider>
+          </CommentsProvider>
+        </SubplebbitsProvider>
       </AccountsProvider>
     </SubplebbitsProvider>
   )
