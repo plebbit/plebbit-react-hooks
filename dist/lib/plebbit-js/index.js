@@ -2,6 +2,7 @@
 import PlebbitJsMockContent from './plebbit-js-mock-content';
 import Debug from 'debug';
 import Plebbit from '@plebbit/plebbit-js';
+import assert from 'assert';
 const debug = Debug('plebbit-react-hooks:plebbit-js');
 const PlebbitJs = {
     Plebbit: Plebbit,
@@ -14,6 +15,7 @@ const PlebbitJs = {
  */
 export function setPlebbitJs(_Plebbit) {
     var _a;
+    assert(typeof _Plebbit === 'function', `setPlebbitJs invalid Plebbit argument '${_Plebbit}' not a function`);
     PlebbitJs.Plebbit = _Plebbit;
     debug('setPlebbitJs', (_a = _Plebbit === null || _Plebbit === void 0 ? void 0 : _Plebbit.constructor) === null || _a === void 0 ? void 0 : _a.name);
 }
