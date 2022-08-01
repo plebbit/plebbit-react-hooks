@@ -31,7 +31,6 @@ import {
   AccountCommentsReplies,
   AccountsCommentsReplies,
 } from '../../types'
-import useInterval from '../../hooks/utils/use-interval'
 
 type AccountsContext = any
 
@@ -49,9 +48,6 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments)
   const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies)
   const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsNotifications)
-
-  // TODO: find better name and design for this hook
-  // useStartSubplebbits(activeAccountId && accounts && accounts[activeAccountId])
 
   const accountsActions: AccountsActions = {}
 
@@ -920,42 +916,3 @@ const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsCommen
     return accountsWithCalculatedProperties
   }, [accounts, accountsComments, accountsNotifications])
 }
-
-/**
- * Poll all local subplebbits and start them if they are not started
- * TODO: find a better design and name for this hook
- */
-export function useStartSubplebbits(account: Account) {
-  const delay = 30000
-  const immediate = true
-  useInterval(
-    () => {
-      if (!account?.plebbit) {
-        return
-      }
-      account.plebbit.listSubplebbits().then(async (subplebbitAddresses: string[]) => {
-        for (const subplebbitAddress of subplebbitAddresses) {
-          if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
-            continue
-          }
-          pendingStartedSubplebbits[subplebbitAddress] = true
-          try {
-            const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
-            await subplebbit.start()
-            startedSubplebbits[subplebbitAddress] = subplebbit
-          } catch (error) {
-            console.error('useStartSubplebbits error', {subplebbitAddress, error})
-          }
-          pendingStartedSubplebbits[subplebbitAddress] = false
-        }
-      })
-    },
-    delay,
-    immediate
-  )
-
-  debug('useStartSubplebbits', {startedSubplebbits, pendingStartedSubplebbits})
-  return startedSubplebbits
-}
-const startedSubplebbits: {[subplebbitAddress: string]: Subplebbit} = {}
-const pendingStartedSubplebbits: {[subplebbitAddress: string]: boolean} = {}
