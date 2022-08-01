@@ -50,7 +50,7 @@ jobs:
       - run: yarn webpack
 
       # verify correct plebbit-js version is installed
-      - run: tar cvf - node_modules/@plebbit/plebbit-js/dist | sha1sum
+      - run: find node_modules/@plebbit/plebbit-js/dist -type f -print0 | sort -z | xargs -0 sha1sum && find node_modules/@plebbit/plebbit-js/dist -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum
 
       # disable hosts we shouldn't use
       - run: sudo echo "255.255.255.255 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
