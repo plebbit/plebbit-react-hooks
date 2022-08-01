@@ -1,3 +1,7 @@
+import useCommentsStore from '../stores/comments-store'
+import localForageLru from './localforage-lru'
+import localForage from 'localforage'
+
 const restorables: any = []
 
 export const silenceUpdateUnmountedComponentWarning = () => {
@@ -28,6 +32,11 @@ export const silenceTestWasNotWrappedInActWarning = () => {
   }
   restorables.push(restore)
   return restore
+}
+
+export const silenceReactWarnings = () => {
+  silenceUpdateUnmountedComponentWarning()
+  silenceTestWasNotWrappedInActWarning()
 }
 
 const restoreAll = () => {
@@ -69,11 +78,24 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
   return waitFor
 }
 
+export const resetStores = () => {
+  useCommentsStore.getState().reset()
+  return Promise.all([
+    localForage.createInstance({name: 'accountsMetadata'}).clear(),
+    localForage.createInstance({name: 'accounts'}).clear(),
+    localForageLru.createInstance({name: 'subplebbits'}).clear(),
+    localForageLru.createInstance({name: 'comments'}).clear(),
+    localForageLru.createInstance({name: 'subplebbitsPages'}).clear(),
+  ])
+}
+
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
+  silenceReactWarnings,
   restoreAll,
   createWaitFor,
+  resetStores,
 }
 
 export default testUtils

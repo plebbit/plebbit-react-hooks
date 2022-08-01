@@ -6,20 +6,15 @@ import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:comments-provider')
 import {Comment, Comments, Account} from '../../types'
 import utils from '../../lib/utils'
-import create from 'zustand'
+import createStore from 'zustand'
 
 const plebbitGetCommentPending: {[key: string]: boolean} = {}
 
-const useCommentsStore = create<any>((set: Function, get: Function) => ({
+const useCommentsStore = createStore<any>((setState: Function, getState: Function) => ({
   comments: {},
 
-  // use in between tests
-  reset() {
-    set(() => ({comments: {}}))
-  },
-
   async addCommentToStore(commentId: string, account: Account) {
-    const comments = get().comments
+    const comments = getState().comments
 
     // comment is in context already, do nothing
     let comment: Comment | undefined = comments[commentId]
@@ -38,7 +33,7 @@ const useCommentsStore = create<any>((set: Function, get: Function) => ({
     }
     debug('commentsActions.addCommentToContext', {commentId, comment, account})
     // setComments((previousComments) => ({...previousComments, [commentId]: utils.clone(comment)}))
-    set((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
+    setState((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
     plebbitGetCommentPending[commentId + account.id] = false
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
@@ -47,7 +42,7 @@ const useCommentsStore = create<any>((set: Function, get: Function) => ({
       await commentsDatabase.setItem(commentId, updatedComment)
       debug('commentsContext comment update', {commentId, updatedComment, account})
       // setComments((previousComments) => ({...previousComments, [commentId]: updatedComment}))
-      set((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
+      setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
     comment.update()
 
@@ -58,6 +53,11 @@ const useCommentsStore = create<any>((set: Function, get: Function) => ({
     // if (accountsContext?.addCidToAccountComment) {
     // await accountsContext.addCidToAccountComment(comment)
     // }
+  },
+
+  // reset store in between tests
+  reset() {
+    setState(() => ({comments: {}}))
   },
 }))
 
