@@ -16,6 +16,7 @@ import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
 import utils from '../../lib/utils';
 import { SubplebbitsContext } from '../subplebbits-provider';
+import useInterval from '../../hooks/utils/use-interval';
 export const AccountsContext = React.createContext(undefined);
 export default function AccountsProvider(props) {
     const subplebbitsContext = useContext(SubplebbitsContext);
@@ -29,6 +30,8 @@ export default function AccountsProvider(props) {
     const accountsCommentsWithoutCids = useAccountsCommentsWithoutCids(accounts, accountsComments);
     const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies);
     const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsNotifications);
+    // TODO: find better name and design for this hook
+    useStartSubplebbits(activeAccountId && accounts && accounts[activeAccountId]);
     const accountsActions = {};
     accountsActions.setActiveAccount = (accountName) => __awaiter(this, void 0, void 0, function* () {
         assert(accountNamesToAccountIds, `can't use AccountContext.accountActions before initialized`);
@@ -787,3 +790,37 @@ const useAccountsWithCalculatedProperties = (accounts, accountsComments, account
         return accountsWithCalculatedProperties;
     }, [accounts, accountsComments, accountsNotifications]);
 };
+/**
+ * Poll all local subplebbits and start them if they are not started
+ * TODO: find a better design and name for this hook
+ */
+export function useStartSubplebbits(account) {
+    const delay = 30000;
+    const immediate = true;
+    useInterval(() => {
+        if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
+            return;
+        }
+        account.plebbit.listSubplebbits().then((subplebbitAddresses) => __awaiter(this, void 0, void 0, function* () {
+            for (const subplebbitAddress of subplebbitAddresses) {
+                if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
+                    continue;
+                }
+                pendingStartedSubplebbits[subplebbitAddress] = true;
+                try {
+                    const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
+                    yield subplebbit.start();
+                    startedSubplebbits[subplebbitAddress] = subplebbit;
+                }
+                catch (error) {
+                    console.error('useStartSubplebbits error', { subplebbitAddress, error });
+                }
+                pendingStartedSubplebbits[subplebbitAddress] = false;
+            }
+        }));
+    }, delay, immediate);
+    debug('useStartSubplebbits', { startedSubplebbits, pendingStartedSubplebbits });
+    return startedSubplebbits;
+}
+const startedSubplebbits = {};
+const pendingStartedSubplebbits = {};
