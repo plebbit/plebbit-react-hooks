@@ -49,11 +49,14 @@ jobs:
       - run: yarn build
       - run: yarn webpack
 
+      # verify correct plebbit-js version is installed
+      - run: tar cvf - node_modules/@plebbit/plebbit-js/dist | sha1sum
+
       # disable hosts we shouldn't use
       - run: sudo echo "255.255.255.255 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
       - run: sudo echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
       - run: yarn test:server & yarn test:server:wait-on
-      - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
+      - run: DEBUG=plebbit-js:* CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
       # electron cannot run headless needs virtual display xvfb
-      - run: xvfb-run yarn test:e2e:electron
+      - run: DEBUG=plebbit-js:* xvfb-run yarn test:e2e:electron
