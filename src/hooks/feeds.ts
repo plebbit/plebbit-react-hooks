@@ -14,7 +14,7 @@ import {Feed, UseBufferedFeedOptions} from '../types'
  * the active account.
  */
 export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accountName?: string) {
-  validator.validateFeedSortType(sortType)
+  validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName)
   const account = useAccount(accountName)
   const feedsContext = useContext(FeedsContext)
 
@@ -58,6 +58,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
  * the active account.
  */
 export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], accountName?: string) {
+  validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
   const account = useAccount(accountName)
   const feedsContext = useContext(FeedsContext)
 
