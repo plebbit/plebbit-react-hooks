@@ -51,7 +51,7 @@ export default function AccountsProvider(props: Props): JSX.Element | null {
   const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsNotifications)
 
   // TODO: find better name and design for this hook
-  useStartSubplebbits(activeAccountId && accounts && accounts[activeAccountId])
+  // useStartSubplebbits(activeAccountId && accounts && accounts[activeAccountId])
 
   const accountsActions: AccountsActions = {}
 
