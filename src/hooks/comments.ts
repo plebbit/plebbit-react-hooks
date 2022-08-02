@@ -1,12 +1,11 @@
 import {useEffect, useMemo, useState} from 'react'
 import {useAccount} from './accounts'
-import {CommentsContext} from '../providers/comments-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
 import {Comment} from '../types'
-import useCommentsStore from '../stores/comments-store'
+import useCommentsStore from '../stores/comments'
 import shallow from 'zustand/shallow'
 
 /**
@@ -30,7 +29,7 @@ export function useComment(commentCid?: string, accountName?: string) {
     }
   }, [commentCid, account])
 
-  debug('useComment', {commentCid, comment, account})
+  debug('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
   return comment
 }
 
@@ -55,6 +54,6 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
     }
   }, [commentCids, account])
 
-  debug('useComments', {commentCids, comments, account})
+  debug('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
   return comments
 }

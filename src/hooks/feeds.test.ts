@@ -522,7 +522,7 @@ describe('feeds', () => {
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
         sortType: `doesnt exist`,
       })
-      expect(rendered.result.error?.message).toMatch(`invalid feed sort type 'doesnt exist'`)
+      expect(rendered.result.error?.message).toMatch(`useFeed sortType argument 'doesnt exist' invalid`)
 
       // one of the buffered feed has a sort type that doesn't exist
       rendered = renderHook<any, any>(
@@ -545,7 +545,7 @@ describe('feeds', () => {
       } catch (e) {
         console.error(e)
       }
-      expect(rendered.result.error?.message).toMatch(`invalid feed sort type 'doesnt exist'`)
+      expect(rendered.result.error?.message).toMatch(`useBufferedFeeds feedOptions.sortType argument 'doesnt exist' invalid`)
     })
 
     describe('getPage only has 1 page', () => {

@@ -1,5 +1,16 @@
 import assert from 'assert'
 
+const toString = (value: any) => {
+  if (typeof value === 'string') {
+    return value
+  }
+  try {
+    const string = JSON.stringify(value)
+    return string
+  } catch (e) {}
+  return value
+}
+
 export const validateAccountsActionsPublishCommentArguments = ({publishCommentOptions, accountName, account}: any) => {
   assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`)
   assert(accountName !== '', `publishComment accountName argument is empty string`)
@@ -115,9 +126,9 @@ export const validateUseCommentArguments = (commentCid: any, account: any) => {
 }
 
 export const validateUseCommentsArguments = (commentCids: any, account: any) => {
-  assert(Array.isArray(commentCids), 'useComment commentCids not an array')
+  assert(Array.isArray(commentCids), `useComment commentCids '${toString(commentCids)}' not an array`)
   for (const commentCid of commentCids) {
-    assert(typeof commentCid === 'string', `useComments commentCids '${commentCids}' commentCid '${commentCid}' not a string`)
+    assert(typeof commentCid === 'string', `useComments commentCids '${toString(commentCids)}' commentCid '${toString(commentCid)}' not a string`)
   }
   assert(account?.plebbit && typeof account?.plebbit === 'object', `useComments account.plebbit '${account?.plebbit}' not an object`)
 }
@@ -128,9 +139,12 @@ export const validateUseSubplebbitArguments = (subplebbitAddress: any, account: 
 }
 
 export const validateUseSubplebbitsArguments = (subplebbitAddresses: any, account: any) => {
-  assert(Array.isArray(subplebbitAddresses), 'useSubplebbit subplebbitAddresses not an array')
+  assert(Array.isArray(subplebbitAddresses), `useSubplebbit subplebbitAddresses '${toString(subplebbitAddresses)}' not an array`)
   for (const subplebbitAddress of subplebbitAddresses) {
-    assert(typeof subplebbitAddress === 'string', `useSubplebbits subplebbitAddresses '${subplebbitAddresses}' subplebbitAddress '${subplebbitAddress}' not a string`)
+    assert(
+      typeof subplebbitAddress === 'string',
+      `useSubplebbits subplebbitAddresses '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`
+    )
   }
   assert(account?.plebbit && typeof account?.plebbit === 'object', `useSubplebbit account.plebbit '${account?.plebbit}' not an object`)
 }
@@ -154,6 +168,41 @@ const feedSortTypes = new Set([
 export const validateFeedSortType = (sortType: any) => {
   assert(feedSortTypes.has(sortType), `invalid feed sort type '${sortType}'`)
 }
+export const validateUseFeedArguments = (subplebbitAddresses?: any, sortType?: any, accountName?: any) => {
+  if (subplebbitAddresses) {
+    assert(Array.isArray(subplebbitAddresses), `useFeed subplebbitAddresses argument '${toString(subplebbitAddresses)}' not an array`)
+    for (const subplebbitAddress of subplebbitAddresses) {
+      assert(
+        typeof subplebbitAddress === 'string',
+        `useFeed subplebbitAddresses argument '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`
+      )
+    }
+  }
+  assert(feedSortTypes.has(sortType), `useFeed sortType argument '${sortType}' invalid`)
+  if (accountName) {
+    assert(typeof accountName === 'string', `useFeed accountName argument '${accountName}' not a string`)
+  }
+}
+export const validateUseBufferedFeedsArguments = (feedsOptions?: any, accountName?: any) => {
+  assert(Array.isArray(feedsOptions), `useBufferedFeeds feedsOptions argument '${toString(feedsOptions)}' not an array`)
+  for (const {subplebbitAddresses, sortType} of feedsOptions) {
+    if (subplebbitAddresses) {
+      assert(Array.isArray(subplebbitAddresses), `useBufferedFeeds feedOptions.subplebbitAddresses argument '${toString(subplebbitAddresses)}' not an array`)
+      for (const subplebbitAddress of subplebbitAddresses) {
+        assert(
+          typeof subplebbitAddress === 'string',
+          `useBufferedFeeds feedOptions.subplebbitAddresses argument '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`
+        )
+      }
+    }
+    if (sortType) {
+      assert(feedSortTypes.has(sortType), `useBufferedFeeds feedOptions.sortType argument '${sortType}' invalid`)
+    }
+  }
+  if (accountName) {
+    assert(typeof accountName === 'string', `useBufferedFeeds accountName argument '${accountName}' not a string`)
+  }
+}
 
 const validator = {
   validateAccountsActionsPublishCommentArguments,
@@ -172,6 +221,8 @@ const validator = {
   validateUseSubplebbitArguments,
   validateUseSubplebbitsArguments,
   validateFeedSortType,
+  validateUseFeedArguments,
+  validateUseBufferedFeedsArguments,
 }
 
 export default validator

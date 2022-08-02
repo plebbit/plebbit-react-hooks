@@ -2,7 +2,7 @@ import React, {useState, useEffect, useContext} from 'react'
 import validator from '../lib/validator'
 import assert from 'assert'
 import localForageLru from '../lib/localforage-lru'
-const subplebbitsDatabase = localForageLru.createInstance({name: 'subplebbits', size: 500})
+const subplebbitsDatabase = localForageLru.createInstance({name: '_subplebbits', size: 500})
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:subplebbits-provider')
 import {Props, Subplebbit, Subplebbits, Account, CreateSubplebbitOptions} from '../types'

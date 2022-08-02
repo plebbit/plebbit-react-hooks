@@ -1,49 +1,59 @@
 import validator from '../../lib/validator'
-import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
 const commentsDatabase = localForageLru.createInstance({name: 'comments', size: 5000})
 import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:providers:comments-provider')
+const debug = Debug('plebbit-react-hooks:stores:comments')
 import {Comment, Comments, Account} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'
 
 const plebbitGetCommentPending: {[key: string]: boolean} = {}
+const listeners: any = []
 
-const useCommentsStore = createStore<any>((setState: Function, getState: Function) => ({
+type CommentsState = {
+  comments: Comments
+  addCommentToStore: Function
+}
+
+const useCommentsStore = createStore<CommentsState>((setState: Function, getState: Function) => ({
   comments: {},
 
   async addCommentToStore(commentId: string, account: Account) {
-    const comments = getState().comments
+    const {comments} = getState()
 
-    // comment is in context already, do nothing
+    // comment is in store already, do nothing
     let comment: Comment | undefined = comments[commentId]
     if (comment || plebbitGetCommentPending[commentId + account.id]) {
       return
     }
+    plebbitGetCommentPending[commentId + account.id] = true
 
     // try to find comment in database
     comment = await getCommentFromDatabase(commentId, account)
 
     // comment not in database, fetch from plebbit-js
-    if (!comment) {
-      plebbitGetCommentPending[commentId + account.id] = true
-      comment = await account.plebbit.getComment(commentId)
-      await commentsDatabase.setItem(commentId, utils.clone(comment))
+    try {
+      if (!comment) {
+        comment = await account.plebbit.getComment(commentId)
+        debug('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
+        await commentsDatabase.setItem(commentId, utils.clone(comment))
+      }
+      debug('commentsStore.addCommentToStore', {commentId, comment, account})
+      setState((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
+    } catch (e) {
+      throw e
+    } finally {
+      plebbitGetCommentPending[commentId + account.id] = false
     }
-    debug('commentsActions.addCommentToContext', {commentId, comment, account})
-    // setComments((previousComments) => ({...previousComments, [commentId]: utils.clone(comment)}))
-    setState((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
-    plebbitGetCommentPending[commentId + account.id] = false
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
-    comment.on('update', async (updatedComment: Comment) => {
+    const listener = comment.on('update', async (updatedComment: Comment) => {
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
-      debug('commentsContext comment update', {commentId, updatedComment, account})
-      // setComments((previousComments) => ({...previousComments, [commentId]: updatedComment}))
+      debug('commentsStore comment update', {commentId, updatedComment, account})
       setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
+    listeners.push(listener)
     comment.update()
 
     // when publishing a comment, you don't yet know its CID
@@ -53,11 +63,6 @@ const useCommentsStore = createStore<any>((setState: Function, getState: Functio
     // if (accountsContext?.addCidToAccountComment) {
     // await accountsContext.addCidToAccountComment(comment)
     // }
-  },
-
-  // reset store in between tests
-  reset() {
-    setState(() => ({comments: {}}))
   },
 }))
 
@@ -84,6 +89,17 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
   // NOTE: adding missing data is probably not needed with a full implementation of plebbit-js with no bugs
   // but the plebbit mock is barely implemented
   return comment
+}
+
+// reset store in between tests
+const originalState = useCommentsStore.getState()
+export const resetCommentsStore = () => {
+  // remove all listeners
+  listeners.forEach((listener: any) => listener.removeAllListeners())
+  // destroy all component subscriptions to the store
+  useCommentsStore.destroy()
+  // restore original state
+  useCommentsStore.setState(originalState)
 }
 
 export default useCommentsStore

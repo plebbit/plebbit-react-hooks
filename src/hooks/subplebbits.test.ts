@@ -2,25 +2,27 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider, useResolvedSubplebbitAddress, useAccount} from '..'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
-import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForageLru.createInstance({name: 'subplebbits'}).clear()])
-
 describe('subplebbits', () => {
   beforeAll(() => {
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
   })
-
   afterEach(async () => {
-    await deleteDatabases()
+    await testUtils.resetStores()
+    await testUtils.resetDatabases()
   })
 
   describe('no subplebbits in database', () => {
+    afterEach(async () => {
+      await testUtils.resetStores()
+      await testUtils.resetDatabases()
+    })
+
     test('get subplebbits one at a time', async () => {
       const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
         wrapper: PlebbitProvider,

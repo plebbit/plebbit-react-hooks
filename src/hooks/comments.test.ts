@@ -11,12 +11,17 @@ describe('comments', () => {
   afterAll(() => {
     testUtils.restoreAll()
   })
-
   afterEach(async () => {
+    await testUtils.resetDatabases()
     await testUtils.resetStores()
   })
 
   describe('no comments in database', () => {
+    afterEach(async () => {
+      await testUtils.resetDatabases()
+      await testUtils.resetStores()
+    })
+
     test('get comments one at a time', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
@@ -33,7 +38,7 @@ describe('comments', () => {
       expect(rendered.result.current.upvoteCount).toBe(3)
 
       rendered.rerender('comment cid 2')
-      // wait for addCommentToContext action
+      // wait for addCommentToStore action
       await waitFor(() => typeof rendered.result.current.cid === 'string')
       expect(rendered.result.current.cid).toBe('comment cid 2')
 
@@ -58,9 +63,13 @@ describe('comments', () => {
       let throwOnCommentUpdateEvent = false
       Comment.prototype.simulateUpdateEvent = () => {
         if (throwOnCommentUpdateEvent) {
-          throw Error('no comment update events should be emitted when comment already in context')
+          throw Error('no comment update events should be emitted when comment already in store')
         }
       }
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
+      await waitFor(() => rendered.result.current === undefined)
 
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
@@ -73,12 +82,12 @@ describe('comments', () => {
       expect(rendered2.result.current.upvoteCount).toBe(3)
 
       rendered2.rerender('comment cid 2')
-      // wait for addCommentToContext action
+      // wait for addCommentToStore action
       await waitFor2(() => typeof rendered2.result.current.cid === 'string')
       expect(rendered2.result.current.cid).toBe('comment cid 2')
       expect(rendered2.result.current.upvoteCount).toBe(3)
 
-      // get comment 1 again from context, should not trigger any comment updates
+      // get comment 1 again from store, should not trigger any comment updates
       throwOnCommentUpdateEvent = true
       rendered2.rerender('comment cid 1')
       expect(rendered2.result.current.cid).toBe('comment cid 1')

@@ -1,4 +1,5 @@
-import useCommentsStore from '../stores/comments-store'
+import {resetCommentsStore} from '../stores/comments'
+import {resetSubplebbitsStore} from '../stores/subplebbits'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -78,9 +79,13 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
   return waitFor
 }
 
-export const resetStores = () => {
-  useCommentsStore.getState().reset()
-  return Promise.all([
+export const resetStores = async () => {
+  resetCommentsStore()
+  resetSubplebbitsStore()
+}
+
+export const resetDatabases = async () => {
+  await Promise.all([
     localForage.createInstance({name: 'accountsMetadata'}).clear(),
     localForage.createInstance({name: 'accounts'}).clear(),
     localForageLru.createInstance({name: 'subplebbits'}).clear(),
@@ -96,6 +101,7 @@ const testUtils = {
   restoreAll,
   createWaitFor,
   resetStores,
+  resetDatabases,
 }
 
 export default testUtils
