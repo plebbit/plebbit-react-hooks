@@ -11,7 +11,7 @@ const debug = Debug('plebbit-react-hooks:hooks:feeds');
  * the active account.
  */
 export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
-    validator.validateFeedSortType(sortType);
+    validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName);
     const account = useAccount(accountName);
     const feedsContext = useContext(FeedsContext);
     const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses]);
@@ -49,6 +49,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
  * the active account.
  */
 export function useBufferedFeeds(feedsOptions = [], accountName) {
+    validator.validateUseBufferedFeedsArguments(feedsOptions, accountName);
     const account = useAccount(accountName);
     const feedsContext = useContext(FeedsContext);
     // do a bunch of calculations to get feedsOptionsFlattened and feedNames

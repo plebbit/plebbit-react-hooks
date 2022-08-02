@@ -14,6 +14,8 @@ export declare const validateUseCommentsArguments: (commentCids: any, account: a
 export declare const validateUseSubplebbitArguments: (subplebbitAddress: any, account: any) => void;
 export declare const validateUseSubplebbitsArguments: (subplebbitAddresses: any, account: any) => void;
 export declare const validateFeedSortType: (sortType: any) => void;
+export declare const validateUseFeedArguments: (subplebbitAddresses?: any, sortType?: any, accountName?: any) => void;
+export declare const validateUseBufferedFeedsArguments: (feedsOptions?: any, accountName?: any) => void;
 declare const validator: {
     validateAccountsActionsPublishCommentArguments: ({ publishCommentOptions, accountName, account }: any) => void;
     validateAccountsActionsPublishCommentEditArguments: ({ publishCommentEditOptions, accountName, account }: any) => void;
@@ -31,5 +33,7 @@ declare const validator: {
     validateUseSubplebbitArguments: (subplebbitAddress: any, account: any) => void;
     validateUseSubplebbitsArguments: (subplebbitAddresses: any, account: any) => void;
     validateFeedSortType: (sortType: any) => void;
+    validateUseFeedArguments: (subplebbitAddresses?: any, sortType?: any, accountName?: any) => void;
+    validateUseBufferedFeedsArguments: (feedsOptions?: any, accountName?: any) => void;
 };
 export default validator;
