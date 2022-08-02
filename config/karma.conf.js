@@ -99,9 +99,11 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     // logLevel: config.LOG_DEBUG,
-    browserNoActivityTimeout: mochaConfig.timeout,
-    browserDisconnectTimeout: mochaConfig.timeout,
-    browserDisconnectTolerance: 5,
+
+    // long browser timeout for manual debugging
+    browserNoActivityTimeout: !process.env.CI && mochaConfig.timeout,
+    browserDisconnectTimeout: !process.env.CI && mochaConfig.timeout,
+    browserDisconnectTolerance: !process.env.CI && 5,
   })
 }
 
