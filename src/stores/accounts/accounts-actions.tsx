@@ -1,3 +1,5 @@
+// public account actions that are called by the user
+
 import accountsStore from './accounts-store'
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
@@ -5,7 +7,8 @@ import Debug from 'debug'
 import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
-import {Account} from '../../types'
+import {Account, PublishCommentOptions, Challenge, ChallengeVerification} from '../../types'
+import accountsActionsInternal from './accounts-actions-internal'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
   const {accounts, accountsComments, accountsVotes} = accountsStore.getState()
@@ -158,6 +161,197 @@ export const exportAccount = async (accountName?: string) => {
   // TODO: add options to only export private key, account settings, or include all account comments/votes history
 }
 
+export const subscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.subscribe invalid subplebbitAddress '${subplebbitAddress}'`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  assert(account?.id, `accountsActions.subscribe account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+  const subscriptions: string[] = account.subscriptions || []
+  if (subscriptions.includes(subplebbitAddress)) {
+    throw Error(`account '${account.id}' already subscribed to '${subplebbitAddress}'`)
+  }
+  subscriptions.push(subplebbitAddress)
+
+  const updatedAccount = {...account, subscriptions}
+  // update account in db
+  await accountsDatabase.addAccount(updatedAccount)
+  const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+  debug('accountsActions.subscribe', {account: updatedAccount, accountName, subplebbitAddress})
+  accountsStore.setState({accounts: updatedAccounts})
+}
+
+export const unsubscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.unsubscribe invalid subplebbitAddress '${subplebbitAddress}'`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  assert(account?.id, `accountsActions.unsubscribe account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+  let subscriptions: string[] = account.subscriptions || []
+  if (!subscriptions.includes(subplebbitAddress)) {
+    throw Error(`account '${account.id}' already unsubscribed from '${subplebbitAddress}'`)
+  }
+  // remove subplebbitAddress
+  subscriptions = subscriptions.filter((address) => address !== subplebbitAddress)
+
+  const updatedAccount = {...account, subscriptions}
+  // update account in db
+  await accountsDatabase.addAccount(updatedAccount)
+  const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+  debug('accountsActions.unsubscribe', {account: updatedAccount, accountName, subplebbitAddress})
+  accountsStore.setState({accounts: updatedAccounts})
+}
+
+export const blockAddress = async (address: string | number, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(address && typeof address === 'string', `accountsActions.blockAddress invalid address '${address}'`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  assert(account?.id, `accountsActions.blockAddress account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+  const blockedAddresses: {[address: string]: boolean} = {...account.blockedAddresses}
+  if (blockedAddresses[address] === true) {
+    throw Error(`account '${account.id}' already blocked address '${address}'`)
+  }
+  blockedAddresses[address] = true
+
+  const updatedAccount = {...account, blockedAddresses}
+  // update account in db
+  await accountsDatabase.addAccount(updatedAccount)
+  const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+  debug('accountsActions.blockAddress', {account: updatedAccount, accountName, address})
+  accountsStore.setState({accounts: updatedAccounts})
+}
+
+export const unblockAddress = async (address: string | number, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(address && typeof address === 'string', `accountsActions.unblockAddress invalid address '${address}'`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  assert(account?.id, `accountsActions.unblockAddress account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+  const blockedAddresses: {[address: string]: boolean} = {...account.blockedAddresses}
+  if (!blockedAddresses[address]) {
+    throw Error(`account '${account.id}' already blocked address '${address}'`)
+  }
+  delete blockedAddresses[address]
+
+  const updatedAccount = {...account, blockedAddresses}
+  // update account in db
+  await accountsDatabase.addAccount(updatedAccount)
+  const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+  debug('accountsActions.unblockAddress', {account: updatedAccount, accountName, address})
+  accountsStore.setState({accounts: updatedAccounts})
+}
+
+export const publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
+
+  let createCommentOptions = {
+    timestamp: Math.round(Date.now() / 1000),
+    author: account.author,
+    signer: account.signer,
+    ...publishCommentOptions,
+  }
+  delete createCommentOptions.onChallenge
+  delete createCommentOptions.onChallengeVerification
+
+  let accountCommentIndex: number
+
+  let comment = await account.plebbit.createComment(createCommentOptions)
+  const publishAndRetryFailedChallengeVerification = () => {
+    comment.once('challenge', async (challenge: Challenge) => {
+      publishCommentOptions.onChallenge(challenge, comment)
+    })
+    comment.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+      publishCommentOptions.onChallengeVerification(challengeVerification, comment)
+      if (!challengeVerification.challengeSuccess) {
+        // publish again automatically on fail
+        createCommentOptions = {...createCommentOptions, timestamp: Math.round(Date.now() / 1000)}
+        comment = await account.plebbit.createComment(createCommentOptions)
+        publishAndRetryFailedChallengeVerification()
+      } else {
+        // the challengeverification message of a comment publication should in theory send back the CID
+        // of the published comment which is needed to resolve it for replies, upvotes, etc
+        if (challengeVerification?.publication?.cid) {
+          const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
+          await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
+          // setAccountsComments((previousAccountsComments) => {
+          //   const updatedAccountComments = [...previousAccountsComments[account.id]]
+          //   const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
+          //   updatedAccountComments[accountCommentIndex] = updatedAccountComment
+          //   return {...previousAccountsComments, [account.id]: updatedAccountComments}
+          // })
+          accountsStore.setState(({accountsComments}) => {
+            const updatedAccountComments = [...accountsComments[account.id]]
+            const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
+            updatedAccountComments[accountCommentIndex] = updatedAccountComment
+            return {accountsComments: {...accountsComments, [account.id]: updatedAccountComments}}
+          })
+
+          accountsActionsInternal
+            .startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
+            .catch((error: unknown) =>
+              console.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error})
+            )
+        }
+      }
+    })
+    comment.publish()
+  }
+
+  publishAndRetryFailedChallengeVerification()
+  await accountsDatabase.addAccountComment(account.id, createCommentOptions)
+  debug('accountsActions.publishComment', {createCommentOptions})
+  // setAccountsComments((previousAccountsComments) => {
+  //   // save account comment index to update the comment later
+  //   accountCommentIndex = previousAccountsComments[account.id].length
+  //   const createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
+  //   return {
+  //     ...previousAccountsComments,
+  //     [account.id]: [...previousAccountsComments[account.id], createdAccountComment],
+  //   }
+  // })
+  accountsStore.setState(({accountsComments}) => {
+    // save account comment index to update the comment later
+    accountCommentIndex = accountsComments[account.id].length
+    const createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
+    return {
+      accountsComments: {
+        ...accountsComments,
+        [account.id]: [...accountsComments[account.id], createdAccountComment],
+      },
+    }
+  })
+}
+
 export const deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
   throw Error('TODO: not implemented')
 }
+
+export const publishVote = async () => {}

@@ -41,6 +41,7 @@ type AccountsState = {
   activeAccountId: string | undefined
   accountNamesToAccountIds: AccountNamesToAccountIds
   accountsComments: AccountsComments
+  accountsCommentsUpdating: {[commendCid: string]: boolean}
   accountsCommentsReplies: AccountsCommentsReplies
   accountsVotes: any
   accountsActions: {[key: string]: Function}
@@ -52,6 +53,7 @@ const useAccountsStore = createStore<AccountsState>((setState: Function, getStat
   activeAccountId: undefined,
   accountNamesToAccountIds: {},
   accountsComments: {},
+  accountsCommentsUpdating: {},
   accountsCommentsReplies: {},
   accountsVotes: {},
   accountsActions,
@@ -120,6 +122,7 @@ export const resetAccountsStore = async () => {
   useAccountsStore.setState(originalState)
   // init the store
   await setAccountsFromDatabaseInStore()
+  debug('reset store')
 }
 
 export default useAccountsStore

@@ -30,12 +30,13 @@ describe('accounts', () => {
   afterAll(() => {
     testUtils.restoreAll()
   })
-  afterEach(async () => {
-    await testUtils.resetDatabasesAndStores()
-  })
 
-  describe('no accounts in database', () => {
-    test.only('generate default account on load', async () => {
+  describe.only('no accounts in database', () => {
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('generate default account on load', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor = testUtils.createWaitFor(rendered)
@@ -108,7 +109,7 @@ describe('accounts', () => {
 
     test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
 
-    test.only('create new accounts', async () => {
+    test('create new accounts', async () => {
       const rendered = renderHook<any, any>(
         (accountName) => {
           const account = useAccount(accountName)
@@ -171,7 +172,7 @@ describe('accounts', () => {
     })
   })
 
-  describe('multiple accounts in database', () => {
+  describe.only('multiple accounts in database', () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
@@ -206,7 +207,7 @@ describe('accounts', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test.only('change which account is active', async () => {
+    test('change which account is active', async () => {
       // active account is Account 1
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.setActiveAccount).toBe('function')
@@ -237,7 +238,7 @@ describe('accounts', () => {
       expect(rendered2.result.current.name).toBe('custom name')
     })
 
-    test.only(`fail to get account that doesn't exist`, () => {
+    test(`fail to get account that doesn't exist`, () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       rendered.rerender('account that does not exist')
       expect(rendered.result.current.account).toBe(undefined)
@@ -245,7 +246,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
     })
 
-    test.only(`fail to create account with name that already exists`, async () => {
+    test(`fail to create account with name that already exists`, async () => {
       expect(typeof rendered.result.current.account.name).toBe('string')
       await act(async () => {
         expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(
@@ -254,7 +255,7 @@ describe('accounts', () => {
       })
     })
 
-    test.only('edit non active account display name', async () => {
+    test('edit non active account display name', async () => {
       rendered.rerender('Account 2')
       expect(rendered.result.current.account.name).toBe('Account 2')
       expect(rendered.result.current.account.author.displayName).toBe(undefined)
@@ -279,7 +280,7 @@ describe('accounts', () => {
       expect(rendered2.result.current.author.displayName).toBe('display name john')
     })
 
-    test.only('edit active account name and display name', async () => {
+    test('edit active account name and display name', async () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(rendered.result.current.account.author.displayName).toBe(undefined)
       const newAccount = JSON.parse(JSON.stringify({...rendered.result.current.account}))
@@ -305,7 +306,7 @@ describe('accounts', () => {
       expect(rendered2.result.current.name).toBe('account name john')
     })
 
-    test.only('fail to edit account with wrong account id', async () => {
+    test('fail to edit account with wrong account id', async () => {
       const newAccount = JSON.parse(JSON.stringify({...rendered.result.current.account}))
       newAccount.author.displayName = 'display name john'
       newAccount.id = 'something incorrect'
@@ -320,7 +321,7 @@ describe('accounts', () => {
 
     test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
 
-    test.only('export account', async () => {
+    test('export account', async () => {
       let exportedAccountJson: any, exportedAccount: any
       await act(async () => {
         exportedAccountJson = await rendered.result.current.exportAccount()
@@ -335,7 +336,7 @@ describe('accounts', () => {
       expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
     })
 
-    test.only('import account', async () => {
+    test('import account', async () => {
       let exportedAccount: any
       await act(async () => {
         try {
@@ -368,7 +369,7 @@ describe('accounts', () => {
       expect(rendered2.result.current.name).toBe(exportedAccount.name)
     })
 
-    test.only(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
+    test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
       let exportedAccount: any
       await act(async () => {
         try {
@@ -390,7 +391,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
     })
 
-    test.only(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
+    test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
       let exportedAccount: any
       await act(async () => {
         try {
@@ -411,7 +412,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
     })
 
-    test.only(`change account order`, async () => {
+    test(`change account order`, async () => {
       expect(rendered.result.current.accounts[0].name).toBe('Account 1')
       expect(rendered.result.current.accounts[1].name).toBe('Account 2')
       expect(rendered.result.current.accounts[2].name).toBe('Account 3')
@@ -439,7 +440,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[3].name).toBe('Account 1')
     })
 
-    test.only(`delete account non-active account`, async () => {
+    test(`delete account non-active account`, async () => {
       const activeAccountIdBefore = rendered.result.current.account.id
       const accountCountBefore = rendered.result.current.accounts.length
       await act(async () => {
@@ -473,7 +474,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[2].name).toBe('custom name')
     })
 
-    test.only(`delete active account, active account switches second account in accountNames`, async () => {
+    test(`delete active account, active account switches second account in accountNames`, async () => {
       const activeAccountIdBefore = rendered.result.current.account.id
       const accountCountBefore = rendered.result.current.accounts.length
       await act(async () => {
@@ -509,7 +510,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[2].name).toBe('custom name')
     })
 
-    test.only(`delete all accounts and create a new one, which becomes active`, async () => {
+    test(`delete all accounts and create a new one, which becomes active`, async () => {
       let accountCount = rendered.result.current.accounts.length
       while (accountCount--) {
         await act(async () => {
@@ -646,8 +647,7 @@ describe('accounts', () => {
 
   describe('no comments or votes in database', () => {
     let rendered: any, waitFor: any
-
-    beforeEach(async () => {
+    const render = async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>(
         (accountName) => {
@@ -664,13 +664,16 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.publishComment).toBe('function')
       expect(typeof rendered.result.current.publishVote).toBe('function')
-    })
+    }
 
-    afterEach(async () => {
-      await testUtils.resetDatabasesAndStores()
-    })
+    describe.only(`create comment`, () => {
+      beforeAll(async () => {
+        await render()
+      })
+      afterAll(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
 
-    describe(`create comment`, () => {
       const onChallenge = jest.fn()
       const onChallengeVerification = jest.fn()
 
@@ -716,6 +719,13 @@ describe('accounts', () => {
     })
 
     describe(`create vote`, () => {
+      beforeAll(async () => {
+        await render()
+      })
+      afterAll(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
       const onChallenge = jest.fn()
       const onChallengeVerification = jest.fn()
 
@@ -761,6 +771,13 @@ describe('accounts', () => {
     })
 
     describe(`create comment edit`, () => {
+      beforeAll(async () => {
+        await render()
+      })
+      afterAll(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
       const onChallenge = jest.fn()
       const onChallengeVerification = jest.fn()
 
@@ -806,6 +823,13 @@ describe('accounts', () => {
     })
 
     describe(`create subplebbit edit`, () => {
+      beforeAll(async () => {
+        await render()
+      })
+      afterAll(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
       const onChallenge = jest.fn()
       const onChallengeVerification = jest.fn()
 
