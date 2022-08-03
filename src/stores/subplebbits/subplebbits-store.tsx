@@ -1,4 +1,3 @@
-import React, {useState, useEffect} from 'react'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'

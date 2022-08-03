@@ -30,7 +30,7 @@ export function useAccount(accountName?: string) {
   // const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
   const account = accountId && accountsStore?.accounts[accountId]
-  debug('useAccount', {accountId, account, accountName: account?.name})
+  debug('useAccount', {accountId, account, accountName: account?.name, accountsStore})
   return account
 }
 
@@ -38,15 +38,16 @@ export function useAccount(accountName?: string) {
  * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
 export function useAccounts() {
-  const accountsContext = useContext(AccountsContext)
+  const accountsStore = useAccountsStore()
+  // const accountsContext = useContext(AccountsContext)
   const accounts: Account[] = []
-  if (accountsContext?.accountIds?.length && accountsContext?.accounts) {
-    for (const accountId of accountsContext.accountIds) {
-      accounts.push(accountsContext.accounts[accountId])
+  if (accountsStore?.accountIds?.length && accountsStore?.accounts) {
+    for (const accountId of accountsStore.accountIds) {
+      accounts.push(accountsStore.accounts[accountId])
     }
     return accounts
   }
-  debug('useAccounts', {accounts, accountIds: accountsContext?.accountIds})
+  debug('useAccounts', {accounts, accountIds: accountsStore?.accountIds})
   return accounts
 }
 
@@ -54,14 +55,13 @@ export function useAccounts() {
  * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
  */
 export function useAccountsActions() {
-  const accountsContext = useContext(AccountsContext)
-  if (accountsContext) {
-    return accountsContext.accountsActions
-  }
+  const accountsStore = useAccountsStore()
+  // const accountsContext = useContext(AccountsContext)
+  return accountsStore.accountsActions
   // return empty object for deconstructing without errors if context isn't ready
   // e.g. const {createAccount} = useAccountsActions()
   // TODO: possibly return functions that throw 'not ready', or promises that wait until ready
-  return {}
+  // return {}
 }
 
 /**

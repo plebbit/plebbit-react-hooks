@@ -18,19 +18,20 @@ import {
 } from '..'
 import localForage from 'localforage'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages} from '../lib/plebbit-js/plebbit-js-mock'
+import accountsStore from '../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
-
-const deleteDatabases = () => Promise.all([localForage.createInstance({name: 'accountsMetadata'}).clear(), localForage.createInstance({name: 'accounts'}).clear()])
+import Debug from 'debug'
+// Debug.enable('plebbit-react-hooks:hooks:accounts,plebbit-react-hooks:stores:accounts')
 
 describe('accounts', () => {
   beforeAll(() => {
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
   })
   afterEach(async () => {
-    await deleteDatabases()
+    await testUtils.resetDatabasesAndStores()
   })
 
   describe('no accounts in database', () => {
@@ -38,7 +39,6 @@ describe('accounts', () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current).toBe(undefined)
 
       // on second render, you get the default generated account
       await waitFor(() => rendered.result.current.name)
@@ -86,6 +86,9 @@ describe('accounts', () => {
 
       plebbitOptions.ipfsHttpClientOptions = 'http://three:5001/api/v0'
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // on second render get the account from database
       const rendered2 = renderHook(
         () => {
@@ -105,7 +108,7 @@ describe('accounts', () => {
 
     test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
 
-    test('create new accounts', async () => {
+    test.only('create new accounts', async () => {
       const rendered = renderHook<any, any>(
         (accountName) => {
           const account = useAccount(accountName)
@@ -115,9 +118,6 @@ describe('accounts', () => {
         {wrapper: PlebbitProvider}
       )
       const waitFor = testUtils.createWaitFor(rendered)
-      // on first render, the account is undefined because it's not yet loaded from database
-      expect(rendered.result.current.account).toBe(undefined)
-      expect(rendered.result.current.createAccount).toBe(undefined)
 
       // on second render, you get the default generated account
       await waitFor(() => rendered.result.current.account.name)
@@ -145,12 +145,14 @@ describe('accounts', () => {
       rendered.rerender('custom name')
       expect(rendered.result.current.account.name).toBe('custom name')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render second context with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
-      expect(rendered2.result.current).toBe(undefined)
       await waitFor2(() => rendered2.result.current.name)
 
       // default active account is account 1
@@ -201,10 +203,10 @@ describe('accounts', () => {
     })
 
     afterEach(async () => {
-      await deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
-    test('change which account is active', async () => {
+    test.only('change which account is active', async () => {
       // active account is Account 1
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(typeof rendered.result.current.setActiveAccount).toBe('function')
@@ -221,19 +223,21 @@ describe('accounts', () => {
       })
       expect(rendered.result.current.account.name).toBe('custom name')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render second context with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
-      expect(rendered2.result.current).toBe(undefined)
       await waitFor2(() => rendered2.result.current.name)
 
       // active account is still 'custom name'
       expect(rendered2.result.current.name).toBe('custom name')
     })
 
-    test(`fail to get account that doesn't exist`, () => {
+    test.only(`fail to get account that doesn't exist`, () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       rendered.rerender('account that does not exist')
       expect(rendered.result.current.account).toBe(undefined)
@@ -241,7 +245,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
     })
 
-    test(`fail to create account with name that already exists`, async () => {
+    test.only(`fail to create account with name that already exists`, async () => {
       expect(typeof rendered.result.current.account.name).toBe('string')
       await act(async () => {
         expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(
@@ -250,7 +254,7 @@ describe('accounts', () => {
       })
     })
 
-    test('edit non active account display name', async () => {
+    test.only('edit non active account display name', async () => {
       rendered.rerender('Account 2')
       expect(rendered.result.current.account.name).toBe('Account 2')
       expect(rendered.result.current.account.author.displayName).toBe(undefined)
@@ -261,19 +265,21 @@ describe('accounts', () => {
       })
       expect(rendered.result.current.account.author.displayName).toBe('display name john')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render second context with empty state to check if account change saved to database
       const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
-      expect(rendered2.result.current).toBe(undefined)
       await waitFor2(() => rendered2.result.current.name)
 
       // active account display name is still 'display name john'
       expect(rendered2.result.current.author.displayName).toBe('display name john')
     })
 
-    test('edit active account name and display name', async () => {
+    test.only('edit active account name and display name', async () => {
       expect(rendered.result.current.account.name).toBe('Account 1')
       expect(rendered.result.current.account.author.displayName).toBe(undefined)
       const newAccount = JSON.parse(JSON.stringify({...rendered.result.current.account}))
@@ -285,19 +291,21 @@ describe('accounts', () => {
       expect(rendered.result.current.account.author.displayName).toBe('display name john')
       expect(rendered.result.current.account.name).toBe('account name john')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render second context with empty state to check if account change saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
-      expect(rendered2.result.current).toBe(undefined)
       await waitFor2(() => rendered2.result.current.name)
 
       // active account is still 'account name john'
       expect(rendered2.result.current.name).toBe('account name john')
     })
 
-    test('fail to edit account with wrong account id', async () => {
+    test.only('fail to edit account with wrong account id', async () => {
       const newAccount = JSON.parse(JSON.stringify({...rendered.result.current.account}))
       newAccount.author.displayName = 'display name john'
       newAccount.id = 'something incorrect'
@@ -312,7 +320,7 @@ describe('accounts', () => {
 
     test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
 
-    test('export account', async () => {
+    test.only('export account', async () => {
       let exportedAccountJson: any, exportedAccount: any
       await act(async () => {
         exportedAccountJson = await rendered.result.current.exportAccount()
@@ -327,7 +335,7 @@ describe('accounts', () => {
       expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
     })
 
-    test('import account', async () => {
+    test.only('import account', async () => {
       let exportedAccount: any
       await act(async () => {
         try {
@@ -349,6 +357,9 @@ describe('accounts', () => {
       expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
       expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // imported account persists in database after context reset
       const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -357,7 +368,7 @@ describe('accounts', () => {
       expect(rendered2.result.current.name).toBe(exportedAccount.name)
     })
 
-    test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
+    test.only(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
       let exportedAccount: any
       await act(async () => {
         try {
@@ -379,7 +390,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
     })
 
-    test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
+    test.only(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
       let exportedAccount: any
       await act(async () => {
         try {
@@ -400,7 +411,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
     })
 
-    test(`change account order`, async () => {
+    test.only(`change account order`, async () => {
       expect(rendered.result.current.accounts[0].name).toBe('Account 1')
       expect(rendered.result.current.accounts[1].name).toBe('Account 2')
       expect(rendered.result.current.accounts[2].name).toBe('Account 3')
@@ -414,6 +425,9 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[2].name).toBe('Account 2')
       expect(rendered.result.current.accounts[3].name).toBe('Account 1')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render second context with empty state to check if saved to database
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -425,7 +439,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[3].name).toBe('Account 1')
     })
 
-    test(`delete account non-active account`, async () => {
+    test.only(`delete account non-active account`, async () => {
       const activeAccountIdBefore = rendered.result.current.account.id
       const accountCountBefore = rendered.result.current.accounts.length
       await act(async () => {
@@ -446,6 +460,9 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[1].name).toBe('Account 3')
       expect(rendered.result.current.accounts[2].name).toBe('custom name')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // account deleted persists in database after context reset
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -456,7 +473,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[2].name).toBe('custom name')
     })
 
-    test(`delete active account, active account switches second account in accountNames`, async () => {
+    test.only(`delete active account, active account switches second account in accountNames`, async () => {
       const activeAccountIdBefore = rendered.result.current.account.id
       const accountCountBefore = rendered.result.current.accounts.length
       await act(async () => {
@@ -479,6 +496,9 @@ describe('accounts', () => {
       expect(rendered.result.current.accounts[1].name).toBe('Account 3')
       expect(rendered.result.current.accounts[2].name).toBe('custom name')
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // account deleted persists in database after context reset
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -489,7 +509,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[2].name).toBe('custom name')
     })
 
-    test(`delete all accounts and create a new one, which becomes active`, async () => {
+    test.only(`delete all accounts and create a new one, which becomes active`, async () => {
       let accountCount = rendered.result.current.accounts.length
       while (accountCount--) {
         await act(async () => {
@@ -500,7 +520,6 @@ describe('accounts', () => {
 
       // all accounts have been deleted
       expect(rendered.result.current.accounts.length).toBe(0)
-      expect(rendered.result.current.account).toBe(undefined)
 
       // create new account
       await act(async () => {
@@ -555,6 +574,9 @@ describe('accounts', () => {
       await waitFor(() => rendered.result.current.account.subscriptions.length === 1)
       expect(rendered.result.current.account.subscriptions).toEqual([subplebbitAddress2])
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // subscribing persists in database after context reset
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -605,6 +627,9 @@ describe('accounts', () => {
       await waitFor(() => Object.keys(rendered.result.current.account.blockedAddresses).length === 1)
       expect(rendered.result.current.account.blockedAddresses).toEqual({[address2]: true})
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // blocking persists in database after context reset
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -642,7 +667,7 @@ describe('accounts', () => {
     })
 
     afterEach(async () => {
-      await deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     describe(`create comment`, () => {
@@ -907,7 +932,7 @@ describe('accounts', () => {
     })
 
     afterEach(async () => {
-      await deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     const expectAccountCommentsToHaveIndexAndAccountId = (accountComments: any[], accountId?: string) => {
@@ -956,6 +981,8 @@ describe('accounts', () => {
 
       // check if cids are in database after getting a new context
       const activeAccountId = rendered.result.current.account.id
+      // reset stores to force using the db
+      await testUtils.resetStores()
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length)
@@ -1028,6 +1055,9 @@ describe('accounts', () => {
       // restore mock
       Plebbit.prototype.commentToGet = commentToGet
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // check if cids are still in database after new context
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1084,6 +1114,9 @@ describe('accounts', () => {
     })
 
     test(`account comments are stored to database`, async () => {
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1135,6 +1168,9 @@ describe('accounts', () => {
         expect(rendered.result.current.account.karma.postUpvoteCount).toBe(6)
         expect(rendered.result.current.account.karma.postDownvoteCount).toBe(2)
 
+        // reset stores to force using the db
+        await testUtils.resetStores()
+
         // get the karma from database by created new context
         const rendered2 = renderHook<any, any>(
           () => {
@@ -1167,6 +1203,9 @@ describe('accounts', () => {
     })
 
     test(`account votes are stored to database`, async () => {
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountVotes(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1206,6 +1245,9 @@ describe('accounts', () => {
       // no comments were added to 'Account 1'
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountVotes.length).toBe(3)
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
 
       // render with new context to see if still in database
       const rendered2 = renderHook<any, any>(
@@ -1315,7 +1357,7 @@ describe('accounts', () => {
 
     afterEach(async () => {
       Comment.prototype.update = commentUpdate
-      await deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     test('get notifications', async () => {
@@ -1401,6 +1443,9 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
       expect(rendered.result.current.notifications[3].markedAsRead).toBe(true)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(1)
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
 
       // check to see if in database after refreshing with a new context
       const rendered2 = renderHook<any, any>(() => useAccountNotifications(), {wrapper: PlebbitProvider})

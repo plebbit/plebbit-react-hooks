@@ -1,4 +1,3 @@
-import React, {useState, useEffect, useMemo, useContext} from 'react'
 import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
@@ -32,6 +31,7 @@ import {
   AccountsCommentsReplies,
 } from '../../types'
 import createStore from 'zustand'
+import * as accountsActions from './accounts-actions'
 
 const listeners: any = []
 
@@ -43,6 +43,7 @@ type AccountsState = {
   accountsComments: AccountsComments
   accountsCommentsReplies: AccountsCommentsReplies
   accountsVotes: any
+  accountsActions: {[key: string]: Function}
 }
 
 const useAccountsStore = createStore<AccountsState>((setState: Function, getState: Function) => ({
@@ -53,6 +54,7 @@ const useAccountsStore = createStore<AccountsState>((setState: Function, getStat
   accountsComments: {},
   accountsCommentsReplies: {},
   accountsVotes: {},
+  accountsActions,
 }))
 
 // load accounts from database once on load
@@ -94,7 +96,7 @@ const setAccountsFromDatabaseInStore = async () => {
   // setAccountsComments(accountsComments)
   // setAccountsVotes(accountsVotes)
   // setAccountsCommentsReplies(accountsCommentsReplies)
-  useAccountsStore.setState({accounts, accountIds, activeAccountId, accountsComments, accountsVotes, accountsCommentsReplies})
+  useAccountsStore.setState((state) => ({accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies}))
 
   // start looking for updates for all accounts comments in database
   for (const accountId in accountsComments) {
