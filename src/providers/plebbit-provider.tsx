@@ -6,6 +6,9 @@ import FeedsProvider from './feeds-provider'
 import {Props} from '../types'
 
 export default function PlebbitProvider(props: Props): JSX.Element | null {
+  // TODO zustand
+  return <FeedsProvider>{props.children}</FeedsProvider>
+
   if (!props.children) {
     return null
   }

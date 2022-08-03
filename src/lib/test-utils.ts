@@ -1,5 +1,6 @@
 import {resetCommentsStore} from '../stores/comments'
 import {resetSubplebbitsStore} from '../stores/subplebbits'
+import {resetAccountsStore} from '../stores/accounts'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -82,6 +83,7 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
 export const resetStores = async () => {
   await resetCommentsStore()
   await resetSubplebbitsStore()
+  await resetAccountsStore()
 }
 
 export const resetDatabases = async () => {

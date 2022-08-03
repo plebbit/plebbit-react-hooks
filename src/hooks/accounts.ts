@@ -1,5 +1,6 @@
 import {useEffect, useMemo, useState, useContext} from 'react'
 import {AccountsContext} from '../providers/accounts-provider'
+import useAccountsStore from '../stores/accounts'
 import PlebbitJs from '../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:accounts')
@@ -12,9 +13,10 @@ import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComment
  * the active account id.
  */
 function useAccountId(accountName?: string) {
-  const accountsContext = useContext(AccountsContext)
-  const accountId = accountName && accountsContext?.accountNamesToAccountIds[accountName]
-  const activeAccountId = accountsContext?.activeAccountId
+  // const accountsContext = useContext(AccountsContext)
+  const accountsStore = useAccountsStore()
+  const accountId = accountName && accountsStore?.accountNamesToAccountIds[accountName]
+  const activeAccountId = accountsStore?.activeAccountId
   const accountIdToUse = accountName ? accountId : activeAccountId
   return accountIdToUse
 }
@@ -24,9 +26,10 @@ function useAccountId(accountName?: string) {
  * the active account.
  */
 export function useAccount(accountName?: string) {
-  const accountsContext = useContext(AccountsContext)
+  const accountsStore = useAccountsStore()
+  // const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
-  const account = accountsContext?.accounts[accountId]
+  const account = accountId && accountsStore?.accounts[accountId]
   debug('useAccount', {accountId, account, accountName: account?.name})
   return account
 }
@@ -114,7 +117,7 @@ export function useAccountSubplebbits(accountName?: string) {
 export function useAccountNotifications(accountName?: string) {
   const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
-  const account = accountsContext?.accounts[accountId]
+  const account = accountId && accountsContext?.accounts[accountId]
   let notifications: AccountNotifications | undefined
   if (account) {
     notifications = accountsContext?.accountsNotifications[accountId]

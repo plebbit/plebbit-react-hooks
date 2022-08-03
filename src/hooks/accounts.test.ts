@@ -34,7 +34,7 @@ describe('accounts', () => {
   })
 
   describe('no accounts in database', () => {
-    test('generate default account on load', async () => {
+    test.only('generate default account on load', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor = testUtils.createWaitFor(rendered)
