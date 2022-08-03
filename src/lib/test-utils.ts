@@ -80,8 +80,8 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
 }
 
 export const resetStores = async () => {
-  resetCommentsStore()
-  resetSubplebbitsStore()
+  await resetCommentsStore()
+  await resetSubplebbitsStore()
 }
 
 export const resetDatabases = async () => {
@@ -94,6 +94,12 @@ export const resetDatabases = async () => {
   ])
 }
 
+export const resetDatabasesAndStores = async () => {
+  // always reset databases first because some stores use the databases to init
+  await resetDatabases()
+  await resetStores()
+}
+
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
@@ -102,6 +108,7 @@ const testUtils = {
   createWaitFor,
   resetStores,
   resetDatabases,
+  resetDatabasesAndStores,
 }
 
 export default testUtils

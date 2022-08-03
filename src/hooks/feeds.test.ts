@@ -4,16 +4,8 @@ import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs,
 import localForageLru from '../lib/localforage-lru'
 import localForage from 'localforage'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
+import Debug from 'debug'
 setPlebbitJs(PlebbitJsMock)
-
-const deleteDatabases = () =>
-  Promise.all([
-    localForage.createInstance({name: 'accountsMetadata'}).clear(),
-    localForage.createInstance({name: 'accounts'}).clear(),
-    localForageLru.createInstance({name: 'subplebbits'}).clear(),
-    localForageLru.createInstance({name: 'comments'}).clear(),
-    localForageLru.createInstance({name: 'subplebbitsPages'}).clear(),
-  ])
 
 describe('feeds', () => {
   beforeAll(() => {
@@ -57,7 +49,8 @@ describe('feeds', () => {
     })
 
     afterEach(async () => {
-      await deleteDatabases()
+      await testUtils.resetDatabases()
+      await testUtils.resetStores()
     })
 
     test('get feed with no arguments', async () => {

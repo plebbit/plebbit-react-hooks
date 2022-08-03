@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useComment, useComments, setPlebbitJs, PlebbitProvider} from '..'
+import commentsStore from '../stores/comments'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
@@ -12,14 +13,12 @@ describe('comments', () => {
     testUtils.restoreAll()
   })
   afterEach(async () => {
-    await testUtils.resetDatabases()
-    await testUtils.resetStores()
+    await testUtils.resetDatabasesAndStores()
   })
 
   describe('no comments in database', () => {
     afterEach(async () => {
-      await testUtils.resetDatabases()
-      await testUtils.resetStores()
+      await testUtils.resetDatabasesAndStores()
     })
 
     test('get comments one at a time', async () => {
@@ -68,8 +67,9 @@ describe('comments', () => {
       }
 
       // reset stores to force using the db
+      expect(commentsStore.getState().comments).not.toEqual({})
       await testUtils.resetStores()
-      await waitFor(() => rendered.result.current === undefined)
+      expect(commentsStore.getState().comments).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})

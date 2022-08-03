@@ -93,7 +93,8 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
 
 // reset store in between tests
 const originalState = useCommentsStore.getState()
-export const resetCommentsStore = () => {
+// async function because some stores have async init
+export const resetCommentsStore = async () => {
   // remove all listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store

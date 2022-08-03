@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider, useResolvedSubplebbitAddress, useAccount} from '..'
+import subplebbitStore from '../stores/subplebbits'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
@@ -13,14 +14,12 @@ describe('subplebbits', () => {
     testUtils.restoreAll()
   })
   afterEach(async () => {
-    await testUtils.resetStores()
-    await testUtils.resetDatabases()
+    await testUtils.resetDatabasesAndStores()
   })
 
   describe('no subplebbits in database', () => {
     afterEach(async () => {
-      await testUtils.resetStores()
-      await testUtils.resetDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     test('get subplebbits one at a time', async () => {
@@ -79,6 +78,11 @@ describe('subplebbits', () => {
           throw Error('no subplebbit update events should be emitted when subplebbit already in context')
         }
       }
+
+      // reset stores to force using the db
+      expect(subplebbitStore.getState().subplebbits).not.toEqual({})
+      await testUtils.resetStores()
+      expect(subplebbitStore.getState().subplebbits).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {

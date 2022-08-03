@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useContext, useMemo} from 'react'
 import {AccountsContext} from '../accounts-provider'
-import {SubplebbitsContext} from '../subplebbits-provider'
+// import {SubplebbitsContext} from '../subplebbits-provider'
+import useSubplebbitsStore from '../../stores/subplebbits'
 import validator from '../../lib/validator'
 import feedSorter from './feed-sorter'
 import assert from 'assert'
@@ -9,6 +10,7 @@ import utils from '../../lib/utils'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:feeds-provider')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
+import shallow from 'zustand/shallow'
 
 const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbitsPages', size: 500})
 
@@ -479,26 +481,34 @@ function useBufferedFeedsSubplebbitsPostCounts(feedsOptions: FeedsOptions, buffe
 }
 
 /**
- * Add subplebbits to SubplebbitsContext as they are needed, and return them as an object
+ * Add subplebbits to SubplebbitsStore as they are needed, and return them as an object
  */
 function useSubplebbits(feedsOptions: FeedsOptions) {
   const subplebbitAddressesAndAccounts = useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions)
-  const subplebbitsContext = useContext(SubplebbitsContext)
-  const subplebbits: Subplebbits = {}
-  for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
-    subplebbits[subplebbitAddress] = subplebbitsContext.subplebbits[subplebbitAddress]
-  }
+  // const subplebbitsContext = useContext(SubplebbitsContext)
+  const subplebbits: Subplebbits = useSubplebbitsStore((state: any) => {
+    const subplebbits: Subplebbits = {}
+    for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
+      subplebbits[subplebbitAddress] = state.subplebbits[subplebbitAddress]
+    }
+    return subplebbits
+  }, shallow)
+  const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
+
+  // const subplebbits: Subplebbits = {}
+  // for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
+  //   subplebbits[subplebbitAddress] = subplebbitsContext.subplebbits[subplebbitAddress]
+  // }
 
   useEffect(() => {
     for (const [subplebbitAddress, account] of subplebbitAddressesAndAccounts) {
-      // if subplebbit isn't already in context, add it
-      if (!subplebbitsContext.subplebbits[subplebbitAddress]) {
-        subplebbitsContext.subplebbitsActions.addSubplebbitToContext(subplebbitAddress, account)
-      }
+      addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) =>
+        console.error('FeedsProvider useSubplebbits addSubplebbitToStore error', {subplebbitAddress, error})
+      )
     }
   }, [subplebbitAddressesAndAccounts])
 
-  debug('FeedsProvider useSubplebbits', {subplebbitsContext: subplebbitsContext.subplebbits})
+  debug('FeedsProvider useSubplebbits', {subplebbitsStore: useSubplebbitsStore.getState()})
   return subplebbits
 }
 

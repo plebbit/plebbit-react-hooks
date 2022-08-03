@@ -36,19 +36,25 @@ export const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Func
     if (subplebbit || plebbitGetSubplebbitPending[subplebbitAddress + account.id]) {
       return
     }
+    plebbitGetSubplebbitPending[subplebbitAddress + account.id] = true
 
     // try to find subplebbit in database
     subplebbit = await getSubplebbitFromDatabase(subplebbitAddress, account)
 
     // subplebbit not in database, fetch from plebbit-js
-    if (!subplebbit) {
-      plebbitGetSubplebbitPending[subplebbitAddress + account.id] = true
-      subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress)
-      await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
+    try {
+      if (!subplebbit) {
+        subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress)
+        debug('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', {subplebbitAddress, subplebbit, account})
+        await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
+      }
+      debug('subplebbitsStore.addSubplebbitToStore', {subplebbitAddress, subplebbit, account})
+      setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: utils.clone(subplebbit)}}))
+    } catch (e) {
+      throw e
+    } finally {
+      plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
     }
-    debug('subplebbitsStore.addSubplebbitToStore', {subplebbitAddress, subplebbit, account})
-    setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: utils.clone(subplebbit)}}))
-    plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
 
     // the subplebbit has published new posts
     const listener = subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
@@ -135,6 +141,7 @@ const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Acc
 
 // reset store in between tests
 const originalState = useSubplebbitsStore.getState()
+// async function because some stores have async init
 export const resetSubplebbitsStore = () => {
   // remove all listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())

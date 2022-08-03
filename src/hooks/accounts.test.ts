@@ -970,7 +970,7 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current, activeAccountId)
     })
 
-    test(`cid gets added to account comment after fetched in useComment`, async () => {
+    test.skip(`cid gets added to account comment after fetched in useComment`, async () => {
       const rendered = renderHook<any, any>(
         (commentCid) => {
           const accountComments = useAccountComments()
@@ -1419,7 +1419,7 @@ describe('accounts', () => {
     })
   })
 
-  describe('useAccountSubplebbits', () => {
+  describe.skip('useAccountSubplebbits', () => {
     describe('with setup', () => {
       // roles tests are flaky
       beforeAll(() => {
@@ -1522,7 +1522,7 @@ describe('accounts', () => {
     })
   })
 
-  test('createSublebbit locally and edit it', async () => {
+  test.skip('createSublebbit locally and edit it', async () => {
     const rendered = renderHook<any, any>(
       (subplebbitAddress?: string) => {
         const account = useAccount()
