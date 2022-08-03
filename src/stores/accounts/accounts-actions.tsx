@@ -1,6 +1,6 @@
 // public accounts actions that are called by the user
 
-import accountsStore from './accounts-store'
+import accountsStore, {listeners} from './accounts-store'
 import subplebbitsStore from '../subplebbits'
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
@@ -323,6 +323,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         }
       }
     })
+    listeners.push(comment)
     comment.publish()
   }
 
@@ -388,6 +389,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
         publishAndRetryFailedChallengeVerification()
       }
     })
+    listeners.push(vote)
     vote.publish()
   }
 
@@ -439,6 +441,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
         publishAndRetryFailedChallengeVerification()
       }
     })
+    listeners.push(commentEdit)
     commentEdit.publish()
   }
 
@@ -496,6 +499,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
         publishAndRetryFailedChallengeVerification()
       }
     })
+    listeners.push(subplebbitEdit)
     subplebbitEdit.publish()
   }
 

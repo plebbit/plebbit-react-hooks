@@ -970,7 +970,7 @@ describe('accounts', () => {
       }
     }
 
-    test(`get all account comments`, async () => {
+    test.only(`get all account comments`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
@@ -978,7 +978,7 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
     })
 
-    test(`get account comment and add cid to it when receive challengeVerification`, async () => {
+    test.only(`get account comment and add cid to it when receive challengeVerification`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
@@ -1093,7 +1093,7 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
     })
 
-    test(`cid gets added to account comment after feed is fetched`, async () => {
+    test.skip(`cid gets added to account comment after feed is fetched`, async () => {
       const getPage = Pages.prototype.getPage
 
       const rendered = renderHook<any, any>(
@@ -1137,7 +1137,7 @@ describe('accounts', () => {
       Pages.prototype.getPage = getPage
     })
 
-    test(`account comments are stored to database`, async () => {
+    test.only(`account comments are stored to database`, async () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 

@@ -33,7 +33,8 @@ import {
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 
-const listeners: any = []
+// reset all event listeners in between tests
+export const listeners: any = []
 
 type AccountsState = {
   accounts: Accounts
@@ -114,7 +115,7 @@ setAccountsFromDatabaseInStore()
 const originalState = useAccountsStore.getState()
 // async function because some stores have async init
 export const resetAccountsStore = async () => {
-  // remove all listeners
+  // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
   useAccountsStore.destroy()

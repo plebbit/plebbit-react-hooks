@@ -9,7 +9,9 @@ import utils from '../../lib/utils'
 import createStore from 'zustand'
 
 const plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
-const listeners: any = []
+
+// reset all event listeners in between tests
+export const listeners: any = []
 
 type SubplebbitsState = {
   subplebbits: Subplebbits
@@ -56,7 +58,7 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
     }
 
     // the subplebbit has published new posts
-    const listener = subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
+    subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
       updatedSubplebbit = utils.clone(updatedSubplebbit)
       await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
       debug('subplebbitsStore subplebbit update', {subplebbitAddress, updatedSubplebbit, account})
@@ -66,7 +68,7 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
       // TODO ZUSTAND
       // accountsContext.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
     })
-    listeners.push(listener)
+    listeners.push(subplebbit)
     subplebbit.update()
   },
 
@@ -142,7 +144,7 @@ const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Acc
 const originalState = useSubplebbitsStore.getState()
 // async function because some stores have async init
 export const resetSubplebbitsStore = async () => {
-  // remove all listeners
+  // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
   useSubplebbitsStore.destroy()

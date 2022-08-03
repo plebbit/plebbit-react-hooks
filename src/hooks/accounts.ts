@@ -138,11 +138,12 @@ export function useAccountNotifications(accountName?: string) {
  */
 export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
-  const accountsContext = useContext(AccountsContext)
+  // const accountsContext = useContext(AccountsContext)
+  const accountsStore = useAccountsStore()
 
   let accountComments: AccountComments | undefined
-  if (accountId && accountsContext) {
-    accountComments = accountsContext.accountsComments[accountId]
+  if (accountId && accountsStore) {
+    accountComments = accountsStore.accountsComments[accountId]
   }
 
   const filteredAccountComments = useMemo(() => {
@@ -165,11 +166,12 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
  */
 export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountVotesOptions?.accountName)
-  const accountsContext = useContext(AccountsContext)
+  // const accountsContext = useContext(AccountsContext)
+  const accountsStore = useAccountsStore()
 
   let accountVotes: any
-  if (accountId && accountsContext) {
-    accountVotes = accountsContext.accountsVotes[accountId]
+  if (accountId && accountsStore) {
+    accountVotes = accountsStore.accountsVotes[accountId]
   }
 
   const filteredAccountVotesArray = useMemo(() => {

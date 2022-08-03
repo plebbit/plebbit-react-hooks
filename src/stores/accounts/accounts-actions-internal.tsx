@@ -1,6 +1,6 @@
 // internal accounts actions that are not called by the user
 
-import accountsStore from './accounts-store'
+import accountsStore, {listeners} from './accounts-store'
 import accountsDatabase from './accounts-database'
 import Debug from 'debug'
 import validator from '../../lib/validator'
@@ -8,7 +8,6 @@ import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
 import {Account, PublishCommentOptions, Comment, AccountsComments} from '../../types'
 import utils from '../../lib/utils'
-import memoizeOne from 'memoize-one'
 
 // TODO: we currently subscribe to updates for every single comment
 // in the user's account history. This probably does not scale, we
@@ -53,6 +52,16 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     //   return {...previousAccountsComments, [account.id]: updatedAccountComments}
     // })
     accountsStore.setState(({accountsComments}) => {
+      // account no longer exists
+      if (!accountsComments[account.id]) {
+        console.error(
+          `startUpdatingAccountCommentOnCommentUpdateEvents comment.on('update') invalid accountsStore.accountsComments['${account.id}'] '${
+            accountsComments[account.id]
+          }', account may have been deleted`
+        )
+        return {}
+      }
+
       const updatedAccountComments = [...accountsComments[account.id]]
       const previousComment = updatedAccountComments[accountCommentIndex]
       const updatedAccountComment = utils.clone({
@@ -98,6 +107,16 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
       //   return {...previousAccountsCommentsReplies, [account.id]: newAccountCommentsReplies}
       // })
       accountsStore.setState(({accountsCommentsReplies}) => {
+        // account no longer exists
+        if (!accountsCommentsReplies[account.id]) {
+          console.error(
+            `startUpdatingAccountCommentOnCommentUpdateEvents comment.on('update') invalid accountsStore.accountsCommentsReplies['${account.id}'] '${
+              accountsCommentsReplies[account.id]
+            }', account may have been deleted`
+          )
+          return {}
+        }
+
         // check which replies are read or not
         const updatedAccountCommentsReplies: {[replyCid: string]: Comment} = {}
         for (const replyPage of replyPageArray) {
@@ -123,6 +142,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
       })
     }
   })
+  listeners.push(comment)
   comment.update()
 }
 
@@ -164,39 +184,42 @@ export const addCidToAccountComment = async (comment: Comment) => {
   }
 }
 
+// cache the last result of this function
+let previousAccountsCommentsJson: string
+let previousAccountsCommentsWithoutCids: any = {}
 const getAccountsCommentsWithoutCids = () => {
   const {accounts, accountsComments} = accountsStore.getState()
 
-  // cache the function based on its JSON stringified arguments
-  const cachedFunction = memoizeOne(
-    (accountsComments) => {
-      const accountsCommentsWithoutCids: AccountsComments = {}
-      if (!accounts || !accountsComments) {
-        return accountsCommentsWithoutCids
-      }
-      for (const accountId in accountsComments) {
-        const accountComments = accountsComments[accountId]
-        const account = accounts[accountId]
-        for (const accountCommentIndex in accountComments) {
-          const accountComment = accountComments[accountCommentIndex]
-          if (!accountComment.cid) {
-            const authorAddress = account?.author?.address
-            if (!authorAddress) {
-              continue
-            }
-            if (!accountsCommentsWithoutCids[authorAddress]) {
-              accountsCommentsWithoutCids[authorAddress] = []
-            }
-            accountsCommentsWithoutCids[authorAddress].push(accountComment)
-          }
-        }
-      }
-      return accountsCommentsWithoutCids
-    },
-    (a, b) => JSON.stringify(a) === JSON.stringify(b)
-  )
+  // same accounts comments as last time, return cached value
+  const accountsCommentsJson = JSON.stringify(accountsComments)
+  if (accountsCommentsJson === previousAccountsCommentsJson) {
+    return previousAccountsCommentsWithoutCids
+  }
+  previousAccountsCommentsJson = accountsCommentsJson
 
-  return cachedFunction(accountsComments)
+  const accountsCommentsWithoutCids: AccountsComments = {}
+  if (!accounts || !accountsComments) {
+    return accountsCommentsWithoutCids
+  }
+  for (const accountId in accountsComments) {
+    const accountComments = accountsComments[accountId]
+    const account = accounts[accountId]
+    for (const accountCommentIndex in accountComments) {
+      const accountComment = accountComments[accountCommentIndex]
+      if (!accountComment.cid) {
+        const authorAddress = account?.author?.address
+        if (!authorAddress) {
+          continue
+        }
+        if (!accountsCommentsWithoutCids[authorAddress]) {
+          accountsCommentsWithoutCids[authorAddress] = []
+        }
+        accountsCommentsWithoutCids[authorAddress].push(accountComment)
+      }
+    }
+  }
+  previousAccountsCommentsWithoutCids = accountsCommentsWithoutCids
+  return accountsCommentsWithoutCids
 }
 
 export default {
