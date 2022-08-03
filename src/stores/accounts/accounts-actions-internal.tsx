@@ -1,4 +1,4 @@
-// internal account actions that are not called by the user
+// internal accounts actions that are not called by the user
 
 import accountsStore from './accounts-store'
 import accountsDatabase from './accounts-database'

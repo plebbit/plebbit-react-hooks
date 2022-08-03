@@ -56,7 +56,7 @@ describe('accounts', () => {
       expect(account.plebbitOptions.pubsubHttpClientOptions).toBe('https://pubsubprovider.xyz/api/v0')
     })
 
-    test(`default plebbit options are not saved to database`, async () => {
+    test.skip(`default plebbit options are not saved to database`, async () => {
       const plebbitOptions = {ipfsHttpClientOptions: 'http://one:5001/api/v0'}
       // @ts-ignore
       window.DefaultPlebbitOptions = plebbitOptions
@@ -645,7 +645,7 @@ describe('accounts', () => {
     test.todo('deleting account deletes account votes')
   })
 
-  describe('no comments or votes in database', () => {
+  describe.only('no comments or votes in database', () => {
     let rendered: any, waitFor: any
     const render = async () => {
       // on first render, the account is undefined because it's not yet loaded from database
@@ -666,7 +666,7 @@ describe('accounts', () => {
       expect(typeof rendered.result.current.publishVote).toBe('function')
     }
 
-    describe.only(`create comment`, () => {
+    describe(`create comment`, () => {
       beforeAll(async () => {
         await render()
       })

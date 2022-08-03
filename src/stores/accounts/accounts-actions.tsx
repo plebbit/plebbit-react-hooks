@@ -1,13 +1,14 @@
-// public account actions that are called by the user
+// public accounts actions that are called by the user
 
 import accountsStore from './accounts-store'
+import subplebbitsStore from '../subplebbits'
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import Debug from 'debug'
 import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
-import {Account, PublishCommentOptions, Challenge, ChallengeVerification} from '../../types'
+import {Account, PublishCommentOptions, Challenge, ChallengeVerification, PublishVoteOptions, PublishCommentEditOptions, PublishSubplebbitEditOptions} from '../../types'
 import accountsActionsInternal from './accounts-actions-internal'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
@@ -354,4 +355,150 @@ export const deleteComment = async (commentCidOrAccountCommentIndex: string | nu
   throw Error('TODO: not implemented')
 }
 
-export const publishVote = async () => {}
+export const publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
+
+  let createVoteOptions = {
+    timestamp: Math.round(Date.now() / 1000),
+    author: account.author,
+    signer: account.signer,
+    ...publishVoteOptions,
+  }
+  delete createVoteOptions.onChallenge
+  delete createVoteOptions.onChallengeVerification
+
+  let vote = await account.plebbit.createVote(createVoteOptions)
+  const publishAndRetryFailedChallengeVerification = () => {
+    vote.once('challenge', async (challenge: Challenge) => {
+      publishVoteOptions.onChallenge(challenge, vote)
+    })
+    vote.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+      publishVoteOptions.onChallengeVerification(challengeVerification, vote)
+      if (!challengeVerification.challengeSuccess) {
+        // publish again automatically on fail
+        createVoteOptions = {...createVoteOptions, timestamp: Math.round(Date.now() / 1000)}
+        vote = await account.plebbit.createVote(createVoteOptions)
+        publishAndRetryFailedChallengeVerification()
+      }
+    })
+    vote.publish()
+  }
+
+  publishAndRetryFailedChallengeVerification()
+  await accountsDatabase.addAccountVote(account.id, createVoteOptions)
+  debug('accountsActions.publishVote', {createVoteOptions})
+  // setAccountsVotes({
+  //   ...accountsVotes,
+  //   [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions},
+  // })
+  accountsStore.setState(({accountsVotes}) => ({
+    accountsVotes: {
+      ...accountsVotes,
+      [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions},
+    },
+  }))
+}
+
+export const publishCommentEdit = async (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  validator.validateAccountsActionsPublishCommentEditArguments({publishCommentEditOptions, accountName, account})
+
+  let createCommentEditOptions = {
+    timestamp: Math.round(Date.now() / 1000),
+    author: account.author,
+    signer: account.signer,
+    ...publishCommentEditOptions,
+  }
+  delete createCommentEditOptions.onChallenge
+  delete createCommentEditOptions.onChallengeVerification
+
+  let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
+  const publishAndRetryFailedChallengeVerification = () => {
+    commentEdit.once('challenge', async (challenge: Challenge) => {
+      publishCommentEditOptions.onChallenge(challenge, commentEdit)
+    })
+    commentEdit.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+      publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit)
+      if (!challengeVerification.challengeSuccess) {
+        // publish again automatically on fail
+        createCommentEditOptions = {...createCommentEditOptions, timestamp: Math.round(Date.now() / 1000)}
+        commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
+        publishAndRetryFailedChallengeVerification()
+      }
+    })
+    commentEdit.publish()
+  }
+
+  publishAndRetryFailedChallengeVerification()
+  debug('accountsActions.publishCommentEdit', {createCommentEditOptions})
+
+  // TODO: show pending edits somewhere
+}
+
+export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  validator.validateAccountsActionsPublishSubplebbitEditArguments({subplebbitAddress, publishSubplebbitEditOptions, accountName, account})
+
+  // account is the owner of the subplebbit and can edit it locally, no need to publish
+  const localSubplebbitAddresses = await account.plebbit.listSubplebbits()
+  if (localSubplebbitAddresses.includes(subplebbitAddress)) {
+    await subplebbitsStore.getState().editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account)
+    // create fake success challenge verification for consistent behavior with remote subplebbit edit
+    publishSubplebbitEditOptions.onChallengeVerification({challengeSuccess: true})
+    return
+  }
+
+  assert(
+    !publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress,
+    `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`
+  )
+  let createSubplebbitEditOptions = {
+    timestamp: Math.round(Date.now() / 1000),
+    author: account.author,
+    signer: account.signer,
+    ...publishSubplebbitEditOptions,
+    // not possible to edit subplebbit.address over pubsub, only locally
+    address: subplebbitAddress,
+  }
+  delete createSubplebbitEditOptions.onChallenge
+  delete createSubplebbitEditOptions.onChallengeVerification
+
+  let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
+  const publishAndRetryFailedChallengeVerification = () => {
+    subplebbitEdit.once('challenge', async (challenge: Challenge) => {
+      publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit)
+    })
+    subplebbitEdit.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+      publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit)
+      if (!challengeVerification.challengeSuccess) {
+        // publish again automatically on fail
+        createSubplebbitEditOptions = {...createSubplebbitEditOptions, timestamp: Math.round(Date.now() / 1000)}
+        subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
+        publishAndRetryFailedChallengeVerification()
+      }
+    })
+    subplebbitEdit.publish()
+  }
+
+  publishAndRetryFailedChallengeVerification()
+  debug('accountsActions.publishSubplebbitEdit', {createSubplebbitEditOptions})
+}
