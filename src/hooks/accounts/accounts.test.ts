@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react-hooks'
-import testUtils from '../lib/test-utils'
+import testUtils from '../../lib/test-utils'
 import {
   PlebbitProvider,
   useAccount,
@@ -15,10 +15,10 @@ import {
   useFeed,
   useSubplebbit,
   setPlebbitJs,
-} from '..'
+} from '../..'
 import localForage from 'localforage'
-import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages} from '../lib/plebbit-js/plebbit-js-mock'
-import accountsStore from '../stores/accounts'
+import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages} from '../../lib/plebbit-js/plebbit-js-mock'
+import accountsStore from '../../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
 import Debug from 'debug'
 // Debug.enable('plebbit-react-hooks:hooks:accounts,plebbit-react-hooks:stores:accounts')

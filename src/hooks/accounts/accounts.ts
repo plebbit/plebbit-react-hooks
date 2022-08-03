@@ -1,12 +1,13 @@
 import {useEffect, useMemo, useState, useContext} from 'react'
-import {AccountsContext} from '../providers/accounts-provider'
-import useAccountsStore from '../stores/accounts'
-import PlebbitJs from '../lib/plebbit-js'
+import {AccountsContext} from '../../providers/accounts-provider'
+import useAccountsStore from '../../stores/accounts'
+import PlebbitJs from '../../lib/plebbit-js'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
-import {useListSubplebbits, useSubplebbits} from './subplebbits'
-import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../types'
+import {useListSubplebbits, useSubplebbits} from '../subplebbits'
+import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../../types'
+import {filterPublications, useAccountsWithCalculatedProperties} from './utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -27,10 +28,11 @@ function useAccountId(accountName?: string) {
  */
 export function useAccount(accountName?: string) {
   const accountsStore = useAccountsStore()
+  const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
   // const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
-  const account = accountId && accountsStore?.accounts[accountId]
-  debug('useAccount', {accountId, account, accountName: account?.name, accountsStore})
+  const account = accountId && accounts?.[accountId]
+  debug('useAccount', {accountId, account, accountName: account?.name})
   return account
 }
 
@@ -39,16 +41,17 @@ export function useAccount(accountName?: string) {
  */
 export function useAccounts() {
   const accountsStore = useAccountsStore()
+  const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
   // const accountsContext = useContext(AccountsContext)
-  const accounts: Account[] = []
-  if (accountsStore?.accountIds?.length && accountsStore?.accounts) {
+  const accountsArray: Account[] = []
+  if (accountsStore?.accountIds?.length && accounts) {
     for (const accountId of accountsStore.accountIds) {
-      accounts.push(accountsStore.accounts[accountId])
+      accountsArray.push(accounts[accountId])
     }
-    return accounts
+    return accountsArray
   }
   debug('useAccounts', {accounts, accountIds: accountsStore?.accountIds})
-  return accounts
+  return accountsArray
 }
 
 /**
@@ -202,46 +205,4 @@ export function useAccountVote(commentCid?: string, accountName?: string) {
   }
   const accountVotes = useAccountVotes(useAccountVotesOptions)
   return accountVotes && accountVotes[0]
-}
-
-/**
- * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
- * Check UseAccountCommentsFilter type in types.tsx for more information, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
- */
-const filterPublications = (publications: any, filter: UseAccountCommentsFilter) => {
-  for (const postCid of filter.postCids || []) {
-    assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`)
-  }
-  for (const subplebbitAddress of filter.subplebbitAddresses || []) {
-    assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountCommentsFilter subplebbitAddress '${subplebbitAddress}' not a string`)
-  }
-  for (const commentCid of filter.commentCids || []) {
-    assert(commentCid && typeof commentCid === 'string', `accountCommentsFilter commentCid '${commentCid}' not a string`)
-  }
-  for (const parentCid of filter.parentCids || []) {
-    assert(parentCid && typeof parentCid === 'string', `accountCommentsFilter parentCid '${parentCid}' not a string`)
-  }
-  const filteredPublications = []
-  for (const publication of publications) {
-    let isFilteredOut = false
-    if (filter.subplebbitAddresses?.length && !filter.subplebbitAddresses.includes(publication.subplebbitAddress)) {
-      isFilteredOut = true
-    }
-    if (filter.postCids?.length && !filter.postCids.includes(publication.postCid)) {
-      isFilteredOut = true
-    }
-    if (filter.commentCids?.length && !filter.commentCids.includes(publication.commentCid)) {
-      isFilteredOut = true
-    }
-    if (filter.parentCids?.length && !filter.parentCids.includes(publication.parentCid)) {
-      isFilteredOut = true
-    }
-    if (typeof filter.hasParentCid === 'boolean' && filter.hasParentCid !== Boolean(publication.parentCid)) {
-      isFilteredOut = true
-    }
-    if (!isFilteredOut) {
-      filteredPublications.push(publication)
-    }
-  }
-  return filteredPublications
 }
