@@ -11,7 +11,7 @@ describe('feeds', () => {
   beforeAll(() => {
     // some feeds tests are flaky
     // jest.retryTimes(5)
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     // jest.retryTimes(0)
@@ -49,8 +49,7 @@ describe('feeds', () => {
     })
 
     afterEach(async () => {
-      await testUtils.resetDatabases()
-      await testUtils.resetStores()
+      await testUtils.resetDatabasesAndStores()
     })
 
     test('get feed with no arguments', async () => {
@@ -232,9 +231,15 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(175)
       expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 1 next page cid 1 comment cid 175')
 
+      console.log('second test')
+
       // scroll 2 more times to get to buffered feeds length 50 and trigger a new buffer refill
       await scrollOnePage()
       await scrollOnePage()
+
+      // TODO zustand: figure out why it is needed to call scroll a third time after migrating to zustand
+      await scrollOnePage()
+
       try {
         await rendered.waitFor(() => getPageCalledTimes === 3)
       } catch (e) {

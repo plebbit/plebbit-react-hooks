@@ -508,7 +508,7 @@ function useSubplebbits(feedsOptions: FeedsOptions) {
     }
   }, [subplebbitAddressesAndAccounts])
 
-  debug('FeedsProvider useSubplebbits', {subplebbitsStore: useSubplebbitsStore.getState()})
+  debug('FeedsProvider useSubplebbits', {subplebbitsStore: useSubplebbitsStore.getState().subplebbits})
   return subplebbits
 }
 
