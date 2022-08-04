@@ -1,6 +1,7 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useFeed, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+// mock right after importing or sometimes fails to mock
 setPlebbitJs(PlebbitJsMock)
 const testUtils = require('../../dist/lib/test-utils').default
 
@@ -11,6 +12,7 @@ describe('feeds (plebbit-js mock)', () => {
     console.log('before feeds tests')
     setPlebbitJs(PlebbitJsMock)
     testUtils.silenceReactWarnings()
+    // reset before or init accounts sometimes fails
     await testUtils.resetDatabasesAndStores()
   })
   after(async () => {

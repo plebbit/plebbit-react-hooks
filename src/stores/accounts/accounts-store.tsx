@@ -96,13 +96,25 @@ const initializeAccountsStore = async () => {
 }
 
 // @ts-ignore
-window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING = true
-// @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
+// @ts-ignore
+window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZED_ONCE = true
 ;(async () => {
+  // don't initialize on load multiple times when loading the file twice during karma tests
+  // ts-ignore
+  if (window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZED_ONCE) {
+    return
+  }
+
+  // @ts-ignore
+  window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING = true
+
+  console.log('start accounts store initializing')
   try {
     await initializeAccountsStore()
   } catch (error) {
+    // @ts-ignore
+    window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZED_ONCE = false
     // initializing can fail in tests when store is being reset at the same time as databases are being deleted
     console.error('accountsStore.initializeAccountsStore error', {accountsStore: useAccountsStore.getState(), error})
   } finally {
@@ -121,6 +133,8 @@ export const resetAccountsStore = async () => {
     await new Promise((r) => setTimeout(r, 100))
   }
 
+  console.log('start accounts store reset')
+
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
@@ -129,7 +143,7 @@ export const resetAccountsStore = async () => {
   useAccountsStore.setState(originalState)
   // init the store
   await initializeAccountsStore()
-  debug('reset store')
+  console.log('accounts store reset finished')
 }
 
 // reset database and store in between tests

@@ -31,6 +31,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     before(async () => {
       console.log(`before subplebbits tests (${plebbitOptionsType})`)
       testUtils.silenceReactWarnings()
+      // reset before or init accounts sometimes fails
       await testUtils.resetDatabasesAndStores()
     })
     after(async () => {

@@ -1,8 +1,9 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
-setPlebbitJs(PlebbitJsMock)
 const testUtils = require('../../dist/lib/test-utils').default
+const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+// mock right after importing or sometimes fails to mock
+setPlebbitJs(PlebbitJsMock)
 
 const timeout = 2000
 
@@ -11,6 +12,7 @@ describe('accounts (plebbit-js mock)', () => {
     console.log('before accounts tests')
     setPlebbitJs(PlebbitJsMock)
     testUtils.silenceReactWarnings()
+    // reset before or init accounts sometimes fails
     await testUtils.resetDatabasesAndStores()
   })
   after(async () => {
