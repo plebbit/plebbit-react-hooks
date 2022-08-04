@@ -67,7 +67,6 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
 
       // if a subplebbit has a role with an account's address add it to the account.subplebbits
       accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
-      // accountsContext.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
     })
     listeners.push(subplebbit)
     subplebbit.update()

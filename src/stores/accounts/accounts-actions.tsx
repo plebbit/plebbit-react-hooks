@@ -311,12 +311,6 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         if (challengeVerification?.publication?.cid) {
           const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
           await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
-          // setAccountsComments((previousAccountsComments) => {
-          //   const updatedAccountComments = [...previousAccountsComments[account.id]]
-          //   const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
-          //   updatedAccountComments[accountCommentIndex] = updatedAccountComment
-          //   return {...previousAccountsComments, [account.id]: updatedAccountComments}
-          // })
           accountsStore.setState(({accountsComments}) => {
             const updatedAccountComments = [...accountsComments[account.id]]
             const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
@@ -339,15 +333,6 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   publishAndRetryFailedChallengeVerification()
   await accountsDatabase.addAccountComment(account.id, createCommentOptions)
   debug('accountsActions.publishComment', {createCommentOptions})
-  // setAccountsComments((previousAccountsComments) => {
-  //   // save account comment index to update the comment later
-  //   accountCommentIndex = previousAccountsComments[account.id].length
-  //   const createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
-  //   return {
-  //     ...previousAccountsComments,
-  //     [account.id]: [...previousAccountsComments[account.id], createdAccountComment],
-  //   }
-  // })
   accountsStore.setState(({accountsComments}) => {
     // save account comment index to update the comment later
     accountCommentIndex = accountsComments[account.id].length
@@ -405,10 +390,6 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   publishAndRetryFailedChallengeVerification()
   await accountsDatabase.addAccountVote(account.id, createVoteOptions)
   debug('accountsActions.publishVote', {createVoteOptions})
-  // setAccountsVotes({
-  //   ...accountsVotes,
-  //   [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions},
-  // })
   accountsStore.setState(({accountsVotes}) => ({
     accountsVotes: {
       ...accountsVotes,

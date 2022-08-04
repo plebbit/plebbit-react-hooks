@@ -40,17 +40,6 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
     updatedComment = utils.merge(commentArgument, comment, updatedComment)
     await accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex)
-    // setAccountsComments((previousAccountsComments) => {
-    //   const updatedAccountComments = [...previousAccountsComments[account.id]]
-    //   const previousComment = updatedAccountComments[accountCommentIndex]
-    //   const updatedAccountComment = utils.clone({
-    //     ...updatedComment,
-    //     index: accountCommentIndex,
-    //     accountId: account.id,
-    //   })
-    //   updatedAccountComments[accountCommentIndex] = updatedAccountComment
-    //   return {...previousAccountsComments, [account.id]: updatedAccountComments}
-    // })
     accountsStore.setState(({accountsComments}) => {
       // account no longer exists
       if (!accountsComments[account.id]) {
@@ -82,30 +71,6 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     ]
     const hasReplies = replyPageArray.map((replyPage) => replyPage?.comments?.length || 0).reduce((prev, curr) => prev + curr) > 0
     if (hasReplies) {
-      // setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
-      //   // check which replies are read or not
-      //   const updatedAccountCommentsReplies: {[replyCid: string]: Comment} = {}
-      //   for (const replyPage of replyPageArray) {
-      //     for (const reply of replyPage?.comments || []) {
-      //       const markedAsRead = previousAccountsCommentsReplies[account.id]?.[reply.cid]?.markedAsRead === true ? true : false
-      //       updatedAccountCommentsReplies[reply.cid] = {...reply, markedAsRead}
-      //     }
-      //   }
-
-      //   // add all to database
-      //   const promises = []
-      //   for (const replyCid in updatedAccountCommentsReplies) {
-      //     promises.push(accountsDatabase.addAccountCommentReply(account.id, updatedAccountCommentsReplies[replyCid]))
-      //   }
-      //   Promise.all(promises)
-
-      //   // set new react context
-      //   const newAccountCommentsReplies = {
-      //     ...previousAccountsCommentsReplies[account.id],
-      //     ...updatedAccountCommentsReplies,
-      //   }
-      //   return {...previousAccountsCommentsReplies, [account.id]: newAccountCommentsReplies}
-      // })
       accountsStore.setState(({accountsCommentsReplies}) => {
         // account no longer exists
         if (!accountsCommentsReplies[account.id]) {
@@ -160,11 +125,6 @@ export const addCidToAccountComment = async (comment: Comment) => {
     if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
       const commentWithCid = utils.merge(accountComment, comment)
       await accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index)
-      // setAccountsComments((previousAccountsComments) => {
-      //   const updatedAccountComments = [...previousAccountsComments[accountComment.accountId]]
-      //   updatedAccountComments[accountComment.index] = commentWithCid
-      //   return {...previousAccountsComments, [accountComment.accountId]: updatedAccountComments}
-      // })
       accountsStore.setState(({accountsComments}) => {
         const updatedAccountComments = [...accountsComments[accountComment.accountId]]
         updatedAccountComments[accountComment.index] = commentWithCid
@@ -244,10 +204,6 @@ export const markAccountNotificationsAsRead = async (account: Account) => {
 
   // add all to react context
   debug('AccountContext.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
-  // setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
-  //   const updatedAccountCommentsReplies = {...previousAccountsCommentsReplies[account.id], ...repliesToMarkAsRead}
-  //   return {...previousAccountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}
-  // })
   accountsStore.setState(({accountsCommentsReplies}) => {
     const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
     return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}
@@ -286,32 +242,6 @@ export const addSubplebbitRoleToAccountsSubplebbits = async (subplebbit: Subpleb
   if (!hasChange) {
     return
   }
-
-  // setAccounts((previousAccounts) => {
-  //   const {toAdd, toRemove, hasChange} = getChange(previousAccounts, subplebbit)
-  //   const nextAccounts = {...previousAccounts}
-
-  //   // edit databases and build next accounts
-  //   for (const accountId of toAdd) {
-  //     const account = {...nextAccounts[accountId]}
-  //     account.subplebbits = {
-  //       ...account.subplebbits,
-  //       [subplebbit.address]: {role: subplebbit.roles[account.author.address]},
-  //     }
-  //     nextAccounts[accountId] = account
-  //     accountsDatabase.addAccount(account)
-  //   }
-  //   for (const accountId of toRemove) {
-  //     const account = {...nextAccounts[accountId]}
-  //     account.subplebbits = {...account.subplebbits}
-  //     delete account.subplebbits[subplebbit.address]
-  //     nextAccounts[accountId] = account
-  //     accountsDatabase.addAccount(account)
-  //   }
-
-  //   debug('accountsActions.addSubplebbitRoleToAccountsSubplebbits', {subplebbit, toAdd, toRemove})
-  //   return nextAccounts
-  // })
 
   accountsStore.setState(({accounts}) => {
     const {toAdd, toRemove, hasChange} = getChange(accounts, subplebbit)

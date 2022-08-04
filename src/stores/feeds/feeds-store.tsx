@@ -37,13 +37,6 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     // to add a buffered feed, add a feed with pageNumber 0
     const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
     debug('feedsActions.addFeedToStore', feedOptions)
-    // setFeedsOptions((previousFeedsOptions) => {
-    //   // make sure to never overwrite a feed already added
-    //   if (previousFeedsOptions[feedName]) {
-    //     return previousFeedsOptions
-    //   }
-    //   return {...previousFeedsOptions, [feedName]: feedOptions}
-    // })
     setState(({feedsOptions}: any) => {
       // make sure to never overwrite a feed already added
       if (feedsOptions[feedName]) {
@@ -62,17 +55,6 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
       `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
     )
-    // setFeedsOptions((previousFeedsOptions) => {
-    //   // don't increment page number before the current page has loaded
-    //   if (previousFeedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
-    //     return previousFeedsOptions
-    //   }
-    //   const feedOptions = {
-    //     ...previousFeedsOptions[feedName],
-    //     pageNumber: previousFeedsOptions[feedName].pageNumber + 1,
-    //   }
-    //   return {...previousFeedsOptions, [feedName]: feedOptions}
-    // })
     setState(({feedsOptions, loadedFeeds}: any) => {
       // don't increment page number before the current page has loaded
       if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {

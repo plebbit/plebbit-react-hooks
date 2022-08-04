@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState, useContext} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
 import PlebbitJs from '../../lib/plebbit-js'
 import Debug from 'debug'
@@ -13,7 +13,6 @@ import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNoti
  * the active account id.
  */
 function useAccountId(accountName?: string) {
-  // const accountsContext = useContext(AccountsContext)
   const accountsStore = useAccountsStore()
   const accountId = accountName && accountsStore?.accountNamesToAccountIds[accountName]
   const activeAccountId = accountsStore?.activeAccountId
@@ -28,7 +27,6 @@ function useAccountId(accountName?: string) {
 export function useAccount(accountName?: string) {
   const accountsStore = useAccountsStore()
   const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
-  // const accountsContext = useContext(AccountsContext)
   const accountId = useAccountId(accountName)
   const account = accountId && accounts?.[accountId]
   debug('useAccount', {accountId, account, accountName: account?.name})
@@ -41,7 +39,6 @@ export function useAccount(accountName?: string) {
 export function useAccounts() {
   const accountsStore = useAccountsStore()
   const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
-  // const accountsContext = useContext(AccountsContext)
   const accountsArray: Account[] = []
   if (accountsStore?.accountIds?.length && accounts) {
     for (const accountId of accountsStore.accountIds) {
@@ -58,12 +55,7 @@ export function useAccounts() {
  */
 export function useAccountsActions() {
   const accountsStore = useAccountsStore()
-  // const accountsContext = useContext(AccountsContext)
   return accountsStore.accountsActions
-  // return empty object for deconstructing without errors if context isn't ready
-  // e.g. const {createAccount} = useAccountsActions()
-  // TODO: possibly return functions that throw 'not ready', or promises that wait until ready
-  // return {}
 }
 
 /**
@@ -117,7 +109,6 @@ export function useAccountSubplebbits(accountName?: string) {
  * the active account's notifications.
  */
 export function useAccountNotifications(accountName?: string) {
-  // const accountsContext = useContext(AccountsContext)
   const accountsStore = useAccountsStore()
   const accountsNotifications = useAccountsNotifications(accountsStore.accounts, accountsStore.accountsCommentsReplies)
 
@@ -141,7 +132,6 @@ export function useAccountNotifications(accountName?: string) {
  */
 export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
-  // const accountsContext = useContext(AccountsContext)
   const accountsStore = useAccountsStore()
 
   let accountComments: AccountComments | undefined
@@ -169,7 +159,6 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
  */
 export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountVotesOptions?.accountName)
-  // const accountsContext = useContext(AccountsContext)
   const accountsStore = useAccountsStore()
 
   let accountVotes: any

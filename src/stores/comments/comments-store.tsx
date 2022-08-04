@@ -63,9 +63,6 @@ const useCommentsStore = createStore<CommentsState>((setState: Function, getStat
     // so when a new comment is fetched, check to see if it's your own
     // comment, and if yes, add the CID to your account comments database
     await accountsStore.getState().accountsActionsInternal.addCidToAccountComment(comment)
-    // if (accountsContext?.addCidToAccountComment) {
-    //   await accountsContext.addCidToAccountComment(comment)
-    // }
   },
 }))
 

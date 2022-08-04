@@ -95,13 +95,6 @@ const setAccountsFromDatabaseInStore = async () => {
     accountsDatabase.getAccountsVotes(accountIds),
     accountsDatabase.getAccountsCommentsReplies(accountIds),
   ])
-  // setAccounts(accounts)
-  // setAccountIds(accountIds)
-  // setActiveAccountId(activeAccountId)
-  // setAccountNamesToAccountIds(accountNamesToAccountIds)
-  // setAccountsComments(accountsComments)
-  // setAccountsVotes(accountsVotes)
-  // setAccountsCommentsReplies(accountsCommentsReplies)
   useAccountsStore.setState((state) => ({accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies}))
 
   // start looking for updates for all accounts comments in database

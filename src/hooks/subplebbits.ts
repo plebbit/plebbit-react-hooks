@@ -17,10 +17,8 @@ import shallow from 'zustand/shallow'
  */
 export function useSubplebbit(subplebbitAddress?: string, accountName?: string) {
   const account = useAccount(accountName)
-  // const subplebbitsContext = useContext(SubplebbitsContext)
   const subplebbit = useSubplebbitsStore((state: any) => state.subplebbits[subplebbitAddress || ''])
   const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
-  // const subplebbit = subplebbitAddress && subplebbitsContext.subplebbits[subplebbitAddress]
 
   useEffect(() => {
     if (!subplebbitAddress || !account) {
@@ -44,11 +42,6 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
  */
 export function useSubplebbits(subplebbitAddresses: string[] = [], accountName?: string) {
   const account = useAccount(accountName)
-  // const subplebbitsContext = useContext(SubplebbitsContext)
-  // const subplebbits: Subplebbit[] = []
-  // for (const subplebbitAddress of subplebbitAddresses || []) {
-  //   subplebbits.push(subplebbitsContext.subplebbits[subplebbitAddress])
-  // }
   const subplebbits: Subplebbit[] = useSubplebbitsStore(
     (state: any) => subplebbitAddresses.map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']),
     shallow

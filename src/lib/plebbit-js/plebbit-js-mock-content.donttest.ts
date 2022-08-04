@@ -15,25 +15,16 @@ import PlebbitProvider from '../../providers/plebbit-provider'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 
-const deleteDatabases = () =>
-  Promise.all([
-    localForage.createInstance({name: 'accountsMetadata'}).clear(),
-    localForage.createInstance({name: 'accounts'}).clear(),
-    localForageLru.createInstance({name: 'subplebbits'}).clear(),
-    localForageLru.createInstance({name: 'comments'}).clear(),
-    localForageLru.createInstance({name: 'subplebbitsPages'}).clear(),
-  ])
-
 describe('mock content', () => {
   beforeAll(() => {
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
   })
 
   afterEach(async () => {
-    await deleteDatabases()
+    await testUtils.resetDatabasesAndStores()
   })
 
   test('use comments', async () => {

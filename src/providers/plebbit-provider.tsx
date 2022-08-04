@@ -7,6 +7,6 @@ export default function PlebbitProvider(props: Props): JSX.Element | null {
     return null
   }
 
-  // TODO: move feeds provider to be a zustand store only
+  // TODO: remove feeds provider to be a zustand store only
   return <FeedsProvider>{props.children}</FeedsProvider>
 }
