@@ -98,7 +98,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
         }
         Promise.all(promises)
 
-        // set new react context
+        // set new store
         const newAccountCommentsReplies = {
           ...accountsCommentsReplies[account.id],
           ...updatedAccountCommentsReplies,
@@ -115,7 +115,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
 // we fetch a new comment, check if its our own, and attempt to add the CID
 export const addCidToAccountComment = async (comment: Comment) => {
   const {accounts} = accountsStore.getState()
-  assert(accounts, `can't use AccountContext.accountActions before initialized`)
+  assert(accounts, `can't use accountsStore.accountActions before initialized`)
   const accountCommentsWithoutCids = getAccountsCommentsWithoutCids()[comment?.author?.address]
   if (!accountCommentsWithoutCids) {
     return
@@ -202,8 +202,8 @@ export const markAccountNotificationsAsRead = async (account: Account) => {
   }
   await Promise.all(promises)
 
-  // add all to react context
-  debug('AccountContext.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
+  // add all to react store
+  debug('accountsActions.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
   accountsStore.setState(({accountsCommentsReplies}) => {
     const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
     return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}

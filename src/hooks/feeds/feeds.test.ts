@@ -687,7 +687,7 @@ describe('feeds', () => {
         // reset stores to force using the db
         await testUtils.resetStores()
 
-        // render with a fresh empty context to test database persistance
+        // render with a fresh empty store to test database persistance
         const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1'], 'new'), {
           wrapper: PlebbitProvider,
         })

@@ -499,7 +499,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
 
 export const createSubplebbit = async (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
-  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountsStore before initialized`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`)
   let account = accounts[activeAccountId]
   if (accountName) {
     const accountId = accountNamesToAccountIds[accountName]

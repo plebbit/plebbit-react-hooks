@@ -65,7 +65,7 @@ describe('subplebbits', () => {
       let throwOnSubplebbitUpdateEvent = false
       Subplebbit.prototype.simulateUpdateEvent = () => {
         if (throwOnSubplebbitUpdateEvent) {
-          throw Error('no subplebbit update events should be emitted when subplebbit already in context')
+          throw Error('no subplebbit update events should be emitted when subplebbit already in store')
         }
       }
 
@@ -88,14 +88,14 @@ describe('subplebbits', () => {
       expect(rendered2.result.current.description).toBe('subplebbit address 1 description updated')
 
       rendered2.rerender('subplebbit address 2')
-      // wait for addSubplebbitToContext action
+      // wait for addSubplebbitToStore action
       await waitFor(() => rendered2.result.current.address === 'subplebbit address 2')
 
       expect(rendered2.result.current.address).toBe('subplebbit address 2')
       expect(rendered2.result.current.title).toBe('subplebbit address 2 title')
       expect(rendered2.result.current.description).toBe('subplebbit address 2 description updated')
 
-      // get subplebbit 1 again from context, should not trigger any subplebbit updates
+      // get subplebbit 1 again from store, should not trigger any subplebbit updates
       throwOnSubplebbitUpdateEvent = true
       rendered2.rerender('subplebbit address 1')
       expect(rendered2.result.current.address).toBe('subplebbit address 1')

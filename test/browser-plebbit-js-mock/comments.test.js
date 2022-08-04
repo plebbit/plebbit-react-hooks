@@ -32,7 +32,7 @@ describe('comments (plebbit-js mock)', () => {
       expect(rendered.result.current?.upvoteCount).to.equal(3)
 
       rendered.rerender('comment cid 2')
-      // wait for addCommentToContext action
+      // wait for addCommentToStore action
       await waitFor(() => typeof rendered.result.current?.cid === 'string')
       expect(rendered.result.current?.cid).to.equal('comment cid 2')
     })

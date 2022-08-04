@@ -27,7 +27,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
       return
     }
     if (!feed) {
-      // if feed isn't already in context, add it
+      // if feed isn't already in store, add it
       feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account)
     }
   }, [feedName, uniqueSubplebbitAddresses, account])

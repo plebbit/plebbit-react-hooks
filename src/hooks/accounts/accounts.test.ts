@@ -152,7 +152,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render second context with empty state to check if accounts saved to database
+      // render second store with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
@@ -230,7 +230,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render second context with empty state to check if accounts saved to database
+      // render second store with empty state to check if accounts saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
@@ -272,7 +272,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render second context with empty state to check if account change saved to database
+      // render second store with empty state to check if account change saved to database
       const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
@@ -298,7 +298,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render second context with empty state to check if account change saved to database
+      // render second store with empty state to check if account change saved to database
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
@@ -364,7 +364,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // imported account persists in database after context reset
+      // imported account persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
@@ -432,7 +432,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render second context with empty state to check if saved to database
+      // render second store with empty state to check if saved to database
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current[0].name)
@@ -467,7 +467,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // account deleted persists in database after context reset
+      // account deleted persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length > 0)
@@ -503,7 +503,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // account deleted persists in database after context reset
+      // account deleted persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length > 0)
@@ -581,7 +581,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // subscribing persists in database after context reset
+      // subscribing persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.subscriptions.length === 1)
@@ -634,7 +634,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // blocking persists in database after context reset
+      // blocking persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => Object.keys(rendered2.result.current.blockedAddresses).length === 1)
@@ -1006,7 +1006,7 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
 
-      // check if cids are in database after getting a new context
+      // check if cids are in database after getting a new store
       const activeAccountId = rendered.result.current.account.id
       // reset stores to force using the db
       await testUtils.resetStores()
@@ -1093,7 +1093,7 @@ describe('accounts', () => {
         // reset stores to force using the db
         await testUtils.resetStores()
 
-        // check if cids are still in database after new context
+        // check if cids are still in database after new store
         const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
         const waitFor2 = testUtils.createWaitFor(rendered2)
         await waitFor2(() => rendered2.result.current[0].cid)
@@ -1153,7 +1153,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render with new context to see if still in database
+      // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length)
@@ -1207,7 +1207,7 @@ describe('accounts', () => {
         // reset stores to force using the db
         await testUtils.resetStores()
 
-        // get the karma from database by created new context
+        // get the karma from database by created new store
         const rendered2 = renderHook<any, any>(
           () => {
             const account = useAccount()
@@ -1242,7 +1242,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render with new context to see if still in database
+      // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountVotes(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
@@ -1285,7 +1285,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // render with new context to see if still in database
+      // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(
         () => {
           const accountComments = useAccountComments({accountName: 'Account 2'})
@@ -1483,7 +1483,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // check to see if in database after refreshing with a new context
+      // check to see if in database after refreshing with a new store
       const rendered2 = renderHook<any, any>(() => useAccountNotifications(), {wrapper: PlebbitProvider})
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.notifications.length >= 4)

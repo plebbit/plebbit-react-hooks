@@ -33,10 +33,10 @@
   }
 ```
 
-### Contexts
+### Stores
 
 ```
-AccountsContext (store in indexeddb permanently) {
+accountsStore (store in indexeddb permanently) {
   accounts: {[accountName: string]: Account}
   accountNames: string[]
   activeAccountName: string
@@ -50,22 +50,22 @@ AccountsContext (store in indexeddb permanently) {
   // internal
   markAccountNotificationsAsRead(account: Account)
 }
-CommentsContext (store in indexeddb last recently used) {
+commentsStore (store in indexeddb last recently used) {
   comments: {[commentCid: string]: Comment}
   // internal
-  addCommentToContext(commentCid)
+  addCommentToStore(commentCid)
 }
-SubplebbitsContext (store in indexeddb last recently used) {
+subplebbitsStore (store in indexeddb last recently used) {
   subplebbits: {[subplebbitAddress: string]: Subplebbit}
   // internal
-  addSubplebbitToContext(subplebbitAddress)
+  addSubplebbitToStore(subplebbitAddress)
 }
-FeedsContext (no persistant storage, can be rebuilt from Subplebbits and SubplebbitPages databases) {
+feedsStore (no persistant storage, can be rebuilt from Subplebbits and SubplebbitPages databases) {
   bufferedFeeds: {[feedName: string]: Comment[]}
   loadedFeeds: {[feedName: string]: Comment[]}
   feedsHaveMore: {[feedName: string]: boolean}
   // internal
-  addFeedToContext(feedName, subplebbitAddresses, sortType, account)
+  addFeedToStore(feedName, subplebbitAddresses, sortType, account)
 }
 ```
 
@@ -593,15 +593,15 @@ await setAccountsOrder(['Account 1 2', 'Account 1'])
 
 #### Account notifications and own comment updates
 
-On startup, and every time a comment is created, it is added to the AccountsComments context and database. On the comment challengeverification event, the comment CID is received from the subplebbit owner, and we can start listening to comment update events, and update the context and database every time. Sometimes the user closes the page and the challengeverification event is never received, so every time a comment, subplebbit or subplebbit page is fetched, we awkwardly check to see if it has one of our own comment with a missing CID, and update it if found. 
+On startup, and every time a comment is created, it is added to the AccountsComments store and database. On the comment challengeverification event, the comment CID is received from the subplebbit owner, and we can start listening to comment update events, and update the store and database every time. Sometimes the user closes the page and the challengeverification event is never received, so every time a comment, subplebbit or subplebbit page is fetched, we awkwardly check to see if it has one of our own comment with a missing CID, and update it if found. 
 
 AccountsCommentsReplies are found on the comment update events and are stored in a last rencently used database and have the field "markedAsRead" once read. `useAccountNotifications` uses the AccountsCommentsReplies to compile the read/unread notifications. TODO: add notifications for upvotes e.g. "Your comment has 10 upvotes".
 
 #### Feed pages and infinite scrolling
 
-A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(useFeedOptions)`, a feed with those options is added to the FeedsContext. After a feed is added to context, its subplebbits are fetched, then the first page of the subplebbit.posts `Pages` are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `SubplebbitsPostsInfo` which keep track of `SubplebbitPostsInfo.bufferedPostCount` for each combination of subplebbit and sort type. When `SubplebbitPostsInfo.bufferedPostCount` gets below 50, the next page for the subplebbit and sort type is fetched.
+A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(useFeedOptions)`, a feed with those options is added to the feedsStore. After a feed is added to store, its subplebbits are fetched, then the first page of the subplebbit.posts `Pages` are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `SubplebbitsPostsInfo` which keep track of `SubplebbitPostsInfo.bufferedPostCount` for each combination of subplebbit and sort type. When `SubplebbitPostsInfo.bufferedPostCount` gets below 50, the next page for the subplebbit and sort type is fetched.
 
-When a new post page is received from IPFS, the `FeedsContext.bufferedFeeds` are recalculated, but the `FeedsContext.loadedFeeds` (which are displayed to the user) are not, new posts fetched will only be displayed to the user the next time he calls `loadMore`. If we detect that a `loadedFeed` is stale, we can prompt the user to load more posts, like Reddit/Facebook/Twitter do. 
+When a new post page is received from IPFS, the `feedsStore.bufferedFeeds` are recalculated, but the `feedsStore.loadedFeeds` (which are displayed to the user) are not, new posts fetched will only be displayed to the user the next time he calls `loadMore`. If we detect that a `loadedFeed` is stale, we can prompt the user to load more posts, like Reddit/Facebook/Twitter do. 
 
 Post pages are cached in IndexedDb for a short time, in case the user reloads the app.
 

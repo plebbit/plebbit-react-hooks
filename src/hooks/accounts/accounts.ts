@@ -34,7 +34,7 @@ export function useAccount(accountName?: string) {
 }
 
 /**
- * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
+ * Return all accounts in the order of `accountsStore.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
 export function useAccounts() {
   const accountsStore = useAccountsStore()
