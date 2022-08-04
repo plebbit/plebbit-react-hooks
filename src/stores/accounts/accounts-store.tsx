@@ -7,6 +7,7 @@ import {AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, A
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'
+import localForage from 'localforage'
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -38,7 +39,7 @@ const useAccountsStore = createStore<AccountsState>((setState: Function, getStat
 }))
 
 // load accounts from database once on load
-const setAccountsFromDatabaseInStore = async () => {
+const initializeAccountsStore = async () => {
   let accountIds: string[] | undefined
   let activeAccountId: string | undefined
   let accounts: Accounts
@@ -62,7 +63,12 @@ const setAccountsFromDatabaseInStore = async () => {
       accountsDatabase.accountsMetadataDatabase.getItem('activeAccountId'),
       accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ])
-    assert(accountIds && activeAccountId && accountNamesToAccountIds, `AccountsProvider error creating a default account during initialization`)
+    assert(
+      accountIds && activeAccountId && accountNamesToAccountIds,
+      `accountsStore error creating a default account during initialization accountsMetadataDatabase.accountIds '${accountIds}' accountsMetadataDatabase.activeAccountId '${activeAccountId}' accountsMetadataDatabase.accountNamesToAccountIds '${JSON.stringify(
+        accountNamesToAccountIds
+      )}'`
+    )
   }
   const [accountsComments, accountsVotes, accountsCommentsReplies] = await Promise.all<any>([
     accountsDatabase.getAccountsComments(accountIds),
@@ -74,16 +80,47 @@ const setAccountsFromDatabaseInStore = async () => {
   // start looking for updates for all accounts comments in database
   for (const accountId in accountsComments) {
     for (const accountComment of accountsComments[accountId]) {
-      useAccountsStore.getState().accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
+      useAccountsStore
+        .getState()
+        .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
+        .catch((error: unknown) =>
+          console.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
+            accountComment,
+            accountCommentIndex: accountComment.index,
+            accounts,
+            error,
+          })
+        )
     }
   }
 }
-setAccountsFromDatabaseInStore()
+
+// @ts-ignore
+window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING = true
+// @ts-ignore
+const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
+;(async () => {
+  try {
+    await initializeAccountsStore()
+  } catch (error) {
+    // initializing can fail in tests when store is being reset at the same time as databases are being deleted
+    console.error('accountsStore.initializeAccountsStore error', {accountsStore: useAccountsStore.getState(), error})
+  } finally {
+    // @ts-ignore
+    delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
+  }
+})()
 
 // reset store in between tests
 const originalState = useAccountsStore.getState()
 // async function because some stores have async init
 export const resetAccountsStore = async () => {
+  // don't reset while initializing, it could happen during quick successive tests
+  while (isInitializing()) {
+    console.warn(`can't reset accounts store while initializing, waiting 100ms`)
+    await new Promise((r) => setTimeout(r, 100))
+  }
+
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
@@ -91,8 +128,19 @@ export const resetAccountsStore = async () => {
   // restore original state
   useAccountsStore.setState(originalState)
   // init the store
-  await setAccountsFromDatabaseInStore()
+  await initializeAccountsStore()
   debug('reset store')
+}
+
+// reset database and store in between tests
+export const resetAccountsDatabaseAndStore = async () => {
+  // don't reset while initializing, it could happen during quick successive tests
+  while (isInitializing()) {
+    console.warn(`can't reset accounts database while initializing, waiting 100ms`)
+    await new Promise((r) => setTimeout(r, 100))
+  }
+  await Promise.all([localForage.createInstance({name: 'accountsMetadata'}).clear(), localForage.createInstance({name: 'accounts'}).clear()])
+  await resetAccountsStore()
 }
 
 export default useAccountsStore

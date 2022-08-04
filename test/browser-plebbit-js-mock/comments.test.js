@@ -2,22 +2,27 @@ const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useComment, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+setPlebbitJs(PlebbitJsMock)
 
-const timeout = 10000
+const timeout = 2000
 
 describe('comments (plebbit-js mock)', () => {
-  before(() => {
+  before(async () => {
+    console.log('before comments tests')
     setPlebbitJs(PlebbitJsMock)
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
+    await testUtils.resetDatabasesAndStores()
   })
   after(async () => {
     testUtils.restoreAll()
-    await debugUtils.deleteDatabases()
+    await testUtils.resetDatabasesAndStores()
+    console.log('after reset stores')
     restorePlebbitJs()
   })
 
   describe('no comments in database', () => {
     it('get comments one at a time', async () => {
+      console.log('starting comments tests')
       const rendered = renderHook((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).to.equal(undefined)
@@ -25,7 +30,7 @@ describe('comments (plebbit-js mock)', () => {
       rendered.rerender('comment cid 1')
       await waitFor(() => typeof rendered.result.current?.cid === 'string')
 
-      expect(rendered.result.current.cid).to.equal('comment cid 1')
+      expect(rendered.result.current?.cid).to.equal('comment cid 1')
       // wait for comment.on('update') to fetch the ipns
       await waitFor(() => typeof rendered.result.current?.cid === 'string' && typeof rendered.result.current?.upvoteCount === 'number')
       expect(rendered.result.current?.cid).to.equal('comment cid 1')

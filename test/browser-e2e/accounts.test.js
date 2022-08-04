@@ -28,20 +28,22 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`accounts (${plebbitOptionsType})`, () => {
-    before(() => {
-      testUtils.silenceUpdateUnmountedComponentWarning()
+    before(async () => {
+      console.log(`before accounts tests (${plebbitOptionsType})`)
+      testUtils.silenceReactWarnings()
+      await testUtils.resetDatabasesAndStores()
     })
     after(async () => {
       testUtils.restoreAll()
-      await debugUtils.deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     describe(`no accounts in database (${plebbitOptionsType})`, () => {
       it(`generate default account on load (${plebbitOptionsType})`, async () => {
+        console.log(`starting accounts tests (${plebbitOptionsType})`)
+
         const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
         const waitFor = testUtils.createWaitFor(rendered, {timeout})
-
-        expect(rendered.result.current).to.equal(undefined)
 
         await waitFor(() => rendered.result.current?.name === 'Account 1')
 

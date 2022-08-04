@@ -1,5 +1,5 @@
 import React from 'react'
-import FeedsProvider from './feeds-provider'
+import FeedsProvider from './feeds'
 import {Props} from '../types'
 
 export default function PlebbitProvider(props: Props): JSX.Element | null {

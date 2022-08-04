@@ -1,7 +1,7 @@
-import {resetCommentsStore} from '../stores/comments'
-import {resetSubplebbitsStore} from '../stores/subplebbits'
-import {resetAccountsStore} from '../stores/accounts'
-import {resetFeedsStore} from '../stores/feeds'
+import {resetCommentsStore, resetCommentsDatabaseAndStore} from '../stores/comments'
+import {resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore} from '../stores/subplebbits'
+import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accounts'
+import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -85,23 +85,16 @@ export const resetStores = async () => {
   await resetFeedsStore()
   await resetSubplebbitsStore()
   await resetCommentsStore()
+  // always accounts last because it has async initialization
   await resetAccountsStore()
 }
 
-export const resetDatabases = async () => {
-  await Promise.all([
-    localForage.createInstance({name: 'accountsMetadata'}).clear(),
-    localForage.createInstance({name: 'accounts'}).clear(),
-    localForageLru.createInstance({name: 'subplebbits'}).clear(),
-    localForageLru.createInstance({name: 'comments'}).clear(),
-    localForageLru.createInstance({name: 'subplebbitsPages'}).clear(),
-  ])
-}
-
 export const resetDatabasesAndStores = async () => {
-  // always reset databases first because some stores use the databases to init
-  await resetDatabases()
-  await resetStores()
+  await resetFeedsDatabaseAndStore()
+  await resetSubplebbitsDatabaseAndStore()
+  await resetCommentsDatabaseAndStore()
+  // always accounts last because it has async initialization
+  await resetAccountsDatabaseAndStore()
 }
 
 const testUtils = {
@@ -111,7 +104,6 @@ const testUtils = {
   restoreAll,
   createWaitFor,
   resetStores,
-  resetDatabases,
   resetDatabasesAndStores,
 }
 

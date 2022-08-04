@@ -3,6 +3,7 @@ import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:stores:feeds')
 import {Feed, Feeds, Subplebbits, Account, FeedsOptions} from '../../types'
 import createStore from 'zustand'
+import localForageLru from '../../lib/localforage-lru'
 
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
@@ -76,6 +77,12 @@ export const resetFeedsStore = async () => {
   useFeedsStore.destroy()
   // restore original state
   useFeedsStore.setState(originalState)
+}
+
+// reset database and store in between tests
+export const resetFeedsDatabaseAndStore = async () => {
+  await localForageLru.createInstance({name: 'subplebbitsPages'}).clear()
+  await resetFeedsStore()
 }
 
 export default useFeedsStore

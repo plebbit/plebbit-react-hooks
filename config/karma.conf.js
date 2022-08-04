@@ -34,6 +34,11 @@ let browsers = [
   'DebugChrome',
 ]
 
+// use headless for manual debugging
+if (process.env.HEADLESS) {
+  browsers = ['CustomChrome']
+}
+
 // add firefox during CI
 // make sure non-headless DebugChrome is not included as it breaks the CI
 if (process.env.CI) {

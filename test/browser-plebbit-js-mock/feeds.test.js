@@ -1,18 +1,22 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useFeed, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+setPlebbitJs(PlebbitJsMock)
 const testUtils = require('../../dist/lib/test-utils').default
 
 const timeout = 10000
 
 describe('feeds (plebbit-js mock)', () => {
-  before(() => {
+  before(async () => {
+    console.log('before feeds tests')
     setPlebbitJs(PlebbitJsMock)
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
+    await testUtils.resetDatabasesAndStores()
   })
   after(async () => {
     testUtils.restoreAll()
-    await debugUtils.deleteDatabases()
+    await testUtils.resetDatabasesAndStores()
+    console.log('after reset stores')
     restorePlebbitJs()
   })
 
@@ -38,7 +42,8 @@ describe('feeds (plebbit-js mock)', () => {
     })
 
     it('get feed with no arguments', async () => {
-      expect(rendered.result.current.feed).to.equal(undefined)
+      console.log('starting feeds tests')
+      expect(rendered.result.current.feed).to.deep.equal([])
       expect(typeof rendered.result.current.hasMore).to.equal('boolean')
       expect(typeof rendered.result.current.loadMore).to.equal('function')
     })

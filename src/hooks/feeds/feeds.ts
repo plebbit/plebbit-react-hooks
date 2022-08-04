@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState, useContext} from 'react'
 import {useAccount} from '../accounts'
-import {FeedsContext} from '../../providers/feeds-provider'
+import {FeedsContext} from '../../providers/feeds'
 import validator from '../../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:feeds')

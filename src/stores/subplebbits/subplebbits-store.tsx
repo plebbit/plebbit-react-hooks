@@ -151,4 +151,10 @@ export const resetSubplebbitsStore = async () => {
   useSubplebbitsStore.setState(originalState)
 }
 
+// reset database and store in between tests
+export const resetSubplebbitsDatabaseAndStore = async () => {
+  await localForageLru.createInstance({name: 'subplebbits'}).clear()
+  await resetSubplebbitsStore()
+}
+
 export default useSubplebbitsStore

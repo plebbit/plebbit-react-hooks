@@ -103,4 +103,10 @@ export const resetCommentsStore = async () => {
   useCommentsStore.setState(originalState)
 }
 
+// reset database and store in between tests
+export const resetCommentsDatabaseAndStore = async () => {
+  await localForageLru.createInstance({name: 'comments'}).clear()
+  await resetCommentsStore()
+}
+
 export default useCommentsStore
