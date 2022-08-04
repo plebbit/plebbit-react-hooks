@@ -8,7 +8,16 @@ import Debug from 'debug'
 import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
-import {Account, PublishCommentOptions, Challenge, ChallengeVerification, PublishVoteOptions, PublishCommentEditOptions, PublishSubplebbitEditOptions} from '../../types'
+import {
+  Account,
+  PublishCommentOptions,
+  Challenge,
+  ChallengeVerification,
+  PublishVoteOptions,
+  PublishCommentEditOptions,
+  PublishSubplebbitEditOptions,
+  CreateSubplebbitOptions,
+} from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
@@ -505,4 +514,18 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
 
   publishAndRetryFailedChallengeVerification()
   debug('accountsActions.publishSubplebbitEdit', {createSubplebbitEditOptions})
+}
+
+export const createSubplebbit = async (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use AccountContext.accountsStore before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+
+  const subplebbit = await subplebbitsStore.getState().createSubplebbit(createSubplebbitOptions, account)
+  debug('accountsActions.createSubplebbit', {createSubplebbitOptions, subplebbit})
+  return subplebbit
 }

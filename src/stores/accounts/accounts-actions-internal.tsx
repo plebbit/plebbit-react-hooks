@@ -6,7 +6,7 @@ import Debug from 'debug'
 import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
-import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies} from '../../types'
+import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
 import utils from '../../lib/utils'
 
 // TODO: we currently subscribe to updates for every single comment
@@ -251,5 +251,91 @@ export const markAccountNotificationsAsRead = async (account: Account) => {
   accountsStore.setState(({accountsCommentsReplies}) => {
     const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
     return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}
+  })
+}
+
+// internal accounts action: if a subplebbit has a role with an account's address
+// add it to the account.subplebbits database
+export const addSubplebbitRoleToAccountsSubplebbits = async (subplebbit: Subplebbit) => {
+  if (!subplebbit) {
+    return
+  }
+  const {accounts} = accountsStore.getState()
+  assert(accounts, `can't use accountsStore.accountActions before initialized`)
+
+  // find subplebbit roles to add and remove
+  const getChange = (accounts: any, subplebbit: any) => {
+    const toAdd: string[] = []
+    const toRemove: string[] = []
+    for (const accountId in accounts) {
+      const account = accounts[accountId]
+      if (!subplebbit.roles?.[account.author.address]) {
+        if (account.subplebbits[subplebbit.address]) {
+          toRemove.push(accountId)
+        }
+      } else {
+        if (!account.subplebbits[subplebbit.address]) {
+          toAdd.push(accountId)
+        }
+      }
+    }
+    return {toAdd, toRemove, hasChange: toAdd.length !== 0 || toRemove.length !== 0}
+  }
+
+  const {hasChange} = getChange(accounts, subplebbit)
+  if (!hasChange) {
+    return
+  }
+
+  // setAccounts((previousAccounts) => {
+  //   const {toAdd, toRemove, hasChange} = getChange(previousAccounts, subplebbit)
+  //   const nextAccounts = {...previousAccounts}
+
+  //   // edit databases and build next accounts
+  //   for (const accountId of toAdd) {
+  //     const account = {...nextAccounts[accountId]}
+  //     account.subplebbits = {
+  //       ...account.subplebbits,
+  //       [subplebbit.address]: {role: subplebbit.roles[account.author.address]},
+  //     }
+  //     nextAccounts[accountId] = account
+  //     accountsDatabase.addAccount(account)
+  //   }
+  //   for (const accountId of toRemove) {
+  //     const account = {...nextAccounts[accountId]}
+  //     account.subplebbits = {...account.subplebbits}
+  //     delete account.subplebbits[subplebbit.address]
+  //     nextAccounts[accountId] = account
+  //     accountsDatabase.addAccount(account)
+  //   }
+
+  //   debug('accountsActions.addSubplebbitRoleToAccountsSubplebbits', {subplebbit, toAdd, toRemove})
+  //   return nextAccounts
+  // })
+
+  accountsStore.setState(({accounts}) => {
+    const {toAdd, toRemove, hasChange} = getChange(accounts, subplebbit)
+    const nextAccounts = {...accounts}
+
+    // edit databases and build next accounts
+    for (const accountId of toAdd) {
+      const account = {...nextAccounts[accountId]}
+      account.subplebbits = {
+        ...account.subplebbits,
+        [subplebbit.address]: {role: subplebbit.roles[account.author.address]},
+      }
+      nextAccounts[accountId] = account
+      accountsDatabase.addAccount(account)
+    }
+    for (const accountId of toRemove) {
+      const account = {...nextAccounts[accountId]}
+      account.subplebbits = {...account.subplebbits}
+      delete account.subplebbits[subplebbit.address]
+      nextAccounts[accountId] = account
+      accountsDatabase.addAccount(account)
+    }
+
+    debug('accountsActions.addSubplebbitRoleToAccountsSubplebbits', {subplebbit, toAdd, toRemove})
+    return {accounts: nextAccounts}
   })
 }

@@ -7,6 +7,7 @@ const debug = Debug('plebbit-react-hooks:stores:subplebbits')
 import {Props, Subplebbit, Subplebbits, Account, CreateSubplebbitOptions} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'
+import accountsStore from '../accounts'
 
 const plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
 
@@ -65,7 +66,7 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
       setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: updatedSubplebbit}}))
 
       // if a subplebbit has a role with an account's address add it to the account.subplebbits
-      // TODO ZUSTAND
+      accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
       // accountsContext.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
     })
     listeners.push(subplebbit)

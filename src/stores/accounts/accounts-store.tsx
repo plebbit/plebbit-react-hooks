@@ -107,8 +107,7 @@ const setAccountsFromDatabaseInStore = async () => {
   // start looking for updates for all accounts comments in database
   for (const accountId in accountsComments) {
     for (const accountComment of accountsComments[accountId]) {
-      // TODO zustand
-      // startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
+      useAccountsStore.getState().accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
     }
   }
 }

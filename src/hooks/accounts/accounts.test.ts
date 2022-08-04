@@ -1500,7 +1500,7 @@ describe('accounts', () => {
     })
   })
 
-  describe.skip('useAccountSubplebbits', () => {
+  describe('useAccountSubplebbits', () => {
     describe('with setup', () => {
       // roles tests are flaky
       beforeAll(() => {
@@ -1508,6 +1508,9 @@ describe('accounts', () => {
       })
       afterAll(() => {
         jest.retryTimes(0)
+      })
+      afterEach(async () => {
+        await testUtils.resetDatabasesAndStores()
       })
 
       let rendered: any
@@ -1603,7 +1606,7 @@ describe('accounts', () => {
     })
   })
 
-  test.skip('createSublebbit locally and edit it', async () => {
+  test('createSublebbit locally and edit it', async () => {
     const rendered = renderHook<any, any>(
       (subplebbitAddress?: string) => {
         const account = useAccount()
