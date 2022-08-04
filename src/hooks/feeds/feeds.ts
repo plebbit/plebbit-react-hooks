@@ -46,7 +46,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   }
 
   debug('useFeed', {feed, hasMore})
-  return {feed, hasMore, loadMore}
+  return {feed: feed || [], hasMore, loadMore}
 }
 
 /**
