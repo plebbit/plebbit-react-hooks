@@ -31,7 +31,7 @@ describe('accounts', () => {
     testUtils.restoreAll()
   })
 
-  describe.only('no accounts in database', () => {
+  describe('no accounts in database', () => {
     afterEach(async () => {
       await testUtils.resetDatabasesAndStores()
     })
@@ -56,10 +56,13 @@ describe('accounts', () => {
       expect(account.plebbitOptions.pubsubHttpClientOptions).toBe('https://pubsubprovider.xyz/api/v0')
     })
 
-    test.skip(`default plebbit options are not saved to database`, async () => {
+    test(`default plebbit options are not saved to database`, async () => {
       const plebbitOptions = {ipfsHttpClientOptions: 'http://one:5001/api/v0'}
       // @ts-ignore
       window.DefaultPlebbitOptions = plebbitOptions
+
+      // re-init accounts after changing plebbit defaults
+      await testUtils.resetDatabasesAndStores()
 
       const rendered = renderHook(
         () => {
@@ -172,7 +175,7 @@ describe('accounts', () => {
     })
   })
 
-  describe.only('multiple accounts in database', () => {
+  describe('multiple accounts in database', () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
@@ -645,7 +648,7 @@ describe('accounts', () => {
     test.todo('deleting account deletes account votes')
   })
 
-  describe.only('no comments or votes in database', () => {
+  describe('no comments or votes in database', () => {
     let rendered: any, waitFor: any
     const render = async () => {
       // on first render, the account is undefined because it's not yet loaded from database
@@ -874,7 +877,7 @@ describe('accounts', () => {
     })
   })
 
-  describe.only('multiple comments and votes in database', () => {
+  describe('multiple comments and votes in database', () => {
     let onChallenge: any
     let onChallengeVerification: any
     let publishOptions: any
@@ -1336,7 +1339,7 @@ describe('accounts', () => {
     })
   })
 
-  describe.only('one comment in database', () => {
+  describe('one comment in database', () => {
     let rendered: any, waitFor: any
     const updatingComments: any = []
     const commentUpdate = Comment.prototype.update
