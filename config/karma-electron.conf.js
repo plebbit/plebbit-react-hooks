@@ -16,6 +16,11 @@ if (process.env.CI) {
 // electron browser options
 let headless = false
 
+// use headless for manual debugging
+if (process.env.HEADLESS) {
+  headless = true
+}
+
 // CI options
 if (process.env.CI) {
   // non headless breaks CI

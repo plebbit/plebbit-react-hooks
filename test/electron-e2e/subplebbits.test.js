@@ -24,15 +24,19 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`subplebbits (${plebbitOptionsType})`, () => {
-    before(() => {
+    before(async () => {
+      console.log(`before subplebbits tests (${plebbitOptionsType})`)
+
       // set PlebbitJs with native functions defined in preload.js
       setPlebbitJs(window.PlebbitJs)
 
-      testUtils.silenceUpdateUnmountedComponentWarning()
+      testUtils.silenceReactWarnings()
+      // reset before or init accounts sometimes fails
+      await testUtils.resetDatabasesAndStores()
     })
     after(async () => {
       testUtils.restoreAll()
-      await debugUtils.deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     describe(`no subplebbits in database (${plebbitOptionsType})`, () => {
@@ -71,6 +75,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
 
       it(`get subplebbits one at a time (${plebbitOptionsType})`, async () => {
+        console.log(`start subplebbits tests (${plebbitOptionsType})`)
+
         rendered.rerender({subplebbitAddress})
         await waitFor(() => typeof rendered.result.current.subplebbit.address === 'string')
         expect(rendered.result.current.subplebbit.address).to.equal(subplebbitAddress)

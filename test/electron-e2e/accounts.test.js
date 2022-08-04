@@ -24,23 +24,27 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`accounts (${plebbitOptionsType})`, () => {
-    before(() => {
+    before(async () => {
+      console.log(`before accounts tests (${plebbitOptionsType})`)
+
       // set PlebbitJs with native functions defined in preload.js
       setPlebbitJs(window.PlebbitJs)
 
-      testUtils.silenceUpdateUnmountedComponentWarning()
+      testUtils.silenceReactWarnings()
+      // reset before or init accounts sometimes fails
+      await testUtils.resetDatabasesAndStores()
     })
     after(async () => {
       testUtils.restoreAll()
-      await debugUtils.deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     describe(`no accounts in database (${plebbitOptionsType})`, () => {
       it(`generate default account on load (${plebbitOptionsType})`, async () => {
+        console.log(`start accounts tests (${plebbitOptionsType})`)
+
         const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
         const waitFor = testUtils.createWaitFor(rendered, {timeout})
-
-        expect(rendered.result.current).to.equal(undefined)
 
         await waitFor(() => rendered.result.current?.name === 'Account 1')
 
