@@ -1024,76 +1024,85 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current, activeAccountId)
     })
 
-    test.skip(`cid gets added to account comment after fetched in useComment`, async () => {
-      const rendered = renderHook<any, any>(
-        (commentCid) => {
-          const accountComments = useAccountComments()
-          const comment = useComment(commentCid)
-          return accountComments
-        },
-        {wrapper: PlebbitProvider}
-      )
-      await waitFor(() => rendered.result.current[0].content)
-
-      expect(rendered.result.current[0].content).toBe('content 1')
-      expect(rendered.result.current[1].content).toBe('content 2')
-      expect(rendered.result.current[0].cid).toBe(undefined)
-      expect(rendered.result.current[1].cid).toBe(undefined)
-      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
-
-      // mock the comment to get from plebbit.getComment()
-      // to simulate getting a comment that the account published
-      const commentToGet = Plebbit.prototype.commentToGet
-      Plebbit.prototype.commentToGet = () => ({
-        author: rendered.result.current[0].author,
-        timestamp: rendered.result.current[0].timestamp,
-        content: rendered.result.current[0].content,
+    // flaky because of react concurrency so retry several times
+    describe('retry on fail', () => {
+      beforeAll(() => {
+        jest.retryTimes(5)
       })
-
-      rendered.rerender('content 1 cid')
-      await waitFor(() => !!rendered.result.current[0].cid)
-
-      expect(rendered.result.current[0].content).toBe('content 1')
-      expect(rendered.result.current[1].content).toBe('content 2')
-      expect(rendered.result.current[0].cid).toBe('content 1 cid')
-      expect(rendered.result.current[1].cid).toBe(undefined)
-      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
-
-      // make sure the account comment starts updating by checking if it received upvotes
-      await waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
-      expect(rendered.result.current[0].upvoteCount).toBe(3)
-
-      // mock the second comment to get from plebbit.getComment()
-      Plebbit.prototype.commentToGet = () => ({
-        author: rendered.result.current[1].author,
-        timestamp: rendered.result.current[1].timestamp,
-        content: rendered.result.current[1].content,
+      afterAll(() => {
+        jest.retryTimes(0)
       })
+      test(`cid gets added to account comment after fetched in useComment`, async () => {
+        const rendered = renderHook<any, any>(
+          (commentCid) => {
+            const accountComments = useAccountComments()
+            const comment = useComment(commentCid)
+            return accountComments
+          },
+          {wrapper: PlebbitProvider}
+        )
+        await waitFor(() => rendered.result.current[0].content)
 
-      rendered.rerender('content 2 cid')
-      await waitFor(() => !!rendered.result.current[1].cid)
+        expect(rendered.result.current[0].content).toBe('content 1')
+        expect(rendered.result.current[1].content).toBe('content 2')
+        expect(rendered.result.current[0].cid).toBe(undefined)
+        expect(rendered.result.current[1].cid).toBe(undefined)
+        expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
-      expect(rendered.result.current[0].content).toBe('content 1')
-      expect(rendered.result.current[1].content).toBe('content 2')
-      expect(rendered.result.current[0].cid).toBe('content 1 cid')
-      expect(rendered.result.current[1].cid).toBe('content 2 cid')
-      expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
+        // mock the comment to get from plebbit.getComment()
+        // to simulate getting a comment that the account published
+        const commentToGet = Plebbit.prototype.commentToGet
+        Plebbit.prototype.commentToGet = () => ({
+          author: rendered.result.current[0].author,
+          timestamp: rendered.result.current[0].timestamp,
+          content: rendered.result.current[0].content,
+        })
 
-      // restore mock
-      Plebbit.prototype.commentToGet = commentToGet
+        rendered.rerender('content 1 cid')
+        await waitFor(() => !!rendered.result.current[0].cid)
 
-      // reset stores to force using the db
-      await testUtils.resetStores()
+        expect(rendered.result.current[0].content).toBe('content 1')
+        expect(rendered.result.current[1].content).toBe('content 2')
+        expect(rendered.result.current[0].cid).toBe('content 1 cid')
+        expect(rendered.result.current[1].cid).toBe(undefined)
+        expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
 
-      // check if cids are still in database after new context
-      const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
-      const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current[0].cid)
+        // make sure the account comment starts updating by checking if it received upvotes
+        await waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
+        expect(rendered.result.current[0].upvoteCount).toBe(3)
 
-      expect(rendered2.result.current[0].cid).toBe('content 1 cid')
-      expect(rendered2.result.current[1].cid).toBe('content 2 cid')
-      expect(rendered2.result.current[2].cid).toBe(undefined)
-      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+        // mock the second comment to get from plebbit.getComment()
+        Plebbit.prototype.commentToGet = () => ({
+          author: rendered.result.current[1].author,
+          timestamp: rendered.result.current[1].timestamp,
+          content: rendered.result.current[1].content,
+        })
+
+        rendered.rerender('content 2 cid')
+        await waitFor(() => !!rendered.result.current[1].cid)
+
+        expect(rendered.result.current[0].content).toBe('content 1')
+        expect(rendered.result.current[1].content).toBe('content 2')
+        expect(rendered.result.current[0].cid).toBe('content 1 cid')
+        expect(rendered.result.current[1].cid).toBe('content 2 cid')
+        expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
+
+        // restore mock
+        Plebbit.prototype.commentToGet = commentToGet
+
+        // reset stores to force using the db
+        await testUtils.resetStores()
+
+        // check if cids are still in database after new context
+        const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
+        const waitFor2 = testUtils.createWaitFor(rendered2)
+        await waitFor2(() => rendered2.result.current[0].cid)
+
+        expect(rendered2.result.current[0].cid).toBe('content 1 cid')
+        expect(rendered2.result.current[1].cid).toBe('content 2 cid')
+        expect(rendered2.result.current[2].cid).toBe(undefined)
+        expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+      })
     })
 
     test.skip(`cid gets added to account comment after feed is fetched`, async () => {

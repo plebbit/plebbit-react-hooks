@@ -6,6 +6,7 @@ const debug = Debug('plebbit-react-hooks:stores:comments')
 import {Comment, Comments, Account} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'
+import accountsStore from '../accounts'
 
 const plebbitGetCommentPending: {[key: string]: boolean} = {}
 
@@ -61,9 +62,9 @@ const useCommentsStore = createStore<CommentsState>((setState: Function, getStat
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
     // comment, and if yes, add the CID to your account comments database
-    // TODO ZUSTAND
+    await accountsStore.getState().accountsActionsInternal.addCidToAccountComment(comment)
     // if (accountsContext?.addCidToAccountComment) {
-    // await accountsContext.addCidToAccountComment(comment)
+    //   await accountsContext.addCidToAccountComment(comment)
     // }
   },
 }))
