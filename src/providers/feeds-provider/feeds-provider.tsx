@@ -1,5 +1,8 @@
+// this file is a remnant from when feeds were a react context
+// TODO: redesign with a design better suited for zustand
+// the stores/feeds should not export any hooks
+
 import React, {useState, useEffect, useContext, useMemo} from 'react'
-import {AccountsContext} from '../accounts-provider'
 // import {SubplebbitsContext} from '../subplebbits-provider'
 import useSubplebbitsStore from '../../stores/subplebbits'
 import useAccountsStore from '../../stores/accounts'
@@ -10,7 +13,7 @@ import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
 import utils from '../../lib/utils'
 import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:providers:feeds-provider')
+const debug = Debug('plebbit-react-hooks:providers:feeds')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
 import shallow from 'zustand/shallow'
 

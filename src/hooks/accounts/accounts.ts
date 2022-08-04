@@ -1,5 +1,4 @@
 import {useEffect, useMemo, useState, useContext} from 'react'
-import {AccountsContext} from '../../providers/accounts-provider'
 import useAccountsStore from '../../stores/accounts'
 import PlebbitJs from '../../lib/plebbit-js'
 import Debug from 'debug'

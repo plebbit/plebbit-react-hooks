@@ -7,13 +7,9 @@ const debug = Debug('plebbit-react-hooks:stores:feeds')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
 import createStore from 'zustand'
 
-const subplebbitsPagesDatabase = localForageLru.createInstance({name: '!!!!!!!!!!!!!!!!!!subplebbitsPages', size: 500})
-
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 const postsPerPage = 25
-// keep large buffer because fetching cids is slow
-const subplebbitPostsLeftBeforeNextPage = 50
 
 // reset all event listeners in between tests
 export const listeners: any = []

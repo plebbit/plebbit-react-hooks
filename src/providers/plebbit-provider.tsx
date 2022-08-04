@@ -1,24 +1,12 @@
 import React from 'react'
-import AccountsProvider from './accounts-provider'
-// import CommentsProvider from './comments-provider'
-import SubplebbitsProvider from './subplebbits-provider'
 import FeedsProvider from './feeds-provider'
 import {Props} from '../types'
 
 export default function PlebbitProvider(props: Props): JSX.Element | null {
-  // TODO zustand
-  return <FeedsProvider>{props.children}</FeedsProvider>
-
   if (!props.children) {
     return null
   }
 
-  // AccountsProvider needs SubplebbitsProvider and vice versa so wrap SubplebbitsProvider twice
-  return (
-    <AccountsProvider>
-      <SubplebbitsProvider>
-        <FeedsProvider>{props.children}</FeedsProvider>
-      </SubplebbitsProvider>
-    </AccountsProvider>
-  )
+  // TODO: move feeds provider to be a zustand store only
+  return <FeedsProvider>{props.children}</FeedsProvider>
 }
