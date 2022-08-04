@@ -1,35 +1,9 @@
-import validator from '../../lib/validator'
 import assert from 'assert'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
-import utils from '../../lib/utils'
-import subplebbitStore from '../subplebbits'
-import {
-  Props,
-  AccountNamesToAccountIds,
-  Account,
-  Accounts,
-  AccountsActions,
-  PublishCommentOptions,
-  PublishCommentEditOptions,
-  PublishSubplebbitEditOptions,
-  PublishVoteOptions,
-  Challenge,
-  ChallengeVerification,
-  CreateCommentOptions,
-  CreateSubplebbitOptions,
-  CreateVoteOptions,
-  Comment,
-  Subplebbit,
-  AccountComment,
-  AccountsComments,
-  AccountsNotifications,
-  AccountCommentReply,
-  AccountCommentsReplies,
-  AccountsCommentsReplies,
-} from '../../types'
+import {AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, AccountComment, AccountsComments, AccountsCommentsReplies} from '../../types'
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'

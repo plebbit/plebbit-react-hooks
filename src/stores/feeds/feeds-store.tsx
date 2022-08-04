@@ -1,10 +1,7 @@
-import React, {useState, useEffect, useMemo} from 'react'
-import useSubplebbitsStore from '../subplebbits'
 import assert from 'assert'
-import localForageLru from '../../lib/localforage-lru'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:stores:feeds')
-import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
+import {Feed, Feeds, Subplebbits, Account, FeedsOptions} from '../../types'
 import createStore from 'zustand'
 
 // reddit loads approximately 25 posts per page

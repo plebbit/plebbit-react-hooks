@@ -3,7 +3,6 @@
 import accountsStore, {listeners} from './accounts-store'
 import accountsDatabase from './accounts-database'
 import Debug from 'debug'
-import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
 import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
