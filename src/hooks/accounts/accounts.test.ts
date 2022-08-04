@@ -874,7 +874,7 @@ describe('accounts', () => {
     })
   })
 
-  describe('multiple comments and votes in database', () => {
+  describe.only('multiple comments and votes in database', () => {
     let onChallenge: any
     let onChallengeVerification: any
     let publishOptions: any
@@ -970,7 +970,7 @@ describe('accounts', () => {
       }
     }
 
-    test.only(`get all account comments`, async () => {
+    test(`get all account comments`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
@@ -978,7 +978,7 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
     })
 
-    test.only(`get account comment and add cid to it when receive challengeVerification`, async () => {
+    test(`get account comment and add cid to it when receive challengeVerification`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
@@ -1137,7 +1137,7 @@ describe('accounts', () => {
       Pages.prototype.getPage = getPage
     })
 
-    test.only(`account comments are stored to database`, async () => {
+    test(`account comments are stored to database`, async () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
@@ -1336,7 +1336,7 @@ describe('accounts', () => {
     })
   })
 
-  describe('one comment in database', () => {
+  describe.only('one comment in database', () => {
     let rendered: any, waitFor: any
     const updatingComments: any = []
     const commentUpdate = Comment.prototype.update

@@ -6,7 +6,7 @@ import Debug from 'debug'
 import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
-import {Account, PublishCommentOptions, Comment, AccountsComments} from '../../types'
+import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
 
 // TODO: we currently subscribe to updates for every single comment
@@ -222,7 +222,34 @@ const getAccountsCommentsWithoutCids = () => {
   return accountsCommentsWithoutCids
 }
 
-export default {
-  startUpdatingAccountCommentOnCommentUpdateEvents,
-  addCidToAccountComment,
+// internal accounts action: mark an account's notifications as read
+export const markAccountNotificationsAsRead = async (account: Account) => {
+  const {accountsCommentsReplies} = accountsStore.getState()
+  assert(typeof account?.id === 'string', `accountsStore.markAccountNotificationsAsRead invalid account argument '${account}'`)
+
+  // find all unread replies
+  const repliesToMarkAsRead: AccountCommentsReplies = {}
+  for (const replyCid in accountsCommentsReplies[account.id]) {
+    if (!accountsCommentsReplies[account.id][replyCid].markedAsRead) {
+      repliesToMarkAsRead[replyCid] = {...accountsCommentsReplies[account.id][replyCid], markedAsRead: true}
+    }
+  }
+
+  // add all to database
+  const promises = []
+  for (const replyCid in repliesToMarkAsRead) {
+    promises.push(accountsDatabase.addAccountCommentReply(account.id, repliesToMarkAsRead[replyCid]))
+  }
+  await Promise.all(promises)
+
+  // add all to react context
+  debug('AccountContext.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
+  // setAccountsCommentsReplies((previousAccountsCommentsReplies) => {
+  //   const updatedAccountCommentsReplies = {...previousAccountsCommentsReplies[account.id], ...repliesToMarkAsRead}
+  //   return {...previousAccountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}
+  // })
+  accountsStore.setState(({accountsCommentsReplies}) => {
+    const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
+    return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}
+  })
 }

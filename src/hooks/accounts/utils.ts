@@ -44,7 +44,7 @@ export const filterPublications = (publications: any, filter: UseAccountComments
   return filteredPublications
 }
 
-const useAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
+export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
   return useMemo(() => {
     const accountsNotifications: AccountsNotifications = {}
     if (!accountsCommentsReplies) {

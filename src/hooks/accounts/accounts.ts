@@ -7,7 +7,7 @@ const debug = Debug('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
 import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../../types'
-import {filterPublications, useAccountsWithCalculatedProperties} from './utils'
+import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications} from './utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -118,18 +118,19 @@ export function useAccountSubplebbits(accountName?: string) {
  * the active account's notifications.
  */
 export function useAccountNotifications(accountName?: string) {
-  const accountsContext = useContext(AccountsContext)
+  // const accountsContext = useContext(AccountsContext)
+  const accountsStore = useAccountsStore()
+  const accountsNotifications = useAccountsNotifications(accountsStore.accounts, accountsStore.accountsCommentsReplies)
+
   const accountId = useAccountId(accountName)
-  const account = accountId && accountsContext?.accounts[accountId]
-  let notifications: AccountNotifications | undefined
-  if (account) {
-    notifications = accountsContext?.accountsNotifications[accountId]
-  }
+  const account = accountId && accountsStore?.accounts[accountId]
+  const notifications: AccountNotifications = (accountId && accountsNotifications?.[accountId]) || []
+
   const markAsRead = () => {
     if (!account) {
       throw Error('useAccountNotifications cannot mark as read accounts not initalized yet')
     }
-    accountsContext?.markAccountNotificationsAsRead(account)
+    accountsStore.accountsActionsInternal.markAccountNotificationsAsRead(account)
   }
   debug('useAccountNotifications', {notifications})
   return {notifications, markAsRead}

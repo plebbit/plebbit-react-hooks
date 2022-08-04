@@ -9,7 +9,7 @@ import validator from '../../lib/validator'
 import assert from 'assert'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
 import {Account, PublishCommentOptions, Challenge, ChallengeVerification, PublishVoteOptions, PublishCommentEditOptions, PublishSubplebbitEditOptions} from '../../types'
-import accountsActionsInternal from './accounts-actions-internal'
+import * as accountsActionsInternal from './accounts-actions-internal'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
   const {accounts, accountsComments, accountsVotes} = accountsStore.getState()

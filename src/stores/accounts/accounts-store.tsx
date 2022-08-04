@@ -32,6 +32,7 @@ import {
 } from '../../types'
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
+import * as accountsActionsInternal from './accounts-actions-internal'
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -46,6 +47,7 @@ type AccountsState = {
   accountsCommentsReplies: AccountsCommentsReplies
   accountsVotes: any
   accountsActions: {[key: string]: Function}
+  accountsActionsInternal: {[key: string]: Function}
 }
 
 const useAccountsStore = createStore<AccountsState>((setState: Function, getState: Function) => ({
@@ -58,6 +60,7 @@ const useAccountsStore = createStore<AccountsState>((setState: Function, getStat
   accountsCommentsReplies: {},
   accountsVotes: {},
   accountsActions,
+  accountsActionsInternal,
 }))
 
 // load accounts from database once on load
