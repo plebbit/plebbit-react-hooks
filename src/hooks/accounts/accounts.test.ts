@@ -1105,7 +1105,7 @@ describe('accounts', () => {
       })
     })
 
-    test.skip(`cid gets added to account comment after feed is fetched`, async () => {
+    test(`cid gets added to account comment after feed is fetched`, async () => {
       const getPage = Pages.prototype.getPage
 
       const rendered = renderHook<any, any>(
