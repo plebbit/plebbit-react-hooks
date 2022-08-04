@@ -2,6 +2,8 @@ import React, {useState, useEffect, useContext, useMemo} from 'react'
 import {AccountsContext} from '../accounts-provider'
 // import {SubplebbitsContext} from '../subplebbits-provider'
 import useSubplebbitsStore from '../../stores/subplebbits'
+import useAccountsStore from '../../stores/accounts'
+import useFeedsStore from '../../stores/feeds'
 import validator from '../../lib/validator'
 import feedSorter from './feed-sorter'
 import assert from 'assert'
@@ -25,7 +27,10 @@ const subplebbitPostsLeftBeforeNextPage = 50
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
-  const accountsContext = useContext(AccountsContext)
+  // const feedsStore = useFeedsStore()
+  // const {feedsOptions, bufferedFeeds, loadedFeeds} = feedsStore
+  // const accountsContext = useContext(AccountsContext)
+  const accounts = useAccountsStore((state) => state.accounts, shallow)
   const [feedsOptions, setFeedsOptions] = useState<FeedsOptions>({})
   const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
   const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
@@ -34,7 +39,7 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
   const subplebbits = useSubplebbits(feedsOptions)
   const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
   const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits)
-  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, accountsContext?.accounts || {})
+  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, accounts || {})
   const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds)
 
   // handle buffered feeds
@@ -301,7 +306,8 @@ function useCalculatedBufferedFeeds(
  * Once a next page is added, it is never removed.
  */
 function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbits: Subplebbits) {
-  const accountsContext = useContext(AccountsContext)
+  // const accountsContext = useContext(AccountsContext)
+
   const [subplebbitsPages, setSubplebbitsPages] = useState<SubplebbitsPages>({})
 
   // set the info necessary to fetch each page recursively
@@ -392,13 +398,12 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
         // when publishing a comment, you don't yet know its CID
         // so when a new comment is fetched, check to see if it's your own
         // comment, and if yes, add the CID to your account comments database
-        if (accountsContext?.addCidToAccountComment) {
-          const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage)
-          for (const comment of flattenedReplies) {
-            accountsContext
-              .addCidToAccountComment(comment)
-              .catch((error: unknown) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', {comment, error}))
-          }
+        const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage)
+        for (const comment of flattenedReplies) {
+          useAccountsStore
+            .getState()
+            .accountsActionsInternal.addCidToAccountComment(comment)
+            .catch((error: unknown) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', {comment, error}))
         }
       })()
     }

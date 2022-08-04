@@ -1,9 +1,9 @@
 import {act, renderHook} from '@testing-library/react-hooks'
-import testUtils from '../lib/test-utils'
-import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs, PlebbitProvider} from '..'
-import localForageLru from '../lib/localforage-lru'
+import testUtils from '../../lib/test-utils'
+import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs, PlebbitProvider} from '../..'
+import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
-import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
 import Debug from 'debug'
 setPlebbitJs(PlebbitJsMock)
 
@@ -84,9 +84,12 @@ describe('feeds', () => {
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
       const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1']), {wrapper: PlebbitProvider})
-      expect(rendered2.result.current.feed).toBe(undefined)
+      expect(rendered2.result.current.feed).toEqual([])
       // only wait for 1 render because subplebbit is stored in db
       try {
         await rendered2.waitForNextUpdate()
@@ -450,12 +453,7 @@ describe('feeds', () => {
         {wrapper: PlebbitProvider}
       )
 
-      // should get empty arrays after 1 render
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      // should get empty arrays after first render
       expect(rendered.result.current).toEqual([[], [], []])
 
       // should eventually buffer posts for all feeds
@@ -480,7 +478,6 @@ describe('feeds', () => {
       )
 
       // wait for createAccount to render
-      expect(rendered.result.current.createAccount).toBe(undefined)
       try {
         await rendered.waitForNextUpdate()
       } catch (e) {
@@ -791,6 +788,9 @@ describe('feeds', () => {
           // console.error(e)
         }
         expect(rendered.result.current.feed?.length).toBe(postsPerPage)
+
+        // reset stores to force using the db
+        await testUtils.resetStores()
 
         // render with a fresh empty context to test database persistance
         const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1'], 'new'), {

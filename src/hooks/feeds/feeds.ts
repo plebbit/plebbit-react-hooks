@@ -1,11 +1,11 @@
 import {useEffect, useMemo, useState, useContext} from 'react'
-import {useAccount} from './accounts'
-import {FeedsContext} from '../providers/feeds-provider'
-import validator from '../lib/validator'
+import {useAccount} from '../accounts'
+import {FeedsContext} from '../../providers/feeds-provider'
+import validator from '../../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
-import {Feed, UseBufferedFeedOptions} from '../types'
+import {Feed, UseBufferedFeedOptions} from '../../types'
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
