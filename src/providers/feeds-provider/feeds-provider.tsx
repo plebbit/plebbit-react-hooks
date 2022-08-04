@@ -27,13 +27,13 @@ const subplebbitPostsLeftBeforeNextPage = 50
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
-  // const feedsStore = useFeedsStore()
-  // const {feedsOptions, bufferedFeeds, loadedFeeds} = feedsStore
+  const feedsStore = useFeedsStore()
+  const {feedsOptions, bufferedFeeds, loadedFeeds} = feedsStore
   // const accountsContext = useContext(AccountsContext)
   const accounts = useAccountsStore((state) => state.accounts, shallow)
-  const [feedsOptions, setFeedsOptions] = useState<FeedsOptions>({})
-  const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
-  const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
+  // const [feedsOptions, setFeedsOptions] = useState<FeedsOptions>({})
+  // const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
+  // const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
 
   // fetch subplebbits, subplebbits pages and next subplebbit pages whenever bufferedFeeds gets too low
   const subplebbits = useSubplebbits(feedsOptions)
@@ -48,7 +48,8 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     if (Object.keys(calculatedBufferedFeeds).length === 0) {
       return
     }
-    setBufferedFeeds(calculatedBufferedFeeds)
+    // setBufferedFeeds(calculatedBufferedFeeds)
+    useFeedsStore.setState((state) => ({bufferedFeeds: calculatedBufferedFeeds}))
   }, [calculatedBufferedFeeds])
 
   // handle loaded feeds
@@ -77,55 +78,65 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     if (Object.keys(loadedFeedsMissingPosts).length === 0) {
       return
     }
-    setLoadedFeeds((previousLoadedFeeds) => {
+    // setLoadedFeeds((previousLoadedFeeds) => {
+    //   const newLoadedFeeds: Feeds = {}
+    //   for (const feedName in loadedFeedsMissingPosts) {
+    //     newLoadedFeeds[feedName] = [...(previousLoadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
+    //   }
+    //   return {...previousLoadedFeeds, ...newLoadedFeeds}
+    // })
+    useFeedsStore.setState(({loadedFeeds}) => {
       const newLoadedFeeds: Feeds = {}
       for (const feedName in loadedFeedsMissingPosts) {
-        newLoadedFeeds[feedName] = [...(previousLoadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
+        newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
       }
-      return {...previousLoadedFeeds, ...newLoadedFeeds}
+      return {loadedFeeds: {...loadedFeeds, ...newLoadedFeeds}}
     })
   }, [bufferedFeeds, feedsOptions])
 
-  const feedsActions: {[key: string]: Function} = {}
-
-  feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) => {
-    // feed is in context already, do nothing
-    // if the feed already exist but is at page 1, reset it to page 1
-    if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-      return
-    }
-    // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
-    debug('feedsActions.addFeedToContext', feedOptions)
-    setFeedsOptions((previousFeedsOptions) => {
-      // make sure to never overwrite a feed already added
-      if (previousFeedsOptions[feedName]) {
-        return previousFeedsOptions
-      }
-      return {...previousFeedsOptions, [feedName]: feedOptions}
-    })
+  const feedsActions: {[key: string]: Function} = {
+    addFeedToContext: feedsStore.addFeedToStore,
+    incrementFeedPageNumber: feedsStore.incrementFeedPageNumber,
   }
 
-  feedsActions.incrementFeedPageNumber = (feedName: string) => {
-    assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
-    debug('feedsActions.incrementFeedPageNumber', {feedName})
+  // feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) => {
+  //   // feed is in context already, do nothing
+  //   // if the feed already exist but is at page 1, reset it to page 1
+  //   if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
+  //     return
+  //   }
+  //   // to add a buffered feed, add a feed with pageNumber 0
+  //   const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
+  //   debug('feedsActions.addFeedToContext', feedOptions)
+  //   setFeedsOptions((previousFeedsOptions) => {
+  //     // make sure to never overwrite a feed already added
+  //     if (previousFeedsOptions[feedName]) {
+  //       return previousFeedsOptions
+  //     }
+  //     return {...previousFeedsOptions, [feedName]: feedOptions}
+  //   })
+  // }
 
-    assert(
-      feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
-      `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
-    )
-    setFeedsOptions((previousFeedsOptions) => {
-      // don't increment page number before the current page has loaded
-      if (previousFeedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
-        return previousFeedsOptions
-      }
-      const feedOptions = {
-        ...previousFeedsOptions[feedName],
-        pageNumber: previousFeedsOptions[feedName].pageNumber + 1,
-      }
-      return {...previousFeedsOptions, [feedName]: feedOptions}
-    })
-  }
+  // feedsActions.incrementFeedPageNumber = (feedName: string) => {
+  //   assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
+  //   debug('feedsActions.incrementFeedPageNumber', {feedName})
+
+  //   assert(
+  //     feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
+  //     `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
+  //   )
+  //   setFeedsOptions((previousFeedsOptions) => {
+  //     // don't increment page number before the current page has loaded
+  //     if (previousFeedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
+  //       return previousFeedsOptions
+  //     }
+  //     const feedOptions = {
+  //       ...previousFeedsOptions[feedName],
+  //       pageNumber: previousFeedsOptions[feedName].pageNumber + 1,
+  //     }
+  //     return {...previousFeedsOptions, [feedName]: feedOptions}
+  //   })
+  // }
 
   if (!props.children) {
     return null
