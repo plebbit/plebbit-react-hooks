@@ -78,7 +78,11 @@ export function useAccountSubplebbits(accountName?: string) {
   const subplebbitsArray = useSubplebbits(uniqueSubplebbitAddresses, accountName)
   const subplebbits: any = {}
   for (const [i, subplebbit] of subplebbitsArray.entries()) {
-    subplebbits[uniqueSubplebbitAddresses[i]] = {...subplebbit}
+    subplebbits[uniqueSubplebbitAddresses[i]] = {
+      ...subplebbit,
+      // make sure the address is defined if the subplebbit hasn't fetched yet
+      address: uniqueSubplebbitAddresses[i],
+    }
   }
 
   // merged subplebbit data with account.subplebbits data

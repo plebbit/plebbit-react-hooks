@@ -1543,6 +1543,12 @@ describe('accounts', () => {
         expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
       })
 
+      test('not yet fetched accounts subplebbits have address', async () => {
+        await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+        expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].address).toBe('list subplebbit address 1')
+        expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].address).toBe('list subplebbit address 2')
+      })
+
       test('returns moderator subplebbits after setting them', async () => {
         await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role === 'moderator')
         expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
