@@ -7,14 +7,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount } from './accounts';
-import { SubplebbitsContext } from '../providers/subplebbits-provider';
 import validator from '../lib/validator';
 import Debug from 'debug';
 const debug = Debug('plebbit-react-hooks:hooks:subplebbits');
 import useInterval from './utils/use-interval';
 import { resolveEnsTxtRecord } from '../lib/blockchain';
+import useSubplebbitsStore from '../stores/subplebbits';
+import shallow from 'zustand/shallow';
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -22,21 +23,19 @@ import { resolveEnsTxtRecord } from '../lib/blockchain';
  */
 export function useSubplebbit(subplebbitAddress, accountName) {
     const account = useAccount(accountName);
-    const subplebbitsContext = useContext(SubplebbitsContext);
-    const subplebbit = subplebbitAddress && subplebbitsContext.subplebbits[subplebbitAddress];
+    const subplebbit = useSubplebbitsStore((state) => state.subplebbits[subplebbitAddress || '']);
+    const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
     useEffect(() => {
         if (!subplebbitAddress || !account) {
             return;
         }
         validator.validateUseSubplebbitArguments(subplebbitAddress, account);
         if (!subplebbit) {
-            // if subplebbit isn't already in context, add it
-            subplebbitsContext.subplebbitsActions
-                .addSubplebbitToContext(subplebbitAddress, account)
-                .catch((error) => console.error('useSubplebbit addSubplebbitToContext error', { subplebbitAddress, error }));
+            // if subplebbit isn't already in store, add it
+            addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbit addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddress, account]);
-    debug('useSubplebbit', { subplebbitAddress, subplebbitsContext: subplebbitsContext.subplebbits, subplebbit, account });
+    debug('useSubplebbit', { subplebbitAddress, subplebbit, account });
     return subplebbit;
 }
 /**
@@ -44,13 +43,10 @@ export function useSubplebbit(subplebbitAddress, accountName) {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbits(subplebbitAddresses, accountName) {
+export function useSubplebbits(subplebbitAddresses = [], accountName) {
     const account = useAccount(accountName);
-    const subplebbitsContext = useContext(SubplebbitsContext);
-    const subplebbits = [];
-    for (const subplebbitAddress of subplebbitAddresses || []) {
-        subplebbits.push(subplebbitsContext.subplebbits[subplebbitAddress]);
-    }
+    const subplebbits = useSubplebbitsStore((state) => subplebbitAddresses.map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']), shallow);
+    const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
     useEffect(() => {
         if (!subplebbitAddresses || !account) {
             return;
@@ -58,15 +54,10 @@ export function useSubplebbits(subplebbitAddresses, accountName) {
         validator.validateUseSubplebbitsArguments(subplebbitAddresses, account);
         const uniqueSubplebbitAddresses = new Set(subplebbitAddresses);
         for (const subplebbitAddress of uniqueSubplebbitAddresses) {
-            // if subplebbit isn't already in context, add it
-            if (!subplebbitsContext.subplebbits[subplebbitAddress]) {
-                subplebbitsContext.subplebbitsActions
-                    .addSubplebbitToContext(subplebbitAddress, account)
-                    .catch((error) => console.error('useSubplebbits addSubplebbitToContext error', { subplebbitAddress, error }));
-            }
+            addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddresses, account]);
-    debug('useSubplebbits', { subplebbitAddresses, subplebbitsContext: subplebbitsContext.subplebbits, subplebbits, account });
+    debug('useSubplebbits', { subplebbitAddresses, subplebbits, account });
     return subplebbits;
 }
 /**

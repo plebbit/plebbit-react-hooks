@@ -19,7 +19,7 @@ export declare type AccountNotification = any;
 export declare type Nft = any;
 export declare type Author = any;
 /**
- * Subplebbits and comments provider
+ * Subplebbits and comments store
  */
 export declare type Subplebbits = {
     [subplebbitAddress: string]: Subplebbit;
@@ -28,7 +28,7 @@ export declare type Comments = {
     [commendCid: string]: Comment;
 };
 /**
- * Accounts provider
+ * Accounts store
  */
 export declare type Accounts = {
     [accountId: string]: Account;
@@ -62,7 +62,7 @@ export declare type AccountSubplebbit = {
     autoStart?: boolean;
 };
 /**
- * Feeds provider
+ * Feeds store
  */
 export declare type Feed = Comment[];
 export declare type Feeds = {

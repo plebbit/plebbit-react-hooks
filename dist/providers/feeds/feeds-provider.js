@@ -1,3 +1,6 @@
+// this file is a remnant from when feeds were a react context
+// TODO: redesign with a design better suited for zustand
+// the stores/feeds should not export any hooks
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -7,15 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { AccountsContext } from '../accounts-provider';
-import { SubplebbitsContext } from '../subplebbits-provider';
+import React, { useState, useEffect, useMemo } from 'react';
+import useSubplebbitsStore from '../../stores/subplebbits';
+import useAccountsStore from '../../stores/accounts';
+import useFeedsStore from '../../stores/feeds';
 import feedSorter from './feed-sorter';
-import assert from 'assert';
 import localForageLru from '../../lib/localforage-lru';
 import utils from '../../lib/utils';
 import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:providers:feeds-provider');
+const debug = Debug('plebbit-react-hooks:providers:feeds');
+import shallow from 'zustand/shallow';
 const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 });
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
@@ -24,15 +28,14 @@ const postsPerPage = 25;
 const subplebbitPostsLeftBeforeNextPage = 50;
 export const FeedsContext = React.createContext(undefined);
 export default function FeedsProvider(props) {
-    const accountsContext = useContext(AccountsContext);
-    const [feedsOptions, setFeedsOptions] = useState({});
-    const [bufferedFeeds, setBufferedFeeds] = useState({});
-    const [loadedFeeds, setLoadedFeeds] = useState({});
+    const feedsStore = useFeedsStore();
+    const { feedsOptions, bufferedFeeds, loadedFeeds } = feedsStore;
+    const accounts = useAccountsStore((state) => state.accounts, shallow);
     // fetch subplebbits, subplebbits pages and next subplebbit pages whenever bufferedFeeds gets too low
     const subplebbits = useSubplebbits(feedsOptions);
     const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds);
     const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits);
-    const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.accounts) || {});
+    const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, accounts || {});
     const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds);
     // handle buffered feeds
     useEffect(() => {
@@ -40,7 +43,8 @@ export default function FeedsProvider(props) {
         if (Object.keys(calculatedBufferedFeeds).length === 0) {
             return;
         }
-        setBufferedFeeds(calculatedBufferedFeeds);
+        // setBufferedFeeds(calculatedBufferedFeeds)
+        useFeedsStore.setState((state) => ({ bufferedFeeds: calculatedBufferedFeeds }));
     }, [calculatedBufferedFeeds]);
     // handle loaded feeds
     useEffect(() => {
@@ -66,44 +70,17 @@ export default function FeedsProvider(props) {
         if (Object.keys(loadedFeedsMissingPosts).length === 0) {
             return;
         }
-        setLoadedFeeds((previousLoadedFeeds) => {
+        useFeedsStore.setState(({ loadedFeeds }) => {
             const newLoadedFeeds = {};
             for (const feedName in loadedFeedsMissingPosts) {
-                newLoadedFeeds[feedName] = [...(previousLoadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]];
+                newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]];
             }
-            return Object.assign(Object.assign({}, previousLoadedFeeds), newLoadedFeeds);
+            return { loadedFeeds: Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds) };
         });
     }, [bufferedFeeds, feedsOptions]);
-    const feedsActions = {};
-    feedsActions.addFeedToContext = (feedName, subplebbitAddresses, sortType, account, isBufferedFeed) => {
-        // feed is in context already, do nothing
-        // if the feed already exist but is at page 1, reset it to page 1
-        if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-            return;
-        }
-        // to add a buffered feed, add a feed with pageNumber 0
-        const feedOptions = { subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1 };
-        debug('feedsActions.addFeedToContext', feedOptions);
-        setFeedsOptions((previousFeedsOptions) => {
-            // make sure to never overwrite a feed already added
-            if (previousFeedsOptions[feedName]) {
-                return previousFeedsOptions;
-            }
-            return Object.assign(Object.assign({}, previousFeedsOptions), { [feedName]: feedOptions });
-        });
-    };
-    feedsActions.incrementFeedPageNumber = (feedName) => {
-        assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`);
-        debug('feedsActions.incrementFeedPageNumber', { feedName });
-        assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
-        setFeedsOptions((previousFeedsOptions) => {
-            // don't increment page number before the current page has loaded
-            if (previousFeedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
-                return previousFeedsOptions;
-            }
-            const feedOptions = Object.assign(Object.assign({}, previousFeedsOptions[feedName]), { pageNumber: previousFeedsOptions[feedName].pageNumber + 1 });
-            return Object.assign(Object.assign({}, previousFeedsOptions), { [feedName]: feedOptions });
-        });
+    const feedsActions = {
+        addFeedToContext: feedsStore.addFeedToStore,
+        incrementFeedPageNumber: feedsStore.incrementFeedPageNumber,
     };
     if (!props.children) {
         return null;
@@ -261,7 +238,6 @@ function useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebb
  * Once a next page is added, it is never removed.
  */
 function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
-    const accountsContext = useContext(AccountsContext);
     const [subplebbitsPages, setSubplebbitsPages] = useState({});
     // set the info necessary to fetch each page recursively
     // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage
@@ -338,13 +314,12 @@ function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                 // when publishing a comment, you don't yet know its CID
                 // so when a new comment is fetched, check to see if it's your own
                 // comment, and if yes, add the CID to your account comments database
-                if (accountsContext === null || accountsContext === void 0 ? void 0 : accountsContext.addCidToAccountComment) {
-                    const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage);
-                    for (const comment of flattenedReplies) {
-                        accountsContext
-                            .addCidToAccountComment(comment)
-                            .catch((error) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', { comment, error }));
-                    }
+                const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage);
+                for (const comment of flattenedReplies) {
+                    useAccountsStore
+                        .getState()
+                        .accountsActionsInternal.addCidToAccountComment(comment)
+                        .catch((error) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', { comment, error }));
                 }
             }))();
         }
@@ -424,24 +399,24 @@ function useBufferedFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds) {
     }, [bufferedFeeds]);
 }
 /**
- * Add subplebbits to SubplebbitsContext as they are needed, and return them as an object
+ * Add subplebbits to SubplebbitsStore as they are needed, and return them as an object
  */
 function useSubplebbits(feedsOptions) {
     const subplebbitAddressesAndAccounts = useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions);
-    const subplebbitsContext = useContext(SubplebbitsContext);
-    const subplebbits = {};
-    for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
-        subplebbits[subplebbitAddress] = subplebbitsContext.subplebbits[subplebbitAddress];
-    }
+    const subplebbits = useSubplebbitsStore((state) => {
+        const subplebbits = {};
+        for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
+            subplebbits[subplebbitAddress] = state.subplebbits[subplebbitAddress];
+        }
+        return subplebbits;
+    }, shallow);
+    const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
     useEffect(() => {
         for (const [subplebbitAddress, account] of subplebbitAddressesAndAccounts) {
-            // if subplebbit isn't already in context, add it
-            if (!subplebbitsContext.subplebbits[subplebbitAddress]) {
-                subplebbitsContext.subplebbitsActions.addSubplebbitToContext(subplebbitAddress, account);
-            }
+            addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('FeedsProvider useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddressesAndAccounts]);
-    debug('FeedsProvider useSubplebbits', { subplebbitsContext: subplebbitsContext.subplebbits });
+    debug('FeedsProvider useSubplebbits', { subplebbitsStore: useSubplebbitsStore.getState().subplebbits });
     return subplebbits;
 }
 /**

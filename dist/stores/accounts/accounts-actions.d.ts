@@ -1,0 +1,18 @@
+import { Account, PublishCommentOptions, PublishVoteOptions, PublishCommentEditOptions, PublishSubplebbitEditOptions, CreateSubplebbitOptions } from '../../types';
+export declare const createAccount: (accountName?: string | undefined) => Promise<void>;
+export declare const deleteAccount: (accountName?: string | undefined) => Promise<void>;
+export declare const setActiveAccount: (accountName: string) => Promise<void>;
+export declare const setAccount: (account: Account) => Promise<void>;
+export declare const setAccountsOrder: (newOrderedAccountNames: string[]) => Promise<void>;
+export declare const importAccount: (serializedAccount: string) => Promise<void>;
+export declare const exportAccount: (accountName?: string | undefined) => Promise<string>;
+export declare const subscribe: (subplebbitAddress: string | number, accountName?: string | undefined) => Promise<void>;
+export declare const unsubscribe: (subplebbitAddress: string | number, accountName?: string | undefined) => Promise<void>;
+export declare const blockAddress: (address: string | number, accountName?: string | undefined) => Promise<void>;
+export declare const unblockAddress: (address: string | number, accountName?: string | undefined) => Promise<void>;
+export declare const publishComment: (publishCommentOptions: PublishCommentOptions, accountName?: string | undefined) => Promise<void>;
+export declare const deleteComment: (commentCidOrAccountCommentIndex: string | number, accountName?: string | undefined) => Promise<never>;
+export declare const publishVote: (publishVoteOptions: PublishVoteOptions, accountName?: string | undefined) => Promise<void>;
+export declare const publishCommentEdit: (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string | undefined) => Promise<void>;
+export declare const publishSubplebbitEdit: (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string | undefined) => Promise<void>;
+export declare const createSubplebbit: (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string | undefined) => Promise<any>;

@@ -7,6 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { resetCommentsStore, resetCommentsDatabaseAndStore } from '../stores/comments';
+import { resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore } from '../stores/subplebbits';
+import { resetAccountsStore, resetAccountsDatabaseAndStore } from '../stores/accounts';
+import { resetFeedsStore, resetFeedsDatabaseAndStore } from '../stores/feeds';
 const restorables = [];
 export const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
@@ -35,6 +39,10 @@ export const silenceTestWasNotWrappedInActWarning = () => {
     };
     restorables.push(restore);
     return restore;
+};
+export const silenceReactWarnings = () => {
+    silenceUpdateUnmountedComponentWarning();
+    silenceTestWasNotWrappedInActWarning();
 };
 const restoreAll = () => {
     for (const restore of restorables) {
@@ -69,10 +77,27 @@ const createWaitFor = (rendered, waitForOptions) => {
     });
     return waitFor;
 };
+export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetFeedsStore();
+    yield resetSubplebbitsStore();
+    yield resetCommentsStore();
+    // always accounts last because it has async initialization
+    yield resetAccountsStore();
+});
+export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetFeedsDatabaseAndStore();
+    yield resetSubplebbitsDatabaseAndStore();
+    yield resetCommentsDatabaseAndStore();
+    // always accounts last because it has async initialization
+    yield resetAccountsDatabaseAndStore();
+});
 const testUtils = {
     silenceTestWasNotWrappedInActWarning,
     silenceUpdateUnmountedComponentWarning,
+    silenceReactWarnings,
     restoreAll,
     createWaitFor,
+    resetStores,
+    resetDatabasesAndStores,
 };
 export default testUtils;

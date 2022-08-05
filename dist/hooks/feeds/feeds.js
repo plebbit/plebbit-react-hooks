@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useContext } from 'react';
-import { useAccount } from './accounts';
-import { FeedsContext } from '../providers/feeds-provider';
-import validator from '../lib/validator';
+import { useAccount } from '../accounts';
+import { FeedsContext } from '../../providers/feeds';
+import validator from '../../lib/validator';
 import Debug from 'debug';
 const debug = Debug('plebbit-react-hooks:hooks:feeds');
 /**
@@ -22,7 +22,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
             return;
         }
         if (!feed) {
-            // if feed isn't already in context, add it
+            // if feed isn't already in store, add it
             feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account);
         }
     }, [feedName, uniqueSubplebbitAddresses, account]);
@@ -38,7 +38,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
         feedsContext.feedsActions.incrementFeedPageNumber(feedName);
     };
     debug('useFeed', { feed, hasMore });
-    return { feed, hasMore, loadMore };
+    return { feed: feed || [], hasMore, loadMore };
 }
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when

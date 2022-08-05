@@ -1,5 +1,5 @@
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
-import PlebbitProvider from './providers/plebbit-provider';
+import PlebbitProvider from './providers/plebbit';
 import { useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useAccountNotifications, useAccountSubplebbits } from './hooks/accounts';
 import { useComment, useComments } from './hooks/comments';
 import { useSubplebbit, useSubplebbits, useResolvedSubplebbitAddress } from './hooks/subplebbits';

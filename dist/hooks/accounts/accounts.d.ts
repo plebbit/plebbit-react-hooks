@@ -1,17 +1,19 @@
-import type { UseAccountCommentsOptions, AccountNotifications } from '../types';
+import type { UseAccountCommentsOptions, AccountNotifications } from '../../types';
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account.
  */
 export declare function useAccount(accountName?: string): any;
 /**
- * Return all accounts in the order of `AccountsContext.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
+ * Return all accounts in the order of `accountsStore.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
 export declare function useAccounts(): any[];
 /**
  * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
  */
-export declare function useAccountsActions(): any;
+export declare function useAccountsActions(): {
+    [key: string]: Function;
+};
 /**
  * Returns all subplebbits where the account is a creator or moderator
  */
@@ -23,7 +25,7 @@ export declare function useAccountSubplebbits(accountName?: string): any;
  * the active account's notifications.
  */
 export declare function useAccountNotifications(accountName?: string): {
-    notifications: AccountNotifications | undefined;
+    notifications: AccountNotifications;
     markAsRead: () => void;
 };
 /**

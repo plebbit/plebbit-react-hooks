@@ -1,4 +1,4 @@
-import { Feed, UseBufferedFeedOptions } from '../types';
+import { Feed, UseBufferedFeedOptions } from '../../types';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'

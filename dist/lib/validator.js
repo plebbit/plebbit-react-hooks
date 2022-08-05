@@ -13,7 +13,7 @@ const toString = (value) => {
 export const validateAccountsActionsPublishCommentArguments = ({ publishCommentOptions, accountName, account }) => {
     assert(!accountName || typeof accountName === 'string', `publishComment accountName '${accountName}' not a string`);
     assert(accountName !== '', `publishComment accountName argument is empty string`);
-    assert(!accountName || account, `publishComment no account with name '${accountName}' in AccountsContext`);
+    assert(!accountName || account, `publishComment no account with name '${accountName}' in accountsStore`);
     assert(publishCommentOptions && typeof publishCommentOptions === 'object', 'publishComment publishCommentOptions not an object');
     assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function');
     assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function');
@@ -26,7 +26,7 @@ export const validateAccountsActionsPublishCommentArguments = ({ publishCommentO
 export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions, accountName, account }) => {
     assert(!accountName || typeof accountName === 'string', `publishVote accountName '${accountName}' not a string`);
     assert(accountName !== '', `publishVote accountName argument is empty string`);
-    assert(!accountName || account, `publishVote no account with name '${accountName}' in AccountsContext`);
+    assert(!accountName || account, `publishVote no account with name '${accountName}' in accountsStore`);
     assert(publishVoteOptions && typeof publishVoteOptions === 'object', 'publishVote publishVoteOptions not an object');
     assert(typeof publishVoteOptions.onChallenge === 'function', 'publishVote publishVoteOptions.onChallenge not a function');
     assert(typeof publishVoteOptions.onChallengeVerification === 'function', 'publishVote publishVoteOptions.onChallengeVerification not a function');
@@ -38,7 +38,7 @@ export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions
 export const validateAccountsActionsPublishCommentEditArguments = ({ publishCommentEditOptions, accountName, account }) => {
     assert(!accountName || typeof accountName === 'string', `publishCommentEdit accountName '${accountName}' not a string`);
     assert(accountName !== '', `publishCommentEdit accountName argument is empty string`);
-    assert(!accountName || account, `publishCommentEdit no account with name '${accountName}' in AccountsContext`);
+    assert(!accountName || account, `publishCommentEdit no account with name '${accountName}' in accountsStore`);
     assert(publishCommentEditOptions && typeof publishCommentEditOptions === 'object', 'publishCommentEdit publishCommentEditOptions not an object');
     assert(typeof publishCommentEditOptions.onChallenge === 'function', 'publishCommentEdit publishCommentEditOptions.onChallenge not a function');
     assert(typeof publishCommentEditOptions.onChallengeVerification === 'function', 'publishCommentEdit publishCommentEditOptions.onChallengeVerification not a function');
@@ -49,7 +49,7 @@ export const validateAccountsActionsPublishCommentEditArguments = ({ publishComm
 export const validateAccountsActionsPublishSubplebbitEditArguments = ({ subplebbitAddress, publishSubplebbitEditOptions, accountName, account }) => {
     assert(!accountName || typeof accountName === 'string', `publishSubplebbitEdit accountName '${accountName}' not a string`);
     assert(accountName !== '', `publishSubplebbitEdit accountName argument is empty string`);
-    assert(!accountName || account, `publishSubplebbitEdit no account with name '${accountName}' in AccountsContext`);
+    assert(!accountName || account, `publishSubplebbitEdit no account with name '${accountName}' in accountsStore`);
     assert(publishSubplebbitEditOptions && typeof publishSubplebbitEditOptions === 'object', 'publishSubplebbitEdit publishSubplebbitEditOptions not an object');
     assert(typeof publishSubplebbitEditOptions.onChallenge === 'function', 'publishSubplebbitEdit publishSubplebbitEditOptions.onChallenge not a function');
     assert(typeof publishSubplebbitEditOptions.onChallengeVerification === 'function', 'publishSubplebbitEdit publishSubplebbitEditOptions.onChallengeVerification not a function');
