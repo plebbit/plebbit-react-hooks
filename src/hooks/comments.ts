@@ -1,11 +1,12 @@
-import {useEffect, useMemo, useState, useContext} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {useAccount} from './accounts'
-import {CommentsContext} from '../providers/comments-provider'
 import validator from '../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
 import {Comment} from '../types'
+import useCommentsStore from '../stores/comments'
+import shallow from 'zustand/shallow'
 
 /**
  * @param commentCid - The IPFS CID of the comment to get
@@ -14,8 +15,8 @@ import {Comment} from '../types'
  */
 export function useComment(commentCid?: string, accountName?: string) {
   const account = useAccount(accountName)
-  const commentsContext = useContext(CommentsContext)
-  const comment = commentCid && commentsContext.comments[commentCid]
+  const comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
+  const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
 
   useEffect(() => {
     if (!commentCid || !account) {
@@ -23,14 +24,12 @@ export function useComment(commentCid?: string, accountName?: string) {
     }
     validator.validateUseCommentArguments(commentCid, account)
     if (!comment) {
-      // if comment isn't already in context, add it
-      commentsContext.commentsActions
-        .addCommentToContext(commentCid, account)
-        .catch((error: unknown) => console.error('useComment addCommentToContext error', {commentCid, error}))
+      // if comment isn't already in store, add it
+      addCommentToStore(commentCid, account).catch((error: unknown) => console.error('useComment addCommentToStore error', {commentCid, error}))
     }
   }, [commentCid, account])
 
-  debug('useComment', {commentCid, commentsContext: commentsContext.comments, comment, account})
+  debug('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
   return comment
 }
 
@@ -39,13 +38,10 @@ export function useComment(commentCid?: string, accountName?: string) {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComments(commentCids?: string[], accountName?: string) {
+export function useComments(commentCids: string[] = [], accountName?: string) {
   const account = useAccount(accountName)
-  const commentsContext = useContext(CommentsContext)
-  const comments: Comment[] = []
-  for (const commentCid of commentCids || []) {
-    comments.push(commentsContext.comments[commentCid])
-  }
+  const comments: Comment[] = useCommentsStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
+  const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
 
   useEffect(() => {
     if (!commentCids || !account) {
@@ -54,15 +50,10 @@ export function useComments(commentCids?: string[], accountName?: string) {
     validator.validateUseCommentsArguments(commentCids, account)
     const uniqueCommentCids = new Set(commentCids)
     for (const commentCid of uniqueCommentCids) {
-      // if comment isn't already in context, add it
-      if (!commentsContext.comments[commentCid]) {
-        commentsContext.commentsActions
-          .addCommentToContext(commentCid, account)
-          .catch((error: unknown) => console.error('useComments addCommentToContext error', {commentCid, error}))
-      }
+      addCommentToStore(commentCid, account).catch((error: unknown) => console.error('useComments addCommentToStore error', {commentCid, error}))
     }
   }, [commentCids, account])
 
-  debug('useComments', {commentCids, commentsContext: commentsContext.comments, comments, account})
+  debug('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
   return comments
 }

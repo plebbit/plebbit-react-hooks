@@ -1,7 +1,6 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
@@ -28,12 +27,15 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`subplebbits (${plebbitOptionsType})`, () => {
-    before(() => {
-      testUtils.silenceUpdateUnmountedComponentWarning()
+    before(async () => {
+      console.log(`before subplebbits tests (${plebbitOptionsType})`)
+      testUtils.silenceReactWarnings()
+      // reset before or init accounts sometimes fails
+      await testUtils.resetDatabasesAndStores()
     })
     after(async () => {
       testUtils.restoreAll()
-      await debugUtils.deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     describe(`no subplebbits in database (${plebbitOptionsType})`, () => {
@@ -72,6 +74,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
 
       it(`get subplebbits one at a time (${plebbitOptionsType})`, async () => {
+        console.log(`starting subplebbits tests (${plebbitOptionsType})`)
+
         rendered.rerender({subplebbitAddress})
         await waitFor(() => typeof rendered.result.current.subplebbit.address === 'string')
         expect(rendered.result.current.subplebbit.address).to.equal(subplebbitAddress)

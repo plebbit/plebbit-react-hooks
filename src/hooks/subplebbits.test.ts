@@ -1,61 +1,52 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider, useResolvedSubplebbitAddress, useAccount} from '..'
+import subplebbitStore from '../stores/subplebbits'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
-import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForageLru.createInstance({name: 'subplebbits'}).clear()])
-
 describe('subplebbits', () => {
   beforeAll(() => {
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
   })
-
   afterEach(async () => {
-    await deleteDatabases()
+    await testUtils.resetDatabasesAndStores()
   })
 
   describe('no subplebbits in database', () => {
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
     test('get subplebbits one at a time', async () => {
       const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
         wrapper: PlebbitProvider,
       })
+      const waitFor = testUtils.createWaitFor(rendered)
+
       expect(rendered.result.current).toBe(undefined)
       rendered.rerender('subplebbit address 1')
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.address === 'string')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.address === 'string')
+
       expect(rendered.result.current.address).toBe('subplebbit address 1')
       expect(rendered.result.current.title).toBe('subplebbit address 1 title')
       // wait for subplebbit.on('update') to fetch the updated description
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.description === 'string')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.description === 'string')
+
       expect(rendered.result.current.description).toBe('subplebbit address 1 description updated')
 
       rendered.rerender('subplebbit address 2')
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.address === 'string')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.address === 'string')
+
       expect(rendered.result.current.address).toBe('subplebbit address 2')
       expect(rendered.result.current.title).toBe('subplebbit address 2 title')
       // wait for subplebbit.on('update') to fetch the updated description
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.description === 'string')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.description === 'string')
+
       expect(rendered.result.current.description).toBe('subplebbit address 2 description updated')
 
       // get sub 1 again, no need to wait for any updates
@@ -74,9 +65,14 @@ describe('subplebbits', () => {
       let throwOnSubplebbitUpdateEvent = false
       Subplebbit.prototype.simulateUpdateEvent = () => {
         if (throwOnSubplebbitUpdateEvent) {
-          throw Error('no subplebbit update events should be emitted when subplebbit already in context')
+          throw Error('no subplebbit update events should be emitted when subplebbit already in store')
         }
       }
+
+      // reset stores to force using the db
+      expect(subplebbitStore.getState().subplebbits).not.toEqual({})
+      await testUtils.resetStores()
+      expect(subplebbitStore.getState().subplebbits).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
@@ -85,27 +81,21 @@ describe('subplebbits', () => {
       expect(rendered2.result.current).toBe(undefined)
       rendered2.rerender('subplebbit address 1')
       // wait to get account loaded
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => rendered2.result.current.address === 'subplebbit address 1')
+
       expect(rendered2.result.current.address).toBe('subplebbit address 1')
       expect(rendered2.result.current.title).toBe('subplebbit address 1 title')
       expect(rendered2.result.current.description).toBe('subplebbit address 1 description updated')
 
       rendered2.rerender('subplebbit address 2')
-      // wait for addSubplebbitToContext action
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      // wait for addSubplebbitToStore action
+      await waitFor(() => rendered2.result.current.address === 'subplebbit address 2')
+
       expect(rendered2.result.current.address).toBe('subplebbit address 2')
       expect(rendered2.result.current.title).toBe('subplebbit address 2 title')
       expect(rendered2.result.current.description).toBe('subplebbit address 2 description updated')
 
-      // get subplebbit 1 again from context, should not trigger any subplebbit updates
+      // get subplebbit 1 again from store, should not trigger any subplebbit updates
       throwOnSubplebbitUpdateEvent = true
       rendered2.rerender('subplebbit address 1')
       expect(rendered2.result.current.address).toBe('subplebbit address 1')
@@ -121,32 +111,28 @@ describe('subplebbits', () => {
       const rendered = renderHook<any, any>((subplebbitAddresses) => useSubplebbits(subplebbitAddresses), {
         wrapper: PlebbitProvider,
       })
+      const waitFor = testUtils.createWaitFor(rendered)
+
       expect(rendered.result.current).toEqual([])
       rendered.rerender(['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'])
       expect(rendered.result.current).toEqual([undefined, undefined, undefined])
-      try {
-        await rendered.waitFor(
-          () =>
-            typeof rendered.result.current[0].address === 'string' &&
-            typeof rendered.result.current[1].address === 'string' &&
-            typeof rendered.result.current[2].address === 'string'
-        )
-      } catch (e) {
-        console.error(e)
-      }
+
+      await waitFor(
+        () =>
+          typeof rendered.result.current[0].address === 'string' &&
+          typeof rendered.result.current[1].address === 'string' &&
+          typeof rendered.result.current[2].address === 'string'
+      )
       expect(rendered.result.current[0].address).toBe('subplebbit address 1')
       expect(rendered.result.current[1].address).toBe('subplebbit address 2')
       expect(rendered.result.current[2].address).toBe('subplebbit address 3')
-      try {
-        await rendered.waitFor(
-          () =>
-            typeof rendered.result.current[0].description === 'string' &&
-            typeof rendered.result.current[1].description === 'string' &&
-            typeof rendered.result.current[2].description === 'string'
-        )
-      } catch (e) {
-        console.error(e)
-      }
+
+      await waitFor(
+        () =>
+          typeof rendered.result.current[0].description === 'string' &&
+          typeof rendered.result.current[1].description === 'string' &&
+          typeof rendered.result.current[2].description === 'string'
+      )
       expect(rendered.result.current[0].description).toBe('subplebbit address 1 description updated')
       expect(rendered.result.current[1].description).toBe('subplebbit address 2 description updated')
       expect(rendered.result.current[2].description).toBe('subplebbit address 3 description updated')

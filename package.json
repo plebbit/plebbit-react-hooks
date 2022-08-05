@@ -22,7 +22,8 @@
     "webpack": "webpack --mode development --config config/webpack.config.js",
     "webpack:watch": "while true; do webpack watch --mode development --config config/webpack.config.js; sleep 1; done",
     "test": "jest --config config/jest.config.cjs",
-    "test:e2e": "yarn test:e2e:browser && yarn test:e2e:electron",
+    "test:e2e": "yarn test:e2e:mock && yarn test:e2e:browser && yarn test:e2e:electron",
+    "test:e2e:mock": "karma start config/karma.conf.js --plebbit-js-mock",
     "test:e2e:browser": "karma start config/karma.conf.js",
     "test:e2e:electron": "karma start config/karma-electron.conf.js",
     "test:server": "node test/test-server",
@@ -31,14 +32,15 @@
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#d192d2fa03d64f062641b129ef46db5fe5be9080",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#945a0911a39f94074e77c9390223a9e07cd64437",
     "@types/debug": "4.1.7",
     "@types/uuid": "8.3.4",
     "assert": "2.0.0",
     "debug": "4.3.3",
     "ethers": "5.6.9",
     "localforage": "1.10.0",
-    "uuid": "8.3.2"
+    "uuid": "8.3.2",
+    "zustand": "4.0.0"
   },
   "peerDependencies": {
     "react": ">=16.8"

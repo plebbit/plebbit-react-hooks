@@ -21,13 +21,13 @@ export type Nft = any
 export type Author = any
 
 /**
- * Subplebbits and comments provider
+ * Subplebbits and comments store
  */
 export type Subplebbits = {[subplebbitAddress: string]: Subplebbit}
 export type Comments = {[commendCid: string]: Comment}
 
 /**
- * Accounts provider
+ * Accounts store
  */
 export type Accounts = {[accountId: string]: Account}
 export type AccountNamesToAccountIds = {[accountName: string]: string}
@@ -50,7 +50,7 @@ export type AccountSubplebbit = {
 }
 
 /**
- * Feeds provider
+ * Feeds store
  */
 export type Feed = Comment[]
 export type Feeds = {[feedName: string]: Feed}

@@ -2,22 +2,27 @@ const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useSubplebbit, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+// mock right after importing or sometimes fails to mock
+setPlebbitJs(PlebbitJsMock)
 
 const timeout = 10000
 
 describe('subplebbits (plebbit-js mock)', () => {
-  before(() => {
-    setPlebbitJs(PlebbitJsMock)
-    testUtils.silenceUpdateUnmountedComponentWarning()
+  before(async () => {
+    console.log('before subplebbits tests')
+    testUtils.silenceReactWarnings()
+    // reset before or init accounts sometimes fails
+    await testUtils.resetDatabasesAndStores()
   })
   after(async () => {
     testUtils.restoreAll()
-    await debugUtils.deleteDatabases()
-    restorePlebbitJs()
+    await testUtils.resetDatabasesAndStores()
+    console.log('after reset stores')
   })
 
   describe('no subplebbits in database', () => {
     it('get subplebbits one at a time', async () => {
+      console.log('starting subplebbits tests')
       const rendered = renderHook((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
         wrapper: PlebbitProvider,
       })

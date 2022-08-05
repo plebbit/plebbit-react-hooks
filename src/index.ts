@@ -9,7 +9,7 @@ try {
 } catch (e) {}
 
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
-import PlebbitProvider from './providers/plebbit-provider'
+import PlebbitProvider from './providers/plebbit'
 import {
   useAccount,
   useAccounts,

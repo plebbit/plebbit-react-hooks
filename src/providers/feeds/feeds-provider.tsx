@@ -1,14 +1,18 @@
+// this file is a remnant from when feeds were a react context
+// TODO: redesign with a design better suited for zustand
+// the stores/feeds should not export any hooks
+
 import React, {useState, useEffect, useContext, useMemo} from 'react'
-import {AccountsContext} from '../accounts-provider'
-import {SubplebbitsContext} from '../subplebbits-provider'
-import validator from '../../lib/validator'
+import useSubplebbitsStore from '../../stores/subplebbits'
+import useAccountsStore from '../../stores/accounts'
+import useFeedsStore from '../../stores/feeds'
 import feedSorter from './feed-sorter'
-import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
 import utils from '../../lib/utils'
 import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:providers:feeds-provider')
+const debug = Debug('plebbit-react-hooks:providers:feeds')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
+import shallow from 'zustand/shallow'
 
 const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbitsPages', size: 500})
 
@@ -23,16 +27,15 @@ const subplebbitPostsLeftBeforeNextPage = 50
 export const FeedsContext = React.createContext<FeedsContext | undefined>(undefined)
 
 export default function FeedsProvider(props: Props): JSX.Element | null {
-  const accountsContext = useContext(AccountsContext)
-  const [feedsOptions, setFeedsOptions] = useState<FeedsOptions>({})
-  const [bufferedFeeds, setBufferedFeeds] = useState<Feeds>({})
-  const [loadedFeeds, setLoadedFeeds] = useState<Feeds>({})
+  const feedsStore = useFeedsStore()
+  const {feedsOptions, bufferedFeeds, loadedFeeds} = feedsStore
+  const accounts = useAccountsStore((state) => state.accounts, shallow)
 
   // fetch subplebbits, subplebbits pages and next subplebbit pages whenever bufferedFeeds gets too low
   const subplebbits = useSubplebbits(feedsOptions)
   const subplebbitsPostsInfo = useSubplebbitsPostsInfo(feedsOptions, subplebbits, bufferedFeeds)
   const subplebbitsPages = useSubplebbitsPages(subplebbitsPostsInfo, subplebbits)
-  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, accountsContext?.accounts || {})
+  const calculatedBufferedFeeds = useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebbitsPages, loadedFeeds, accounts || {})
   const feedsHaveMore = useFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds)
 
   // handle buffered feeds
@@ -41,7 +44,8 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     if (Object.keys(calculatedBufferedFeeds).length === 0) {
       return
     }
-    setBufferedFeeds(calculatedBufferedFeeds)
+    // setBufferedFeeds(calculatedBufferedFeeds)
+    useFeedsStore.setState((state) => ({bufferedFeeds: calculatedBufferedFeeds}))
   }, [calculatedBufferedFeeds])
 
   // handle loaded feeds
@@ -70,54 +74,18 @@ export default function FeedsProvider(props: Props): JSX.Element | null {
     if (Object.keys(loadedFeedsMissingPosts).length === 0) {
       return
     }
-    setLoadedFeeds((previousLoadedFeeds) => {
+    useFeedsStore.setState(({loadedFeeds}) => {
       const newLoadedFeeds: Feeds = {}
       for (const feedName in loadedFeedsMissingPosts) {
-        newLoadedFeeds[feedName] = [...(previousLoadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
+        newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
       }
-      return {...previousLoadedFeeds, ...newLoadedFeeds}
+      return {loadedFeeds: {...loadedFeeds, ...newLoadedFeeds}}
     })
   }, [bufferedFeeds, feedsOptions])
 
-  const feedsActions: {[key: string]: Function} = {}
-
-  feedsActions.addFeedToContext = (feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) => {
-    // feed is in context already, do nothing
-    // if the feed already exist but is at page 1, reset it to page 1
-    if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-      return
-    }
-    // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
-    debug('feedsActions.addFeedToContext', feedOptions)
-    setFeedsOptions((previousFeedsOptions) => {
-      // make sure to never overwrite a feed already added
-      if (previousFeedsOptions[feedName]) {
-        return previousFeedsOptions
-      }
-      return {...previousFeedsOptions, [feedName]: feedOptions}
-    })
-  }
-
-  feedsActions.incrementFeedPageNumber = (feedName: string) => {
-    assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in FeedsContext`)
-    debug('feedsActions.incrementFeedPageNumber', {feedName})
-
-    assert(
-      feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
-      `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
-    )
-    setFeedsOptions((previousFeedsOptions) => {
-      // don't increment page number before the current page has loaded
-      if (previousFeedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
-        return previousFeedsOptions
-      }
-      const feedOptions = {
-        ...previousFeedsOptions[feedName],
-        pageNumber: previousFeedsOptions[feedName].pageNumber + 1,
-      }
-      return {...previousFeedsOptions, [feedName]: feedOptions}
-    })
+  const feedsActions: {[key: string]: Function} = {
+    addFeedToContext: feedsStore.addFeedToStore,
+    incrementFeedPageNumber: feedsStore.incrementFeedPageNumber,
   }
 
   if (!props.children) {
@@ -299,7 +267,6 @@ function useCalculatedBufferedFeeds(
  * Once a next page is added, it is never removed.
  */
 function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbits: Subplebbits) {
-  const accountsContext = useContext(AccountsContext)
   const [subplebbitsPages, setSubplebbitsPages] = useState<SubplebbitsPages>({})
 
   // set the info necessary to fetch each page recursively
@@ -390,13 +357,12 @@ function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subpleb
         // when publishing a comment, you don't yet know its CID
         // so when a new comment is fetched, check to see if it's your own
         // comment, and if yes, add the CID to your account comments database
-        if (accountsContext?.addCidToAccountComment) {
-          const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage)
-          for (const comment of flattenedReplies) {
-            accountsContext
-              .addCidToAccountComment(comment)
-              .catch((error: unknown) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', {comment, error}))
-          }
+        const flattenedReplies = utils.flattenCommentsPages(fetchedSubplebbitPage)
+        for (const comment of flattenedReplies) {
+          useAccountsStore
+            .getState()
+            .accountsActionsInternal.addCidToAccountComment(comment)
+            .catch((error: unknown) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', {comment, error}))
         }
       })()
     }
@@ -479,26 +445,28 @@ function useBufferedFeedsSubplebbitsPostCounts(feedsOptions: FeedsOptions, buffe
 }
 
 /**
- * Add subplebbits to SubplebbitsContext as they are needed, and return them as an object
+ * Add subplebbits to SubplebbitsStore as they are needed, and return them as an object
  */
 function useSubplebbits(feedsOptions: FeedsOptions) {
   const subplebbitAddressesAndAccounts = useUniqueSortedSubplebbitAddressesAndAccounts(feedsOptions)
-  const subplebbitsContext = useContext(SubplebbitsContext)
-  const subplebbits: Subplebbits = {}
-  for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
-    subplebbits[subplebbitAddress] = subplebbitsContext.subplebbits[subplebbitAddress]
-  }
+  const subplebbits: Subplebbits = useSubplebbitsStore((state: any) => {
+    const subplebbits: Subplebbits = {}
+    for (const [subplebbitAddress] of subplebbitAddressesAndAccounts) {
+      subplebbits[subplebbitAddress] = state.subplebbits[subplebbitAddress]
+    }
+    return subplebbits
+  }, shallow)
+  const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
 
   useEffect(() => {
     for (const [subplebbitAddress, account] of subplebbitAddressesAndAccounts) {
-      // if subplebbit isn't already in context, add it
-      if (!subplebbitsContext.subplebbits[subplebbitAddress]) {
-        subplebbitsContext.subplebbitsActions.addSubplebbitToContext(subplebbitAddress, account)
-      }
+      addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) =>
+        console.error('FeedsProvider useSubplebbits addSubplebbitToStore error', {subplebbitAddress, error})
+      )
     }
   }, [subplebbitAddressesAndAccounts])
 
-  debug('FeedsProvider useSubplebbits', {subplebbitsContext: subplebbitsContext.subplebbits})
+  debug('FeedsProvider useSubplebbits', {subplebbitsStore: useSubplebbitsStore.getState().subplebbits})
   return subplebbits
 }
 

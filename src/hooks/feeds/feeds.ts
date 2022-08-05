@@ -1,11 +1,11 @@
 import {useEffect, useMemo, useState, useContext} from 'react'
-import {useAccount} from './accounts'
-import {FeedsContext} from '../providers/feeds-provider'
-import validator from '../lib/validator'
+import {useAccount} from '../accounts'
+import {FeedsContext} from '../../providers/feeds'
+import validator from '../../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
-import {Feed, UseBufferedFeedOptions} from '../types'
+import {Feed, UseBufferedFeedOptions} from '../../types'
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
@@ -27,7 +27,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
       return
     }
     if (!feed) {
-      // if feed isn't already in context, add it
+      // if feed isn't already in store, add it
       feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account)
     }
   }, [feedName, uniqueSubplebbitAddresses, account])
@@ -46,7 +46,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   }
 
   debug('useFeed', {feed, hasMore})
-  return {feed, hasMore, loadMore}
+  return {feed: feed || [], hasMore, loadMore}
 }
 
 /**

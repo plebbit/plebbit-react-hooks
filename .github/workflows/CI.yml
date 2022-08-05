@@ -19,7 +19,7 @@ on:
       - 'test/**'
       - 'src/**'
       - 'config/**'
-      - '.github/**'
+      # - '.github/**'
       - 'package.json'
       - 'yarn.lock'
 
@@ -45,20 +45,6 @@ jobs:
           # cache: 'yarn'
 
       - run: yarn install --frozen-lockfile
-
-      # verify correct plebbit-js version is installed
-      - run: find node_modules/@plebbit/plebbit-js/dist -type f -name '*.js' -print0 | sort -z | xargs -0 sha1sum && find node_modules/@plebbit/plebbit-js/dist -type f -name '*.js' -print0 | sort -z | xargs -0 sha1sum | sha1sum
-      - run: cat yarn.lock | grep plebbit-js -A20
-
-      # install correct plebbit-js commit
-      - run: git clone https://github.com/plebbit/plebbit-js.git && cd plebbit-js && git checkout $(node -e "console.log(require('../package.json').dependencies['@plebbit/plebbit-js'].split('#')[1])")
-      - run: yarn remove @plebbit/plebbit-js
-      - run: yarn add ./plebbit-js
-
-      # verify correct plebbit-js version is installed
-      - run: find node_modules/@plebbit/plebbit-js/dist -type f -name '*.js' -print0 | sort -z | xargs -0 sha1sum && find node_modules/@plebbit/plebbit-js/dist -type f -name '*.js' -print0 | sort -z | xargs -0 sha1sum | sha1sum
-      - run: cat yarn.lock | grep plebbit-js -A20
-
       - run: yarn test
       - run: yarn build
       - run: yarn webpack
@@ -68,6 +54,7 @@ jobs:
       - run: sudo echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
       - run: yarn test:server & yarn test:server:wait-on
-      - run: DEBUG=plebbit-js:* CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
+      - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:mock
+      - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
       # electron cannot run headless needs virtual display xvfb
-      - run: DEBUG=plebbit-js:* xvfb-run yarn test:e2e:electron
+      - run: xvfb-run yarn test:e2e:electron

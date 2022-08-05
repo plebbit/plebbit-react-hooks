@@ -1,3 +1,10 @@
+import {resetCommentsStore, resetCommentsDatabaseAndStore} from '../stores/comments'
+import {resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore} from '../stores/subplebbits'
+import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accounts'
+import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
+import localForageLru from './localforage-lru'
+import localForage from 'localforage'
+
 const restorables: any = []
 
 export const silenceUpdateUnmountedComponentWarning = () => {
@@ -28,6 +35,11 @@ export const silenceTestWasNotWrappedInActWarning = () => {
   }
   restorables.push(restore)
   return restore
+}
+
+export const silenceReactWarnings = () => {
+  silenceUpdateUnmountedComponentWarning()
+  silenceTestWasNotWrappedInActWarning()
 }
 
 const restoreAll = () => {
@@ -69,11 +81,30 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
   return waitFor
 }
 
+export const resetStores = async () => {
+  await resetFeedsStore()
+  await resetSubplebbitsStore()
+  await resetCommentsStore()
+  // always accounts last because it has async initialization
+  await resetAccountsStore()
+}
+
+export const resetDatabasesAndStores = async () => {
+  await resetFeedsDatabaseAndStore()
+  await resetSubplebbitsDatabaseAndStore()
+  await resetCommentsDatabaseAndStore()
+  // always accounts last because it has async initialization
+  await resetAccountsDatabaseAndStore()
+}
+
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
+  silenceReactWarnings,
   restoreAll,
   createWaitFor,
+  resetStores,
+  resetDatabasesAndStores,
 }
 
 export default testUtils

@@ -1,30 +1,32 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
+const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+// mock right after importing or sometimes fails to mock
+setPlebbitJs(PlebbitJsMock)
 
-const timeout = 10000
+const timeout = 2000
 
 describe('accounts (plebbit-js mock)', () => {
-  before(() => {
-    setPlebbitJs(PlebbitJsMock)
-    testUtils.silenceUpdateUnmountedComponentWarning()
+  before(async () => {
+    console.log('before accounts tests')
+    testUtils.silenceReactWarnings()
+    // reset before or init accounts sometimes fails
+    await testUtils.resetDatabasesAndStores()
   })
   after(async () => {
     testUtils.restoreAll()
-    await debugUtils.deleteDatabases()
-    restorePlebbitJs()
+    await testUtils.resetDatabasesAndStores()
+    console.log('after reset stores')
   })
 
   describe('no accounts in database', () => {
     it('generate default account on load', async () => {
+      console.log('starting accounts tests')
       const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
-      expect(rendered.result.current).to.equal(undefined)
-
       await waitFor(() => rendered.result.current?.name === 'Account 1')
-
       const account = rendered.result.current
       expect(account.name).to.equal('Account 1')
       expect(account.author.displayName).to.equal(undefined)

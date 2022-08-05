@@ -1,59 +1,48 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useComment, useComments, setPlebbitJs, PlebbitProvider} from '..'
-import localForageLru from '../lib/localforage-lru'
+import commentsStore from '../stores/comments'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
-const deleteDatabases = () => Promise.all([localForageLru.createInstance({name: 'comments'}).clear()])
-
 describe('comments', () => {
   beforeAll(() => {
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
   })
-
   afterEach(async () => {
-    await deleteDatabases()
+    await testUtils.resetDatabasesAndStores()
   })
 
   describe('no comments in database', () => {
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
     test('get comments one at a time', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered)
       expect(rendered.result.current).toBe(undefined)
+
       rendered.rerender('comment cid 1')
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.cid === 'string')
       expect(rendered.result.current.cid).toBe('comment cid 1')
+
       // wait for comment.on('update') to fetch the ipns
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.cid === 'string' && typeof rendered.result.current.upvoteCount === 'number')
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.cid === 'string' && typeof rendered.result.current.upvoteCount === 'number')
       expect(rendered.result.current.cid).toBe('comment cid 1')
       expect(rendered.result.current.upvoteCount).toBe(3)
 
       rendered.rerender('comment cid 2')
-      // wait for addCommentToContext action
-      try {
-        await rendered.waitFor(() => typeof rendered.result.current.cid === 'string')
-      } catch (e) {
-        console.error(e)
-      }
+      // wait for addCommentToStore action
+      await waitFor(() => typeof rendered.result.current.cid === 'string')
       expect(rendered.result.current.cid).toBe('comment cid 2')
+
       // wait for comment.on('update') to fetch the ipns
-      try {
-        await rendered.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(() => typeof rendered.result.current.cid === 'string' && typeof rendered.result.current.upvoteCount === 'number')
       expect(rendered.result.current.cid).toBe('comment cid 2')
       expect(rendered.result.current.upvoteCount).toBe(3)
 
@@ -73,34 +62,32 @@ describe('comments', () => {
       let throwOnCommentUpdateEvent = false
       Comment.prototype.simulateUpdateEvent = () => {
         if (throwOnCommentUpdateEvent) {
-          throw Error('no comment update events should be emitted when comment already in context')
+          throw Error('no comment update events should be emitted when comment already in store')
         }
       }
 
+      // reset stores to force using the db
+      expect(commentsStore.getState().comments).not.toEqual({})
+      await testUtils.resetStores()
+      expect(commentsStore.getState().comments).toEqual({})
+
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
+      const waitFor2 = testUtils.createWaitFor(rendered2)
       expect(rendered2.result.current).toBe(undefined)
+
       rendered2.rerender('comment cid 1')
-      // wait to get account loaded
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor2(() => typeof rendered2.result.current.cid === 'string')
       expect(rendered2.result.current.cid).toBe('comment cid 1')
       expect(rendered2.result.current.upvoteCount).toBe(3)
 
       rendered2.rerender('comment cid 2')
-      // wait for addCommentToContext action
-      try {
-        await rendered2.waitForNextUpdate()
-      } catch (e) {
-        console.error(e)
-      }
+      // wait for addCommentToStore action
+      await waitFor2(() => typeof rendered2.result.current.cid === 'string')
       expect(rendered2.result.current.cid).toBe('comment cid 2')
       expect(rendered2.result.current.upvoteCount).toBe(3)
 
-      // get comment 1 again from context, should not trigger any comment updates
+      // get comment 1 again from store, should not trigger any comment updates
       throwOnCommentUpdateEvent = true
       rendered2.rerender('comment cid 1')
       expect(rendered2.result.current.cid).toBe('comment cid 1')
@@ -113,30 +100,26 @@ describe('comments', () => {
 
     test('get multiple comments at once', async () => {
       const rendered = renderHook<any, any>((commentCids) => useComments(commentCids), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered)
       expect(rendered.result.current).toEqual([])
+
       rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
       expect(rendered.result.current).toEqual([undefined, undefined, undefined])
-      try {
-        await rendered.waitFor(
-          () =>
-            typeof rendered.result.current[0].cid === 'string' && typeof rendered.result.current[1].cid === 'string' && typeof rendered.result.current[2].cid === 'string'
-        )
-      } catch (e) {
-        console.error(e)
-      }
+      await waitFor(
+        () =>
+          typeof rendered.result.current[0].cid === 'string' && typeof rendered.result.current[1].cid === 'string' && typeof rendered.result.current[2].cid === 'string'
+      )
       expect(rendered.result.current[0].cid).toBe('comment cid 1')
       expect(rendered.result.current[1].cid).toBe('comment cid 2')
       expect(rendered.result.current[2].cid).toBe('comment cid 3')
-      try {
-        await rendered.waitFor(
-          () =>
-            typeof rendered.result.current[0].upvoteCount === 'number' &&
-            typeof rendered.result.current[1].upvoteCount === 'number' &&
-            typeof rendered.result.current[2].upvoteCount === 'number'
-        )
-      } catch (e) {
-        console.error(e)
-      }
+
+      // wait for comment.on('update') to fetch the ipns
+      await waitFor(
+        () =>
+          typeof rendered.result.current[0].upvoteCount === 'number' &&
+          typeof rendered.result.current[1].upvoteCount === 'number' &&
+          typeof rendered.result.current[2].upvoteCount === 'number'
+      )
       expect(rendered.result.current[0].upvoteCount).toBe(3)
       expect(rendered.result.current[1].upvoteCount).toBe(3)
       expect(rendered.result.current[2].upvoteCount).toBe(3)

@@ -1,6 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
@@ -28,20 +27,23 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`accounts (${plebbitOptionsType})`, () => {
-    before(() => {
-      testUtils.silenceUpdateUnmountedComponentWarning()
+    before(async () => {
+      console.log(`before accounts tests (${plebbitOptionsType})`)
+      testUtils.silenceReactWarnings()
+      // reset before or init accounts sometimes fails
+      await testUtils.resetDatabasesAndStores()
     })
     after(async () => {
       testUtils.restoreAll()
-      await debugUtils.deleteDatabases()
+      await testUtils.resetDatabasesAndStores()
     })
 
     describe(`no accounts in database (${plebbitOptionsType})`, () => {
       it(`generate default account on load (${plebbitOptionsType})`, async () => {
+        console.log(`starting accounts tests (${plebbitOptionsType})`)
+
         const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
         const waitFor = testUtils.createWaitFor(rendered, {timeout})
-
-        expect(rendered.result.current).to.equal(undefined)
 
         await waitFor(() => rendered.result.current?.name === 'Account 1')
 

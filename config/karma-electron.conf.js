@@ -16,6 +16,11 @@ if (process.env.CI) {
 // electron browser options
 let headless = false
 
+// use headless for manual debugging
+if (process.env.HEADLESS) {
+  headless = true
+}
+
 // CI options
 if (process.env.CI) {
   // non headless breaks CI
@@ -37,6 +42,7 @@ const preloadJs = `
   // inject PlebbitJs with native modules inside plebbit-react-hooks using window.PlebbitJs
   const PlebbitJs = require('@plebbit/plebbit-js')
   window.PlebbitJs = PlebbitJs
+  console.log('electron preload.js define window.PlebbitJs')
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
 fs.writeFileSync(preloadJsPath, preloadJs)
@@ -104,11 +110,9 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     // logLevel: config.LOG_DEBUG,
-
-    // long browser timeout for manual debugging
-    browserNoActivityTimeout: !process.env.CI && mochaConfig.timeout,
-    browserDisconnectTimeout: !process.env.CI && mochaConfig.timeout,
-    browserDisconnectTolerance: !process.env.CI && 5,
+    browserNoActivityTimeout: mochaConfig.timeout,
+    browserDisconnectTimeout: mochaConfig.timeout,
+    browserDisconnectTolerance: 5,
   })
 }
 

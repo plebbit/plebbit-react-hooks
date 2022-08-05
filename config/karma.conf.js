@@ -34,6 +34,11 @@ let browsers = [
   'DebugChrome',
 ]
 
+// use headless for manual debugging
+if (process.env.HEADLESS) {
+  browsers = ['CustomChrome']
+}
+
 // add firefox during CI
 // make sure non-headless DebugChrome is not included as it breaks the CI
 if (process.env.CI) {
@@ -48,6 +53,19 @@ if (process.env.DEBUG) {
   codeToInjectBefore += `
       localStorage.debug = "${process.env.DEBUG.replaceAll(`"`, '')}";
     `
+}
+
+let files = [
+  // the tests are first compiled from typescript to dist/node/test
+  // then they are compiled to browser with webpack to dist/browser/test
+  // you must run `npm run tsc:watch` and `npm run webpack:watch` to use the karma tests
+  'test-karma-webpack/test/browser-e2e/**/*.test.js',
+]
+
+// test the plebbit-js mock files
+// launch the mock tests separately because it sometimes wrongly mocks all files
+if (process.argv.includes('plebbit-js-mock') || process.argv.includes('--plebbit-js-mock')) {
+  files = ['test-karma-webpack/test/browser-plebbit-js-mock/**/*.test.js']
 }
 
 module.exports = function (config) {
@@ -69,12 +87,7 @@ module.exports = function (config) {
     ],
 
     basePath: '../',
-    files: [
-      // the tests are first compiled from typescript to dist/node/test
-      // then they are compiled to browser with webpack to dist/browser/test
-      // you must run `npm run tsc:watch` and `npm run webpack:watch` to use the karma tests
-      'test-karma-webpack/test/browser*/**/*.test.js',
-    ],
+    files,
     exclude: [],
 
     preprocessors: {
@@ -99,11 +112,9 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     // logLevel: config.LOG_DEBUG,
-
-    // long browser timeout for manual debugging
-    browserNoActivityTimeout: !process.env.CI && mochaConfig.timeout,
-    browserDisconnectTimeout: !process.env.CI && mochaConfig.timeout,
-    browserDisconnectTolerance: !process.env.CI && 5,
+    browserNoActivityTimeout: mochaConfig.timeout,
+    browserDisconnectTimeout: mochaConfig.timeout,
+    browserDisconnectTolerance: 5,
   })
 }
 
