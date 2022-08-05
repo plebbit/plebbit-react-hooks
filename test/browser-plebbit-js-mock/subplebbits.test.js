@@ -10,7 +10,6 @@ const timeout = 10000
 describe('subplebbits (plebbit-js mock)', () => {
   before(async () => {
     console.log('before subplebbits tests')
-    setPlebbitJs(PlebbitJsMock)
     testUtils.silenceReactWarnings()
     // reset before or init accounts sometimes fails
     await testUtils.resetDatabasesAndStores()
@@ -19,7 +18,6 @@ describe('subplebbits (plebbit-js mock)', () => {
     testUtils.restoreAll()
     await testUtils.resetDatabasesAndStores()
     console.log('after reset stores')
-    restorePlebbitJs()
   })
 
   describe('no subplebbits in database', () => {

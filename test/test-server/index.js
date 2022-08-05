@@ -54,9 +54,19 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
   const plebbit2 = await Plebbit(plebbitOptions)
   const signer = await plebbit.createSigner({privateKey, type: 'rsa'})
 
+  const dbConfig = {
+    client: 'sqlite3',
+    connection: {
+      filename: ':memory:',
+    },
+    useNullAsDefault: true,
+  }
+
   console.log(`creating subplebbit with address '${signer.address}'...`)
   const subplebbit = await plebbit.createSubplebbit({
     signer: signer,
+    database: dbConfig,
+
     // 'title': 'subplebbit title',
     // 'address' : signer.address,
   })

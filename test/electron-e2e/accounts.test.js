@@ -1,6 +1,7 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {setPlebbitJs, PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+// set PlebbitJs with native functions defined in preload.js
+setPlebbitJs(window.PlebbitJs)
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
@@ -26,9 +27,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`accounts (${plebbitOptionsType})`, () => {
     before(async () => {
       console.log(`before accounts tests (${plebbitOptionsType})`)
-
-      // set PlebbitJs with native functions defined in preload.js
-      setPlebbitJs(window.PlebbitJs)
 
       testUtils.silenceReactWarnings()
       // reset before or init accounts sometimes fails
@@ -109,6 +107,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(typeof createdSubplebbitAddress).to.equal('string')
         expect(subplebbit.title).to.equal(createdSubplebbitTitle)
 
+        console.log(subplebbit)
         return
 
         // TODO: migrate from react context to be able to use subplebbit after creating

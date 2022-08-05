@@ -55,6 +55,19 @@ if (process.env.DEBUG) {
     `
 }
 
+let files = [
+  // the tests are first compiled from typescript to dist/node/test
+  // then they are compiled to browser with webpack to dist/browser/test
+  // you must run `npm run tsc:watch` and `npm run webpack:watch` to use the karma tests
+  'test-karma-webpack/test/browser-e2e/**/*.test.js',
+]
+
+// test the plebbit-js mock files
+// launch the mock tests separately because it sometimes wrongly mocks all files
+if (process.argv.includes('plebbit-js-mock') || process.argv.includes('--plebbit-js-mock')) {
+  files = ['test-karma-webpack/test/browser-plebbit-js-mock/**/*.test.js']
+}
+
 module.exports = function (config) {
   config.set({
     // chai adds "expect" matchers
@@ -74,12 +87,7 @@ module.exports = function (config) {
     ],
 
     basePath: '../',
-    files: [
-      // the tests are first compiled from typescript to dist/node/test
-      // then they are compiled to browser with webpack to dist/browser/test
-      // you must run `npm run tsc:watch` and `npm run webpack:watch` to use the karma tests
-      'test-karma-webpack/test/browser*/**/*.test.js',
-    ],
+    files,
     exclude: [],
 
     preprocessors: {

@@ -1,7 +1,6 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')

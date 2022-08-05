@@ -10,7 +10,6 @@ const timeout = 2000
 describe('comments (plebbit-js mock)', () => {
   before(async () => {
     console.log('before comments tests')
-    setPlebbitJs(PlebbitJsMock)
     testUtils.silenceReactWarnings()
     // reset before or init accounts sometimes fails
     await testUtils.resetDatabasesAndStores()
@@ -19,7 +18,6 @@ describe('comments (plebbit-js mock)', () => {
     testUtils.restoreAll()
     await testUtils.resetDatabasesAndStores()
     console.log('after reset stores')
-    restorePlebbitJs()
   })
 
   describe('no comments in database', () => {
