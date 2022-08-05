@@ -42,6 +42,7 @@ const preloadJs = `
   // inject PlebbitJs with native modules inside plebbit-react-hooks using window.PlebbitJs
   const PlebbitJs = require('@plebbit/plebbit-js')
   window.PlebbitJs = PlebbitJs
+  console.log('electron preload.js define window.PlebbitJs')
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
 fs.writeFileSync(preloadJsPath, preloadJs)

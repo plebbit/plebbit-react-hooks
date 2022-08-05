@@ -62,6 +62,21 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
     })
 
+    it.only('debug create subplebbit', async () => {
+      console.log('do nothing, debug in the dev tool console')
+      const plebbitOptions = plebbitOptionsTypes[plebbitOptionsType]
+      console.log('plebbitOptions')
+      console.log(plebbitOptions)
+      console.log(window.PlebbitJs)
+      const plebbit = await window.PlebbitJs(plebbitOptions)
+      console.log(plebbit)
+      console.log('before create subplebbit')
+      const subplebbit = await plebbit.createSubplebbit({title: 'test title'})
+      console.log(subplebbit)
+      console.log('after create subplebbit')
+      await new Promise((r) => {})
+    })
+
     describe.skip(`create subplebbit (${plebbitOptionsType})`, () => {
       let rendered, waitFor
 
