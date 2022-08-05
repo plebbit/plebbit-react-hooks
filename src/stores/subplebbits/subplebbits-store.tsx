@@ -83,13 +83,18 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
     // `subplebbitAddress` is different from  `subplebbitEditOptions.address` when editing the subplebbit address
     const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
     await subplebbit.edit(subplebbitEditOptions)
+
+    const updatedSubplebbit = utils.clone(subplebbit)
+    // edit db of both old and new subplebbit address to not break the UI
+    await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
+    await subplebbitsDatabase.setItem(subplebbit.address, updatedSubplebbit)
     debug('subplebbitsStore.editSubplebbit', {subplebbitAddress, subplebbitEditOptions, subplebbit, account})
     setState((state: any) => ({
       subplebbits: {
         ...state.subplebbits,
         // edit react state of both old and new subplebbit address to not break the UI
-        [subplebbitAddress]: utils.clone(subplebbit),
-        [subplebbit.address]: utils.clone(subplebbit),
+        [subplebbitAddress]: updatedSubplebbit,
+        [subplebbit.address]: updatedSubplebbit,
       },
     }))
   },

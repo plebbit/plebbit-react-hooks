@@ -1641,6 +1641,7 @@ describe('accounts', () => {
     rendered.rerender(createdSubplebbitAddress)
     await waitFor(() => rendered.result.current.subplebbit)
     expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+    expect(rendered.result.current.subplebbit.title).toBe(undefined)
 
     // publishSubplebbitEdit
     const editedTitle = 'edited title'
@@ -1649,14 +1650,30 @@ describe('accounts', () => {
     await act(async () => {
       await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
     })
-    // TODO: assertion fails because the plebbit-js mock cannot edit a subplebbit instance
-    // it could cause a bug where the subplebbits react state doesn't update after an edit
-    // await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
-    // expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
 
     // onChallengeVerification should be called with success even if the sub is edited locally
     await waitFor(() => onChallengeVerification.mock.calls.length === 1)
     expect(onChallengeVerification).toBeCalledTimes(1)
     expect(onChallengeVerification.mock.calls[0][0].challengeSuccess).toBe(true)
+
+    // useSubplebbit is edited
+    await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
+    expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+    expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+    // edit address
+    const editedAddress = 'edited.eth'
+    await act(async () => {
+      await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedAddress, onChallenge, onChallengeVerification})
+    })
+
+    // useSubplebbit(previousAddress) address is edited
+    await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
+    expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+
+    // useSubplebbit(currentAddress) address is edited
+    rendered.rerender(editedAddress)
+    await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
+    expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
   })
 })
