@@ -3,7 +3,7 @@ import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:stores:accounts')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
-import {AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, AccountComment, AccountsComments, AccountsCommentsReplies} from '../../types'
+import {Subplebbit, AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, AccountComment, AccountsComments, AccountsCommentsReplies} from '../../types'
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'
@@ -95,6 +95,56 @@ const initializeAccountsStore = async () => {
   }
 }
 
+// TODO: find way to test started subplebbits
+// poll all local subplebbits and start them if they are not started
+let startSubplebbitsInterval: any
+let startedSubplebbits: {[subplebbitAddress: string]: Subplebbit} = {}
+let pendingStartedSubplebbits: {[subplebbitAddress: string]: boolean} = {}
+const initializeStartSubplebbits = async () => {
+  // if re-initializing, clear previous interval
+  if (startSubplebbitsInterval) {
+    clearInterval(startSubplebbitsInterval)
+  }
+
+  // if re-initializing, stop all started subplebbits
+  for (const subplebbitAddress in startedSubplebbits) {
+    try {
+      await startedSubplebbits[subplebbitAddress].stop()
+    } catch (error) {
+      console.error('accountsStore subplebbit.stop error', {subplebbitAddress, error})
+    }
+  }
+
+  // don't start subplebbits twice
+  startedSubplebbits = {}
+  pendingStartedSubplebbits = {}
+
+  const startSubplebbitsPollTime = 10000
+  startSubplebbitsInterval = setInterval(() => {
+    const {accounts, activeAccountId} = useAccountsStore.getState()
+    const account = activeAccountId && accounts?.[activeAccountId]
+    if (!account?.plebbit) {
+      return
+    }
+    account.plebbit.listSubplebbits().then(async (subplebbitAddresses: string[]) => {
+      for (const subplebbitAddress of subplebbitAddresses) {
+        if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
+          continue
+        }
+        pendingStartedSubplebbits[subplebbitAddress] = true
+        try {
+          const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+          await subplebbit.start()
+          startedSubplebbits[subplebbitAddress] = subplebbit
+        } catch (error) {
+          console.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
+        }
+        pendingStartedSubplebbits[subplebbitAddress] = false
+      }
+    })
+  }, startSubplebbitsPollTime)
+}
+
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
 
@@ -110,7 +160,7 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
   // @ts-ignore
   window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING = true
 
-  console.log('accounts store initializing started')
+  debug('accounts store initializing started')
   try {
     await initializeAccountsStore()
   } catch (error) {
@@ -120,7 +170,9 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
     // @ts-ignore
     delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
   }
-  console.log('accounts store initializing finished')
+  debug('accounts store initializing finished')
+
+  await initializeStartSubplebbits()
 })()
 
 // reset store in between tests
@@ -133,7 +185,7 @@ export const resetAccountsStore = async () => {
     await new Promise((r) => setTimeout(r, 100))
   }
 
-  console.log('accounts store reset started')
+  debug('accounts store reset started')
 
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
@@ -143,8 +195,10 @@ export const resetAccountsStore = async () => {
   useAccountsStore.setState(originalState)
   // init the store
   await initializeAccountsStore()
+  // init start subplebbits
+  await initializeStartSubplebbits()
 
-  console.log('accounts store reset finished')
+  debug('accounts store reset finished')
 }
 
 // reset database and store in between tests

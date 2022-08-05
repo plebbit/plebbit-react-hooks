@@ -10,11 +10,11 @@ setPlebbitJs(PlebbitJsMock)
 describe('feeds', () => {
   beforeAll(() => {
     // some feeds tests are flaky
-    // jest.retryTimes(5)
+    jest.retryTimes(3)
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
-    // jest.retryTimes(0)
+    jest.retryTimes(0)
     testUtils.restoreAll()
   })
 
