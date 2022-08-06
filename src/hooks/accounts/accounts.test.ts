@@ -17,7 +17,7 @@ import {
   setPlebbitJs,
 } from '../..'
 import localForage from 'localforage'
-import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages} from '../../lib/plebbit-js/plebbit-js-mock'
+import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
 import Debug from 'debug'
@@ -1629,6 +1629,10 @@ describe('accounts', () => {
       )
       waitFor = testUtils.createWaitFor(rendered)
       await waitFor(() => rendered.result.current.account)
+    })
+
+    afterEach(() => {
+      resetPlebbitJsMock()
     })
 
     test('create owner subplebbit and edit it', async () => {

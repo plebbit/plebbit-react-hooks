@@ -30,32 +30,49 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
     )
     assert(typeof account?.plebbit?.getSubplebbit === 'function', `subplebbitsStore.addSubplebbitToStore invalid account argument '${account}'`)
 
-    const {subplebbits} = getState()
-
     // subplebbit is in store already, do nothing
+    const {subplebbits} = getState()
     let subplebbit: Subplebbit | undefined = subplebbits[subplebbitAddress]
     if (subplebbit || plebbitGetSubplebbitPending[subplebbitAddress + account.id]) {
       return
     }
+
+    // start trying to get subplebbit
     plebbitGetSubplebbitPending[subplebbitAddress + account.id] = true
+    let errorGettingSubplebbit: any
+
+    // try to find subplebbit in owner subplebbits
+    if ((await account.plebbit.listSubplebbits()).includes(subplebbitAddress)) {
+      subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+    }
 
     // try to find subplebbit in database
-    subplebbit = await getSubplebbitFromDatabase(subplebbitAddress, account)
+    if (!subplebbit) {
+      subplebbit = await getSubplebbitFromDatabase(subplebbitAddress, account)
+    }
 
-    // subplebbit not in database, fetch from plebbit-js
-    try {
-      if (!subplebbit) {
+    // subplebbit not in database, try to fetch from plebbit-js
+    if (!subplebbit) {
+      try {
         subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress)
         debug('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', {subplebbitAddress, subplebbit, account})
-        await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
+      } catch (e) {
+        errorGettingSubplebbit = e
       }
-      debug('subplebbitsStore.addSubplebbitToStore', {subplebbitAddress, subplebbit, account})
-      setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: utils.clone(subplebbit)}}))
-    } catch (e) {
-      throw e
-    } finally {
-      plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
     }
+
+    // finished trying to get subplebbit
+    plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false
+
+    // failure getting subplebbit
+    if (!subplebbit) {
+      throw errorGettingSubplebbit || Error(`subplebbitsStore.addSubplebbitToStore failed getting subplebbit '${subplebbitAddress}'`)
+    }
+
+    // success getting subplebbit
+    await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
+    debug('subplebbitsStore.addSubplebbitToStore', {subplebbitAddress, subplebbit, account})
+    setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: utils.clone(subplebbit)}}))
 
     // the subplebbit has published new posts
     subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
