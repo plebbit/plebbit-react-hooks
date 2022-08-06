@@ -61,7 +61,7 @@ export function useSubplebbits(subplebbitAddresses = [], accountName) {
     return subplebbits;
 }
 /**
- * Returns all the subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
+ * Returns all the owner subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
  */
 export function useListSubplebbits() {
     const account = useAccount();
@@ -69,7 +69,6 @@ export function useListSubplebbits() {
     const delay = 1000;
     const immediate = true;
     useInterval(() => {
-        // TODO: find a way to know the plebbit runtime and don't call the function if browser
         if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
             return;
         }

@@ -12,8 +12,18 @@ import EventEmitter from 'events';
 // so the frontend can test with latency
 const loadingTime = 10;
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
-// array of subplebbit addresses probably created by the user
-const createdSubplebbitAddresses = [];
+// keep a list of created and edited owner subplebbits
+// to reinitialize them with plebbit.createSubplebbit()
+let createdOwnerSubplebbits = {};
+let editedOwnerSubplebbits = {};
+// reset the plebbit-js global state in between tests
+export const resetPlebbitJsMock = () => {
+    createdOwnerSubplebbits = {};
+    editedOwnerSubplebbits = {};
+};
+export const debugPlebbitJsMock = () => {
+    console.log({ createdOwnerSubplebbits, editedOwnerSubplebbits });
+};
 export class Plebbit {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -28,9 +38,28 @@ export class Plebbit {
             if (!createSubplebbitOptions) {
                 createSubplebbitOptions = {};
             }
-            if (!createSubplebbitOptions.address) {
+            // no address provided so probably a user creating an owner subplebbit
+            if (!createSubplebbitOptions.address && !createdOwnerSubplebbits[createSubplebbitOptions.address]) {
                 createSubplebbitOptions = Object.assign(Object.assign({}, createSubplebbitOptions), { address: 'created subplebbit address' });
-                createdSubplebbitAddresses.push('created subplebbit address');
+                // createdSubplebbitAddresses.push('created subplebbit address')
+                createdOwnerSubplebbits[createSubplebbitOptions.address] = Object.assign({}, createSubplebbitOptions);
+            }
+            // only address provided, so could be a previously created owner subplebbit
+            // add props from previously created sub
+            else if (createdOwnerSubplebbits[createSubplebbitOptions.address] && JSON.stringify(Object.keys(createSubplebbitOptions)) === '["address"]') {
+                for (const prop in createdOwnerSubplebbits[createSubplebbitOptions.address]) {
+                    if (createdOwnerSubplebbits[createSubplebbitOptions.address][prop]) {
+                        createSubplebbitOptions[prop] = createdOwnerSubplebbits[createSubplebbitOptions.address][prop];
+                    }
+                }
+            }
+            // add edited props if owner subplebbit was edited in the past
+            if (editedOwnerSubplebbits[createSubplebbitOptions.address]) {
+                for (const prop in editedOwnerSubplebbits[createSubplebbitOptions.address]) {
+                    if (editedOwnerSubplebbits[createSubplebbitOptions.address][prop]) {
+                        createSubplebbitOptions[prop] = editedOwnerSubplebbits[createSubplebbitOptions.address][prop];
+                    }
+                }
             }
             return new Subplebbit(createSubplebbitOptions);
         });
@@ -55,7 +84,7 @@ export class Plebbit {
     }
     listSubplebbits() {
         return __awaiter(this, void 0, void 0, function* () {
-            return [...new Set(['list subplebbit address 1', 'list subplebbit address 2', ...createdSubplebbitAddresses])];
+            return [...new Set(['list subplebbit address 1', 'list subplebbit address 2', ...Object.keys(createdOwnerSubplebbits)])];
         });
     }
     createComment(createCommentOptions) {
@@ -115,6 +144,8 @@ export class Subplebbit extends EventEmitter {
         this.updateCalledTimes = 0;
         this.updating = false;
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
+        this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
+        this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
         this.posts = new Pages({ subplebbit: this });
     }
     update() {
@@ -149,11 +180,36 @@ export class Subplebbit extends EventEmitter {
     }
     edit(editSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!this.address || typeof this.address !== 'string') {
+                throw Error(`can't subplebbit.edit with no subplebbit.address`);
+            }
+            const previousAddress = this.address;
+            // do subplebbit.edit
             for (const prop in editSubplebbitOptions) {
                 if (editSubplebbitOptions[prop]) {
                     // @ts-ignore
                     this[prop] = editSubplebbitOptions[prop];
                 }
+            }
+            // keep a list of edited subplebbits to reinitialize
+            // them with plebbit.createSubplebbit()
+            editedOwnerSubplebbits[this.address] = {
+                address: this.address,
+                title: this.title,
+                description: this.description,
+            };
+            // handle change of subplebbit.address
+            if (editSubplebbitOptions.address) {
+                // apply address change to editedOwnerSubplebbits
+                editedOwnerSubplebbits[previousAddress] = {
+                    address: this.address,
+                    title: this.title,
+                    description: this.description,
+                };
+                delete editedOwnerSubplebbits[previousAddress];
+                // apply address change to createdOwnerSubplebbits
+                createdOwnerSubplebbits[this.address] = Object.assign(Object.assign({}, createdOwnerSubplebbits[previousAddress]), { address: this.address });
+                delete createdOwnerSubplebbits[previousAddress];
             }
         });
     }

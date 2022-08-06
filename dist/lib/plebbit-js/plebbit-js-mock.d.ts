@@ -1,6 +1,8 @@
 /// <reference types="node" />
 import EventEmitter from 'events';
 export declare const simulateLoadingTime: () => Promise<unknown>;
+export declare const resetPlebbitJsMock: () => void;
+export declare const debugPlebbitJsMock: () => void;
 export declare class Plebbit {
     createSigner(): Promise<{
         privateKey: string;
@@ -8,7 +10,7 @@ export declare class Plebbit {
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    listSubplebbits(): Promise<any[]>;
+    listSubplebbits(): Promise<string[]>;
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     commentToGet(): {};
