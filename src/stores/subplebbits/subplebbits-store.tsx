@@ -114,6 +114,7 @@ const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, g
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsStore.createSubplebbit invalid account argument '${account}'`)
 
     const subplebbit = await account.plebbit.createSubplebbit(createSubplebbitOptions)
+    await subplebbitsDatabase.setItem(subplebbit.address, utils.clone(subplebbit))
     debug('subplebbitsStore.createSubplebbit', {createSubplebbitOptions, subplebbit, account})
     setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbit.address]: utils.clone(subplebbit)}}))
     return subplebbit

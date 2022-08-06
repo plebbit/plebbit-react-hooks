@@ -1612,68 +1612,176 @@ describe('accounts', () => {
     })
   })
 
-  test('createSublebbit locally and edit it', async () => {
-    const rendered = renderHook<any, any>(
-      (subplebbitAddress?: string) => {
-        const account = useAccount()
-        const accountsActions = useAccountsActions()
-        const accountSubplebbits = useAccountSubplebbits()
-        const subplebbit = useSubplebbit(subplebbitAddress)
-        return {account, subplebbit, accountSubplebbits, ...accountsActions}
-      },
-      {wrapper: PlebbitProvider}
-    )
-    const waitFor = testUtils.createWaitFor(rendered)
-    await waitFor(() => rendered.result.current.account)
+  describe('create owner subplebbit', () => {
+    let rendered: any
+    let waitFor: Function
 
-    const createdSubplebbitAddress = 'created subplebbit address'
-    let subplebbit: any
-    await act(async () => {
-      subplebbit = await rendered.result.current.createSubplebbit()
-    })
-    expect(subplebbit?.address).toBe(createdSubplebbitAddress)
-
-    // wait for subplebbit to be added to account subplebbits
-    await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
-    expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).toBe('owner')
-
-    // can useSubplebbit
-    rendered.rerender(createdSubplebbitAddress)
-    await waitFor(() => rendered.result.current.subplebbit)
-    expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
-    expect(rendered.result.current.subplebbit.title).toBe(undefined)
-
-    // publishSubplebbitEdit
-    const editedTitle = 'edited title'
-    const onChallenge = jest.fn()
-    const onChallengeVerification = jest.fn()
-    await act(async () => {
-      await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
+    beforeEach(async () => {
+      rendered = renderHook<any, any>(
+        (subplebbitAddress?: string) => {
+          const account = useAccount()
+          const accountsActions = useAccountsActions()
+          const accountSubplebbits = useAccountSubplebbits()
+          const subplebbit = useSubplebbit(subplebbitAddress)
+          return {account, subplebbit, accountSubplebbits, ...accountsActions}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      waitFor = testUtils.createWaitFor(rendered)
+      await waitFor(() => rendered.result.current.account)
     })
 
-    // onChallengeVerification should be called with success even if the sub is edited locally
-    await waitFor(() => onChallengeVerification.mock.calls.length === 1)
-    expect(onChallengeVerification).toBeCalledTimes(1)
-    expect(onChallengeVerification.mock.calls[0][0].challengeSuccess).toBe(true)
+    test('create owner subplebbit and edit it', async () => {
+      const createdSubplebbitAddress = 'created subplebbit address'
+      let subplebbit: any
+      await act(async () => {
+        subplebbit = await rendered.result.current.createSubplebbit()
+      })
+      expect(subplebbit?.address).toBe(createdSubplebbitAddress)
 
-    // useSubplebbit is edited
-    await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
-    expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
-    expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+      // wait for subplebbit to be added to account subplebbits
+      await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
+      expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).toBe('owner')
 
-    // edit address
-    const editedAddress = 'edited.eth'
-    await act(async () => {
-      await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedAddress, onChallenge, onChallengeVerification})
+      // can useSubplebbit
+      rendered.rerender(createdSubplebbitAddress)
+      await waitFor(() => rendered.result.current.subplebbit)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(undefined)
+
+      // publishSubplebbitEdit
+      const editedTitle = 'edited title'
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
+      await act(async () => {
+        await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
+      })
+
+      // onChallengeVerification should be called with success even if the sub is edited locally
+      await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+      expect(onChallengeVerification).toBeCalledTimes(1)
+      expect(onChallengeVerification.mock.calls[0][0].challengeSuccess).toBe(true)
+
+      // useSubplebbit is edited
+      await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+      // edit address
+      const editedAddress = 'edited.eth'
+      await act(async () => {
+        await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedAddress, title: editedTitle, onChallenge, onChallengeVerification})
+      })
+
+      // useSubplebbit(previousAddress) address is edited
+      await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
+      expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+      // useSubplebbit(currentAddress) address is edited
+      rendered.rerender(undefined)
+      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      rendered.rerender(editedAddress)
+      await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
+      expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
     })
 
-    // useSubplebbit(previousAddress) address is edited
-    await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
-    expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+    test('create and edit owner subplebbit useSubplebbit persists after reload', async () => {
+      const createdSubplebbitAddress = 'created subplebbit address'
+      const createdSubplebbitTitle = 'created subplebbit title'
+      let subplebbit: any
+      await act(async () => {
+        subplebbit = await rendered.result.current.createSubplebbit({title: createdSubplebbitTitle})
+      })
+      expect(subplebbit?.address).toBe(createdSubplebbitAddress)
 
-    // useSubplebbit(currentAddress) address is edited
-    rendered.rerender(editedAddress)
-    await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
-    expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+      // can useSubplebbit
+      rendered.rerender(createdSubplebbitAddress)
+      await waitFor(() => rendered.result.current.subplebbit)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(createdSubplebbitTitle)
+
+      // render again with new context and store
+      await testUtils.resetStores()
+      rendered = renderHook<any, any>(
+        (subplebbitAddress?: string) => {
+          const subplebbit = useSubplebbit(subplebbitAddress)
+          const accountsActions = useAccountsActions()
+          return {subplebbit, ...accountsActions}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      expect(rendered.result.current.subplebbit).toBe(undefined)
+
+      // can useSubplebbit after reload
+      rendered.rerender(createdSubplebbitAddress)
+      await waitFor(() => rendered.result.current.subplebbit)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(createdSubplebbitTitle)
+
+      // publishSubplebbitEdit
+      const editedTitle = 'edited title'
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
+      await act(async () => {
+        await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
+      })
+
+      // useSubplebbit is edited
+      await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+      // render again with new context and store
+      await testUtils.resetStores()
+      rendered = renderHook<any, any>(
+        (subplebbitAddress?: string) => {
+          const subplebbit = useSubplebbit(subplebbitAddress)
+          const accountsActions = useAccountsActions()
+          return {subplebbit, ...accountsActions}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      expect(rendered.result.current.subplebbit).toBe(undefined)
+
+      // can useSubplebbit after reload
+      rendered.rerender(createdSubplebbitAddress)
+      await waitFor(() => rendered.result.current.subplebbit.title === editedTitle)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+      // edit address
+      const editedAddress = 'edited.eth'
+      await act(async () => {
+        await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedAddress, title: editedTitle, onChallenge, onChallengeVerification})
+      })
+
+      // render again with new context and store
+      await testUtils.resetStores()
+      rendered = renderHook<any, any>(
+        (subplebbitAddress?: string) => {
+          const subplebbit = useSubplebbit(subplebbitAddress)
+          const accountsActions = useAccountsActions()
+          return {subplebbit, ...accountsActions}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      expect(rendered.result.current.subplebbit).toBe(undefined)
+
+      // useSubplebbit(previousAddress) address is edited
+      rendered.rerender(createdSubplebbitAddress)
+      await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
+      expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+
+      // useSubplebbit(currentAddress) address is edited
+      rendered.rerender(undefined)
+      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      rendered.rerender(editedAddress)
+      await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
+      expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+    })
   })
 })

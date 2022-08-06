@@ -113,6 +113,8 @@ export class Subplebbit extends EventEmitter {
   constructor(createSubplebbitOptions?: any) {
     super()
     this.address = createSubplebbitOptions?.address
+    this.title = createSubplebbitOptions?.title
+    this.description = createSubplebbitOptions?.description
     this.posts = new Pages({subplebbit: this})
   }
 
