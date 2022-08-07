@@ -1694,9 +1694,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#4f8987ed889fb4134ed38639bbb2b6b68d1e8904":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#38e29c0c4b0a14f959236cdd0df34924a555df63":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#4f8987ed889fb4134ed38639bbb2b6b68d1e8904"
+  resolved "https://github.com/plebbit/plebbit-js.git#38e29c0c4b0a14f959236cdd0df34924a555df63"
   dependencies:
     "@keyv/sqlite" "3.5.3"
     "@types/node-fetch" "2.6.2"
@@ -1717,9 +1717,9 @@
     tinycache "1.1.2"
     uuid "8.3.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#945a0911a39f94074e77c9390223a9e07cd64437":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#4f8987ed889fb4134ed38639bbb2b6b68d1e8904":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#945a0911a39f94074e77c9390223a9e07cd64437"
+  resolved "https://github.com/plebbit/plebbit-js.git#4f8987ed889fb4134ed38639bbb2b6b68d1e8904"
   dependencies:
     "@keyv/sqlite" "3.5.3"
     "@types/node-fetch" "2.6.2"
