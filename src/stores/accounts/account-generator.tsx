@@ -56,10 +56,9 @@ export const getDefaultPlebbitOptions = () => {
 
 export const generateDefaultAccount = async () => {
   const plebbitOptions = getDefaultPlebbitOptions()
-  const plebbit = await PlebbitJs.Plebbit()
+  const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
   const signer = await plebbit.createSigner()
   const author = {
-    displayName: undefined,
     address: signer.address,
   }
 
