@@ -59,10 +59,9 @@ export const getDefaultPlebbitOptions = () => {
 };
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {
     const plebbitOptions = getDefaultPlebbitOptions();
-    const plebbit = yield PlebbitJs.Plebbit();
+    const plebbit = yield PlebbitJs.Plebbit(plebbitOptions);
     const signer = yield plebbit.createSigner();
     const author = {
-        displayName: undefined,
         address: signer.address,
     };
     const accountName = yield getNextAvailableDefaultAccountName();
