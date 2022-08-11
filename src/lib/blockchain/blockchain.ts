@@ -1,6 +1,7 @@
 import assert from 'assert'
 import {Nft, BlockchainProviders} from '../../types'
 import {ethers} from 'ethers'
+import fetch from 'node-fetch'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
 const nftImageUrlPendingPromises: any = {}
@@ -45,7 +46,9 @@ export const getNftImageUrl = async (nft: Nft, ipfsGatewayUrl: string, blockchai
     if (nftUrl.startsWith('ipfs://')) {
       nftUrl = `${ipfsGatewayUrl}/${nftUrl.replace('://', '/')}`
     }
-  } catch (e) {}
+  } catch (e) {
+    // console.error(e)
+  }
 
   nftImageUrlCache[cacheKey] = nftUrl
   // @ts-ignore

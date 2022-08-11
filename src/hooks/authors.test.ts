@@ -130,7 +130,7 @@ describe('authors', () => {
 
       rendered.rerender(author)
       await waitFor(() => typeof rendered.result.current === 'string')
-      expect(rendered.result.current).toBe('https://cloudflare-ipfs.com/ipfs/Qmakn3p9v7EBo2VXkPitPqPMVzdZ1wpghaF5fPCHg1nePa/105')
+      expect(rendered.result.current).toBe('https://cloudflare-ipfs.com/ipfs/QmbzsdEuX7Wnw3fEcue9siszymd94GRy6XMNDGkbUbVhTL')
     })
   })
 

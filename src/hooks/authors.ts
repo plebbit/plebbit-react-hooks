@@ -94,6 +94,8 @@ function useAuthorAvatarIsWhitelisted(nft?: Nft) {
   const whitelistedTokenAddresses: any = {
     // xpleb nfts
     '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed': true,
+    // plebsquat
+    '0x52e6cd20f5fca56da5a0e489574c92af118b8188': true,
     // random nfts contracts used in mock content and tests
     '0xed5af388653567af2f388e6224dc7c4b3241c544': true,
     '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d': true,
