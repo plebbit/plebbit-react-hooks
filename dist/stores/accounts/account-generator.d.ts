@@ -4,7 +4,6 @@ export declare const generateDefaultAccount: () => Promise<{
     id: string;
     name: string;
     author: {
-        displayName: undefined;
         address: string | undefined;
     };
     signer: import("@plebbit/plebbit-js/dist/node/signer").Signer;
@@ -21,7 +20,6 @@ declare const accountGenerator: {
         id: string;
         name: string;
         author: {
-            displayName: undefined;
             address: string | undefined;
         };
         signer: import("@plebbit/plebbit-js/dist/node/signer").Signer;
