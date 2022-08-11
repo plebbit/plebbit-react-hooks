@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import assert from 'assert';
 import { ethers } from 'ethers';
+import fetch from 'node-fetch';
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
 const nftImageUrlPendingPromises = {};
 const nftImageUrlCache = {};
@@ -46,7 +47,9 @@ export const getNftImageUrl = (nft, ipfsGatewayUrl, blockchainProviders) => __aw
             nftUrl = `${ipfsGatewayUrl}/${nftUrl.replace('://', '/')}`;
         }
     }
-    catch (e) { }
+    catch (e) {
+        // console.error(e)
+    }
     nftImageUrlCache[cacheKey] = nftUrl;
     // @ts-ignore
     resolve(nftUrl);
