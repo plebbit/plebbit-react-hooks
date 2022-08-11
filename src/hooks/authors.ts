@@ -115,9 +115,11 @@ function useAuthorAvatarIsWhitelisted(nft?: Nft) {
 const verifyAuthorAvatarSignaturePendingPromises: any = {}
 const verifyAuthorAvatarSignatureCache: any = {}
 export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: string, blockchainProviders: BlockchainProviders) => {
-  assert(nft.address, `verifyAuthorAvatarSignature invalid nft.address '${nft.address}'`)
-  assert(nft.id, `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft.id}'`)
-  assert(nft.signature, `verifyAuthorAvatarSignature invalid nft.signature '${nft.signature}'`)
+  assert(nft && typeof nft === 'object', `verifyAuthorAvatarSignature invalid nft argument '${nft}'`)
+  assert(nft?.address, `verifyAuthorAvatarSignature invalid nft.address '${nft?.address}'`)
+  assert(nft?.id, `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft?.id}'`)
+  assert(nft?.signature, `verifyAuthorAvatarSignature invalid nft.signature '${nft?.signature}'`)
+  assert(nft?.signature?.signature, `verifyAuthorAvatarSignature invalid nft.signature.signature '${nft?.signature?.signature}'`)
   assert(authorAddress, `verifyAuthorAvatarSignature invalid authorAddress '${authorAddress}'`)
 
   // cache the result
@@ -147,11 +149,11 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
   // insert props one at a time otherwise babel/webpack will reorder
   messageThatShouldBeSigned.domainSeparator = 'plebbit-author-avatar'
   messageThatShouldBeSigned.tokenAddress = nft.address
-  messageThatShouldBeSigned.tokenId = nft.id
+  messageThatShouldBeSigned.tokenId = String(nft.id) // must be string type, not number
   messageThatShouldBeSigned.authorAddress = authorAddress
   messageThatShouldBeSigned = JSON.stringify(messageThatShouldBeSigned)
 
-  const signatureAddress = ethers.utils.verifyMessage(messageThatShouldBeSigned, nft.signature)
+  const signatureAddress = ethers.utils.verifyMessage(messageThatShouldBeSigned, nft.signature.signature)
   let verified = true
   if (currentNftOwnerAddress !== signatureAddress) {
     verified = false

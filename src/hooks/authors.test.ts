@@ -107,6 +107,31 @@ describe('authors', () => {
       await waitFor(() => typeof rendered.result.current === 'string')
       expect(rendered.result.current).toBe(undefined)
     })
+
+    // skip because uses internet and not deterministic
+    test.skip('useAuthorAvatarImageUrl with ENS', async () => {
+      const author = {
+        displayName: 'Esteban Abaroa',
+        address: 'estebanabaroa.eth',
+        avatar: {
+          chainTicker: 'matic',
+          address: '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed',
+          id: '105',
+          signature: {
+            signature: '0xcb73c6b96193684ecea48952facbc217b3438c5e9290d978d40f227e3663eaf765d7f19f96151c35115deadee8003060352ffef1e6cc2e0600062e98c1e298301b',
+            type: 'eip191',
+            signedPropertyNames: ['domainSeparator', 'authorAddress', 'tokenAddress', 'tokenId'],
+          },
+        },
+      }
+      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl(author), {wrapper: PlebbitProvider})
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current).toBe(undefined)
+
+      rendered.rerender(author)
+      await waitFor(() => typeof rendered.result.current === 'string')
+      expect(rendered.result.current).toBe('https://cloudflare-ipfs.com/ipfs/Qmakn3p9v7EBo2VXkPitPqPMVzdZ1wpghaF5fPCHg1nePa/105')
+    })
   })
 
   describe('author address', () => {
