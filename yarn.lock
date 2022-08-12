@@ -1694,29 +1694,6 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#38e29c0c4b0a14f959236cdd0df34924a555df63":
-  version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#38e29c0c4b0a14f959236cdd0df34924a555df63"
-  dependencies:
-    "@keyv/sqlite" "3.5.3"
-    "@types/node-fetch" "2.6.2"
-    "@types/uuid" "8.3.4"
-    assert "2.0.0"
-    buffer "6.0.3"
-    captcha-canvas "3.1.0"
-    ethers "5.6.9"
-    form-data "4.0.0"
-    ipfs-http-client "56.0.3"
-    jose "4.8.3"
-    js-sha256 "0.9.0"
-    keyv "4.3.3"
-    knex "2.2.0"
-    libp2p-crypto "0.21.2"
-    peer-id "0.16.0"
-    sqlite3 "5.0.10"
-    tinycache "1.1.2"
-    uuid "8.3.2"
-
 "@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#6a09781b860f09adb864610b3958ebe2e8d7976c":
   version "0.0.3"
   resolved "https://github.com/plebbit/plebbit-js.git#6a09781b860f09adb864610b3958ebe2e8d7976c"
