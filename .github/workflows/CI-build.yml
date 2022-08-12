@@ -2,7 +2,7 @@
 name: CI build
 
 on:
-  check_suite:
+  check_run:
     types: [completed]
 
 jobs:
@@ -10,13 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: ${{ github.event.check_suite.conclusion == 'success' }}
+    if: ${{ github.event.check_run.name == 'CI' && github.event.check_run.check_suite.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          # cache: 'yarn'
 
       # build dist folder
       - run: yarn install --frozen-lockfile
