@@ -1694,9 +1694,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#6a09781b860f09adb864610b3958ebe2e8d7976c":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#01aad0f6dc5aeb4bc974a2f01a1ca0cb4c4c8419":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#6a09781b860f09adb864610b3958ebe2e8d7976c"
+  resolved "https://github.com/plebbit/plebbit-js.git#01aad0f6dc5aeb4bc974a2f01a1ca0cb4c4c8419"
   dependencies:
     "@keyv/sqlite" "3.5.3"
     "@types/node-fetch" "2.6.2"
