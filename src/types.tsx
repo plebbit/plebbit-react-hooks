@@ -68,6 +68,7 @@ export type SubplebbitPostsInfo = {
   sortType: string
   bufferedPostCount: number
 }
+// infoName = accountId + subplebbitAddress + sortType
 export type SubplebbitsPostsInfo = {[infoName: string]: SubplebbitPostsInfo}
 export type SubplebbitPageInfo = {
   pageCid: string
