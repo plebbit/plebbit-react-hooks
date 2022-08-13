@@ -70,22 +70,23 @@ describe('useSubplebbitsPages', () => {
 
   let rendered: any, waitFor: any
   beforeEach(async () => {
+    // subplebbits is only used for checking if the first page already exists on the sub instance
+    // so always leave it empty during tests
+    const subplebbits = {}
     // @ts-ignore
-    rendered = renderHook<any, any>((props: any) => useSubplebbitsPages(props.subplebbitsPostsInfo, props.subplebbits))
+    rendered = renderHook<any, any>((subplebbitsPostsInfo: any) => useSubplebbitsPages(subplebbitsPostsInfo, subplebbits))
     waitFor = testUtils.createWaitFor(rendered)
   })
 
-  test('undefined props', async () => {
+  test('undefined subplebbitsPostsInfo', async () => {
     const subplebbitsPostsInfo = undefined
-    const subplebbits = undefined
-    rendered.rerender({subplebbitsPostsInfo, subplebbits})
+    rendered.rerender(subplebbitsPostsInfo)
     expect(rendered.result.current).toEqual({})
   })
 
-  test('empty props', async () => {
+  test('empty subplebbitsPostsInfo', async () => {
     const subplebbitsPostsInfo = {}
-    const subplebbits = {}
-    rendered.rerender({subplebbitsPostsInfo, subplebbits})
+    rendered.rerender(subplebbitsPostsInfo)
     expect(rendered.result.current).toEqual({})
   })
 
@@ -101,12 +102,23 @@ describe('useSubplebbitsPages', () => {
       sortType: 'new',
       bufferedPostCount: 0,
     }
-    const subplebbits = {}
-    rendered.rerender({subplebbitsPostsInfo, subplebbits})
+    rendered.rerender(subplebbitsPostsInfo)
 
     // wait for first page to be defined
     await waitFor(() => rendered.result.current[subplebbitAddress1FirstPageCid].nextCid === subplebbitAddress1FirstPageCid + ' - next page cid')
+    expect(rendered.result.current[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
+    expect(rendered.result.current[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
 
+    // change buffered post count to stop the infinite get next page loop
+    subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`].bufferedPostCount = 100
+    rendered.rerender(subplebbitsPostsInfo)
+
+    // waiting for more subplebbit pages to be fetched should fail because
+    // the infinite fetch loop is stopped after bufferedPostCount is set above threshold
+    await expect(rendered.waitFor(() => Object.keys(rendered.result.current).length > 3)).rejects.toThrow('Timed out in waitFor after 1000ms.')
+    expect(Object.keys(rendered.result.current).length).toBeLessThan(3)
+
+    // the first page is still defined
     expect(rendered.result.current[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
     expect(rendered.result.current[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
   })
