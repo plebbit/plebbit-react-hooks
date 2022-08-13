@@ -136,6 +136,7 @@ const initializeStartSubplebbits = async () => {
           const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
           await subplebbit.start()
           startedSubplebbits[subplebbitAddress] = subplebbit
+          debug('subplebbit started', {subplebbit})
         } catch (error) {
           console.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
         }
