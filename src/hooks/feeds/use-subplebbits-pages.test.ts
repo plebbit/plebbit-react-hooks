@@ -123,7 +123,15 @@ describe('useSubplebbitsPages', () => {
     expect(rendered.result.current[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
   })
 
-  // test('gets a subplebbit second page', async () => {
+  // test('subplebbitsPostsInfo gets a new entry with multiple existing entries', async () => {
+
+  // })
+
+  // test('subplebbitsPostsInfo bufferedPostCount gets below threshold', async () => {
+
+  // })
+
+  // test('subplebbitsPostsInfo bufferedPostCount gets below threshold with multiple existing entries', async () => {
 
   // })
 })
