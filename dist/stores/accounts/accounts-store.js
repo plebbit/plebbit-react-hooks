@@ -118,6 +118,7 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
                     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
                     yield subplebbit.start();
                     startedSubplebbits[subplebbitAddress] = subplebbit;
+                    debug('subplebbit started', { subplebbit });
                 }
                 catch (error) {
                     console.error('accountsStore subplebbit.start error', { subplebbitAddress, error });
