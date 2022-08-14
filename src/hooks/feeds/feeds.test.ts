@@ -430,6 +430,49 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
+    test('get feed and change active account', async () => {
+      const newActiveAccountName = 'new active account'
+      rendered = renderHook<any, any>(
+        (props: any) => {
+          const feed = useFeed(props.subplebbitAddresses, props.sortType)
+          const account = useAccount()
+          const [bufferedFeed] = useBufferedFeeds(props && [props], newActiveAccountName)
+          const accountsActions = useAccountsActions()
+          return {...feed, ...accountsActions, account, bufferedFeed}
+        },
+        {wrapper: PlebbitProvider}
+      )
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
+
+      // wait for posts to be added, should get full first page
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(typeof rendered.result.current.feed[0].cid).toBe('string')
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // create account and set active account
+      await act(async () => {
+        await rendered.result.current.createAccount(newActiveAccountName)
+        await rendered.result.current.setActiveAccount(newActiveAccountName)
+      })
+
+      // wait for account change
+      await waitFor(() => rendered.result.current.account.name === newActiveAccountName)
+      expect(rendered.result.current.account.name).toBe(newActiveAccountName)
+
+      // wait for buffered feed of new active account to have some posts
+      await waitFor(() => rendered.result.current.bufferedFeed.length > 0)
+      expect(typeof rendered.result.current.bufferedFeed[0].cid).toBe('string')
+      expect(rendered.result.current.bufferedFeed.length).toBeGreaterThan(postsPerPage)
+
+      // TODO: the test below deosn't work and not sure why, need to investigate,
+      // it will probably cause critical UI bug when switching accounts
+
+      // wait for posts to be added, should get full first page
+      // await waitFor(() => rendered.result.current.feed.length > 0)
+      // expect(typeof rendered.result.current.feed[0].cid).toBe('string')
+      // expect(rendered.result.current.feed.length).toBe(postsPerPage)
+    })
+
     test(`fail to get feed sorted by sort type that doesn't exist`, async () => {
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],

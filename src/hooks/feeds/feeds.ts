@@ -6,6 +6,7 @@ import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
 import {Feed, UseBufferedFeedOptions} from '../../types'
+import feedsStore from '../../stores/feeds'
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
@@ -20,13 +21,13 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
 
   const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses])
   const [feedName] = useStringified([[account?.id, sortType, uniqueSubplebbitAddresses]])
-  const feed = feedName && feedsContext.loadedFeeds[feedName]
+  const loadedFeed = feedName && feedsContext.loadedFeeds[feedName]
 
   useEffect(() => {
     if (!uniqueSubplebbitAddresses || !account) {
       return
     }
-    if (!feed) {
+    if (!loadedFeed) {
       // if feed isn't already in store, add it
       feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account)
     }
@@ -45,8 +46,9 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     feedsContext.feedsActions.incrementFeedPageNumber(feedName)
   }
 
-  debug('useFeed', {feed, hasMore})
-  return {feed: feed || [], hasMore, loadMore}
+  const feed = loadedFeed || []
+  debug('useFeed', {feed, hasMore, subplebbitAddresses, sortType, account, feedsStore: feedsStore.getState()})
+  return {feed, hasMore, loadMore}
 }
 
 /**
@@ -97,7 +99,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
     }
   }, [feedNames])
 
-  debug('useBufferedFeeds', {bufferedFeeds})
+  debug('useBufferedFeeds', {bufferedFeeds, feedsOptions, account, accountName, feedsStore: feedsStore.getState()})
   return bufferedFeeds
 }
 

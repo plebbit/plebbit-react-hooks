@@ -29,7 +29,7 @@ export function useAccount(accountName?: string) {
   const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
   const accountId = useAccountId(accountName)
   const account = accountId && accounts?.[accountId]
-  debug('useAccount', {accountId, account, accountName: account?.name})
+  debug('useAccount', {accountId, account, accountName})
   return account
 }
 
