@@ -53,7 +53,7 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPos
       }
     }
     return newSubplebbitsPagesInfo
-  }, [subplebbitsPostsInfo, subplebbitsPages])
+  }, [JSON.stringify(subplebbitsPostsInfo), subplebbitsPages])
 
   // fetch subplebbit pages if needed
   // once a page is added, it's never removed
@@ -116,7 +116,7 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPos
         }
       })()
     }
-  }, [subplebbitsPagesInfo])
+  }, [JSON.stringify(subplebbitsPagesInfo)])
 
   return subplebbitsPages
 }

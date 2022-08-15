@@ -121,17 +121,24 @@ describe('useSubplebbitsPages', () => {
     // the first page is still defined
     expect(rendered.result.current[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
     expect(rendered.result.current[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
+
+    // bufferedPostCount gets below threshold again
+    let previousSubplebbitPagesFetchedCount = Object.keys(rendered.result.current).length
+    subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`].bufferedPostCount = 5
+    rendered.rerender(subplebbitsPostsInfo)
+
+    // wait for new pages to be fetched
+    await waitFor(() => Object.keys(rendered.result.current).length > previousSubplebbitPagesFetchedCount)
+    expect(Object.keys(rendered.result.current).length).toBeGreaterThan(previousSubplebbitPagesFetchedCount)
+
+    // stop the inifite fetch loop again
+    previousSubplebbitPagesFetchedCount = Object.keys(rendered.result.current).length
+    subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`].bufferedPostCount = 100
+    rendered.rerender(subplebbitsPostsInfo)
+    // add +1 because a page maybe have been fetched while changing the bufferedPostCount
+    await expect(rendered.waitFor(() => Object.keys(rendered.result.current).length > previousSubplebbitPagesFetchedCount + 1)).rejects.toThrow(
+      'Timed out in waitFor after 1000ms.'
+    )
+    expect(Object.keys(rendered.result.current).length).toBe(previousSubplebbitPagesFetchedCount + 1)
   })
-
-  // test('subplebbitsPostsInfo gets a new entry with multiple existing entries', async () => {
-
-  // })
-
-  // test('subplebbitsPostsInfo bufferedPostCount gets below threshold', async () => {
-
-  // })
-
-  // test('subplebbitsPostsInfo bufferedPostCount gets below threshold with multiple existing entries', async () => {
-
-  // })
 })
