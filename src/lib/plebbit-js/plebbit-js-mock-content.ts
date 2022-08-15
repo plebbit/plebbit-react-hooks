@@ -300,8 +300,6 @@ const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
 const getSubplebbitContent = async (seed: string) => {
   const subplebbit: any = {
     pubsubTopic: await hash(seed + 'pubsub topic'),
-    createdAt: await getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
-    updatedAt: await getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at'),
   }
 
   const hasChallengeTypes = await getArrayItem([true, false], seed + 'has challenge types')
@@ -391,6 +389,16 @@ const getSubplebbitContent = async (seed: string) => {
       'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO ',
     ]
   }
+
+  const isOnline = await getArrayItem([true, false], seed + 'isOnline')
+  if (isOnline) {
+    // updated in last 1h
+    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(1, 60 * 60, seed + 'updatedAt isOnline'))
+  } else {
+    // updated in last month
+    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(60 * 60, 60 * 60 * 24 * 30, seed + 'updatedAt'))
+  }
+  subplebbit.createdAt = subplebbit.updatedAt - (await getNumberBetween(1, 60 * 60 * 24 * 3000, seed + 'updatedAt isOnline'))
 
   return subplebbit
 }

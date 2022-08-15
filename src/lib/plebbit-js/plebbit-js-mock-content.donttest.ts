@@ -11,7 +11,7 @@ process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useComment, useSubplebbit, useFeed, useAccountsActions, useAccountSubplebbits} from '../../index'
-import PlebbitProvider from '../../providers/plebbit-provider'
+import PlebbitProvider from '../../providers/plebbit'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 
@@ -69,7 +69,7 @@ describe('mock content', () => {
     console.log(rendered.result.current)
   })
 
-  test('use subplebbits', async () => {
+  test.only('use subplebbits', async () => {
     const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
       wrapper: PlebbitProvider,
     })
