@@ -4,6 +4,7 @@ import { FeedsContext } from '../../providers/feeds';
 import validator from '../../lib/validator';
 import Debug from 'debug';
 const debug = Debug('plebbit-react-hooks:hooks:feeds');
+import feedsStore from '../../stores/feeds';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'
@@ -16,12 +17,12 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
     const feedsContext = useContext(FeedsContext);
     const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses]);
     const [feedName] = useStringified([[account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses]]);
-    const feed = feedName && feedsContext.loadedFeeds[feedName];
+    const loadedFeed = feedName && feedsContext.loadedFeeds[feedName];
     useEffect(() => {
         if (!uniqueSubplebbitAddresses || !account) {
             return;
         }
-        if (!feed) {
+        if (!loadedFeed) {
             // if feed isn't already in store, add it
             feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account);
         }
@@ -37,8 +38,9 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
         }
         feedsContext.feedsActions.incrementFeedPageNumber(feedName);
     };
-    debug('useFeed', { feed, hasMore });
-    return { feed: feed || [], hasMore, loadMore };
+    const feed = loadedFeed || [];
+    debug('useFeed', { feed, hasMore, subplebbitAddresses, sortType, account, feedsStore: feedsStore.getState() });
+    return { feed, hasMore, loadMore };
 }
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when
@@ -84,7 +86,7 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
             }
         }
     }, [feedNames]);
-    debug('useBufferedFeeds', { bufferedFeeds });
+    debug('useBufferedFeeds', { bufferedFeeds, feedsOptions, account, accountName, feedsStore: feedsStore.getState() });
     return bufferedFeeds;
 }
 /**

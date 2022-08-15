@@ -391,7 +391,7 @@ function useBufferedFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds) {
             for (const subplebbitAddress of feedsOptions[feedName].subplebbitAddresses) {
                 feedsSubplebbitsPostCounts[feedName][subplebbitAddress] = 0;
             }
-            for (const comment of bufferedFeeds[feedName]) {
+            for (const comment of bufferedFeeds[feedName] || []) {
                 feedsSubplebbitsPostCounts[feedName][comment.subplebbitAddress]++;
             }
         }

@@ -24,7 +24,7 @@ export function useAccount(accountName) {
     const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies);
     const accountId = useAccountId(accountName);
     const account = accountId && (accounts === null || accounts === void 0 ? void 0 : accounts[accountId]);
-    debug('useAccount', { accountId, account, accountName: account === null || account === void 0 ? void 0 : account.name });
+    debug('useAccount', { accountId, account, accountName });
     return account;
 }
 /**

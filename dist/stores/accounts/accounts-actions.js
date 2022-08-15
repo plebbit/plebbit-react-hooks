@@ -258,12 +258,13 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     delete createCommentOptions.onChallengeVerification;
     let accountCommentIndex;
     let comment = yield account.plebbit.createComment(createCommentOptions);
-    const publishAndRetryFailedChallengeVerification = () => {
+    const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         comment.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishCommentOptions.onChallenge(challenge, comment);
         }));
         comment.once('challengeverification', (challengeVerification) => __awaiter(void 0, void 0, void 0, function* () {
-            var _a;
+            var _b;
             publishCommentOptions.onChallengeVerification(challengeVerification, comment);
             if (!challengeVerification.challengeSuccess) {
                 // publish again automatically on fail
@@ -274,7 +275,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             else {
                 // the challengeverification message of a comment publication should in theory send back the CID
                 // of the published comment which is needed to resolve it for replies, upvotes, etc
-                if ((_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid) {
+                if ((_b = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _b === void 0 ? void 0 : _b.cid) {
                     const commentWithCid = Object.assign(Object.assign({}, createCommentOptions), { cid: challengeVerification.publication.cid });
                     yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
                     accountsStore.setState(({ accountsComments }) => {
@@ -290,8 +291,15 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             }
         }));
         listeners.push(comment);
-        comment.publish();
-    };
+        try {
+            // publish will resolve after the challenge request
+            // if it fails before, like failing to resolve ENS, we can emit the error
+            yield comment.publish();
+        }
+        catch (error) {
+            (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment);
+        }
+    });
     publishAndRetryFailedChallengeVerification();
     yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
     debug('accountsActions.publishComment', { createCommentOptions });
@@ -320,7 +328,8 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     delete createVoteOptions.onChallenge;
     delete createVoteOptions.onChallengeVerification;
     let vote = yield account.plebbit.createVote(createVoteOptions);
-    const publishAndRetryFailedChallengeVerification = () => {
+    const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
+        var _c;
         vote.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishVoteOptions.onChallenge(challenge, vote);
         }));
@@ -334,8 +343,15 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
             }
         }));
         listeners.push(vote);
-        vote.publish();
-    };
+        try {
+            // publish will resolve after the challenge request
+            // if it fails before, like failing to resolve ENS, we can emit the error
+            yield vote.publish();
+        }
+        catch (error) {
+            (_c = publishVoteOptions.onError) === null || _c === void 0 ? void 0 : _c.call(publishVoteOptions, error, vote);
+        }
+    });
     publishAndRetryFailedChallengeVerification();
     yield accountsDatabase.addAccountVote(account.id, createVoteOptions);
     debug('accountsActions.publishVote', { createVoteOptions });
@@ -356,7 +372,8 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     delete createCommentEditOptions.onChallenge;
     delete createCommentEditOptions.onChallengeVerification;
     let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
-    const publishAndRetryFailedChallengeVerification = () => {
+    const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
+        var _d;
         commentEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishCommentEditOptions.onChallenge(challenge, commentEdit);
         }));
@@ -370,8 +387,15 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
             }
         }));
         listeners.push(commentEdit);
-        commentEdit.publish();
-    };
+        try {
+            // publish will resolve after the challenge request
+            // if it fails before, like failing to resolve ENS, we can emit the error
+            yield commentEdit.publish();
+        }
+        catch (error) {
+            (_d = publishCommentEditOptions.onError) === null || _d === void 0 ? void 0 : _d.call(publishCommentEditOptions, error, commentEdit);
+        }
+    });
     publishAndRetryFailedChallengeVerification();
     debug('accountsActions.publishCommentEdit', { createCommentEditOptions });
     // TODO: show pending edits somewhere
@@ -400,7 +424,8 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     delete createSubplebbitEditOptions.onChallenge;
     delete createSubplebbitEditOptions.onChallengeVerification;
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
-    const publishAndRetryFailedChallengeVerification = () => {
+    const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
+        var _e;
         subplebbitEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit);
         }));
@@ -414,8 +439,15 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
             }
         }));
         listeners.push(subplebbitEdit);
-        subplebbitEdit.publish();
-    };
+        try {
+            // publish will resolve after the challenge request
+            // if it fails before, like failing to resolve ENS, we can emit the error
+            yield subplebbitEdit.publish();
+        }
+        catch (error) {
+            (_e = publishSubplebbitEditOptions.onError) === null || _e === void 0 ? void 0 : _e.call(publishSubplebbitEditOptions, error, subplebbitEdit);
+        }
+    });
     publishAndRetryFailedChallengeVerification();
     debug('accountsActions.publishSubplebbitEdit', { createSubplebbitEditOptions });
 });
