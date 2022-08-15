@@ -272,8 +272,6 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
     var _a;
     const subplebbit = {
         pubsubTopic: yield hash(seed + 'pubsub topic'),
-        createdAt: yield getNumberBetween(NOW - DAY * 1000, NOW, seed + 'sub created at'),
-        updatedAt: yield getNumberBetween(NOW - 60 * 10, NOW, seed + 'sub updated at'),
     };
     const hasChallengeTypes = yield getArrayItem([true, false], seed + 'has challenge types');
     if (hasChallengeTypes) {
@@ -356,6 +354,16 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
             'OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO ',
         ];
     }
+    const isOnline = yield getArrayItem([true, false], seed + 'isOnline');
+    if (isOnline) {
+        // updated in last 1h
+        subplebbit.updatedAt = Math.round(Date.now() / 1000) - (yield getNumberBetween(1, 60 * 60, seed + 'updatedAt isOnline'));
+    }
+    else {
+        // updated in last month
+        subplebbit.updatedAt = Math.round(Date.now() / 1000) - (yield getNumberBetween(60 * 60, 60 * 60 * 24 * 30, seed + 'updatedAt'));
+    }
+    subplebbit.createdAt = subplebbit.updatedAt - (yield getNumberBetween(1, 60 * 60 * 24 * 3000, seed + 'updatedAt isOnline'));
     return subplebbit;
 });
 // for debugging slow bulk reply generation
