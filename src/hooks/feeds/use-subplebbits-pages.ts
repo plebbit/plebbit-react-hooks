@@ -5,11 +5,24 @@ const debug = Debug('plebbit-react-hooks:hooks:feeds')
 import {Subplebbits, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo} from '../../types'
 import useAccountsStore from '../../stores/accounts'
 import localForageLru from '../../lib/localforage-lru'
+import createStore from 'zustand'
+import shallow from 'zustand/shallow'
 
 const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'WORK_IN_PROGRESS__subplebbitsPages', size: 500})
 
+// reset all event listeners in between tests
+export const listeners: any = []
+
 // keep large buffer because fetching cids is slow
 const subplebbitPostsLeftBeforeNextPage = 50
+
+type SubplebbitsPagesState = {
+  subplebbitsPages: SubplebbitsPages
+}
+
+const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
+  subplebbitsPages: {},
+}))
 
 /**
  * Use the `SubplebbitPostsInfo` objects to fetch the first page of all subplebbit/sorts
@@ -17,7 +30,8 @@ const subplebbitPostsLeftBeforeNextPage = 50
  * Once a next page is added, it is never removed.
  */
 export default function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbits: Subplebbits) {
-  const [subplebbitsPages, setSubplebbitsPages] = useState<SubplebbitsPages>({})
+  // const [subplebbitsPages, setSubplebbitsPages] = useState<SubplebbitsPages>({})
+  const subplebbitsPages = useSubplebbitsPagesStore((state) => state.subplebbitsPages, shallow)
 
   // set the info necessary to fetch each page recursively
   // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage
@@ -67,9 +81,12 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPos
 
       // the subplebbit page was already preloaded in the subplebbit IPNS record
       if (page) {
-        setSubplebbitsPages((previousSubplebbitsPages) => ({
-          ...previousSubplebbitsPages,
-          [pageCid]: page,
+        // setSubplebbitsPages((previousSubplebbitsPages) => ({
+        //   ...previousSubplebbitsPages,
+        //   [pageCid]: page,
+        // }))
+        useSubplebbitsPagesStore.setState(({subplebbitsPages}) => ({
+          subplebbitsPages: {...subplebbitsPages, [pageCid]: page},
         }))
         continue
       }
@@ -78,9 +95,12 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPos
         // subplebbit page is cached
         const cachedSubplebbitPage = await subplebbitsPagesDatabase.getItem(pageCid)
         if (cachedSubplebbitPage) {
-          setSubplebbitsPages((previousSubplebbitsPages) => ({
-            ...previousSubplebbitsPages,
-            [pageCid]: cachedSubplebbitPage,
+          // setSubplebbitsPages((previousSubplebbitsPages) => ({
+          //   ...previousSubplebbitsPages,
+          //   [pageCid]: cachedSubplebbitPage,
+          // }))
+          useSubplebbitsPagesStore.setState(({subplebbitsPages}) => ({
+            subplebbitsPages: {...subplebbitsPages, [pageCid]: cachedSubplebbitPage},
           }))
           return
         }
@@ -98,9 +118,12 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPos
             subplebbitsPostsInfo,
           },
         })
-        setSubplebbitsPages((previousSubplebbitsPages) => ({
-          ...previousSubplebbitsPages,
-          [pageCid]: fetchedSubplebbitPage,
+        // setSubplebbitsPages((previousSubplebbitsPages) => ({
+        //   ...previousSubplebbitsPages,
+        //   [pageCid]: fetchedSubplebbitPage,
+        // }))
+        useSubplebbitsPagesStore.setState(({subplebbitsPages}) => ({
+          subplebbitsPages: {...subplebbitsPages, [pageCid]: fetchedSubplebbitPage},
         }))
         getSubplebbitPagePending[account.id + pageCid] = false
 
@@ -141,4 +164,22 @@ const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: SubplebbitsP
     }
     pages.push(subplebbitPage)
   }
+}
+
+// reset store in between tests
+const originalState = useSubplebbitsPagesStore.getState()
+// async function because some stores have async init
+export const resetSubplebbitsPagesStore = async () => {
+  // remove all event listeners
+  listeners.forEach((listener: any) => listener.removeAllListeners())
+  // destroy all component subscriptions to the store
+  useSubplebbitsPagesStore.destroy()
+  // restore original state
+  useSubplebbitsPagesStore.setState(originalState)
+}
+
+// reset database and store in between tests
+export const resetSubplebbitsPagesDatabaseAndStore = async () => {
+  await subplebbitsPagesDatabase.clear()
+  await resetSubplebbitsPagesStore()
 }

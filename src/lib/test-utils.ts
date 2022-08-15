@@ -2,6 +2,7 @@ import {resetCommentsStore, resetCommentsDatabaseAndStore} from '../stores/comme
 import {resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore} from '../stores/subplebbits'
 import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accounts'
 import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
+import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../hooks/feeds/use-subplebbits-pages'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -82,6 +83,7 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
 }
 
 export const resetStores = async () => {
+  await resetSubplebbitsPagesStore()
   await resetFeedsStore()
   await resetSubplebbitsStore()
   await resetCommentsStore()
@@ -90,6 +92,7 @@ export const resetStores = async () => {
 }
 
 export const resetDatabasesAndStores = async () => {
+  await resetSubplebbitsPagesDatabaseAndStore()
   await resetFeedsDatabaseAndStore()
   await resetSubplebbitsDatabaseAndStore()
   await resetCommentsDatabaseAndStore()

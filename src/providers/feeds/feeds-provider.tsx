@@ -13,6 +13,7 @@ import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:providers:feeds')
 import {Props, Feed, Feeds, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, SubplebbitsPagesInfo, SubplebbitsPostsInfo, FeedsOptions} from '../../types'
 import shallow from 'zustand/shallow'
+import useSubplebbitsPages from '../../hooks/feeds/use-subplebbits-pages'
 
 const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbitsPages', size: 500})
 
@@ -266,7 +267,7 @@ function useCalculatedBufferedFeeds(
  * if the `SubplebbitPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
  * Once a next page is added, it is never removed.
  */
-function useSubplebbitsPages(subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbits: Subplebbits) {
+function useSubplebbitsPages2(subplebbitsPostsInfo: SubplebbitsPostsInfo, subplebbits: Subplebbits) {
   const [subplebbitsPages, setSubplebbitsPages] = useState<SubplebbitsPages>({})
 
   // set the info necessary to fetch each page recursively
