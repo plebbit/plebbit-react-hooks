@@ -11,6 +11,7 @@ import { resetCommentsStore, resetCommentsDatabaseAndStore } from '../stores/com
 import { resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore } from '../stores/subplebbits';
 import { resetAccountsStore, resetAccountsDatabaseAndStore } from '../stores/accounts';
 import { resetFeedsStore, resetFeedsDatabaseAndStore } from '../stores/feeds';
+import { resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore } from '../hooks/feeds/use-subplebbits-pages';
 const restorables = [];
 export const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
@@ -78,6 +79,7 @@ const createWaitFor = (rendered, waitForOptions) => {
     return waitFor;
 };
 export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetSubplebbitsPagesStore();
     yield resetFeedsStore();
     yield resetSubplebbitsStore();
     yield resetCommentsStore();
@@ -85,6 +87,7 @@ export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () 
     yield resetAccountsStore();
 });
 export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetSubplebbitsPagesDatabaseAndStore();
     yield resetFeedsDatabaseAndStore();
     yield resetSubplebbitsDatabaseAndStore();
     yield resetCommentsDatabaseAndStore();

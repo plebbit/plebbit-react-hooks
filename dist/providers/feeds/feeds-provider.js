@@ -20,6 +20,7 @@ import utils from '../../lib/utils';
 import Debug from 'debug';
 const debug = Debug('plebbit-react-hooks:providers:feeds');
 import shallow from 'zustand/shallow';
+import useSubplebbitsPages from '../../hooks/feeds/use-subplebbits-pages';
 const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 });
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
@@ -237,7 +238,7 @@ function useCalculatedBufferedFeeds(feedsOptions, subplebbitsPostsInfo, subplebb
  * if the `SubplebbitPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
  * Once a next page is added, it is never removed.
  */
-function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
+function useSubplebbitsPages2(subplebbitsPostsInfo, subplebbits) {
     const [subplebbitsPages, setSubplebbitsPages] = useState({});
     // set the info necessary to fetch each page recursively
     // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage

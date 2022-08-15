@@ -7,22 +7,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import utils from '../../lib/utils';
 import Debug from 'debug';
 const debug = Debug('plebbit-react-hooks:hooks:feeds');
 import useAccountsStore from '../../stores/accounts';
 import localForageLru from '../../lib/localforage-lru';
+import createStore from 'zustand';
+import shallow from 'zustand/shallow';
 const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'WORK_IN_PROGRESS__subplebbitsPages', size: 500 });
+// reset all event listeners in between tests
+export const listeners = [];
 // keep large buffer because fetching cids is slow
 const subplebbitPostsLeftBeforeNextPage = 50;
+const useSubplebbitsPagesStore = createStore((setState, getState) => ({
+    subplebbitsPages: {},
+}));
 /**
  * Use the `SubplebbitPostsInfo` objects to fetch the first page of all subplebbit/sorts
  * if the `SubplebbitPostsInfo.bufferedPostCount` gets too low, start fetching the next page.
  * Once a next page is added, it is never removed.
  */
 export default function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
-    const [subplebbitsPages, setSubplebbitsPages] = useState({});
+    // const [subplebbitsPages, setSubplebbitsPages] = useState<SubplebbitsPages>({})
+    const subplebbitsPages = useSubplebbitsPagesStore((state) => state.subplebbitsPages, shallow);
     // set the info necessary to fetch each page recursively
     // if bufferedPostCount is less than subplebbitPostsLeftBeforeNextPage
     const subplebbitsPagesInfo = useMemo(() => {
@@ -57,7 +65,7 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
             }
         }
         return newSubplebbitsPagesInfo;
-    }, [subplebbitsPostsInfo, subplebbitsPages]);
+    }, [JSON.stringify(subplebbitsPostsInfo), subplebbitsPages]);
     // fetch subplebbit pages if needed
     // once a page is added, it's never removed
     useEffect(() => {
@@ -69,7 +77,13 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
             }
             // the subplebbit page was already preloaded in the subplebbit IPNS record
             if (page) {
-                setSubplebbitsPages((previousSubplebbitsPages) => (Object.assign(Object.assign({}, previousSubplebbitsPages), { [pageCid]: page })));
+                // setSubplebbitsPages((previousSubplebbitsPages) => ({
+                //   ...previousSubplebbitsPages,
+                //   [pageCid]: page,
+                // }))
+                useSubplebbitsPagesStore.setState(({ subplebbitsPages }) => ({
+                    subplebbitsPages: Object.assign(Object.assign({}, subplebbitsPages), { [pageCid]: page }),
+                }));
                 continue;
             }
             ;
@@ -77,7 +91,13 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                 // subplebbit page is cached
                 const cachedSubplebbitPage = yield subplebbitsPagesDatabase.getItem(pageCid);
                 if (cachedSubplebbitPage) {
-                    setSubplebbitsPages((previousSubplebbitsPages) => (Object.assign(Object.assign({}, previousSubplebbitsPages), { [pageCid]: cachedSubplebbitPage })));
+                    // setSubplebbitsPages((previousSubplebbitsPages) => ({
+                    //   ...previousSubplebbitsPages,
+                    //   [pageCid]: cachedSubplebbitPage,
+                    // }))
+                    useSubplebbitsPagesStore.setState(({ subplebbitsPages }) => ({
+                        subplebbitsPages: Object.assign(Object.assign({}, subplebbitsPages), { [pageCid]: cachedSubplebbitPage }),
+                    }));
                     return;
                 }
                 getSubplebbitPagePending[account.id + pageCid] = true;
@@ -93,7 +113,13 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                         subplebbitsPostsInfo,
                     },
                 });
-                setSubplebbitsPages((previousSubplebbitsPages) => (Object.assign(Object.assign({}, previousSubplebbitsPages), { [pageCid]: fetchedSubplebbitPage })));
+                // setSubplebbitsPages((previousSubplebbitsPages) => ({
+                //   ...previousSubplebbitsPages,
+                //   [pageCid]: fetchedSubplebbitPage,
+                // }))
+                useSubplebbitsPagesStore.setState(({ subplebbitsPages }) => ({
+                    subplebbitsPages: Object.assign(Object.assign({}, subplebbitsPages), { [pageCid]: fetchedSubplebbitPage }),
+                }));
                 getSubplebbitPagePending[account.id + pageCid] = false;
                 // when publishing a comment, you don't yet know its CID
                 // so when a new comment is fetched, check to see if it's your own
@@ -107,7 +133,7 @@ export default function useSubplebbitsPages(subplebbitsPostsInfo, subplebbits) {
                 }
             }))();
         }
-    }, [subplebbitsPagesInfo]);
+    }, [JSON.stringify(subplebbitsPagesInfo)]);
     return subplebbitsPages;
 }
 const getSubplebbitPagePending = {};
@@ -132,3 +158,19 @@ const getSubplebbitPages = (firstPageCid, subplebbitsPages) => {
         pages.push(subplebbitPage);
     }
 };
+// reset store in between tests
+const originalState = useSubplebbitsPagesStore.getState();
+// async function because some stores have async init
+export const resetSubplebbitsPagesStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    // remove all event listeners
+    listeners.forEach((listener) => listener.removeAllListeners());
+    // destroy all component subscriptions to the store
+    useSubplebbitsPagesStore.destroy();
+    // restore original state
+    useSubplebbitsPagesStore.setState(originalState);
+});
+// reset database and store in between tests
+export const resetSubplebbitsPagesDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield subplebbitsPagesDatabase.clear();
+    yield resetSubplebbitsPagesStore();
+});
