@@ -18,6 +18,7 @@ export const validateAccountsActionsPublishCommentArguments = ({publishCommentOp
   assert(publishCommentOptions && typeof publishCommentOptions === 'object', 'publishComment publishCommentOptions not an object')
   assert(typeof publishCommentOptions.onChallenge === 'function', 'publishComment publishCommentOptions.onChallenge not a function')
   assert(typeof publishCommentOptions.onChallengeVerification === 'function', 'publishComment publishCommentOptions.onChallengeVerification not a function')
+  assert(!publishCommentOptions.onError || typeof publishCommentOptions.onError === 'function', 'publishComment publishCommentOptions.onError not a function')
   assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string')
   assert(!publishCommentOptions.parentCid || typeof publishCommentOptions.parentCid === 'string', 'publishComment publishCommentOptions.parentCid not a string')
   assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string')
@@ -32,6 +33,7 @@ export const validateAccountsActionsPublishVoteArguments = ({publishVoteOptions,
   assert(publishVoteOptions && typeof publishVoteOptions === 'object', 'publishVote publishVoteOptions not an object')
   assert(typeof publishVoteOptions.onChallenge === 'function', 'publishVote publishVoteOptions.onChallenge not a function')
   assert(typeof publishVoteOptions.onChallengeVerification === 'function', 'publishVote publishVoteOptions.onChallengeVerification not a function')
+  assert(!publishVoteOptions.onError || typeof publishVoteOptions.onError === 'function', 'publishVote publishVoteOptions.onError not a function')
   assert(typeof publishVoteOptions.subplebbitAddress === 'string', 'publishVote publishVoteOptions.subplebbitAddress not a string')
   assert(typeof publishVoteOptions.commentCid === 'string', 'publishVote publishVoteOptions.commentCid not a string')
   assert(publishVoteOptions.vote === 1 || publishVoteOptions.vote === 0 || publishVoteOptions.vote === -1, 'publishVote publishVoteOptions.vote not 1, 0 or -1')
@@ -45,6 +47,10 @@ export const validateAccountsActionsPublishCommentEditArguments = ({publishComme
   assert(publishCommentEditOptions && typeof publishCommentEditOptions === 'object', 'publishCommentEdit publishCommentEditOptions not an object')
   assert(typeof publishCommentEditOptions.onChallenge === 'function', 'publishCommentEdit publishCommentEditOptions.onChallenge not a function')
   assert(typeof publishCommentEditOptions.onChallengeVerification === 'function', 'publishCommentEdit publishCommentEditOptions.onChallengeVerification not a function')
+  assert(
+    !publishCommentEditOptions.onError || typeof publishCommentEditOptions.onError === 'function',
+    'publishCommentEditOptions publishCommentEditOptions.onError not a function'
+  )
   assert(typeof publishCommentEditOptions.subplebbitAddress === 'string', 'publishCommentEdit publishCommentEditOptions.subplebbitAddress not a string')
   assert(typeof publishCommentEditOptions.commentCid === 'string', 'publishCommentEdit publishCommentEditOptions.commentCid not a string')
   assert(
@@ -62,6 +68,10 @@ export const validateAccountsActionsPublishSubplebbitEditArguments = ({subplebbi
   assert(
     typeof publishSubplebbitEditOptions.onChallengeVerification === 'function',
     'publishSubplebbitEdit publishSubplebbitEditOptions.onChallengeVerification not a function'
+  )
+  assert(
+    !publishSubplebbitEditOptions.onError || typeof publishSubplebbitEditOptions.onError === 'function',
+    'publishSubplebbitEdit publishSubplebbitEditOptions.onError not a function'
   )
   assert(subplebbitAddress !== '', `publishSubplebbitEdit subplebbitAddress argument is empty string`)
   assert(typeof subplebbitAddress === 'string', 'publishSubplebbitEdit subplebbitAddress not a string')

@@ -294,7 +294,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   let accountCommentIndex: number
 
   let comment = await account.plebbit.createComment(createCommentOptions)
-  const publishAndRetryFailedChallengeVerification = () => {
+  const publishAndRetryFailedChallengeVerification = async () => {
     comment.once('challenge', async (challenge: Challenge) => {
       publishCommentOptions.onChallenge(challenge, comment)
     })
@@ -327,7 +327,13 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       }
     })
     listeners.push(comment)
-    comment.publish()
+    try {
+      // publish will resolve after the challenge request
+      // if it fails before, like failing to resolve ENS, we can emit the error
+      await comment.publish()
+    } catch (error) {
+      publishCommentOptions.onError?.(error, comment)
+    }
   }
 
   publishAndRetryFailedChallengeVerification()
@@ -370,7 +376,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   delete createVoteOptions.onChallengeVerification
 
   let vote = await account.plebbit.createVote(createVoteOptions)
-  const publishAndRetryFailedChallengeVerification = () => {
+  const publishAndRetryFailedChallengeVerification = async () => {
     vote.once('challenge', async (challenge: Challenge) => {
       publishVoteOptions.onChallenge(challenge, vote)
     })
@@ -384,7 +390,13 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
       }
     })
     listeners.push(vote)
-    vote.publish()
+    try {
+      // publish will resolve after the challenge request
+      // if it fails before, like failing to resolve ENS, we can emit the error
+      await vote.publish()
+    } catch (error) {
+      publishVoteOptions.onError?.(error, vote)
+    }
   }
 
   publishAndRetryFailedChallengeVerification()
@@ -418,7 +430,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   delete createCommentEditOptions.onChallengeVerification
 
   let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
-  const publishAndRetryFailedChallengeVerification = () => {
+  const publishAndRetryFailedChallengeVerification = async () => {
     commentEdit.once('challenge', async (challenge: Challenge) => {
       publishCommentEditOptions.onChallenge(challenge, commentEdit)
     })
@@ -432,7 +444,13 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
       }
     })
     listeners.push(commentEdit)
-    commentEdit.publish()
+    try {
+      // publish will resolve after the challenge request
+      // if it fails before, like failing to resolve ENS, we can emit the error
+      await commentEdit.publish()
+    } catch (error) {
+      publishCommentEditOptions.onError?.(error, commentEdit)
+    }
   }
 
   publishAndRetryFailedChallengeVerification()
@@ -476,7 +494,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   delete createSubplebbitEditOptions.onChallengeVerification
 
   let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
-  const publishAndRetryFailedChallengeVerification = () => {
+  const publishAndRetryFailedChallengeVerification = async () => {
     subplebbitEdit.once('challenge', async (challenge: Challenge) => {
       publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit)
     })
@@ -490,7 +508,13 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
       }
     })
     listeners.push(subplebbitEdit)
-    subplebbitEdit.publish()
+    try {
+      // publish will resolve after the challenge request
+      // if it fails before, like failing to resolve ENS, we can emit the error
+      await subplebbitEdit.publish()
+    } catch (error) {
+      publishSubplebbitEditOptions.onError?.(error, subplebbitEdit)
+    }
   }
 
   publishAndRetryFailedChallengeVerification()

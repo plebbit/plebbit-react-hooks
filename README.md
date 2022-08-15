@@ -300,6 +300,8 @@ const onChallengeVerification = (challengeVerification, comment) => {
   console.log('challenge verified', challengeVerification)
 }
 
+const onError = (error, comment) => console.error(error)
+
 const {publishComment} = useAccountsActions()
 
 // create post
@@ -308,7 +310,8 @@ publishComment({
   title: 'hello',
   subplebbitAddress: 'Qm...',
   onChallenge,
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 })
 
 // reply to a post or comment
@@ -318,7 +321,8 @@ publishComment({
   parentCommentCid: 'Qm...', // if top level reply to a post, same as postCid
   subplebbitAddress: 'Qm...',
   onChallenge,
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 })
 ```
 
@@ -332,7 +336,8 @@ publishVote({
   vote: 1,
   subplebbitAddress: 'news.eth',
   onChallenge,
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 })
 ```
 
@@ -346,7 +351,8 @@ publishCommentEdit({
   content: 'edited content',
   subplebbitAddress: 'news.eth',
   onChallenge,
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 })
 ```
 
@@ -360,7 +366,8 @@ publishCommentEdit({
   removed: true,
   subplebbitAddress: 'news.eth',
   onChallenge,
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 })
 
 // TODO: implement accountActions.deleteComment to remove your comment from your local accountComments database
@@ -539,6 +546,8 @@ const onChallengeVerification = (challengeVerification, subplebbitEdit) => {
   console.log('challenge verified', challengeVerification)
 }
 
+const onError = (error, subplebbitEdit) => console.error(error)
+
 const {publishSubplebbitEdit} = useAccountsActions()
 
 // add ENS to your subplebbit
@@ -546,7 +555,8 @@ const subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 const editSubplebbitOptions = {
   address: 'your-subplebbit-address.eth', 
   onChallenge, 
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 }
 await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
 
@@ -556,7 +566,8 @@ const editSubplebbitOptions = {
   title: 'Your title', 
   description: 'Your description',
   onChallenge, 
-  onChallengeVerification
+  onChallengeVerification,
+  onError
 }
 await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
 
