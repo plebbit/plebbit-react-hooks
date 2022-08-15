@@ -618,6 +618,27 @@ Post pages are cached in IndexedDb for a short time, in case the user reloads th
 
 When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies. Emptying the buffered feed needs testing in production, it might be too slow and need some caching.
 
+#### Flow of adding a new feed
+1. user calls useFeed(subplebbitAddresses, sortType) and feed gets added to feeds store
+2. feed subplebbits are added to subplebbits store
+  - in parallel:
+    3. each feed subplebbit+sortType subscribes to its subplebbit firstPageCid value changing (a subplebbit update)
+    4. on each firstPageCid change, rebuild the buffered feeds and update bufferedPostCount
+  - in parallel:
+    3. each feed subplebbit+sortType subscribes to its bufferedPostCount value changing
+    4. on each bufferedPostCount change, if the bufferedPostCount is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbits pages store
+  - in parallel:
+    3. each feed subscribes to subplebbits pages store changing
+      - on each subplebbits pages store change, if any new pages are relevant to the feed:
+        5. the feed's buffered feeds is rebuilt and bufferedPostCount updated
+        6. if the loaded feeds is missing posts and buffered feeds has them, rebuild the loaded feeds
+  - in parallel:
+    3. the feed's loaded feed subscribes to the feed's page number change
+    4. on each page number change, rebuild the loaded feeds with extra posts for the new page
+
+#### Flow of incrementing a feed's page
+1. the feeds store gets updated with the new page number
+
 #### Comments trees and infinite scrolling
 
 Currently not implemented. Only uses the preloaded replies to a post.
