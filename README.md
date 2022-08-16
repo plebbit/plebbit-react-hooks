@@ -629,7 +629,7 @@ feedsStore {
   // actions
   addFeedToStore: (feedName: string, ...feedOptions: FeedOptions) => void
   incrementFeedPageNumber: (feedName: string) => void
-  // recalculate all feeds using new subplebbits pages and page numbers
+  // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
   updateFeeds: () => void
 }
 subplebbitsStore {
@@ -649,16 +649,16 @@ subplebbitsPagesStore {
 #### Flow of adding a new feed
 
 1. user calls useFeed(subplebbitAddresses, sortType) and feed gets added to feeds store
-2. feed subplebbits are added to subplebbits store
+2. feed subplebbits are added to subplebbitsStore
   - in parallel:
-    3. each feed subplebbit+sortType subscribes to its subplebbit firstPageCid (subplebbit.posts.pageCids[sortType]) value changing (a subplebbit update)
-    4. on each firstPageCid change, rebuild the buffered feeds and update bufferedPostsCount
+    3. each feed subplebbit+sortType subscribes to its subplebbit.posts.pages and firstPageCids (subplebbit.posts.pageCids[sortType]) value changing (a subplebbit update)
+    4. on each subplebbit.posts.pages and firstPageCids change, updateFeeds and bufferedPostsCount
   - in parallel:
     3. each feed subplebbit+sortType subscribes to its bufferedPostsCount value changing
-    4. on each bufferedPostsCount change, if the bufferedPostsCount is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbits pages store
+    4. on each bufferedPostsCount change, if the bufferedPostsCount is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbitsPagesStore
   - in parallel:
-    3. each feed subscribes to subplebbits pages store changing
-      - on each subplebbits pages store change, if any new pages are relevant to the feed:
+    3. each feed subscribes to subplebbitsPagesStore changing
+      - on each subplebbitsPagesStore change, if any new pages are relevant to the feed:
         5. the feed's buffered feeds is rebuilt and bufferedPostsCount updated
         6. if the loaded feeds is missing posts and buffered feeds has them, rebuild the loaded feeds
   - in parallel:
