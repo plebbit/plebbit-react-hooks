@@ -106,10 +106,19 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   return uniqueFlattened
 }
 
+// use with zustand store to know if an object has changed
+export function jsonStringifyEqual(objA: any, objB: any) {
+  if (JSON.stringify(objA) === JSON.stringify(objB)) {
+    return true
+  }
+  return false
+}
+
 const utils = {
   merge,
   clone,
   flattenCommentsPages,
+  jsonStringifyEqual,
 }
 
 export default utils
