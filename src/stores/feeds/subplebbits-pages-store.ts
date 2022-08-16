@@ -39,7 +39,19 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
     const subplebbitPages = getSubplebbitPages(subplebbitFirstPageCid, subplebbitsPages)
 
     // if no pages exist yet, add the first page
-    const pageCidToAdd: string = subplebbitPages[subplebbitPages.length - 1]?.nextCid || subplebbitFirstPageCid
+    let pageCidToAdd: string
+    if (!subplebbitPages.length) {
+      pageCidToAdd = subplebbitFirstPageCid
+    } else {
+      const nextCid = subplebbitPages[subplebbitPages.length - 1]?.nextCid
+      // if last nextCid is null, reached end of pages
+      if (!nextCid) {
+        debug('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', {subplebbitAddress: subplebbit.address, sortType, account})
+        return
+      }
+
+      pageCidToAdd = nextCid
+    }
 
     // page is already added or pending
     if (subplebbitsPages[pageCidToAdd] || fetchPagePending[account.id + pageCidToAdd]) {
@@ -50,10 +62,11 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
     let page: SubplebbitPage
     try {
       page = await fetchPage(pageCidToAdd, subplebbit.address, account)
-      debug('subplebbitsPagesStore subplebbit.posts.getPage', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account})
+      debug('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account})
       setState(({subplebbitsPages}: any) => ({
         subplebbitsPages: {...subplebbitsPages, [pageCidToAdd]: page},
       }))
+      debug('subplebbitsPagesStore.addNextSubplebbitPageToStore', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account})
     } catch (e) {
       throw e
     } finally {

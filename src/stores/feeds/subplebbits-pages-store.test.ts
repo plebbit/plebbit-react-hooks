@@ -1,25 +1,23 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import _useSubplebbitsPagesStore from './subplebbits-pages-store'
-
-// store must be wrapped in a hook to use in tests
-const useSubplebbitsPagesStore = () => {
-  // @ts-ignore
-  const store = _useSubplebbitsPagesStore()
-  return store
-}
+import useSubplebbitsPagesStore from './subplebbits-pages-store'
+import {SubplebbitPage} from '../../types'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 class MockPages {
   subplebbitAddress: string
+  pageCids: {[pageCid: string]: string}
   constructor({subplebbitAddress}: any) {
     this.subplebbitAddress = subplebbitAddress
+    this.pageCids = {
+      new: `${subplebbitAddress} new page cid`,
+    }
   }
 
   async getPage(pageCid: string) {
     await sleep(200)
-    const page = {
+    const page: SubplebbitPage = {
       nextCid: pageCid + ' - next page cid',
       comments: this.getPageMockComments(pageCid),
     }
@@ -70,10 +68,7 @@ describe('subplebbitsPagesStore', () => {
 
   let rendered: any, waitFor: any
   beforeEach(async () => {
-    rendered = renderHook<any, any>(() => {
-      const store = useSubplebbitsPagesStore()
-      return store
-    })
+    rendered = renderHook<any, any>(() => useSubplebbitsPagesStore())
     waitFor = testUtils.createWaitFor(rendered)
   })
 
@@ -82,61 +77,55 @@ describe('subplebbitsPagesStore', () => {
     expect(typeof rendered.result.current.addNextSubplebbitPageToStore).toBe('function')
   })
 
-  // test('empty subplebbitsPostsInfo', async () => {
-  //   const subplebbitsPostsInfo = {}
-  //   rendered.rerender(subplebbitsPostsInfo)
-  //   expect(rendered.result.current).toEqual({})
-  // })
+  test('add next pages', async () => {
+    const mockSubplebbit = await mockAccount.plebbit.createSubplebbit({address: 'subplebbit address 1'})
+    const sortType = 'new'
+    const subplebbitAddress1FirstPageCid = mockSubplebbit.posts.pageCids[sortType]
 
-  // test('subplebbitsPostsInfo gets a new entry', async () => {
-  //   const subplebbitsPostsInfo: MockSubplebbitsPostsInfo = {}
+    act(() => {
+      rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
+    })
 
-  //   // new subplebbitsPostsInfo entry
-  //   const subplebbitAddress1FirstPageCid = 'subplebbit address 1 new page cid'
-  //   subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`] = {
-  //     firstPageCid: subplebbitAddress1FirstPageCid,
-  //     account: mockAccount,
-  //     subplebbitAddress: 'subplebbit address 1',
-  //     sortType: 'new',
-  //     bufferedPostCount: 0,
-  //   }
-  //   rendered.rerender(subplebbitsPostsInfo)
+    // wait for first page to be defined
+    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].nextCid === subplebbitAddress1FirstPageCid + ' - next page cid')
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
 
-  //   // wait for first page to be defined
-  //   await waitFor(() => rendered.result.current[subplebbitAddress1FirstPageCid].nextCid === subplebbitAddress1FirstPageCid + ' - next page cid')
-  //   expect(rendered.result.current[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
-  //   expect(rendered.result.current[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
+    act(() => {
+      rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
+    })
 
-  //   // change buffered post count to stop the infinite get next page loop
-  //   subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`].bufferedPostCount = 100
-  //   rendered.rerender(subplebbitsPostsInfo)
+    // wait for second page to be defined
+    const subplebbitAddress1SecondPageCid = `${subplebbitAddress1FirstPageCid} - next page cid`
+    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1SecondPageCid].nextCid === subplebbitAddress1SecondPageCid + ' - next page cid')
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1SecondPageCid].nextCid).toBe(subplebbitAddress1SecondPageCid + ' - next page cid')
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1SecondPageCid].comments.length).toBe(100)
 
-  //   // waiting for more subplebbit pages to be fetched should fail because
-  //   // the infinite fetch loop is stopped after bufferedPostCount is set above threshold
-  //   await expect(rendered.waitFor(() => Object.keys(rendered.result.current).length > 3)).rejects.toThrow('Timed out in waitFor after 1000ms.')
-  //   expect(Object.keys(rendered.result.current).length).toBeLessThan(3)
+    // no more pages
+    const getPage = MockPages.prototype.getPage
+    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: null})
 
-  //   // the first page is still defined
-  //   expect(rendered.result.current[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
-  //   expect(rendered.result.current[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
+    act(() => {
+      rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
+    })
 
-  //   // bufferedPostCount gets below threshold again
-  //   let previousSubplebbitPagesFetchedCount = Object.keys(rendered.result.current).length
-  //   subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`].bufferedPostCount = 5
-  //   rendered.rerender(subplebbitsPostsInfo)
+    // wait for third page to be defined
+    const subplebbitAddress1ThirdPageCid = `${subplebbitAddress1SecondPageCid} - next page cid`
+    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid === null)
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid).toBe(null)
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].comments.length).toBe(0)
 
-  //   // wait for new pages to be fetched
-  //   await waitFor(() => Object.keys(rendered.result.current).length > previousSubplebbitPagesFetchedCount)
-  //   expect(Object.keys(rendered.result.current).length).toBeGreaterThan(previousSubplebbitPagesFetchedCount)
+    // adding a next page when no more pages does nothing
+    const previousSubplebbitPagesFetchedCount = Object.keys(rendered.result.current.subplebbitsPages).length
+    act(() => {
+      rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
+    })
+    await expect(rendered.waitFor(() => Object.keys(rendered.result.current.subplebbitsPages).length > previousSubplebbitPagesFetchedCount)).rejects.toThrow(
+      'Timed out in waitFor after 1000ms.'
+    )
+    expect(Object.keys(rendered.result.current.subplebbitsPages).length).toBe(previousSubplebbitPagesFetchedCount)
 
-  //   // stop the inifite fetch loop again
-  //   previousSubplebbitPagesFetchedCount = Object.keys(rendered.result.current).length
-  //   subplebbitsPostsInfo[`${mockAccount.id} - subplebbit address 1 - new`].bufferedPostCount = 100
-  //   rendered.rerender(subplebbitsPostsInfo)
-  //   // add +1 because a page maybe have been fetched while changing the bufferedPostCount
-  //   await expect(rendered.waitFor(() => Object.keys(rendered.result.current).length > previousSubplebbitPagesFetchedCount + 1)).rejects.toThrow(
-  //     'Timed out in waitFor after 1000ms.'
-  //   )
-  //   expect(Object.keys(rendered.result.current).length).toBe(previousSubplebbitPagesFetchedCount + 1)
-  // })
+    // restore mock
+    MockPages.prototype.getPage = getPage
+  })
 })
