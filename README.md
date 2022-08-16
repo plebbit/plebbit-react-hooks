@@ -619,6 +619,7 @@ Post pages are cached in IndexedDb for a short time, in case the user reloads th
 When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies. Emptying the buffered feed needs testing in production, it might be too slow and need some caching.
 
 #### Flow of adding a new feed
+
 1. user calls useFeed(subplebbitAddresses, sortType) and feed gets added to feeds store
 2. feed subplebbits are added to subplebbits store
   - in parallel:
@@ -637,6 +638,7 @@ When a subplebbit updates, the buffered feeds are emptied of that subplebbit's p
     4. on each page number change, rebuild the loaded feeds with extra posts for the new page
 
 #### Flow of incrementing a feed's page
+
 1. the feeds store gets updated with the new page number
 
 #### Comments trees and infinite scrolling
