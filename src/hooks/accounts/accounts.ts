@@ -151,7 +151,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
       return filterPublications(accountComments, useAccountCommentsOptions.filter)
     }
     return accountComments
-  }, [accountComments, useAccountCommentsOptions])
+  }, [JSON.stringify(accountComments), JSON.stringify(useAccountCommentsOptions)])
 
   debug('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
   return filteredAccountComments
@@ -182,7 +182,7 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
       accountVotesArray = filterPublications(accountVotesArray, useAccountVotesOptions.filter)
     }
     return accountVotesArray
-  }, [accountVotes, useAccountVotesOptions])
+  }, [JSON.stringify(accountVotes), JSON.stringify(useAccountVotesOptions)])
 
   debug('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
   return filteredAccountVotesArray

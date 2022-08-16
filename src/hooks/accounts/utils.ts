@@ -45,6 +45,10 @@ export const filterPublications = (publications: any, filter: UseAccountComments
 }
 
 export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
+  const accountsBlockedAddresses = Object.fromEntries(
+    Object.keys(accountsCommentsReplies || {}).map((accountId) => [accountId, accounts?.[accountId]?.blockedAddresses || {}])
+  )
+
   return useMemo(() => {
     const accountsNotifications: AccountsNotifications = {}
     if (!accountsCommentsReplies) {
@@ -57,7 +61,7 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
         const reply = accountsCommentsReplies[accountId][replyCid]
 
         // TODO: filter blocked addresses
-        // if (accounts[accountId].blockedAddress[reply.subplebbitAddress] || accounts[accountId].blockedAddress[reply.author.address]) {
+        // if (accountsBlockedAddresses[accountId][reply.subplebbitAddress] || accountsBlockedAddresses[accountId][reply.author.address]) {
         //   continue
         // }
         accountCommentsReplies.push(reply)
@@ -68,7 +72,7 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
       accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp)
     }
     return accountsNotifications
-  }, [accounts, accountsCommentsReplies])
+  }, [JSON.stringify(accountsBlockedAddresses), JSON.stringify(accountsCommentsReplies)])
 }
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
@@ -137,5 +141,5 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
     }
 
     return accountsWithCalculatedProperties
-  }, [accounts, accountsComments, accountsNotifications])
+  }, [JSON.stringify(accounts), JSON.stringify(accountsComments), JSON.stringify(accountsNotifications)])
 }

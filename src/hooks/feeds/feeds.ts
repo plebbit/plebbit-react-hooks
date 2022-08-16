@@ -117,7 +117,7 @@ function useUniqueSorted(stringsArrays?: (string[] | undefined)[]) {
       }
     }
     return uniqueSorted
-  }, [stringsArrays])
+  }, [stringsArrays?.toString()])
 }
 
 /**
@@ -134,5 +134,5 @@ function useStringified(objs?: any[]) {
       }
     }
     return stringified
-  }, [objs])
+  }, [JSON.stringify(objs)])
 }
