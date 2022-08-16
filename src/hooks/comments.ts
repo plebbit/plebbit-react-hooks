@@ -27,7 +27,7 @@ export function useComment(commentCid?: string, accountName?: string) {
       // if comment isn't already in store, add it
       addCommentToStore(commentCid, account).catch((error: unknown) => console.error('useComment addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCid, account])
+  }, [commentCid, account?.id])
 
   debug('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
   return comment
@@ -52,7 +52,7 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
     for (const commentCid of uniqueCommentCids) {
       addCommentToStore(commentCid, account).catch((error: unknown) => console.error('useComments addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCids, account])
+  }, [commentCids.toString(), account?.id])
 
   debug('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
   return comments

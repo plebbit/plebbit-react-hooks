@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react'
+import {useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
 import PlebbitJs from '../../lib/plebbit-js'
 import Debug from 'debug'

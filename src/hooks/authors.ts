@@ -50,7 +50,7 @@ export function useNftImageUrl(nft?: Nft, accountName?: string) {
         debug('useNftImageUrl getNftImageUrl error', {nft, ipfsGatewayUrl, blockchainProviders, error})
       }
     })()
-  }, [nft?.chainTicker, nft?.address, nft?.id, ipfsGatewayUrl, blockchainProviders])
+  }, [nft?.chainTicker, nft?.address, nft?.id, ipfsGatewayUrl, JSON.stringify(blockchainProviders)])
 
   debug('useNftImageUrl', {nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders})
   return nftImageUrl
@@ -75,7 +75,7 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
         debug('useVerifiedAuthorAvatarSignature verifyAuthorAvatarSignature error', {author, blockchainProviders, error})
       }
     })()
-  }, [author?.avatar, author?.address, blockchainProviders])
+  }, [author?.avatar, author?.address, JSON.stringify(blockchainProviders)])
 
   // don't verify nft signature when using mock content during development
   if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {

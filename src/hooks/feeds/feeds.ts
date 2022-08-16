@@ -31,7 +31,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
       // if feed isn't already in store, add it
       feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account)
     }
-  }, [feedName, uniqueSubplebbitAddresses, account])
+  }, [feedName, uniqueSubplebbitAddresses?.toString(), account?.id])
 
   let hasMore = feedName && feedsContext.feedsHaveMore[feedName]
   // if the feed is not yet defined, then it has more
@@ -97,7 +97,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
         feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed)
       }
     }
-  }, [feedNames])
+  }, [feedNames?.toString()])
 
   debug('useBufferedFeeds', {bufferedFeeds, feedsOptions, account, accountName, feedsStore: feedsStore.getState()})
   return bufferedFeeds

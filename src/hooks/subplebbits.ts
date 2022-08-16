@@ -29,7 +29,7 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
       // if subplebbit isn't already in store, add it
       addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => console.error('useSubplebbit addSubplebbitToStore error', {subplebbitAddress, error}))
     }
-  }, [subplebbitAddress, account])
+  }, [subplebbitAddress, account?.id])
 
   debug('useSubplebbit', {subplebbitAddress, subplebbit, account})
   return subplebbit
@@ -57,7 +57,7 @@ export function useSubplebbits(subplebbitAddresses: string[] = [], accountName?:
     for (const subplebbitAddress of uniqueSubplebbitAddresses) {
       addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => console.error('useSubplebbits addSubplebbitToStore error', {subplebbitAddress, error}))
     }
-  }, [subplebbitAddresses, account])
+  }, [subplebbitAddresses.toString(), account?.id])
 
   debug('useSubplebbits', {subplebbitAddresses, subplebbits, account})
   return subplebbits
