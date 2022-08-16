@@ -57,7 +57,7 @@ export function useNftImageUrl(nft, accountName) {
                 debug('useNftImageUrl getNftImageUrl error', { nft, ipfsGatewayUrl, blockchainProviders, error });
             }
         }))();
-    }, [nft === null || nft === void 0 ? void 0 : nft.chainTicker, nft === null || nft === void 0 ? void 0 : nft.address, nft === null || nft === void 0 ? void 0 : nft.id, ipfsGatewayUrl, blockchainProviders]);
+    }, [nft === null || nft === void 0 ? void 0 : nft.chainTicker, nft === null || nft === void 0 ? void 0 : nft.address, nft === null || nft === void 0 ? void 0 : nft.id, ipfsGatewayUrl, JSON.stringify(blockchainProviders)]);
     debug('useNftImageUrl', { nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders });
     return nftImageUrl;
 }
@@ -82,7 +82,7 @@ export function useVerifiedAuthorAvatarSignature(author, accountName) {
                 debug('useVerifiedAuthorAvatarSignature verifyAuthorAvatarSignature error', { author, blockchainProviders, error });
             }
         }))();
-    }, [author === null || author === void 0 ? void 0 : author.avatar, author === null || author === void 0 ? void 0 : author.address, blockchainProviders]);
+    }, [author === null || author === void 0 ? void 0 : author.avatar, author === null || author === void 0 ? void 0 : author.address, JSON.stringify(blockchainProviders)]);
     // don't verify nft signature when using mock content during development
     if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
         return true;

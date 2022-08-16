@@ -129,7 +129,7 @@ export function useAccountComments(useAccountCommentsOptions) {
             return filterPublications(accountComments, useAccountCommentsOptions.filter);
         }
         return accountComments;
-    }, [accountComments, useAccountCommentsOptions]);
+    }, [JSON.stringify(accountComments), JSON.stringify(useAccountCommentsOptions)]);
     debug('useAccountComments', { accountId, filteredAccountComments, accountComments, useAccountCommentsOptions });
     return filteredAccountComments;
 }
@@ -156,7 +156,7 @@ export function useAccountVotes(useAccountVotesOptions) {
             accountVotesArray = filterPublications(accountVotesArray, useAccountVotesOptions.filter);
         }
         return accountVotesArray;
-    }, [accountVotes, useAccountVotesOptions]);
+    }, [JSON.stringify(accountVotes), JSON.stringify(useAccountVotesOptions)]);
     debug('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions });
     return filteredAccountVotesArray;
 }

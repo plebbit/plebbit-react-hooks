@@ -26,7 +26,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
             // if feed isn't already in store, add it
             feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account);
         }
-    }, [feedName, uniqueSubplebbitAddresses, account]);
+    }, [feedName, uniqueSubplebbitAddresses === null || uniqueSubplebbitAddresses === void 0 ? void 0 : uniqueSubplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
     let hasMore = feedName && feedsContext.feedsHaveMore[feedName];
     // if the feed is not yet defined, then it has more
     if (!feedName || typeof feedsContext.feedsHaveMore[feedName] !== 'boolean') {
@@ -85,7 +85,7 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
                 feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed);
             }
         }
-    }, [feedNames]);
+    }, [feedNames === null || feedNames === void 0 ? void 0 : feedNames.toString()]);
     debug('useBufferedFeeds', { bufferedFeeds, feedsOptions, account, accountName, feedsStore: feedsStore.getState() });
     return bufferedFeeds;
 }
@@ -104,7 +104,7 @@ function useUniqueSorted(stringsArrays) {
             }
         }
         return uniqueSorted;
-    }, [stringsArrays]);
+    }, [stringsArrays === null || stringsArrays === void 0 ? void 0 : stringsArrays.toString()]);
 }
 /**
  * Util to stringify multiple objects or return undefineds
@@ -121,5 +121,5 @@ function useStringified(objs) {
             }
         }
         return stringified;
-    }, [objs]);
+    }, [JSON.stringify(objs)]);
 }

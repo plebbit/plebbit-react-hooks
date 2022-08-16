@@ -43,6 +43,7 @@ export const filterPublications = (publications, filter) => {
     return filteredPublications;
 };
 export const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
+    const accountsBlockedAddresses = Object.fromEntries(Object.keys(accountsCommentsReplies || {}).map((accountId) => { var _a; return [accountId, ((_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.blockedAddresses) || {}]; }));
     return useMemo(() => {
         const accountsNotifications = {};
         if (!accountsCommentsReplies) {
@@ -54,7 +55,7 @@ export const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
             for (const replyCid in accountsCommentsReplies[accountId]) {
                 const reply = accountsCommentsReplies[accountId][replyCid];
                 // TODO: filter blocked addresses
-                // if (accounts[accountId].blockedAddress[reply.subplebbitAddress] || accounts[accountId].blockedAddress[reply.author.address]) {
+                // if (accountsBlockedAddresses[accountId][reply.subplebbitAddress] || accountsBlockedAddresses[accountId][reply.author.address]) {
                 //   continue
                 // }
                 accountCommentsReplies.push(reply);
@@ -63,7 +64,7 @@ export const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
             accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp);
         }
         return accountsNotifications;
-    }, [accounts, accountsCommentsReplies]);
+    }, [JSON.stringify(accountsBlockedAddresses), JSON.stringify(accountsCommentsReplies)]);
 };
 // add calculated properties to accounts, like karma and unreadNotificationCount
 export const useAccountsWithCalculatedProperties = (accounts, accountsComments, accountsCommentsReplies) => {
@@ -127,5 +128,5 @@ export const useAccountsWithCalculatedProperties = (accounts, accountsComments, 
             accountsWithCalculatedProperties[accountId].unreadNotificationCount = unreadNotificationCount;
         }
         return accountsWithCalculatedProperties;
-    }, [accounts, accountsComments, accountsNotifications]);
+    }, [JSON.stringify(accounts), JSON.stringify(accountsComments), JSON.stringify(accountsNotifications)]);
 };

@@ -34,7 +34,7 @@ export function useSubplebbit(subplebbitAddress, accountName) {
             // if subplebbit isn't already in store, add it
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbit addSubplebbitToStore error', { subplebbitAddress, error }));
         }
-    }, [subplebbitAddress, account]);
+    }, [subplebbitAddress, account === null || account === void 0 ? void 0 : account.id]);
     debug('useSubplebbit', { subplebbitAddress, subplebbit, account });
     return subplebbit;
 }
@@ -56,7 +56,7 @@ export function useSubplebbits(subplebbitAddresses = [], accountName) {
         for (const subplebbitAddress of uniqueSubplebbitAddresses) {
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
         }
-    }, [subplebbitAddresses, account]);
+    }, [subplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
     debug('useSubplebbits', { subplebbitAddresses, subplebbits, account });
     return subplebbits;
 }
