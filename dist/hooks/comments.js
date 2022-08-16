@@ -23,7 +23,7 @@ export function useComment(commentCid, accountName) {
             // if comment isn't already in store, add it
             addCommentToStore(commentCid, account).catch((error) => console.error('useComment addCommentToStore error', { commentCid, error }));
         }
-    }, [commentCid, account]);
+    }, [commentCid, account === null || account === void 0 ? void 0 : account.id]);
     debug('useComment', { commentCid, comment, commentsStore: useCommentsStore.getState().comments, account });
     return comment;
 }
@@ -45,7 +45,7 @@ export function useComments(commentCids = [], accountName) {
         for (const commentCid of uniqueCommentCids) {
             addCommentToStore(commentCid, account).catch((error) => console.error('useComments addCommentToStore error', { commentCid, error }));
         }
-    }, [commentCids, account]);
+    }, [commentCids.toString(), account === null || account === void 0 ? void 0 : account.id]);
     debug('useComments', { commentCids, comments, commentsStore: useCommentsStore.getState().comments, account });
     return comments;
 }
