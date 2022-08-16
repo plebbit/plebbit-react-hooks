@@ -7,7 +7,7 @@ import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
 
-const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbitsPages', size: 500})
+const subplebbitsPagesDatabase = localForageLru.createInstance({name: '_________WORK_IN_PROGRESS________subplebbitsPages', size: 500})
 
 // reset all event listeners in between tests
 export const listeners: any = []

@@ -15,14 +15,17 @@ export const listeners: any = []
 type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
+  bufferedPostsCounts: {[subplebbitAddressAndSortType: string]: number}
   loadedFeeds: Feeds
   addFeedToStore: Function
   incrementFeedPageNumber: Function
+  updateFeeds: Function
 }
 
 const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Function) => ({
   feedsOptions: {},
   bufferedFeeds: {},
+  bufferedPostsCounts: {},
   loadedFeeds: {},
 
   async addFeedToStore(feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) {
@@ -65,6 +68,9 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}}
     })
   },
+
+  // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
+  updateFeeds() {},
 }))
 
 // reset store in between tests
