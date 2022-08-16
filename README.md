@@ -618,20 +618,48 @@ Post pages are cached in IndexedDb for a short time, in case the user reloads th
 
 When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies. Emptying the buffered feed needs testing in production, it might be too slow and need some caching.
 
+#### Feeds stores
+
+```
+feedsStore {
+  feedsOptions: FeedsOptions
+  bufferedFeeds: Feeds
+  bufferedPostsCounts: {[subplebbitAddress+sortType: string]: number}
+  loadedFeeds: Feeds
+  // actions
+  addFeedToStore: (feedName: string, ...feedOptions: FeedOptions) => void
+  incrementFeedPageNumber: (feedName: string) => void
+  // recalculate all feeds using new subplebbits pages and page numbers
+  updateFeeds: () => void
+}
+subplebbitsStore {
+  subplebbits: Subplebbits
+  // actions
+  addSubplebbitToStore: (subplebbitAddress: string) => void
+}
+subplebbitsPagesStore {
+  subplebbitsPages
+  // actions
+  // a subplebbit instance only knows its first page CID, so take the first page CID as an argument
+  // and scroll through every subplebbit next page in the store until you find the last page, then add it
+  addNextSubplebbitPageToStore: (subplebbitFirstPageCid: string) => void
+}
+```
+
 #### Flow of adding a new feed
 
 1. user calls useFeed(subplebbitAddresses, sortType) and feed gets added to feeds store
 2. feed subplebbits are added to subplebbits store
   - in parallel:
-    3. each feed subplebbit+sortType subscribes to its subplebbit firstPageCid value changing (a subplebbit update)
-    4. on each firstPageCid change, rebuild the buffered feeds and update bufferedPostCount
+    3. each feed subplebbit+sortType subscribes to its subplebbit firstPageCid (subplebbit.posts.pageCids[sortType]) value changing (a subplebbit update)
+    4. on each firstPageCid change, rebuild the buffered feeds and update bufferedPostsCount
   - in parallel:
-    3. each feed subplebbit+sortType subscribes to its bufferedPostCount value changing
-    4. on each bufferedPostCount change, if the bufferedPostCount is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbits pages store
+    3. each feed subplebbit+sortType subscribes to its bufferedPostsCount value changing
+    4. on each bufferedPostsCount change, if the bufferedPostsCount is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbits pages store
   - in parallel:
     3. each feed subscribes to subplebbits pages store changing
       - on each subplebbits pages store change, if any new pages are relevant to the feed:
-        5. the feed's buffered feeds is rebuilt and bufferedPostCount updated
+        5. the feed's buffered feeds is rebuilt and bufferedPostsCount updated
         6. if the loaded feeds is missing posts and buffered feeds has them, rebuild the loaded feeds
   - in parallel:
     3. the feed's loaded feed subscribes to the feed's page number change
