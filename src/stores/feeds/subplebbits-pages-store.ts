@@ -2,7 +2,7 @@ import utils from '../../lib/utils'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:stores:feeds')
 import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account} from '../../types'
-import useAccountsStore from '../accounts'
+import accountsStore from '../accounts'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
@@ -27,7 +27,9 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
     assert(subplebbit?.address && typeof subplebbit?.address === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`)
     assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`)
     assert(account?.plebbit && typeof account?.plebbit === 'object', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`)
-    const subplebbitFirstPageCid = subplebbit.posts?.pageCids?.[sortType]
+
+    // check the preloaded posts on subplebbit.posts.pages first, then the subplebbits.posts.pageCids
+    const subplebbitFirstPageCid = subplebbit.posts?.pages?.[sortType]?.nextCid || subplebbit.posts?.pageCids?.[sortType]
     assert(
       subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string',
       `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts?.pageCids?.['${sortType}'] '${subplebbit.posts?.pageCids?.[sortType]}' invalid`
@@ -78,10 +80,10 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
     // comment, and if yes, add the CID to your account comments database
     const flattenedReplies = utils.flattenCommentsPages(page)
     for (const comment of flattenedReplies) {
-      useAccountsStore
+      accountsStore
         .getState()
         .accountsActionsInternal.addCidToAccountComment(comment)
-        .catch((error: unknown) => console.error('FeedsProvider useSubplebbitsPages addCidToAccountComment error', {comment, error}))
+        .catch((error: unknown) => console.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', {comment, error}))
     }
   },
 }))

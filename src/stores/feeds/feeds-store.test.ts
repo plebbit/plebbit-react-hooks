@@ -82,7 +82,23 @@ describe('useFeedsStore', () => {
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
   })
 
-  // test('add next pages', async () => {
+  test('add feed', async () => {
+    const subplebbitAddresses = ['subplebbit address 1']
+    const sortType = 'new'
+    const feedName = JSON.stringify([mockAccount?.id, sortType, subplebbitAddresses])
 
-  // })
+    act(() => {
+      rendered.result.current.addFeedToStore(feedName, subplebbitAddresses, sortType, mockAccount)
+    })
+
+    // wait for feed to be added
+    await waitFor(() => rendered.result.current.feedsOptions[feedName])
+    expect(rendered.result.current.feedsOptions[feedName].pageNumber).toBe(1)
+    expect(rendered.result.current.feedsOptions[feedName].sortType).toBe(sortType)
+    expect(rendered.result.current.feedsOptions[feedName].subplebbitAddresses).toEqual(subplebbitAddresses)
+
+    // wait for feed to load
+    await waitFor(() => rendered.result.current.loadedFeeds[feedName].length > 0)
+    console.log(rendered.result.current)
+  })
 })
