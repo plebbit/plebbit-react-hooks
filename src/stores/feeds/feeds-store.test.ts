@@ -61,9 +61,7 @@ describe('useFeedsStore', () => {
   })
   afterAll(async () => {
     testUtils.restoreAll()
-    try {
-      await testUtils.resetDatabasesAndStores()
-    } catch (e) {}
+    await testUtils.resetDatabasesAndStores()
   })
 
   let rendered: any, waitFor: any
