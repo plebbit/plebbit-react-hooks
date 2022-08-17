@@ -80,7 +80,8 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     // subscribe to subplebbits store changes
     subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange)
 
-    // subscribe to bufferedPostsCounts change
+    // subscribe to bufferedFeedsSubplebbitsPostCounts change
+    useFeedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts)
 
     // subscribe to subplebbits pages store changes
 
@@ -146,11 +147,41 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
   },
 }))
 
+let previousBufferedFeedsSubplebbitsPostCounts: string | undefined
+const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState: any) => {
+  const {bufferedFeedsSubplebbitsPostCounts, feedsOptions} = useFeedsStore.getState()
+
+  // bufferedFeedsSubplebbitsPostCounts haven't changed, do nothing
+  const bufferedFeedsSubplebbitsPostCountsStringified = JSON.stringify(bufferedFeedsSubplebbitsPostCounts)
+  if (bufferedFeedsSubplebbitsPostCountsStringified === previousBufferedFeedsSubplebbitsPostCounts) {
+    return
+  }
+  previousBufferedFeedsSubplebbitsPostCounts = bufferedFeedsSubplebbitsPostCountsStringified
+
+  const {subplebbits} = subplebbitsStore.getState()
+  const {addNextSubplebbitPageToStore} = subplebbitsPagesStore.getState()
+
+  // bufferedFeedsSubplebbitsPostCounts have changed, check if any of them are low
+  for (const feedName in bufferedFeedsSubplebbitsPostCounts) {
+    const subplebbitsPostCounts = bufferedFeedsSubplebbitsPostCounts[feedName]
+    const sortType = feedsOptions[feedName].sortType
+    for (const subplebbitAddress in subplebbitsPostCounts) {
+      // subplebbit post count is low, fetch next subplebbit page
+      if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
+        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, feedsOptions[feedName].account).catch((error: unknown) =>
+          console.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, sortType, error})
+        )
+      }
+    }
+  }
+}
+
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitStoreState: any) => {
   const {subplebbits} = subplebbitStoreState
   const {feedsOptions, updateFeeds} = useFeedsStore.getState()
 
+  // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
   const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits)
 
   // feeds subplebbits haven't changed, do nothing
@@ -176,6 +207,7 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses: string[], account
 const originalState = useFeedsStore.getState()
 // async function because some stores have async init
 export const resetFeedsStore = async () => {
+  previousBufferedFeedsSubplebbitsPostCounts = undefined
   previousFeedsSubplebbitsFirstPageCids = []
   updateFeedsPending = false
   // remove all event listeners

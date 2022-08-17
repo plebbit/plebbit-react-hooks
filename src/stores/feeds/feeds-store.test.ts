@@ -3,9 +3,10 @@ import testUtils from '../../lib/test-utils'
 import useFeedsStore from './feeds-store'
 import {SubplebbitPage} from '../../types'
 import subplebbitsStore from '../subplebbits'
+import subplebbitsPagesStore from '../subplebbits-pages'
 import EventEmitter from 'events'
 
-require('util').inspect.defaultOptions.depth = 10
+// require('util').inspect.defaultOptions.depth = 10
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -112,6 +113,9 @@ describe('useFeedsStore', () => {
     expect(rendered.result.current.loadedFeeds[feedName]).not.toBe(undefined)
     expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName]).not.toBe(undefined)
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
+    // subplebbits pages fetch 1 page
+    expect(Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length).toBe(1)
+    // console.log(subplebbitsPagesStore.getState().subplebbitsPages)
 
     console.log(subplebbitsStore.getState().subplebbits)
     console.log(rendered.result.current)
