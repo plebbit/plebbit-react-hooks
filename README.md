@@ -653,14 +653,14 @@ subplebbitsPagesStore {
 2. feed subplebbits are added to subplebbitsStore
   - in parallel:
     3. each feed subplebbit+sortType subscribes to its subplebbit.posts.pages and firstPageCids (subplebbit.posts.pageCids[sortType]) value changing (a subplebbit update)
-    4. on each subplebbit.posts.pages and firstPageCids change, updateFeeds and bufferedPostsCount
+    4. on each subplebbit.posts.pages and firstPageCids change, updateFeeds and bufferedFeedsSubplebbitsPostCounts
   - in parallel:
-    3. each feed subplebbit+sortType subscribes to its bufferedPostsCount value changing
-    4. on each bufferedPostsCount change, if the bufferedPostsCount is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbitsPagesStore
+    3. each feed subplebbit subscribes to its bufferedFeedsSubplebbitsPostCounts value changing
+    4. on each bufferedFeedsSubplebbitsPostCounts change, if the bufferedFeedsSubplebbitsPostCounts is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbitsPagesStore
   - in parallel:
     3. each feed subscribes to subplebbitsPagesStore changing
       - on each subplebbitsPagesStore change, if any new pages are relevant to the feed:
-        5. the feed's buffered feeds is rebuilt and bufferedPostsCount updated
+        5. the feed's buffered feeds is rebuilt and bufferedFeedsSubplebbitsPostCounts updated
         6. if the loaded feeds is missing posts and buffered feeds has them, rebuild the loaded feeds
   - in parallel:
     3. the feed's loaded feed subscribes to the feed's page number change

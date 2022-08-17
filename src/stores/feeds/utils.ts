@@ -1,5 +1,5 @@
 import assert from 'assert'
-import {Feed, Feeds, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages} from '../../types'
+import {Feed, Feeds, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, FeedsSubplebbitsPostCounts} from '../../types'
 import {getSubplebbitPages} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
 import {postsPerPage} from './feeds-store'
@@ -114,11 +114,41 @@ export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, b
 }
 
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedFeeds: Feeds) => {
-  return {}
+  // contruct a list of posts already loaded to remove them from buffered feeds
+  const loadedFeedsPosts: {[key: string]: Set<string>} = {}
+  for (const feedName in loadedFeeds) {
+    loadedFeedsPosts[feedName] = new Set()
+    for (const post of loadedFeeds[feedName]) {
+      loadedFeedsPosts[feedName].add(post.cid)
+    }
+  }
+
+  const newBufferedFeeds: Feeds = {}
+  for (const feedName in bufferedFeeds) {
+    newBufferedFeeds[feedName] = []
+    for (const post of bufferedFeeds[feedName]) {
+      if (loadedFeedsPosts[feedName]?.has(post.cid)) {
+        continue
+      }
+      newBufferedFeeds[feedName].push(post)
+    }
+  }
+  return newBufferedFeeds
 }
 
-export const getBufferedPostsCounts = () => {
-  return {}
+// find how many posts are left in each subplebbits in a buffereds feeds
+export const getFeedsSubplebbitsPostCounts = (feedsOptions: FeedsOptions, feeds: Feeds) => {
+  const feedsSubplebbitsPostCounts: FeedsSubplebbitsPostCounts = {}
+  for (const feedName in feedsOptions) {
+    feedsSubplebbitsPostCounts[feedName] = {}
+    for (const subplebbitAddress of feedsOptions[feedName].subplebbitAddresses) {
+      feedsSubplebbitsPostCounts[feedName][subplebbitAddress] = 0
+    }
+    for (const comment of feeds[feedName] || []) {
+      feedsSubplebbitsPostCounts[feedName][comment.subplebbitAddress]++
+    }
+  }
+  return feedsSubplebbitsPostCounts
 }
 
 export const getFeedsHaveMore = () => {

@@ -61,6 +61,15 @@ export type FeedOptions = {
   pageNumber: number
 }
 export type FeedsOptions = {[feedName: string]: FeedOptions}
+export type FeedSubplebbitsPostCounts = {[subplebbitAddress: string]: number}
+export type FeedsSubplebbitsPostCounts = {[feedName: string]: FeedSubplebbitsPostCounts}
+export type SubplebbitPage = {
+  nextCid: string | null
+  comments: Comment[]
+}
+export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
+
+// TODO: delete
 export type SubplebbitPostsInfo = {
   firstPageCid: string
   account: Account
@@ -68,7 +77,6 @@ export type SubplebbitPostsInfo = {
   sortType: string
   bufferedPostCount: number
 }
-// infoName = accountId + subplebbitAddress + sortType
 export type SubplebbitsPostsInfo = {[infoName: string]: SubplebbitPostsInfo}
 export type SubplebbitPageInfo = {
   pageCid: string
@@ -78,11 +86,6 @@ export type SubplebbitPageInfo = {
   sortType: string
 }
 export type SubplebbitsPagesInfo = {[infoName: string]: SubplebbitPageInfo}
-export type SubplebbitPage = {
-  nextCid: string | null
-  comments: Comment[]
-}
-export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
 
 /**
  * Accounts hooks

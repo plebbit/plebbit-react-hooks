@@ -1,13 +1,20 @@
 import assert from 'assert'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:stores:feeds')
-import {Feed, Feeds, Subplebbits, Account, FeedsOptions, SubplebbitPage} from '../../types'
+import {Feed, Feeds, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
 import accountsStore from '../accounts'
 import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
-import {getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getBufferedPostsCounts, getFeedsHaveMore} from './utils'
+import {
+  getFeedsSubplebbitsFirstPageCids,
+  getBufferedFeeds,
+  getLoadedFeeds,
+  getBufferedFeedsWithoutLoadedFeeds,
+  getFeedsSubplebbitsPostCounts,
+  getFeedsHaveMore,
+} from './utils'
 
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
@@ -23,7 +30,7 @@ type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
   loadedFeeds: Feeds
-  bufferedPostsCounts: {[subplebbitAddressAndSortType: string]: number}
+  bufferedFeedsSubplebbitsPostCounts: FeedsSubplebbitsPostCounts
   feedsHaveMore: {[feedName: string]: boolean}
   addFeedToStore: Function
   incrementFeedPageNumber: Function
@@ -38,7 +45,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
   feedsOptions: {},
   bufferedFeeds: {},
   loadedFeeds: {},
-  bufferedPostsCounts: {},
+  bufferedFeedsSubplebbitsPostCounts: {},
   feedsHaveMore: {},
 
   async addFeedToStore(feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) {
@@ -124,15 +131,15 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       const {subplebbitsPages} = subplebbitsPagesStore.getState()
       const {subplebbits} = subplebbitsStore.getState()
       // calculate new feeds
-      const bufferedFeeds = getBufferedFeeds(previousState.feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
-      const loadedFeeds = getLoadedFeeds(previousState.feedsOptions, previousState.loadedFeeds, bufferedFeeds)
+      const bufferedFeedsWithLoadedFeeds = getBufferedFeeds(previousState.feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
+      const loadedFeeds = getLoadedFeeds(previousState.feedsOptions, previousState.loadedFeeds, bufferedFeedsWithLoadedFeeds)
       // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-      const bufferedFeedsWithoutLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeeds, loadedFeeds)
-      const bufferedPostsCounts = getBufferedPostsCounts()
+      const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
+      const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(previousState.feedsOptions, bufferedFeeds)
       const feedsHaveMore = getFeedsHaveMore()
       // set new feeds
-      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedPostsCounts, feedsHaveMore}))
-      debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedPostsCounts, feedsHaveMore})
+      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}))
+      debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore})
     }, timeUntilNextUpdate)
   },
 }))
