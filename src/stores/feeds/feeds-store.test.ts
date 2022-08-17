@@ -111,6 +111,7 @@ describe('useFeedsStore', () => {
     expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
     expect(rendered.result.current.loadedFeeds[feedName]).not.toBe(undefined)
     expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName]).not.toBe(undefined)
+    expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
 
     console.log(subplebbitsStore.getState().subplebbits)
     console.log(rendered.result.current)

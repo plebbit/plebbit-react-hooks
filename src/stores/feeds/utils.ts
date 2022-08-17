@@ -151,90 +151,51 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions: FeedsOptions, feeds:
   return feedsSubplebbitsPostCounts
 }
 
-export const getFeedsHaveMore = () => {
-  return {}
+/**
+ * Get which feeds have more posts, i.e. have no reached the final page of all subs
+ */
+export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, bufferedFeeds: Feeds) => {
+  const feedsHaveMore: {[feedName: string]: boolean} = {}
+  feedsLoop: for (const feedName in feedsOptions) {
+    // if the feed still has buffered posts, then it still has more
+    if (bufferedFeeds[feedName]?.length) {
+      feedsHaveMore[feedName] = true
+      continue
+    }
+
+    const {subplebbitAddresses, sortType} = feedsOptions[feedName]
+    for (const subplebbitAddress of subplebbitAddresses) {
+      const subplebbit = subplebbits[subplebbitAddress]
+      // if at least 1 subplebbit hasn't loaded yet, then the feed still has more
+      if (!subplebbit) {
+        feedsHaveMore[feedName] = true
+        continue feedsLoop
+      }
+      const firstPageCid = subplebbit.posts?.pageCids?.[sortType]
+      // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
+      // should we try to use another sort type by default, like 'hot', or should we just ignore it?
+      // 'continue' to ignore it for now
+      if (!firstPageCid) {
+        continue
+      }
+      const pages = getSubplebbitPages(firstPageCid, subplebbitsPages)
+      // if first page isn't loaded yet, then the feed still has more
+      if (!pages.length) {
+        feedsHaveMore[feedName] = true
+        continue feedsLoop
+      }
+      const lastPage = pages[pages.length - 1]
+      if (lastPage.nextCid) {
+        feedsHaveMore[feedName] = true
+        continue feedsLoop
+      }
+    }
+
+    // if buffered feeds are empty and no last page of any subplebbit has a next page, then has more is false
+    feedsHaveMore[feedName] = false
+  }
+  return feedsHaveMore
 }
-
-// function useCalculatedBufferedFeeds(
-//   feedsOptions: FeedsOptions,
-//   subplebbitsPostsInfo: SubplebbitsPostsInfo,
-//   subplebbitsPages: SubplebbitsPages,
-//   loadedFeeds: Feeds,
-//   accounts: Accounts
-// ) {
-//   // recalculate feeds if accounts blocked addresses change
-//   const accountsBlockedAddresses: {[accountId: string]: {[address: string]: boolean}} = {}
-//   for (const accountId in accounts) {
-//     accountsBlockedAddresses[accountId] = accounts[accountId].blockedAddresses
-//   }
-//   const accountsBlockedAddressesString = JSON.stringify(accountsBlockedAddresses)
-
-//   return useMemo(() => {
-//     // contruct a list of posts already loaded to remove them from buffered feeds
-//     const loadedFeedsPosts: {[key: string]: Set<string>} = {}
-//     for (const feedName in loadedFeeds) {
-//       loadedFeedsPosts[feedName] = new Set()
-//       for (const post of loadedFeeds[feedName]) {
-//         loadedFeedsPosts[feedName].add(post.cid)
-//       }
-//     }
-
-//     // calculate each feed
-//     let newBufferedFeeds: Feeds = {}
-//     for (const feedName in feedsOptions) {
-//       const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
-
-//       // find all fetched posts
-//       const bufferedFeedPosts = []
-
-//       // start by finding all pageCids
-//       for (const subplebbitAddress of subplebbitAddresses) {
-//         for (const infoName in subplebbitsPostsInfo) {
-//           const info = subplebbitsPostsInfo[infoName]
-//           if (info.sortType !== sortType) {
-//             continue
-//           }
-//           if (info.subplebbitAddress !== subplebbitAddress) {
-//             continue
-//           }
-
-//           // found an info that matches the sub address and sort type
-//           // get all the pages for it from subplebbitsPages
-//           const subplebbitPages = getSubplebbitPages(info.firstPageCid, subplebbitsPages)
-
-//           // add each comment from each page, do not filter at this stage, filter after sorting
-//           for (const subplebbitPage of subplebbitPages) {
-//             if (subplebbitPage?.comments) {
-//               bufferedFeedPosts.push(...subplebbitPage.comments)
-//             }
-//           }
-//         }
-//       }
-
-//       // sort the feed before filtering to get more accurate results
-//       const sortedBufferedFeedPosts = feedSorter.sort(sortType, bufferedFeedPosts)
-
-//       // filter the feed
-//       const filteredSortedBufferedFeedPosts = []
-//       for (const post of sortedBufferedFeedPosts) {
-//         // don't add posts already loaded in loaded feeds
-//         if (loadedFeedsPosts[feedName]?.has(post.cid)) {
-//           continue
-//         }
-
-//         // don't use feedOption 'account' because it doesn't contain updated blocked addresses
-//         if (accounts[account.id].blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[account.id].blockedAddresses[post.author.address])) {
-//           continue
-//         }
-
-//         filteredSortedBufferedFeedPosts.push(post)
-//       }
-
-//       newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts
-//     }
-//     return newBufferedFeeds
-//   }, [feedsOptions, subplebbitsPages, loadedFeeds, accountsBlockedAddressesString])
-// }
 
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
 export const getFeedsSubplebbitsFirstPageCids = (feedsOptions: FeedsOptions, subplebbits: Subplebbits): string[] => {

@@ -127,16 +127,18 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
 
       // get state from all stores
       const previousState = getState()
-      const {accounts} = accountsStore.getState()
-      const {subplebbitsPages} = subplebbitsPagesStore.getState()
+      const {feedsOptions} = previousState
       const {subplebbits} = subplebbitsStore.getState()
+      const {subplebbitsPages} = subplebbitsPagesStore.getState()
+      const {accounts} = accountsStore.getState()
+
       // calculate new feeds
-      const bufferedFeedsWithLoadedFeeds = getBufferedFeeds(previousState.feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
-      const loadedFeeds = getLoadedFeeds(previousState.feedsOptions, previousState.loadedFeeds, bufferedFeedsWithLoadedFeeds)
+      const bufferedFeedsWithLoadedFeeds = getBufferedFeeds(feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
+      const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithLoadedFeeds)
       // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
       const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
-      const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(previousState.feedsOptions, bufferedFeeds)
-      const feedsHaveMore = getFeedsHaveMore()
+      const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
+      const feedsHaveMore = getFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds)
       // set new feeds
       setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}))
       debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore})
