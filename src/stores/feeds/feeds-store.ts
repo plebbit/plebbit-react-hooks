@@ -4,8 +4,10 @@ const debug = Debug('plebbit-react-hooks:stores:feeds')
 import {Feed, Feeds, Subplebbits, Account, FeedsOptions, SubplebbitPage} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
+import accountsStore from '../accounts'
 import subplebbitsStore from '../subplebbits'
-import {getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedPostsCounts} from './utils'
+import subplebbitsPagesStore from '../subplebbits-pages'
+import {getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedPostsCounts, getFeedsHaveMore} from './utils'
 
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
@@ -17,8 +19,9 @@ export const listeners: any = []
 type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
-  bufferedPostsCounts: {[subplebbitAddressAndSortType: string]: number}
   loadedFeeds: Feeds
+  bufferedPostsCounts: {[subplebbitAddressAndSortType: string]: number}
+  feedsHaveMore: {[feedName: string]: boolean}
   addFeedToStore: Function
   incrementFeedPageNumber: Function
   updateFeeds: Function
@@ -31,8 +34,9 @@ const updateFeedsMinIntervalTime = 50
 const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Function) => ({
   feedsOptions: {},
   bufferedFeeds: {},
-  bufferedPostsCounts: {},
   loadedFeeds: {},
+  bufferedPostsCounts: {},
+  feedsHaveMore: {},
 
   async addFeedToStore(feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) {
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
@@ -66,11 +70,13 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     // subscribe to subplebbits store changes
     subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange)
 
-    // subscribe to subplebbits pages store changes
-
     // subscribe to bufferedPostsCounts change
 
+    // subscribe to subplebbits pages store changes
+
     // subscribe to page number change
+
+    // subscribe to accounts store change (for blocked addresses)
   },
 
   async incrementFeedPageNumber(feedName: string) {
@@ -109,11 +115,19 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
       updateFeedsPending = false
 
-      const bufferedFeeds = getBufferedFeeds()
+      // get state from all stores
+      const previousState = getState()
+      const {accounts} = accountsStore.getState()
+      const {subplebbitsPages} = subplebbitsPagesStore.getState()
+      const {subplebbits} = subplebbitsStore.getState()
+      // calculate new feeds
+      const bufferedFeeds = getBufferedFeeds(previousState.feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
       const loadedFeeds = getLoadedFeeds()
       const bufferedPostsCounts = getBufferedPostsCounts()
-      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedPostsCounts}))
-      debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedPostsCounts})
+      const feedsHaveMore = getFeedsHaveMore()
+      // set new feeds
+      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedPostsCounts, feedsHaveMore}))
+      debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedPostsCounts, feedsHaveMore})
     }, timeUntilNextUpdate)
   },
 }))

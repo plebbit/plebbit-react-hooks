@@ -105,7 +105,7 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
  * Util function to get all pages in the store for a
  * specific subplebbit+sortType using `SubplebbitPage.nextCid`
  */
-const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: SubplebbitsPages) => {
+export const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: SubplebbitsPages) => {
   const pages: SubplebbitPage[] = []
   const firstPage = subplebbitsPages[firstPageCid]
   if (!firstPage) {

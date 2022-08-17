@@ -5,6 +5,8 @@ import {SubplebbitPage} from '../../types'
 import subplebbitsStore from '../subplebbits'
 import EventEmitter from 'events'
 
+require('util').inspect.defaultOptions.depth = 10
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 class MockPages {
@@ -105,6 +107,9 @@ describe('useFeedsStore', () => {
     await waitFor(() => rendered.result.current.loadedFeeds[feedName].length > 0)
     // subplebbit was added to subplebbits store
     expect(subplebbitsStore.getState().subplebbits[subplebbitAddresses[0]]).not.toBe(undefined)
+    // buffered feed was defined
+    expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
+
     console.log(subplebbitsStore.getState().subplebbits)
     console.log(rendered.result.current)
   })

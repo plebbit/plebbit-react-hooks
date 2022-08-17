@@ -626,6 +626,7 @@ feedsStore {
   bufferedFeeds: Feeds
   bufferedPostsCounts: {[subplebbitAddress+sortType: string]: number}
   loadedFeeds: Feeds
+  feedsHaveMore: {[feedName: string]: boolean}
   // actions
   addFeedToStore: (feedName: string, ...feedOptions: FeedOptions) => void
   incrementFeedPageNumber: (feedName: string) => void
@@ -664,6 +665,9 @@ subplebbitsPagesStore {
   - in parallel:
     3. the feed's loaded feed subscribes to the feed's page number change
     4. on each page number change, rebuild the loaded feeds with extra posts for the new page
+  - in parallel:
+    3. each feed subscribes to accountsStore changing
+    4. on each accounts change, like a blockedAddress added for example, updateFeeds
 
 #### Flow of incrementing a feed's page
 
