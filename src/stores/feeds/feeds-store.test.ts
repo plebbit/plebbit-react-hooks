@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import useFeedsStore from './feeds-store'
 import {SubplebbitPage} from '../../types'
+import subplebbitsStore from '../subplebbits'
+import EventEmitter from 'events'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -39,19 +41,23 @@ class MockPages {
   }
 }
 
-class MockSubplebbit {
+class MockSubplebbit extends EventEmitter {
   address: string
   posts: MockPages
   constructor({address}: any) {
+    super()
     this.address = address
     this.posts = new MockPages({subplebbitAddress: address})
   }
+  update() {}
 }
 
 const mockAccount: any = {
   id: 'mock account id',
   plebbit: {
     createSubplebbit: async ({address}: any) => new MockSubplebbit({address}),
+    getSubplebbit: async (subplebbitAddress: string) => new MockSubplebbit({address: subplebbitAddress}),
+    listSubplebbits: async () => [],
   },
 }
 
@@ -80,7 +86,7 @@ describe('useFeedsStore', () => {
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
   })
 
-  test('add feed', async () => {
+  test.only('add feed', async () => {
     const subplebbitAddresses = ['subplebbit address 1']
     const sortType = 'new'
     const feedName = JSON.stringify([mockAccount?.id, sortType, subplebbitAddresses])
@@ -97,6 +103,9 @@ describe('useFeedsStore', () => {
 
     // wait for feed to load
     await waitFor(() => rendered.result.current.loadedFeeds[feedName].length > 0)
+    // subplebbit was added to subplebbits store
+    expect(subplebbitsStore.getState().subplebbits[subplebbitAddresses[0]]).not.toBe(undefined)
+    console.log(subplebbitsStore.getState().subplebbits)
     console.log(rendered.result.current)
   })
 })

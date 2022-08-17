@@ -5,6 +5,7 @@ import {Feed, Feeds, Subplebbits, Account, FeedsOptions, SubplebbitPage} from '.
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
 import subplebbitsStore from '../subplebbits'
+import {getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedPostsCounts} from './utils'
 
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
@@ -23,6 +24,10 @@ type FeedsState = {
   updateFeeds: Function
 }
 
+// don't updateFeeds more than once per updateFeedsMinIntervalTime
+let updateFeedsPending = false
+const updateFeedsMinIntervalTime = 50
+
 const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Function) => ({
   feedsOptions: {},
   bufferedFeeds: {},
@@ -33,7 +38,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
     assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`)
     assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`)
-    assert(account?.plebbit && typeof account?.plebbit === 'object', `addFeedToStore.addFeedToStore account '${account}' invalid`)
+    assert(typeof account?.plebbit?.getSubplebbit === 'function', `addFeedToStore.addFeedToStore account '${account}' invalid`)
     assert(
       typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null,
       `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
@@ -59,7 +64,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     addSubplebbitsToSubplebbitsStore(subplebbitAddresses, account)
 
     // subscribe to subplebbits store changes
-    subplebbitsStore.subscribe(updateFeedsOnSubplebbitsStoreChange)
+    subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange)
 
     // subscribe to subplebbits pages store changes
 
@@ -91,11 +96,30 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
   },
 
   // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
-  updateFeeds() {},
+  updateFeeds() {
+    if (updateFeedsPending) {
+      return
+    }
+    updateFeedsPending = true
+
+    // don't update feeds more than once per updateFeedsMinIntervalTime
+    const timeUntilNextUpdate = Date.now() % updateFeedsMinIntervalTime
+
+    setTimeout(() => {
+      // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
+      updateFeedsPending = false
+
+      const bufferedFeeds = getBufferedFeeds()
+      const loadedFeeds = getLoadedFeeds()
+      const bufferedPostsCounts = getBufferedPostsCounts()
+      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedPostsCounts}))
+      debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedPostsCounts})
+    }, timeUntilNextUpdate)
+  },
 }))
 
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
-const updateFeedsOnSubplebbitsStoreChange = (subplebbitStoreState: any) => {
+const updateFeedsOnFeedsSubplebbitsChange = (subplebbitStoreState: any) => {
   const {subplebbits} = subplebbitStoreState
   const {feedsOptions, updateFeeds} = useFeedsStore.getState()
 
@@ -111,42 +135,6 @@ const updateFeedsOnSubplebbitsStoreChange = (subplebbitStoreState: any) => {
   updateFeeds()
 }
 
-const getFeedsSubplebbitsFirstPageCids = (feedsOptions: FeedsOptions, subplebbits: Subplebbits): string[] => {
-  // find all feeds subplebbits
-  const feedNames = Object.keys(feedsOptions)
-  const feedsSubplebbitAddresses = new Set<string>()
-  Object.keys(feedsOptions).forEach((i) => feedsOptions[i].subplebbitAddresses.forEach(feedsSubplebbitAddresses.add))
-
-  // find all the feeds subplebbits first page cids
-  const feedsSubplebbitsFirstPageCids = new Set<string>()
-  for (const subplebbitAddress of feedsSubplebbitAddresses) {
-    const subplebbit = subplebbits[subplebbitAddress]
-    if (!subplebbit?.posts) {
-      continue
-    }
-
-    // check pages
-    if (subplebbit.posts.pages) {
-      for (const page of Object.values<SubplebbitPage>(subplebbit.posts.pages)) {
-        if (page?.nextCid) {
-          feedsSubplebbitsFirstPageCids.add(page?.nextCid)
-        }
-      }
-    }
-
-    // check pageCids
-    if (subplebbit.posts.pageCids) {
-      for (const pageCid of Object.values<string>(subplebbit.posts.pageCids)) {
-        if (pageCid) {
-          feedsSubplebbitsFirstPageCids.add(pageCid)
-        }
-      }
-    }
-  }
-
-  return [...feedsSubplebbitsFirstPageCids].sort()
-}
-
 const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses: string[], account: Account) => {
   const addSubplebbitToStore = subplebbitsStore.getState().addSubplebbitToStore
   for (const subplebbitAddress of subplebbitAddresses) {
@@ -160,6 +148,8 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses: string[], account
 const originalState = useFeedsStore.getState()
 // async function because some stores have async init
 export const resetFeedsStore = async () => {
+  previousFeedsSubplebbitsFirstPageCids = []
+  updateFeedsPending = false
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store

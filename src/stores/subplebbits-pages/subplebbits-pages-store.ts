@@ -26,7 +26,7 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
   addNextSubplebbitPageToStore: async (subplebbit: Subplebbit, sortType: string, account: Account) => {
     assert(subplebbit?.address && typeof subplebbit?.address === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`)
     assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`)
-    assert(account?.plebbit && typeof account?.plebbit === 'object', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`)
+    assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`)
 
     // check the preloaded posts on subplebbit.posts.pages first, then the subplebbits.posts.pageCids
     const subplebbitFirstPageCid = subplebbit.posts?.pages?.[sortType]?.nextCid || subplebbit.posts?.pageCids?.[sortType]
@@ -88,7 +88,7 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
   },
 }))
 
-const fetchPagePending: {[key: string]: boolean} = {}
+let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
   // subplebbit page is cached
   const cachedSubplebbitPage = await subplebbitsPagesDatabase.getItem(pageCid)
@@ -126,6 +126,7 @@ const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: SubplebbitsP
 const originalState = useSubplebbitsPagesStore.getState()
 // async function because some stores have async init
 export const resetSubplebbitsPagesStore = async () => {
+  fetchPagePending = {}
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store

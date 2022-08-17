@@ -8,7 +8,7 @@ import utils from '../../lib/utils'
 import createStore from 'zustand'
 import accountsStore from '../accounts'
 
-const plebbitGetCommentPending: {[key: string]: boolean} = {}
+let plebbitGetCommentPending: {[key: string]: boolean} = {}
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -95,6 +95,7 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
 const originalState = useCommentsStore.getState()
 // async function because some stores have async init
 export const resetCommentsStore = async () => {
+  plebbitGetCommentPending = {}
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store

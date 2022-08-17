@@ -2,7 +2,7 @@ import {resetCommentsStore, resetCommentsDatabaseAndStore} from '../stores/comme
 import {resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore} from '../stores/subplebbits'
 import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accounts'
 import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
-import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../stores/feeds/subplebbits-pages-store'
+import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../stores/subplebbits-pages'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
