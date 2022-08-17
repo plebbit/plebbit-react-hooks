@@ -151,7 +151,7 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions: FeedsOptions, feeds:
 /**
  * Get which feeds have more posts, i.e. have no reached the final page of all subs
  */
-export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, bufferedFeeds: Feeds) => {
+export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, bufferedFeeds: Feeds, accounts: Accounts) => {
   const feedsHaveMore: {[feedName: string]: boolean} = {}
   feedsLoop: for (const feedName in feedsOptions) {
     // if the feed still has buffered posts, then it still has more
@@ -160,8 +160,13 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subple
       continue
     }
 
-    const {subplebbitAddresses, sortType} = feedsOptions[feedName]
+    const {subplebbitAddresses, sortType, accountId} = feedsOptions[feedName]
     for (const subplebbitAddress of subplebbitAddresses) {
+      // don't consider the sub if the address is blocked
+      if (accounts[accountId].blockedAddresses[subplebbitAddress]) {
+        continue
+      }
+
       const subplebbit = subplebbits[subplebbitAddress]
       // if at least 1 subplebbit hasn't loaded yet, then the feed still has more
       if (!subplebbit) {
@@ -250,4 +255,34 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsOptions: FeedsOptions, sub
   }
 
   return [...feedsSubplebbitsFirstPageCids].sort()
+}
+
+export const getAccountsBlockedAddresses = (accounts: Accounts) => {
+  const blockedAddressesSet = new Set<string>()
+  for (const {blockedAddresses} of Object.values(accounts)) {
+    for (const address in blockedAddresses) {
+      if (blockedAddresses[address]) {
+        blockedAddressesSet.add(address)
+      }
+    }
+  }
+  return [...blockedAddressesSet].sort()
+}
+
+export const feedsHaveChangedBlockedAddresses = (feedsOptions: FeedsOptions, blockedAddresses: string[], previousBlockedAddresses: string[]) => {
+  // find the difference between current and previous blocked addresses
+  const changedBlockedAddresses = blockedAddresses
+    .filter((x) => !previousBlockedAddresses.includes(x))
+    .concat(previousBlockedAddresses.filter((x) => !blockedAddresses.includes(x)))
+
+  // if changed blocked addresses arent used in the feeds, do nothing
+  const feedsSubplebbitAddresses = new Set<string>()
+  Object.keys(feedsOptions).forEach((i) => feedsOptions[i].subplebbitAddresses.forEach((a) => feedsSubplebbitAddresses.add(a)))
+  for (const address of changedBlockedAddresses) {
+    // a changed address is used in the feed, update feeds
+    if (feedsSubplebbitAddresses.has(address)) {
+      return true
+    }
+  }
+  return false
 }

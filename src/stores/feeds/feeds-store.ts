@@ -15,6 +15,8 @@ import {
   getFeedsSubplebbitsPostCounts,
   getFeedsHaveMore,
   getFeedAfterIncrementPageNumber,
+  getAccountsBlockedAddresses,
+  feedsHaveChangedBlockedAddresses,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -88,6 +90,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange)
 
     // subscribe to accounts store change (for blocked addresses)
+    accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange)
   },
 
   async incrementFeedPageNumber(feedName: string) {
@@ -151,13 +154,35 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
       const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
       const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
-      const feedsHaveMore = getFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds)
+      const feedsHaveMore = getFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds, accounts)
       // set new feeds
       setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}))
       debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore})
     }, timeUntilNextUpdate)
   },
 }))
+
+let previousBlockedAddresses: string[] = []
+const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) => {
+  const {accounts} = accountsStoreState
+  const blockedAddresses = getAccountsBlockedAddresses(accounts)
+
+  // blocked addresses haven't changed, do nothing
+  if (blockedAddresses.toString() === previousBlockedAddresses.toString()) {
+    return
+  }
+
+  const {feedsOptions, updateFeeds} = useFeedsStore.getState()
+  const _feedsHaveChangedBlockedAddresses = feedsHaveChangedBlockedAddresses(feedsOptions, blockedAddresses, previousBlockedAddresses)
+  previousBlockedAddresses = blockedAddresses
+
+  // if changed blocked addresses arent used in the feeds, do nothing
+  if (!_feedsHaveChangedBlockedAddresses) {
+    return
+  }
+
+  updateFeeds()
+}
 
 let previousSubplebbitsPageCids: string[] = []
 const updateFeedsOnFeedsSubplebbitsPagesChange = (subplebbitsPagesStoreState: any) => {
@@ -194,12 +219,18 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 
   // bufferedFeedsSubplebbitsPostCounts have changed, check if any of them are low
   for (const feedName in bufferedFeedsSubplebbitsPostCounts) {
+    const account = accounts[feedsOptions[feedName].accountId]
     const subplebbitsPostCounts = bufferedFeedsSubplebbitsPostCounts[feedName]
     const sortType = feedsOptions[feedName].sortType
     for (const subplebbitAddress in subplebbitsPostCounts) {
+      // don't fetch more pages if subplebbit address is blocked
+      if (account.blockedAddresses[subplebbitAddress]) {
+        continue
+      }
+
       // subplebbit post count is low, fetch next subplebbit page
       if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
-        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, accounts[feedsOptions[feedName].accountId]).catch((error: unknown) =>
+        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error: unknown) =>
           console.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, sortType, error})
         )
       }
@@ -238,6 +269,7 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses: string[], account
 const originalState = useFeedsStore.getState()
 // async function because some stores have async init
 export const resetFeedsStore = async () => {
+  previousBlockedAddresses = []
   previousBufferedFeedsSubplebbitsPostCounts = undefined
   previousFeedsSubplebbitsFirstPageCids = []
   previousSubplebbitsPageCids = []

@@ -170,6 +170,25 @@ describe('useFeedsStore', () => {
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
 
     // account blocks the subplebbit address
+    const newMockAccount = {...mockAccount, blockedAddresses: {[subplebbitAddresses[0]]: true}}
+    // @ts-ignore
+    accountsStore.getState = () => ({
+      accounts: {[mockAccount.id]: newMockAccount},
+      accountsActionsInternal: {addCidToAccountComment: async (comment: any) => {}},
+    })
+    accountsStore.setState(() => ({
+      accounts: {[mockAccount.id]: newMockAccount},
+    }))
+
+    // wait for bufferedFeed to go to 0 because the only address is blocked
+    await waitFor(() => rendered.result.current.bufferedFeeds[feedName].length === 0)
+    expect(rendered.result.current.bufferedFeeds[feedName].length).toBe(0)
+    expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddresses[0]]).toBe(0)
+    expect(rendered.result.current.feedsHaveMore[feedName]).toBe(false)
+    // loaded feed is unaffected
+    expect(rendered.result.current.loadedFeeds[feedName].length).toBe(postsPerPage * 2)
+
+    // make sure no more subplebbits pages get added for the blocked address
 
     // console.log(subplebbitsPagesStore.getState().subplebbitsPages)
 
