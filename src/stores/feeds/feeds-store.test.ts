@@ -7,8 +7,6 @@ import subplebbitsPagesStore from '../subplebbits-pages'
 import EventEmitter from 'events'
 import accountsStore from '../accounts'
 
-// require('util').inspect.defaultOptions.depth = 10
-
 const subplebbitGetPageCommentCount = 100
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -103,14 +101,14 @@ describe('useFeedsStore', () => {
   test('initial store', async () => {
     expect(rendered.result.current.feedsOptions).toEqual({})
     expect(rendered.result.current.bufferedFeeds).toEqual({})
-    expect(rendered.result.current.bufferedPostsCounts).toEqual({})
+    expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts).toEqual({})
     expect(rendered.result.current.loadedFeeds).toEqual({})
     expect(typeof rendered.result.current.addFeedToStore).toBe('function')
     expect(typeof rendered.result.current.incrementFeedPageNumber).toBe('function')
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
   })
 
-  test.only('add feed', async () => {
+  test('add feed', async () => {
     const subplebbitAddresses = ['subplebbit address 1']
     const sortType = 'new'
     const feedName = JSON.stringify([mockAccount?.id, sortType, subplebbitAddresses])
@@ -169,6 +167,9 @@ describe('useFeedsStore', () => {
     expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddresses[0]]).toBe(bufferedFeedPostCount + subplebbitGetPageCommentCount)
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
 
+    // save subplebbits pages count to make sure they don't change
+    const subplebbitsPagesCount = Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length
+
     // account blocks the subplebbit address
     const newMockAccount = {...mockAccount, blockedAddresses: {[subplebbitAddresses[0]]: true}}
     // @ts-ignore
@@ -189,10 +190,9 @@ describe('useFeedsStore', () => {
     expect(rendered.result.current.loadedFeeds[feedName].length).toBe(postsPerPage * 2)
 
     // make sure no more subplebbits pages get added for the blocked address
-
-    // console.log(subplebbitsPagesStore.getState().subplebbitsPages)
-
-    // console.log(subplebbitsStore.getState().subplebbits)
-    // console.log(rendered.result.current)
+    await expect(rendered.waitFor(() => Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length > subplebbitsPagesCount)).rejects.toThrow(
+      'Timed out in waitFor after 1000ms.'
+    )
+    expect(Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length).toBe(subplebbitsPagesCount)
   })
 })
