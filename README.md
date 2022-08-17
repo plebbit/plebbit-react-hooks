@@ -663,15 +663,12 @@ subplebbitsPagesStore {
         5. the feed's buffered feeds is rebuilt and bufferedFeedsSubplebbitsPostCounts updated
         6. if the loaded feeds is missing posts and buffered feeds has them, rebuild the loaded feeds
   - in parallel:
-    3. the feed's loaded feed subscribes to the feed's page number change
-    4. on each page number change, rebuild the loaded feeds with extra posts for the new page
-  - in parallel:
     3. each feed subscribes to accountsStore changing
     4. on each accounts change, like a blockedAddress added for example, updateFeeds
 
 #### Flow of incrementing a feed's page
 
-1. the feeds store gets updated with the new page number
+1. the feeds store gets updated with the new page number and loadedFeeds, bufferedFeeds and bufferedFeedsSubplebbitsPostCounts are partially recalculated and updated
 
 #### Comments trees and infinite scrolling
 

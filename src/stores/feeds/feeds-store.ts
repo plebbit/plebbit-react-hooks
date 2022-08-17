@@ -14,6 +14,7 @@ import {
   getBufferedFeedsWithoutLoadedFeeds,
   getFeedsSubplebbitsPostCounts,
   getFeedsHaveMore,
+  getFeedAfterIncrementPageNumber,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -86,8 +87,6 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     // subscribe to subplebbits pages store changes
     subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange)
 
-    // subscribe to page number change
-
     // subscribe to accounts store change (for blocked addresses)
   },
 
@@ -100,7 +99,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
       `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
     )
-    setState(({feedsOptions, loadedFeeds}: any) => {
+    setState(({feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts}: any) => {
       // don't increment page number before the current page has loaded
       if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
         return {}
@@ -109,7 +108,19 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
         ...feedsOptions[feedName],
         pageNumber: feedsOptions[feedName].pageNumber + 1,
       }
-      return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}}
+      // no need to do a full updateFeeds after page increment, only calculate partial update
+      const {bufferedFeed, loadedFeed, bufferedFeedSubplebbitsPostCounts} = getFeedAfterIncrementPageNumber(
+        feedName,
+        feedOptions,
+        bufferedFeeds[feedName],
+        loadedFeeds[feedName]
+      )
+      return {
+        feedsOptions: {...feedsOptions, [feedName]: feedOptions},
+        bufferedFeeds: {...bufferedFeeds, [feedName]: bufferedFeed},
+        loadedFeeds: {...loadedFeeds, [feedName]: loadedFeed},
+        bufferedFeedsSubplebbitsPostCounts: {...bufferedFeedsSubplebbitsPostCounts, [feedName]: bufferedFeedSubplebbitsPostCounts},
+      }
     })
   },
 

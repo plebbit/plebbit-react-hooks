@@ -1,5 +1,5 @@
 import assert from 'assert'
-import {Feed, Feeds, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, FeedsSubplebbitsPostCounts} from '../../types'
+import {Feed, Feeds, FeedOptions, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, FeedsSubplebbitsPostCounts} from '../../types'
 import {getSubplebbitPages} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
 import {postsPerPage} from './feeds-store'
@@ -198,6 +198,27 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subple
     feedsHaveMore[feedName] = false
   }
   return feedsHaveMore
+}
+
+// get a partial updateFeeds after a page increment
+export const getFeedAfterIncrementPageNumber = (feedName: string, feedOptions: FeedOptions, bufferedFeed: Feed, loadedFeed: Feed) => {
+  // transform arguments into objects
+  const feedsOptions = {[feedName]: feedOptions}
+  const bufferedFeedsWithLoadedFeeds = {[feedName]: bufferedFeed}
+  const previousLoadedFeeds = {[feedName]: loadedFeed}
+
+  // calculate values
+  const loadedFeeds = getLoadedFeeds(feedsOptions, previousLoadedFeeds, bufferedFeedsWithLoadedFeeds)
+  // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
+  const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
+  const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
+
+  // transform values back into single properties
+  return {
+    bufferedFeed: bufferedFeeds[feedName],
+    loadedFeed: loadedFeeds[feedName],
+    bufferedFeedSubplebbitsPostCounts: bufferedFeedsSubplebbitsPostCounts[feedName],
+  }
 }
 
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds

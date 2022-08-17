@@ -124,6 +124,34 @@ describe('useFeedsStore', () => {
     // loaded feed has 1 page
     expect(rendered.result.current.loadedFeeds[feedName].length).toBe(postsPerPage)
 
+    // increment page
+    act(() => {
+      rendered.result.current.incrementFeedPageNumber(feedName)
+    })
+
+    // wait for new page
+    await waitFor(() => rendered.result.current.feedsOptions[feedName].pageNumber > 1)
+    // page was incremented
+    expect(rendered.result.current.feedsOptions[feedName].pageNumber).toBe(2)
+    // feed options are unchanged
+    expect(rendered.result.current.feedsOptions[feedName].sortType).toBe(sortType)
+    expect(rendered.result.current.feedsOptions[feedName].subplebbitAddresses).toEqual(subplebbitAddresses)
+    // loaded feed has correct post counts
+    expect(rendered.result.current.loadedFeeds[feedName].length).toBe(postsPerPage * 2)
+    // buffered feed has 1 page less
+    const bufferedFeedPostCount = subplebbitGetPageCommentCount - postsPerPage * 2
+    expect(rendered.result.current.bufferedFeeds[feedName].length).toBe(bufferedFeedPostCount)
+    expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddresses[0]]).toBe(bufferedFeedPostCount)
+    expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
+
+    // bufferedFeedsSubplebbitsPostCounts now too low (50), wait for buffered feeds to fetch next page
+    await waitFor(() => rendered.result.current.bufferedFeeds[feedName].length > bufferedFeedPostCount)
+    expect(rendered.result.current.bufferedFeeds[feedName].length).toBe(bufferedFeedPostCount + subplebbitGetPageCommentCount)
+    expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddresses[0]]).toBe(bufferedFeedPostCount + subplebbitGetPageCommentCount)
+    expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
+
+    // account blocks the subplebbit address
+
     // console.log(subplebbitsPagesStore.getState().subplebbitsPages)
 
     console.log(subplebbitsStore.getState().subplebbits)
