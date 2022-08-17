@@ -69,7 +69,10 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
       }
 
       // don't use feedOption 'account' because it doesn't contain updated blocked addresses
-      if (accounts[account.id].blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[account.id].blockedAddresses[post.author.address])) {
+      if (
+        feedsOptions[feedName].account.blockedAddresses[post.subplebbitAddress] ||
+        (post.author?.address && feedsOptions[feedName].account.blockedAddresses[post.author.address])
+      ) {
         continue
       }
 

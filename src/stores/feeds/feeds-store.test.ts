@@ -1,12 +1,14 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import useFeedsStore from './feeds-store'
+import useFeedsStore, {postsPerPage} from './feeds-store'
 import {SubplebbitPage} from '../../types'
 import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
 import EventEmitter from 'events'
 
 // require('util').inspect.defaultOptions.depth = 10
+
+const subplebbitGetPageCommentCount = 100
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -30,10 +32,9 @@ class MockPages {
   }
 
   getPageMockComments(pageCid: string) {
-    const commentCount = 100
     let index = 0
     const comments: any[] = []
-    while (index++ < commentCount) {
+    while (index++ < subplebbitGetPageCommentCount) {
       comments.push({
         timestamp: index,
         cid: pageCid + ' comment cid ' + index,
@@ -62,6 +63,7 @@ const mockAccount: any = {
     getSubplebbit: async (subplebbitAddress: string) => new MockSubplebbit({address: subplebbitAddress}),
     listSubplebbits: async () => [],
   },
+  blockedAddresses: {},
 }
 
 describe('useFeedsStore', () => {
@@ -115,6 +117,13 @@ describe('useFeedsStore', () => {
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
     // subplebbits pages fetch 1 page
     expect(Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length).toBe(1)
+    // buffered feed has 1 page
+    expect(rendered.result.current.bufferedFeeds[feedName].length).toBe(subplebbitGetPageCommentCount - postsPerPage)
+    expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName][subplebbitAddresses[0]]).toBe(subplebbitGetPageCommentCount - postsPerPage)
+    expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
+    // loaded feed has 1 page
+    expect(rendered.result.current.loadedFeeds[feedName].length).toBe(postsPerPage)
+
     // console.log(subplebbitsPagesStore.getState().subplebbitsPages)
 
     console.log(subplebbitsStore.getState().subplebbits)

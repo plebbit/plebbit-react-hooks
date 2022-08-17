@@ -84,6 +84,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     useFeedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts)
 
     // subscribe to subplebbits pages store changes
+    subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange)
 
     // subscribe to page number change
 
@@ -147,6 +148,24 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
   },
 }))
 
+let previousSubplebbitsPageCids: string[] = []
+const updateFeedsOnFeedsSubplebbitsPagesChange = (subplebbitsPagesStoreState: any) => {
+  const {subplebbitsPages} = subplebbitsPagesStoreState
+  const subplebbitsPageCids = Object.keys(subplebbitsPages).sort()
+
+  // no changes, do nothing
+  if (subplebbitsPageCids.toString() === previousSubplebbitsPageCids.toString()) {
+    return
+  }
+  previousSubplebbitsPageCids = subplebbitsPageCids
+
+  // currently only the feeds use subplebbitsPagesStore, so any change must
+  // trigger a feed update, if in the future another hook uses the subplebbitsPagesStore
+  // we should check if the subplebbits pages changed are actually used by the feeds before
+  // triggering an update
+  useFeedsStore.getState().updateFeeds()
+}
+
 let previousBufferedFeedsSubplebbitsPostCounts: string | undefined
 const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState: any) => {
   const {bufferedFeedsSubplebbitsPostCounts, feedsOptions} = useFeedsStore.getState()
@@ -177,8 +196,8 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 }
 
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
-const updateFeedsOnFeedsSubplebbitsChange = (subplebbitStoreState: any) => {
-  const {subplebbits} = subplebbitStoreState
+const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
+  const {subplebbits} = subplebbitsStoreState
   const {feedsOptions, updateFeeds} = useFeedsStore.getState()
 
   // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
@@ -209,6 +228,7 @@ const originalState = useFeedsStore.getState()
 export const resetFeedsStore = async () => {
   previousBufferedFeedsSubplebbitsPostCounts = undefined
   previousFeedsSubplebbitsFirstPageCids = []
+  previousSubplebbitsPageCids = []
   updateFeedsPending = false
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
