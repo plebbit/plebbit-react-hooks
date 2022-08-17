@@ -2,6 +2,7 @@ import assert from 'assert'
 import {Feed, Feeds, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages} from '../../types'
 import {getSubplebbitPages} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
+import {postsPerPage} from './feeds-store'
 
 /**
  * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
@@ -80,7 +81,39 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
   return newBufferedFeeds
 }
 
-export const getLoadedFeeds = () => {
+export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => {
+  const loadedFeedsMissingPosts: Feeds = {}
+  for (const feedName in feedsOptions) {
+    const {pageNumber} = feedsOptions[feedName]
+    const loadedFeedPostCount = pageNumber * postsPerPage
+    const currentLoadedFeed = loadedFeeds[feedName] || []
+    const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
+
+    // get new posts from buffered feed
+    const bufferedFeed = bufferedFeeds[feedName] || []
+    const missingPosts = [...bufferedFeed]
+    if (missingPosts.length > missingPostsCount) {
+      missingPosts.length = missingPostsCount
+    }
+
+    // the current loaded feed already exist and doesn't need new posts
+    if (missingPosts.length === 0 && loadedFeeds[feedName]) {
+      continue
+    }
+    loadedFeedsMissingPosts[feedName] = missingPosts
+  }
+  // do nothing if there are no missing posts
+  if (Object.keys(loadedFeedsMissingPosts).length === 0) {
+    return loadedFeeds
+  }
+  const newLoadedFeeds: Feeds = {}
+  for (const feedName in loadedFeedsMissingPosts) {
+    newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
+  }
+  return {...loadedFeeds, ...newLoadedFeeds}
+}
+
+export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedFeeds: Feeds) => {
   return {}
 }
 

@@ -107,8 +107,9 @@ describe('useFeedsStore', () => {
     await waitFor(() => rendered.result.current.loadedFeeds[feedName].length > 0)
     // subplebbit was added to subplebbits store
     expect(subplebbitsStore.getState().subplebbits[subplebbitAddresses[0]]).not.toBe(undefined)
-    // buffered feed was defined
+    // feeds become defined
     expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
+    expect(rendered.result.current.loadedFeeds[feedName]).not.toBe(undefined)
 
     console.log(subplebbitsStore.getState().subplebbits)
     console.log(rendered.result.current)

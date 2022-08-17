@@ -7,11 +7,14 @@ import localForageLru from '../../lib/localforage-lru'
 import accountsStore from '../accounts'
 import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
-import {getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedPostsCounts, getFeedsHaveMore} from './utils'
+import {getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getBufferedPostsCounts, getFeedsHaveMore} from './utils'
 
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
-const postsPerPage = 25
+export const postsPerPage = 25
+
+// keep large buffer because fetching cids is slow
+export const subplebbitPostsLeftBeforeNextPage = 50
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -122,7 +125,9 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       const {subplebbits} = subplebbitsStore.getState()
       // calculate new feeds
       const bufferedFeeds = getBufferedFeeds(previousState.feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
-      const loadedFeeds = getLoadedFeeds()
+      const loadedFeeds = getLoadedFeeds(previousState.feedsOptions, previousState.loadedFeeds, bufferedFeeds)
+      // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
+      const bufferedFeedsWithoutLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeeds, loadedFeeds)
       const bufferedPostsCounts = getBufferedPostsCounts()
       const feedsHaveMore = getFeedsHaveMore()
       // set new feeds

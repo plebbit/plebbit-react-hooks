@@ -12,9 +12,6 @@ const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbi
 // reset all event listeners in between tests
 export const listeners: any = []
 
-// keep large buffer because fetching cids is slow
-const subplebbitPostsLeftBeforeNextPage = 50
-
 type SubplebbitsPagesState = {
   subplebbitsPages: SubplebbitsPages
   addNextSubplebbitPageToStore: Function
