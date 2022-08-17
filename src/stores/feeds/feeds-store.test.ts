@@ -5,6 +5,7 @@ import {SubplebbitPage} from '../../types'
 import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
 import EventEmitter from 'events'
+import accountsStore from '../accounts'
 
 // require('util').inspect.defaultOptions.depth = 10
 
@@ -67,12 +68,30 @@ const mockAccount: any = {
 }
 
 describe('useFeedsStore', () => {
+  let accountsStoreGetState = accountsStore.getState
   beforeAll(() => {
     testUtils.silenceReactWarnings()
+
+    // mock accountsStore
+    // @ts-ignore
+    accountsStore.getState = () => ({
+      accounts: {[mockAccount.id]: mockAccount},
+      accountsActionsInternal: {addCidToAccountComment: async (comment: any) => {}},
+    })
   })
   afterAll(async () => {
+    // restore accountsStore
+    // @ts-ignore
+    accountsStoreGetState.getState = accountsStoreGetState
+
     testUtils.restoreAll()
-    await testUtils.resetDatabasesAndStores()
+
+    // error when resetting accounts store, not sure why
+    try {
+      await testUtils.resetDatabasesAndStores()
+    } catch (e) {
+      console.error(e)
+    }
   })
 
   let rendered: any, waitFor: any
@@ -154,7 +173,7 @@ describe('useFeedsStore', () => {
 
     // console.log(subplebbitsPagesStore.getState().subplebbitsPages)
 
-    console.log(subplebbitsStore.getState().subplebbits)
-    console.log(rendered.result.current)
+    // console.log(subplebbitsStore.getState().subplebbits)
+    // console.log(rendered.result.current)
   })
 })

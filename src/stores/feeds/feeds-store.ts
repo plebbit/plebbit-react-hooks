@@ -66,7 +66,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       return
     }
     // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {subplebbitAddresses, sortType, account, pageNumber: isBufferedFeed === true ? 0 : 1}
+    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1}
     debug('feedsActions.addFeedToStore', feedOptions)
     setState(({feedsOptions}: any) => {
       // make sure to never overwrite a feed already added
@@ -190,6 +190,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 
   const {subplebbits} = subplebbitsStore.getState()
   const {addNextSubplebbitPageToStore} = subplebbitsPagesStore.getState()
+  const {accounts} = accountsStore.getState()
 
   // bufferedFeedsSubplebbitsPostCounts have changed, check if any of them are low
   for (const feedName in bufferedFeedsSubplebbitsPostCounts) {
@@ -198,7 +199,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
     for (const subplebbitAddress in subplebbitsPostCounts) {
       // subplebbit post count is low, fetch next subplebbit page
       if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
-        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, feedsOptions[feedName].account).catch((error: unknown) =>
+        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, accounts[feedsOptions[feedName].accountId]).catch((error: unknown) =>
           console.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, sortType, error})
         )
       }

@@ -57,7 +57,7 @@ export type Feeds = {[feedName: string]: Feed}
 export type FeedOptions = {
   subplebbitAddresses: string[]
   sortType: string
-  account: Account
+  accountId: string
   pageNumber: number
 }
 export type FeedsOptions = {[feedName: string]: FeedOptions}

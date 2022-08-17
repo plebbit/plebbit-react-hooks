@@ -9,8 +9,6 @@ import {postsPerPage} from './feeds-store'
  * and remove the posts already loaded in loadedFeeds
  */
 export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
-  console.log('getBufferedFeeds', {feedsOptions, loadedFeeds, subplebbits, subplebbitsPages, accounts})
-
   // contruct a list of posts already loaded to remove them from buffered feeds
   const loadedFeedsPosts: {[key: string]: Set<string>} = {}
   for (const feedName in loadedFeeds) {
@@ -23,7 +21,7 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
   // calculate each feed
   let newBufferedFeeds: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {subplebbitAddresses, sortType, account} = feedsOptions[feedName]
+    const {subplebbitAddresses, sortType, accountId} = feedsOptions[feedName]
 
     // find all fetched posts
     const bufferedFeedPosts = []
@@ -68,11 +66,7 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
         continue
       }
 
-      // don't use feedOption 'account' because it doesn't contain updated blocked addresses
-      if (
-        feedsOptions[feedName].account.blockedAddresses[post.subplebbitAddress] ||
-        (post.author?.address && feedsOptions[feedName].account.blockedAddresses[post.author.address])
-      ) {
+      if (accounts[accountId].blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[accountId].blockedAddresses[post.author.address])) {
         continue
       }
 
