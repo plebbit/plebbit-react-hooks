@@ -297,7 +297,12 @@ const onChallengeVerification = (challengeVerification, comment) => {
   // if the challengeVerification fails, a new challenge request will be sent automatically
   // to break the loop, the user must decline to send a challenge answer
   // if the subplebbit owner sends more than 1 challenge for the same challenge request, subsequents will be ignored
-  console.log('challenge verified', challengeVerification)
+  if (challengeVerification.challengeSuccess === true) {
+    console.log('challenge success', {publishedCid: challengeVerification.publication.cid})
+  }
+  else if (challengeVerification.challengeSuccess === false) {
+    console.error('challenge failed', {reason: challengeVerification.reason, errors: challengeVerification.errors})
+  }
 }
 
 const onError = (error, comment) => console.error(error)
