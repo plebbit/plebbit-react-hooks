@@ -30,8 +30,8 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     if (!uniqueSubplebbitAddresses || !account) {
       return
     }
-    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account)
-  }, [feedName, uniqueSubplebbitAddresses?.toString(), sortType, account?.id])
+    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => console.error('useFeed addFeedToStore error', {feedName, error}))
+  }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/])
 
   const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''], feedShallowEqual)
   let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || ''])
@@ -48,7 +48,17 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   }
 
   const feed = loadedFeed || []
-  debug('useFeed', {feed: feed.length, hasMore, subplebbitAddresses, sortType, account, feedsStore: useFeedsStore.getState()})
+  if (account && subplebbitAddresses?.length) {
+    debug('useFeed', {
+      feed: feed.length,
+      hasMore,
+      subplebbitAddresses,
+      sortType,
+      account,
+      feedsStoreOptions: useFeedsStore.getState().feedsOptions,
+      feedsStore: useFeedsStore.getState(),
+    })
+  }
   return {feed, hasMore, loadMore}
 }
 
@@ -101,7 +111,9 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
       }
       if (!bufferedFeeds[feedName || '']) {
         const isBufferedFeed = true
-        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed)
+        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed).catch((error: unknown) =>
+          console.error('useBufferedFeeds addFeedToStore error', {feedName, error})
+        )
       }
     }
   }, [feedNames?.toString()])
@@ -112,7 +124,16 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
     bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || [])
   }
 
-  debug('useBufferedFeeds', {bufferedFeeds, feedsOptions, account, accountName, feedsStore: useFeedsStore.getState()})
+  if (account && feedsOptions?.length) {
+    debug('useBufferedFeeds', {
+      bufferedFeeds,
+      feedsOptions,
+      account,
+      accountName,
+      feedsStoreOptions: useFeedsStore.getState().feedsOptions,
+      feedsStore: useFeedsStore.getState(),
+    })
+  }
   return bufferedFeedsArray
 }
 

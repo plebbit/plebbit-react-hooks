@@ -85,7 +85,7 @@ describe('feeds', () => {
       expect(rendered2.result.current.feed.length).toBe(postsPerPage)
     })
 
-    test.only('change subplebbit addresses and sort type', async () => {
+    test('change subplebbit addresses and sort type', async () => {
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address 1/)
@@ -103,8 +103,6 @@ describe('feeds', () => {
       // change sort type
       rendered.rerender({subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new'})
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
-
-      console.log(rendered.result.current)
 
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
       // the 'new' sort type should give timestamp higher than 99 with the current mock
@@ -249,7 +247,6 @@ describe('feeds', () => {
       }
 
       // get feed with 3 sub sorted by new page 1
-      // the first page will only have posts from the very first sub fetched, sub 1
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
         sortType: 'new',
@@ -258,11 +255,11 @@ describe('feeds', () => {
 
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
       expect(rendered.result.current.feed[0].timestamp).toBe(100)
-      expect(rendered.result.current.feed[1].timestamp).toBe(99)
-      expect(rendered.result.current.feed[2].timestamp).toBe(98)
+      expect(rendered.result.current.feed[1].timestamp).toBe(100)
+      expect(rendered.result.current.feed[2].timestamp).toBe(100)
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid new comment cid 100')
-      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 page cid new comment cid 99')
-      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 page cid new comment cid 98')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid new comment cid 100')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid new comment cid 100')
 
       // at this point the buffered feed has gotten page 1 from all subs
       await waitFor(
@@ -273,12 +270,12 @@ describe('feeds', () => {
       expect(getPageCalledTimes['subplebbit address 2']).toBe(1)
       expect(getPageCalledTimes['subplebbit address 3']).toBe(1)
 
-      // get page 2, the first posts of page 2 should be sub 1 and 2's cid 100
+      // get page 2, the first posts of page 2
       await scrollOnePage()
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(100)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].timestamp).toBe(100)
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 2 page cid new comment cid 100')
-      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe('subplebbit address 3 page cid new comment cid 100')
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].timestamp).toBe(92)
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].timestamp).toBe(92)
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage].cid).toBe('subplebbit address 2 page cid new comment cid 92')
+      expect(rendered.result.current.feed[rendered.result.current.feed.length - postsPerPage + 1].cid).toBe('subplebbit address 3 page cid new comment cid 92')
 
       // scroll until the next buffered feed that needs to be refilled
       await scrollOnePage()
@@ -470,9 +467,9 @@ describe('feeds', () => {
       // it will probably cause critical UI bug when switching accounts
 
       // wait for posts to be added, should get full first page
-      // await waitFor(() => rendered.result.current.feed.length > 0)
-      // expect(typeof rendered.result.current.feed[0].cid).toBe('string')
-      // expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(typeof rendered.result.current.feed[0].cid).toBe('string')
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
     test(`fail to get feed sorted by sort type that doesn't exist`, async () => {

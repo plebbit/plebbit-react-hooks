@@ -72,8 +72,8 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     debug('feedsActions.addFeedToStore', feedOptions)
     setState(({feedsOptions}: any) => {
       // make sure to never overwrite a feed already added
-      if (feedsOptions[feedName]) {
-        return {}
+      if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
+        throw Error(`feedsActions.addFeedToStore feed '${feedName}' already added`)
       }
       return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}}
     })
@@ -162,7 +162,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       const feedsHaveMore = getFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds, accounts)
       // set new feeds
       setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}))
-      debug('feedsStore.updateFeeds', {bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore})
+      debug('feedsStore.updateFeeds', {feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore})
     }, timeUntilNextUpdate)
   },
 }))
@@ -230,6 +230,11 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
     for (const subplebbitAddress in subplebbitsPostCounts) {
       // don't fetch more pages if subplebbit address is blocked
       if (account.blockedAddresses[subplebbitAddress]) {
+        continue
+      }
+
+      // subplebbit hasn't loaded yet
+      if (!subplebbits[subplebbitAddress]) {
         continue
       }
 

@@ -1,5 +1,6 @@
 import utils from '../../lib/utils'
 import Debug from 'debug'
+// include subplebbits pages store with feeds for debugging
 const debug = Debug('plebbit-react-hooks:stores:feeds')
 import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account} from '../../types'
 import accountsStore from '../accounts'
