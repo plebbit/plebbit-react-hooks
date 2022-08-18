@@ -269,7 +269,7 @@ export const getAccountsBlockedAddresses = (accounts: Accounts) => {
   return [...blockedAddressesSet].sort()
 }
 
-export const feedsHaveChangedBlockedAddresses = (feedsOptions: FeedsOptions, blockedAddresses: string[], previousBlockedAddresses: string[]) => {
+export const feedsHaveChangedBlockedAddresses = (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, blockedAddresses: string[], previousBlockedAddresses: string[]) => {
   // find the difference between current and previous blocked addresses
   const changedBlockedAddresses = blockedAddresses
     .filter((x) => !previousBlockedAddresses.includes(x))
@@ -284,5 +284,16 @@ export const feedsHaveChangedBlockedAddresses = (feedsOptions: FeedsOptions, blo
       return true
     }
   }
+
+  // feeds posts author addresses have a changed blocked address
+  const changedBlockedAddressesSet = new Set(changedBlockedAddresses)
+  for (const feedName in bufferedFeeds) {
+    for (const post of bufferedFeeds[feedName] || []) {
+      if (post?.author?.address && changedBlockedAddressesSet.has(post.author.address)) {
+        return true
+      }
+    }
+  }
+
   return false
 }

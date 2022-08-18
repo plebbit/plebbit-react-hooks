@@ -177,8 +177,8 @@ const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) =>
     return
   }
 
-  const {feedsOptions, updateFeeds} = useFeedsStore.getState()
-  const _feedsHaveChangedBlockedAddresses = feedsHaveChangedBlockedAddresses(feedsOptions, blockedAddresses, previousBlockedAddresses)
+  const {feedsOptions, updateFeeds, bufferedFeeds} = useFeedsStore.getState()
+  const _feedsHaveChangedBlockedAddresses = feedsHaveChangedBlockedAddresses(feedsOptions, bufferedFeeds, blockedAddresses, previousBlockedAddresses)
   previousBlockedAddresses = blockedAddresses
 
   // if changed blocked addresses arent used in the feeds, do nothing

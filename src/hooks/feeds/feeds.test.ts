@@ -821,6 +821,7 @@ describe('feeds', () => {
           expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
       )
       // feed doesnt have blocked author address
+      expect(rendered.result.current.account.blockedAddresses[blockedAuthorAddress]).toBe(true)
       expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
     })
 
