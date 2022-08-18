@@ -21,7 +21,9 @@ export function useAuthorAvatarImageUrl(author?: Author, accountName?: string) {
   // don't try to get avatar image url at all if signature isn't verified and whitelisted
   const avatar = verified && isWhitelisted ? author?.avatar : undefined
   const nftImageUrl = useNftImageUrl(avatar, accountName)
-  debug('useAuthorAvatarImageUrl', {author, verified, isWhitelisted, nftImageUrl})
+  if (author) {
+    debug('useAuthorAvatarImageUrl', {author, verified, isWhitelisted, nftImageUrl})
+  }
   return nftImageUrl
 }
 
@@ -52,7 +54,7 @@ export function useNftImageUrl(nft?: Nft, accountName?: string) {
     })()
   }, [nft?.chainTicker, nft?.address, nft?.id, ipfsGatewayUrl, JSON.stringify(blockchainProviders)])
 
-  debug('useNftImageUrl', {nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders})
+  // debug('useNftImageUrl', {nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders})
   return nftImageUrl
 }
 
@@ -82,7 +84,7 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
     return true
   }
 
-  debug('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
+  // debug('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
   return verified
 }
 
@@ -204,7 +206,7 @@ export function useResolvedAuthorAddress(authorAddress?: string, accountName?: s
     [authorAddress, blockchainProviders]
   )
 
-  debug('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
+  // debug('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
   return resolvedAuthorAddress
 }
 

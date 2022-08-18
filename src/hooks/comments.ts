@@ -29,7 +29,9 @@ export function useComment(commentCid?: string, accountName?: string) {
     }
   }, [commentCid, account?.id])
 
-  debug('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
+  if (account && commentCid) {
+    debug('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
+  }
   return comment
 }
 
@@ -54,6 +56,8 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
     }
   }, [commentCids.toString(), account?.id])
 
-  debug('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
+  if (account && commentCids?.length) {
+    debug('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
+  }
   return comments
 }

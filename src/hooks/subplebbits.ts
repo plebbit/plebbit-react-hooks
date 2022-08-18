@@ -31,7 +31,9 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
     }
   }, [subplebbitAddress, account?.id])
 
-  debug('useSubplebbit', {subplebbitAddress, subplebbit, account})
+  if (account && subplebbitAddress) {
+    debug('useSubplebbit', {subplebbitAddress, subplebbit, account})
+  }
   return subplebbit
 }
 
@@ -59,7 +61,9 @@ export function useSubplebbits(subplebbitAddresses: string[] = [], accountName?:
     }
   }, [subplebbitAddresses.toString(), account?.id])
 
-  debug('useSubplebbits', {subplebbitAddresses, subplebbits, account})
+  if (account && subplebbitAddresses?.length) {
+    debug('useSubplebbits', {subplebbitAddresses, subplebbits, account})
+  }
   return subplebbits
 }
 
@@ -81,6 +85,7 @@ export function useListSubplebbits() {
         if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
           return
         }
+        debug('useListSubplebbits', {subplebbitAddresses})
         setSubplebbitAddresses(_subplebbitAddresses)
       })
     },
@@ -88,7 +93,6 @@ export function useListSubplebbits() {
     immediate
   )
 
-  debug('useListSubplebbits', {subplebbitAddresses})
   return subplebbitAddresses
 }
 
@@ -129,7 +133,7 @@ export function useResolvedSubplebbitAddress(subplebbitAddress?: string, account
     [subplebbitAddress, blockchainProviders]
   )
 
-  debug('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
+  // debug('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
   return resolvedSubplebbitAddress
 }
 
