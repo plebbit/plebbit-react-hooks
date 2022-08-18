@@ -10,11 +10,11 @@ setPlebbitJs(PlebbitJsMock)
 describe('feeds', () => {
   beforeAll(() => {
     // some feeds tests are flaky
-    // jest.retryTimes(5)
+    jest.retryTimes(20)
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
-    // jest.retryTimes(0)
+    jest.retryTimes(0)
     testUtils.restoreAll()
   })
 
@@ -308,10 +308,10 @@ describe('feeds', () => {
     // of react renders concurrency so retry a few times if it fails
     describe('retry on fail', () => {
       beforeAll(() => {
-        // jest.retryTimes(5)
+        jest.retryTimes(5)
       })
       afterAll(() => {
-        // jest.retryTimes(0)
+        jest.retryTimes(0)
       })
 
       test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
