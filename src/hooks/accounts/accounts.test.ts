@@ -1,7 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {
-  PlebbitProvider,
   useAccount,
   useAccounts,
   useAccountsActions,
@@ -38,7 +37,7 @@ describe('accounts', () => {
 
     test('generate default account on load', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered = renderHook(() => useAccount())
       const waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
@@ -64,14 +63,11 @@ describe('accounts', () => {
       // re-init accounts after changing plebbit defaults
       await testUtils.resetDatabasesAndStores()
 
-      const rendered = renderHook(
-        () => {
-          const account = useAccount()
-          const {setAccount} = useAccountsActions()
-          return {account, setAccount}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      const rendered = renderHook(() => {
+        const account = useAccount()
+        const {setAccount} = useAccountsActions()
+        return {account, setAccount}
+      })
       const waitFor = testUtils.createWaitFor(rendered)
       await waitFor(() => rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions === plebbitOptions.ipfsHttpClientOptions)
       expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
@@ -94,13 +90,10 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // on second render get the account from database
-      const rendered2 = renderHook(
-        () => {
-          const account = useAccount()
-          return {account}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      const rendered2 = renderHook(() => {
+        const account = useAccount()
+        return {account}
+      })
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.account)
       expect(rendered2.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
@@ -113,14 +106,11 @@ describe('accounts', () => {
     test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
 
     test('create new accounts', async () => {
-      const rendered = renderHook<any, any>(
-        (accountName) => {
-          const account = useAccount(accountName)
-          const {createAccount} = useAccountsActions()
-          return {account, createAccount}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      const rendered = renderHook<any, any>((accountName) => {
+        const account = useAccount(accountName)
+        const {createAccount} = useAccountsActions()
+        return {account, createAccount}
+      })
       const waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
@@ -153,7 +143,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if accounts saved to database
-      const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName))
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -180,15 +170,12 @@ describe('accounts', () => {
 
     beforeEach(async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      rendered = renderHook<any, any>(
-        (accountName) => {
-          const account = useAccount(accountName)
-          const accounts = useAccounts()
-          const accountsActions = useAccountsActions()
-          return {account, accounts, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((accountName) => {
+        const account = useAccount(accountName)
+        const accounts = useAccounts()
+        const accountsActions = useAccountsActions()
+        return {account, accounts, ...accountsActions}
+      })
       waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
@@ -231,7 +218,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if accounts saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccount())
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -273,7 +260,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if account change saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'))
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -299,7 +286,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if account change saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccount())
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -365,7 +352,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // imported account persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name))
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
       expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
@@ -433,7 +420,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if saved to database
-      const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current[0].name)
 
@@ -468,7 +455,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // account deleted persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length > 0)
       expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
@@ -504,7 +491,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // account deleted persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccounts(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length > 0)
       expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
@@ -582,7 +569,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // subscribing persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccount())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.subscriptions.length === 1)
       expect(rendered2.result.current.subscriptions).toEqual([subplebbitAddress2])
@@ -635,7 +622,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // blocking persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccount())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => Object.keys(rendered2.result.current.blockedAddresses).length === 1)
       expect(rendered2.result.current.blockedAddresses).toEqual({[address2]: true})
@@ -652,14 +639,11 @@ describe('accounts', () => {
     let rendered: any, waitFor: any
     const render = async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      rendered = renderHook<any, any>(
-        (accountName) => {
-          const account = useAccount(accountName)
-          const accountsActions = useAccountsActions()
-          return {account, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((accountName) => {
+        const account = useAccount(accountName)
+        const accountsActions = useAccountsActions()
+        return {account, ...accountsActions}
+      })
       waitFor = testUtils.createWaitFor(rendered)
 
       // on second render, you get the default generated account
@@ -888,27 +872,24 @@ describe('accounts', () => {
       onChallenge = jest.fn()
       onChallengeVerification = jest.fn()
       publishOptions = {onChallenge, onChallengeVerification}
-      rendered = renderHook<any, any>(
-        (props: any) => {
-          const useAccountCommentsOptions: UseAccountCommentsOptions = {
-            accountName: props?.accountName,
-            filter: {
-              commentCids: props?.commentCid && [props?.commentCid],
-              postCids: props?.postCid && [props?.postCid],
-              subplebbitAddresses: props?.subplebbitAddress && [props?.subplebbitAddress],
-              parentCids: props?.parentCid && [props?.parentCid],
-              hasParentCid: props?.hasParentCid,
-            },
-          }
-          const account = useAccount(props?.accountName)
-          const accountsActions = useAccountsActions()
-          const accountComments = useAccountComments(useAccountCommentsOptions)
-          const accountVotes = useAccountVotes(useAccountCommentsOptions)
-          const accountVote = useAccountVote(props?.commentCid, props?.accountName)
-          return {account, accountComments, accountVotes, accountVote, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((props: any) => {
+        const useAccountCommentsOptions: UseAccountCommentsOptions = {
+          accountName: props?.accountName,
+          filter: {
+            commentCids: props?.commentCid && [props?.commentCid],
+            postCids: props?.postCid && [props?.postCid],
+            subplebbitAddresses: props?.subplebbitAddress && [props?.subplebbitAddress],
+            parentCids: props?.parentCid && [props?.parentCid],
+            hasParentCid: props?.hasParentCid,
+          },
+        }
+        const account = useAccount(props?.accountName)
+        const accountsActions = useAccountsActions()
+        const accountComments = useAccountComments(useAccountCommentsOptions)
+        const accountVotes = useAccountVotes(useAccountCommentsOptions)
+        const accountVote = useAccountVote(props?.commentCid, props?.accountName)
+        return {account, accountComments, accountVotes, accountVote, ...accountsActions}
+      })
       waitFor = testUtils.createWaitFor(rendered)
 
       await waitFor(() => rendered.result.current.account.name)
@@ -1010,7 +991,7 @@ describe('accounts', () => {
       const activeAccountId = rendered.result.current.account.id
       // reset stores to force using the db
       await testUtils.resetStores()
-      const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccountComments())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length)
 
@@ -1033,14 +1014,11 @@ describe('accounts', () => {
         jest.retryTimes(0)
       })
       test(`cid gets added to account comment after fetched in useComment`, async () => {
-        const rendered = renderHook<any, any>(
-          (commentCid) => {
-            const accountComments = useAccountComments()
-            const comment = useComment(commentCid)
-            return accountComments
-          },
-          {wrapper: PlebbitProvider}
-        )
+        const rendered = renderHook<any, any>((commentCid) => {
+          const accountComments = useAccountComments()
+          const comment = useComment(commentCid)
+          return accountComments
+        })
         await waitFor(() => rendered.result.current[0].content)
 
         expect(rendered.result.current[0].content).toBe('content 1')
@@ -1094,7 +1072,7 @@ describe('accounts', () => {
         await testUtils.resetStores()
 
         // check if cids are still in database after new store
-        const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
+        const rendered2 = renderHook<any, any>(() => useAccountComments())
         const waitFor2 = testUtils.createWaitFor(rendered2)
         await waitFor2(() => rendered2.result.current[0].cid)
 
@@ -1108,14 +1086,11 @@ describe('accounts', () => {
     test(`cid gets added to account comment after feed is fetched`, async () => {
       const getPage = Pages.prototype.getPage
 
-      const rendered = renderHook<any, any>(
-        (props?) => {
-          const {feed} = useFeed(props?.subplebbitAddresses, 'new')
-          const accountComments = useAccountComments()
-          return {accountComments, feed}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      const rendered = renderHook<any, any>((props?) => {
+        const {feed} = useFeed(props?.subplebbitAddresses, 'new')
+        const accountComments = useAccountComments()
+        return {accountComments, feed}
+      })
       const waitFor = testUtils.createWaitFor(rendered)
 
       // wait for account comments to render
@@ -1154,7 +1129,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render with new store to see if still in database
-      const rendered2 = renderHook<any, any>(() => useAccountComments(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccountComments())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.length)
 
@@ -1208,14 +1183,11 @@ describe('accounts', () => {
         await testUtils.resetStores()
 
         // get the karma from database by created new store
-        const rendered2 = renderHook<any, any>(
-          () => {
-            const account = useAccount()
-            const accountComments = useAccountComments()
-            return {account, accountComments}
-          },
-          {wrapper: PlebbitProvider}
-        )
+        const rendered2 = renderHook<any, any>(() => {
+          const account = useAccount()
+          const accountComments = useAccountComments()
+          return {account, accountComments}
+        })
         const waitFor2 = testUtils.createWaitFor(rendered2)
 
         await waitFor2(() => rendered2.result.current.account.karma.upvoteCount === 9 && rendered2.result.current.account.karma.score === 6)
@@ -1243,7 +1215,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render with new store to see if still in database
-      const rendered2 = renderHook<any, any>(() => useAccountVotes(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccountVotes())
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       await waitFor2(() => rendered2.result.current.length)
@@ -1286,14 +1258,11 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render with new store to see if still in database
-      const rendered2 = renderHook<any, any>(
-        () => {
-          const accountComments = useAccountComments({accountName: 'Account 2'})
-          const accountVotes = useAccountVotes({accountName: 'Account 2'})
-          return {accountComments, accountVotes}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      const rendered2 = renderHook<any, any>(() => {
+        const accountComments = useAccountComments({accountName: 'Account 2'})
+        const accountVotes = useAccountVotes({accountName: 'Account 2'})
+        return {accountComments, accountVotes}
+      })
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       await waitFor2(() => rendered2.result.current.accountComments.length)
@@ -1360,15 +1329,12 @@ describe('accounts', () => {
         return commentUpdate.bind(this)()
       }
 
-      rendered = renderHook<any, any>(
-        (props?: any) => {
-          const account = useAccount(props?.accountName)
-          const {notifications, markAsRead} = useAccountNotifications(props?.accountName)
-          const {publishComment} = useAccountsActions()
-          return {account, notifications, markAsRead, publishComment}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((props?: any) => {
+        const account = useAccount(props?.accountName)
+        const {notifications, markAsRead} = useAccountNotifications(props?.accountName)
+        const {publishComment} = useAccountsActions()
+        return {account, notifications, markAsRead, publishComment}
+      })
       waitFor = testUtils.createWaitFor(rendered)
 
       await waitFor(() => rendered.result.current.account?.name)
@@ -1484,7 +1450,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // check to see if in database after refreshing with a new store
-      const rendered2 = renderHook<any, any>(() => useAccountNotifications(), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>(() => useAccountNotifications())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.notifications.length >= 4)
 
@@ -1517,15 +1483,12 @@ describe('accounts', () => {
       let waitFor: Function
 
       beforeEach(async () => {
-        rendered = renderHook<any, any>(
-          () => {
-            const accountSubplebbits = useAccountSubplebbits()
-            const account = useAccount()
-            const {setAccount} = useAccountsActions()
-            return {accountSubplebbits, setAccount, account}
-          },
-          {wrapper: PlebbitProvider}
-        )
+        rendered = renderHook<any, any>(() => {
+          const accountSubplebbits = useAccountSubplebbits()
+          const account = useAccount()
+          const {setAccount} = useAccountsActions()
+          return {accountSubplebbits, setAccount, account}
+        })
         waitFor = testUtils.createWaitFor(rendered)
 
         await waitFor(() => rendered.result.current.account.name)
@@ -1578,16 +1541,13 @@ describe('accounts', () => {
         [moderatorAuthorAddress]: {role: 'moderator'},
       })
 
-      const rendered = renderHook<any, any>(
-        (subplebbitAddress) => {
-          const accountSubplebbits = useAccountSubplebbits()
-          const account = useAccount()
-          const {setAccount} = useAccountsActions()
-          const subplebbit = useSubplebbit(subplebbitAddress)
-          return {accountSubplebbits, setAccount, account}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      const rendered = renderHook<any, any>((subplebbitAddress) => {
+        const accountSubplebbits = useAccountSubplebbits()
+        const account = useAccount()
+        const {setAccount} = useAccountsActions()
+        const subplebbit = useSubplebbit(subplebbitAddress)
+        return {accountSubplebbits, setAccount, account}
+      })
       const waitFor = testUtils.createWaitFor(rendered)
       await waitFor(() => rendered.result.current.account)
 
@@ -1617,16 +1577,13 @@ describe('accounts', () => {
     let waitFor: Function
 
     beforeEach(async () => {
-      rendered = renderHook<any, any>(
-        (subplebbitAddress?: string) => {
-          const account = useAccount()
-          const accountsActions = useAccountsActions()
-          const accountSubplebbits = useAccountSubplebbits()
-          const subplebbit = useSubplebbit(subplebbitAddress)
-          return {account, subplebbit, accountSubplebbits, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((subplebbitAddress?: string) => {
+        const account = useAccount()
+        const accountsActions = useAccountsActions()
+        const accountSubplebbits = useAccountSubplebbits()
+        const subplebbit = useSubplebbit(subplebbitAddress)
+        return {account, subplebbit, accountSubplebbits, ...accountsActions}
+      })
       waitFor = testUtils.createWaitFor(rendered)
       await waitFor(() => rendered.result.current.account)
     })
@@ -1708,14 +1665,11 @@ describe('accounts', () => {
 
       // render again with new context and store
       await testUtils.resetStores()
-      rendered = renderHook<any, any>(
-        (subplebbitAddress?: string) => {
-          const subplebbit = useSubplebbit(subplebbitAddress)
-          const accountsActions = useAccountsActions()
-          return {subplebbit, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((subplebbitAddress?: string) => {
+        const subplebbit = useSubplebbit(subplebbitAddress)
+        const accountsActions = useAccountsActions()
+        return {subplebbit, ...accountsActions}
+      })
       expect(rendered.result.current.subplebbit).toBe(undefined)
 
       // can useSubplebbit after reload
@@ -1739,14 +1693,11 @@ describe('accounts', () => {
 
       // render again with new context and store
       await testUtils.resetStores()
-      rendered = renderHook<any, any>(
-        (subplebbitAddress?: string) => {
-          const subplebbit = useSubplebbit(subplebbitAddress)
-          const accountsActions = useAccountsActions()
-          return {subplebbit, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((subplebbitAddress?: string) => {
+        const subplebbit = useSubplebbit(subplebbitAddress)
+        const accountsActions = useAccountsActions()
+        return {subplebbit, ...accountsActions}
+      })
       expect(rendered.result.current.subplebbit).toBe(undefined)
 
       // can useSubplebbit after reload
@@ -1763,14 +1714,11 @@ describe('accounts', () => {
 
       // render again with new context and store
       await testUtils.resetStores()
-      rendered = renderHook<any, any>(
-        (subplebbitAddress?: string) => {
-          const subplebbit = useSubplebbit(subplebbitAddress)
-          const accountsActions = useAccountsActions()
-          return {subplebbit, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook<any, any>((subplebbitAddress?: string) => {
+        const subplebbit = useSubplebbit(subplebbitAddress)
+        const accountsActions = useAccountsActions()
+        return {subplebbit, ...accountsActions}
+      })
       expect(rendered.result.current.subplebbit).toBe(undefined)
 
       // useSubplebbit(previousAddress) address is edited

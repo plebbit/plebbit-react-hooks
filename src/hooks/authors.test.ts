@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useAuthorAvatarImageUrl, useResolvedAuthorAddress, PlebbitProvider, setPlebbitJs, useAccount} from '..'
+import {useAuthorAvatarImageUrl, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '..'
 import {useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock from '../lib/plebbit-js/plebbit-js-mock'
@@ -46,7 +46,7 @@ describe('authors', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useNftImageUrl', async () => {
-      const rendered = renderHook<any, any>((nft) => useNftImageUrl(nft), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((nft) => useNftImageUrl(nft))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
@@ -63,7 +63,7 @@ describe('authors', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useVerifiedAuthorAvatarSignature', async () => {
-      const rendered = renderHook<any, any>((author) => useVerifiedAuthorAvatarSignature(author), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((author) => useVerifiedAuthorAvatarSignature(author))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
@@ -76,7 +76,7 @@ describe('authors', () => {
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
     test.skip('verifyAuthorAvatarSignature (cache and pending)', async () => {
-      const rendered = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>(() => useAccount())
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       await waitFor(() => rendered.result.current)
       expect(rendered.result.current).not.toBe(undefined)
@@ -97,7 +97,7 @@ describe('authors', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useAuthorAvatarImageUrl', async () => {
-      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl(author), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl(author))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
@@ -124,7 +124,7 @@ describe('authors', () => {
           },
         },
       }
-      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl(author), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl(author))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
@@ -140,7 +140,7 @@ describe('authors', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useResolvedAuthorAddress', async () => {
-      const rendered = renderHook<any, any>((authorAddress) => useResolvedAuthorAddress(authorAddress), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((authorAddress) => useResolvedAuthorAddress(authorAddress))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
@@ -152,7 +152,7 @@ describe('authors', () => {
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
     test.skip('resolveAuthorAddress (cache and pending)', async () => {
-      const rendered = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>(() => useAccount())
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       await waitFor(() => rendered.result.current)
       expect(rendered.result.current).not.toBe(undefined)

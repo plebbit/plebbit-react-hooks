@@ -9,7 +9,6 @@ try {
 } catch (e) {}
 
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
-import PlebbitProvider from './providers/plebbit'
 import {
   useAccount,
   useAccounts,
@@ -30,7 +29,6 @@ import debugUtils from './lib/debug-utils'
 export * from './types'
 
 export {
-  PlebbitProvider,
   useAccount,
   useAccounts,
   useAccountsActions,
@@ -54,7 +52,6 @@ export {
 }
 
 const hooks = {
-  PlebbitProvider,
   useAccount,
   useAccounts,
   useAccountsActions,

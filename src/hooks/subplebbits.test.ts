@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useSubplebbit, useSubplebbits, setPlebbitJs, PlebbitProvider, useResolvedSubplebbitAddress, useAccount} from '..'
+import {useSubplebbit, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
 import subplebbitStore from '../stores/subplebbits'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
@@ -23,9 +23,7 @@ describe('subplebbits', () => {
     })
 
     test('get subplebbits one at a time', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
-        wrapper: PlebbitProvider,
-      })
+      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress))
       const waitFor = testUtils.createWaitFor(rendered)
 
       expect(rendered.result.current).toBe(undefined)
@@ -75,9 +73,7 @@ describe('subplebbits', () => {
       expect(subplebbitStore.getState().subplebbits).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
-        wrapper: PlebbitProvider,
-      })
+      const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress))
       expect(rendered2.result.current).toBe(undefined)
       rendered2.rerender('subplebbit address 1')
       // wait to get account loaded
@@ -108,9 +104,7 @@ describe('subplebbits', () => {
     })
 
     test('get multiple subplebbits at once', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddresses) => useSubplebbits(subplebbitAddresses), {
-        wrapper: PlebbitProvider,
-      })
+      const rendered = renderHook<any, any>((subplebbitAddresses) => useSubplebbits(subplebbitAddresses))
       const waitFor = testUtils.createWaitFor(rendered)
 
       expect(rendered.result.current).toEqual([])
@@ -140,7 +134,7 @@ describe('subplebbits', () => {
   })
 
   test('useListSubplebbits', async () => {
-    const rendered = renderHook<any, any>(() => useListSubplebbits(), {wrapper: PlebbitProvider})
+    const rendered = renderHook<any, any>(() => useListSubplebbits())
     const waitFor = testUtils.createWaitFor(rendered)
     await waitFor(() => rendered.result.current.length > 0)
     expect(rendered.result.current).toEqual(['list subplebbit address 1', 'list subplebbit address 2'])
@@ -152,7 +146,7 @@ describe('subplebbits', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useResolvedSubplebbitAddress', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress(subplebbitAddress), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress(subplebbitAddress))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toBe(undefined)
 
@@ -164,7 +158,7 @@ describe('subplebbits', () => {
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
     test.skip('resolveSubplebbitAddress (cache and pending)', async () => {
-      const rendered = renderHook<any, any>(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>(() => useAccount())
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       await waitFor(() => rendered.result.current)
       expect(rendered.result.current).not.toBe(undefined)

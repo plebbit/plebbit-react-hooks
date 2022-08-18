@@ -212,13 +212,8 @@ Challenge {
 #### Getting started
 
 ```js
-import {PlebbitProvider, useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
+import {useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
 
-// wrap your app with the PlebbitProvider
-// ...
-return <PlebbitProvider><App/></PlebbitProvider>
-
-// then use the hooks anywhere in your app
 const account = useAccount()
 const comment = useComment(commentCid)
 ```

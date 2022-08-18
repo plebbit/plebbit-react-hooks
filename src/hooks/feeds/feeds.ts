@@ -1,6 +1,5 @@
 import {useEffect, useMemo, useState} from 'react'
 import {useAccount} from '../accounts'
-// import {FeedsContext} from '../../providers/feeds'
 import validator from '../../lib/validator'
 import Debug from 'debug'
 const debug = Debug('plebbit-react-hooks:hooks:feeds')
@@ -17,14 +16,11 @@ import useFeedsStore from '../../stores/feeds'
 export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accountName?: string) {
   validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName)
   const account = useAccount(accountName)
-  // const feedsContext = useContext(FeedsContext)
-  // const feedsStore = useFeedsStore()
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
 
   const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses])
   const [feedName] = useStringified([[account?.id, sortType, uniqueSubplebbitAddresses]])
-  // const loadedFeed = feedName && feedsContext.loadedFeeds[feedName]
 
   useEffect(() => {
     if (!uniqueSubplebbitAddresses || !account) {
@@ -73,7 +69,6 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
 export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], accountName?: string) {
   validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
   const account = useAccount(accountName)
-  // const feedsContext = useContext(FeedsContext)
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
 
   // do a bunch of calculations to get feedsOptionsFlattened and feedNames

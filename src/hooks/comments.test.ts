@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useComment, useComments, setPlebbitJs, PlebbitProvider} from '..'
+import {useComment, useComments, setPlebbitJs} from '..'
 import commentsStore from '../stores/comments'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
@@ -23,7 +23,7 @@ describe('comments', () => {
 
     test('get comments one at a time', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
       const waitFor = testUtils.createWaitFor(rendered)
       expect(rendered.result.current).toBe(undefined)
 
@@ -72,7 +72,7 @@ describe('comments', () => {
       expect(commentsStore.getState().comments).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
+      const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid))
       const waitFor2 = testUtils.createWaitFor(rendered2)
       expect(rendered2.result.current).toBe(undefined)
 
@@ -99,7 +99,7 @@ describe('comments', () => {
     })
 
     test('get multiple comments at once', async () => {
-      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids), {wrapper: PlebbitProvider})
+      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids))
       const waitFor = testUtils.createWaitFor(rendered)
       expect(rendered.result.current).toEqual([])
 
