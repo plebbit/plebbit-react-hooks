@@ -27,7 +27,7 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`)
 
     // check the preloaded posts on subplebbit.posts.pages first, then the subplebbits.posts.pageCids
-    const subplebbitFirstPageCid = subplebbit.posts?.pages?.[sortType]?.nextCid || subplebbit.posts?.pageCids?.[sortType]
+    const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
     assert(
       subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string',
       `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts?.pageCids?.['${sortType}'] '${subplebbit.posts?.pageCids?.[sortType]}' invalid`
@@ -36,7 +36,7 @@ const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: F
     // all subplebbits pages in store
     const {subplebbitsPages} = getState()
     // only specific pages of the subplebbit+sortType
-    const subplebbitPages = getSubplebbitPages(subplebbitFirstPageCid, subplebbitsPages)
+    const subplebbitPages = getSubplebbitPages(subplebbit, sortType, subplebbitsPages)
 
     // if no pages exist yet, add the first page
     let pageCidToAdd: string
@@ -103,8 +103,17 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
  * Util function to get all pages in the store for a
  * specific subplebbit+sortType using `SubplebbitPage.nextCid`
  */
-export const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: SubplebbitsPages) => {
+export const getSubplebbitPages = (subplebbit: Subplebbit, sortType: string, subplebbitsPages: SubplebbitsPages) => {
+  assert(subplebbitsPages && typeof subplebbitsPages === 'object', `getSubplebbitPages subplebbitsPages '${subplebbitsPages}' invalid`)
   const pages: SubplebbitPage[] = []
+  const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
+  // subplebbit has no pages
+  // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
+  // should we try to use another sort type by default, like 'hot', or should we just ignore it?
+  // 'return pages' to ignore it for now
+  if (!firstPageCid) {
+    return pages
+  }
   const firstPage = subplebbitsPages[firstPageCid]
   if (!firstPage) {
     return pages
@@ -118,6 +127,19 @@ export const getSubplebbitPages = (firstPageCid: string, subplebbitsPages: Subpl
     }
     pages.push(subplebbitPage)
   }
+}
+
+export const getSubplebbitFirstPageCid = (subplebbit: Subplebbit, sortType: string) => {
+  assert(subplebbit?.address, `getSubplebbitFirstPageCid subplebbit '${subplebbit}' invalid`)
+  assert(sortType && typeof sortType === 'string', `getSubplebbitFirstPageCid sortType '${sortType}' invalid`)
+  // subplebbit has preloaded posts for sort type
+  if (subplebbit.posts?.pages?.[sortType]?.comments) {
+    return subplebbit.posts?.pages?.[sortType]?.nextCid
+  }
+  return subplebbit.posts?.pageCids?.[sortType]
+
+  // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
+  // should we try to use another sort type by default, like 'hot', or should we just ignore it?
 }
 
 // reset store in between tests

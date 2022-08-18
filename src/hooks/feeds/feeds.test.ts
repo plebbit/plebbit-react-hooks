@@ -339,15 +339,14 @@ describe('feeds', () => {
         expect(rendered.result.current.feed).toEqual([])
 
         // wait for posts to be added, should get full first page
-        // the first page should only have subplebbit 1 since it loads immediately after loading 1 sub
         await waitFor(() => rendered.result.current.feed.length > 0)
         expect(rendered.result.current.feed.length).toBe(postsPerPage)
         expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid topAll comment cid 100')
-        expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 1 page cid topAll comment cid 99')
-        expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 1 page cid topAll comment cid 98')
+        expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid topAll comment cid 100')
+        expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid topAll comment cid 100')
         expect(rendered.result.current.feed[0].upvoteCount).toBe(100)
-        expect(rendered.result.current.feed[1].upvoteCount).toBe(99)
-        expect(rendered.result.current.feed[2].upvoteCount).toBe(98)
+        expect(rendered.result.current.feed[1].upvoteCount).toBe(100)
+        expect(rendered.result.current.feed[2].upvoteCount).toBe(100)
 
         // wait until buffered feeds have sub 2 and 3 loaded
         let bufferedFeedString
@@ -361,10 +360,10 @@ describe('feeds', () => {
 
         // the second page first posts should be sub 2 and 3 with the highest upvotes
         await scrollOnePage()
-        expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid (99|100)/)
-        expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid (99|100)/)
-        expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBeGreaterThan(98)
-        expect(rendered.result.current.feed[postsPerPage + 1].upvoteCount).toBeGreaterThan(98)
+        expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid 92/)
+        expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid 92/)
+        expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBeGreaterThan(91)
+        expect(rendered.result.current.feed[postsPerPage + 1].upvoteCount).toBeGreaterThan(91)
       })
     })
 
@@ -557,6 +556,7 @@ describe('feeds', () => {
 
         await scrollOnePage()
         // there are no bufferedFeed and pages left so hasMore should be false
+        await waitFor(() => rendered.result.current.hasMore === false)
         expect(rendered.result.current.hasMore).toBe(false)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 4)
       })

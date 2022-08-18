@@ -107,7 +107,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
       `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
     )
-    setState(({feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts}: any) => {
+    setState(({feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}: any) => {
       // don't increment page number before the current page has loaded
       if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
         return {}
@@ -117,17 +117,21 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
         pageNumber: feedsOptions[feedName].pageNumber + 1,
       }
       // no need to do a full updateFeeds after page increment, only calculate partial update
-      const {bufferedFeed, loadedFeed, bufferedFeedSubplebbitsPostCounts} = getFeedAfterIncrementPageNumber(
+      const {bufferedFeed, loadedFeed, bufferedFeedSubplebbitsPostCounts, feedHasMore} = getFeedAfterIncrementPageNumber(
         feedName,
         feedOptions,
         bufferedFeeds[feedName],
-        loadedFeeds[feedName]
+        loadedFeeds[feedName],
+        subplebbitsStore.getState().subplebbits,
+        subplebbitsPagesStore.getState().subplebbitsPages,
+        accountsStore.getState().accounts
       )
       return {
         feedsOptions: {...feedsOptions, [feedName]: feedOptions},
         bufferedFeeds: {...bufferedFeeds, [feedName]: bufferedFeed},
         loadedFeeds: {...loadedFeeds, [feedName]: loadedFeed},
         bufferedFeedsSubplebbitsPostCounts: {...bufferedFeedsSubplebbitsPostCounts, [feedName]: bufferedFeedSubplebbitsPostCounts},
+        feedsHaveMore: {...feedsHaveMore, [feedName]: feedHasMore},
       }
     })
   },
@@ -159,7 +163,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
       const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
       const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
-      const feedsHaveMore = getFeedsHaveMore(feedsOptions, subplebbits, subplebbitsPages, bufferedFeeds, accounts)
+      const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts)
       // set new feeds
       setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}))
       debug('feedsStore.updateFeeds', {feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore})

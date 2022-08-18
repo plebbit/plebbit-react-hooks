@@ -1,6 +1,6 @@
 import assert from 'assert'
 import {Feed, Feeds, FeedOptions, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, FeedsSubplebbitsPostCounts} from '../../types'
-import {getSubplebbitPages} from '../subplebbits-pages'
+import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
 import {postsPerPage} from './feeds-store'
 
@@ -28,26 +28,19 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
 
     // add each comment from each page, do not filter at this stage, filter after sorting
     for (const subplebbitAddress of subplebbitAddresses) {
-      let firstPageCid = subplebbits[subplebbitAddress]?.posts?.pageCids?.[sortType]
-
-      // use subplebbit preloaded posts if any
-      const preloadedPosts = subplebbits[subplebbitAddress]?.posts?.pages?.[sortType]?.comments
-      if (preloadedPosts) {
-        bufferedFeedPosts.push(...preloadedPosts)
-        const preloadedPostsNextPageCid = subplebbits[subplebbitAddress]?.posts?.pages?.[sortType]?.nextCid
-        if (preloadedPostsNextPageCid) {
-          firstPageCid = preloadedPostsNextPageCid
-        }
-      }
-
-      // subplebbit has no first page cid
-      if (!firstPageCid) {
+      // subplebbit hasn't loaded yet
+      if (!subplebbits[subplebbitAddress]) {
         continue
       }
 
-      // add all posts from subplebbit pages
-      const subplebbitPages = getSubplebbitPages(firstPageCid, subplebbitsPages)
+      // use subplebbit preloaded posts if any
+      const preloadedPosts = subplebbits[subplebbitAddress].posts?.pages?.[sortType]?.comments
+      if (preloadedPosts) {
+        bufferedFeedPosts.push(...preloadedPosts)
+      }
 
+      // add all posts from subplebbit pages
+      const subplebbitPages = getSubplebbitPages(subplebbits[subplebbitAddress], sortType, subplebbitsPages)
       for (const subplebbitPage of subplebbitPages) {
         if (subplebbitPage?.comments) {
           bufferedFeedPosts.push(...subplebbitPage.comments)
@@ -151,20 +144,20 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions: FeedsOptions, feeds:
 /**
  * Get which feeds have more posts, i.e. have no reached the final page of all subs
  */
-export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, bufferedFeeds: Feeds, accounts: Accounts) => {
+export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   const feedsHaveMore: {[feedName: string]: boolean} = {}
   feedsLoop: for (const feedName in feedsOptions) {
     // if the feed still has buffered posts, then it still has more
     if (bufferedFeeds[feedName]?.length) {
       feedsHaveMore[feedName] = true
-      continue
+      continue feedsLoop
     }
 
     const {subplebbitAddresses, sortType, accountId} = feedsOptions[feedName]
-    for (const subplebbitAddress of subplebbitAddresses) {
+    subplebbitAddressesLoop: for (const subplebbitAddress of subplebbitAddresses) {
       // don't consider the sub if the address is blocked
       if (accounts[accountId].blockedAddresses[subplebbitAddress]) {
-        continue
+        continue subplebbitAddressesLoop
       }
 
       const subplebbit = subplebbits[subplebbitAddress]
@@ -173,14 +166,14 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subple
         feedsHaveMore[feedName] = true
         continue feedsLoop
       }
-      const firstPageCid = subplebbit.posts?.pageCids?.[sortType]
+      const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
       // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
       // should we try to use another sort type by default, like 'hot', or should we just ignore it?
       // 'continue' to ignore it for now
       if (!firstPageCid) {
-        continue
+        continue subplebbitAddressesLoop
       }
-      const pages = getSubplebbitPages(firstPageCid, subplebbitsPages)
+      const pages = getSubplebbitPages(subplebbit, sortType, subplebbitsPages)
       // if first page isn't loaded yet, then the feed still has more
       if (!pages.length) {
         feedsHaveMore[feedName] = true
@@ -200,7 +193,15 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, subplebbits: Subple
 }
 
 // get a partial updateFeeds after a page increment
-export const getFeedAfterIncrementPageNumber = (feedName: string, feedOptions: FeedOptions, bufferedFeed: Feed, loadedFeed: Feed) => {
+export const getFeedAfterIncrementPageNumber = (
+  feedName: string,
+  feedOptions: FeedOptions,
+  bufferedFeed: Feed,
+  loadedFeed: Feed,
+  subplebbits: Subplebbits,
+  subplebbitsPages: SubplebbitsPages,
+  accounts: Accounts
+) => {
   // transform arguments into objects
   const feedsOptions = {[feedName]: feedOptions}
   const bufferedFeedsWithLoadedFeeds = {[feedName]: bufferedFeed}
@@ -211,12 +212,14 @@ export const getFeedAfterIncrementPageNumber = (feedName: string, feedOptions: F
   // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
   const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
   const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
+  const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts)
 
   // transform values back into single properties
   return {
     bufferedFeed: bufferedFeeds[feedName],
     loadedFeed: loadedFeeds[feedName],
     bufferedFeedSubplebbitsPostCounts: bufferedFeedsSubplebbitsPostCounts[feedName],
+    feedHasMore: feedsHaveMore[feedName],
   }
 }
 
