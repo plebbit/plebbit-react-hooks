@@ -44,7 +44,7 @@ type FeedsState = {
 let updateFeedsPending = false
 const updateFeedsMinIntervalTime = 50
 
-const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Function) => ({
+const feedsStore = createStore<FeedsState>((setState: Function, getState: Function) => ({
   feedsOptions: {},
   bufferedFeeds: {},
   loadedFeeds: {},
@@ -84,7 +84,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
     subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange)
 
     // subscribe to bufferedFeedsSubplebbitsPostCounts change
-    useFeedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts)
+    feedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts)
 
     // subscribe to subplebbits pages store changes
     subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange)
@@ -181,7 +181,7 @@ const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) =>
     return
   }
 
-  const {feedsOptions, updateFeeds, bufferedFeeds} = useFeedsStore.getState()
+  const {feedsOptions, updateFeeds, bufferedFeeds} = feedsStore.getState()
   const _feedsHaveChangedBlockedAddresses = feedsHaveChangedBlockedAddresses(feedsOptions, bufferedFeeds, blockedAddresses, previousBlockedAddresses)
   previousBlockedAddresses = blockedAddresses
 
@@ -208,12 +208,12 @@ const updateFeedsOnFeedsSubplebbitsPagesChange = (subplebbitsPagesStoreState: an
   // trigger a feed update, if in the future another hook uses the subplebbitsPagesStore
   // we should check if the subplebbits pages changed are actually used by the feeds before
   // triggering an update
-  useFeedsStore.getState().updateFeeds()
+  feedsStore.getState().updateFeeds()
 }
 
 let previousBufferedFeedsSubplebbitsPostCounts: string | undefined
 const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState: any) => {
-  const {bufferedFeedsSubplebbitsPostCounts, feedsOptions} = useFeedsStore.getState()
+  const {bufferedFeedsSubplebbitsPostCounts, feedsOptions} = feedsStore.getState()
 
   // bufferedFeedsSubplebbitsPostCounts haven't changed, do nothing
   const bufferedFeedsSubplebbitsPostCountsStringified = JSON.stringify(bufferedFeedsSubplebbitsPostCounts)
@@ -255,7 +255,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
   const {subplebbits} = subplebbitsStoreState
-  const {feedsOptions, updateFeeds} = useFeedsStore.getState()
+  const {feedsOptions, updateFeeds} = feedsStore.getState()
 
   // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
   const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits)
@@ -280,7 +280,7 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses: string[], account
 }
 
 // reset store in between tests
-const originalState = useFeedsStore.getState()
+const originalState = feedsStore.getState()
 // async function because some stores have async init
 export const resetFeedsStore = async () => {
   previousBlockedAddresses = []
@@ -291,9 +291,9 @@ export const resetFeedsStore = async () => {
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
-  useFeedsStore.destroy()
+  feedsStore.destroy()
   // restore original state
-  useFeedsStore.setState(originalState)
+  feedsStore.setState(originalState)
 }
 
 // reset database and store in between tests
@@ -302,4 +302,4 @@ export const resetFeedsDatabaseAndStore = async () => {
   await resetFeedsStore()
 }
 
-export default useFeedsStore
+export default feedsStore

@@ -18,7 +18,7 @@ type CommentsState = {
   addCommentToStore: Function
 }
 
-const useCommentsStore = createStore<CommentsState>((setState: Function, getState: Function) => ({
+const commentsStore = createStore<CommentsState>((setState: Function, getState: Function) => ({
   comments: {},
 
   async addCommentToStore(commentId: string, account: Account) {
@@ -92,16 +92,16 @@ const getCommentFromDatabase = async (commentId: string, account: Account) => {
 }
 
 // reset store in between tests
-const originalState = useCommentsStore.getState()
+const originalState = commentsStore.getState()
 // async function because some stores have async init
 export const resetCommentsStore = async () => {
   plebbitGetCommentPending = {}
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
-  useCommentsStore.destroy()
+  commentsStore.destroy()
   // restore original state
-  useCommentsStore.setState(originalState)
+  commentsStore.setState(originalState)
 }
 
 // reset database and store in between tests
@@ -110,4 +110,4 @@ export const resetCommentsDatabaseAndStore = async () => {
   await resetCommentsStore()
 }
 
-export default useCommentsStore
+export default commentsStore

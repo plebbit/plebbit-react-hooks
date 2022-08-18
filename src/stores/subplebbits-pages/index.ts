@@ -1,3 +1,3 @@
-import useSubplebbitsPagesStore from './subplebbits-pages-store'
+import subplebbitsPagesStore from './subplebbits-pages-store'
 export * from './subplebbits-pages-store'
-export default useSubplebbitsPagesStore
+export default subplebbitsPagesStore

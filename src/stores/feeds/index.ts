@@ -1,3 +1,3 @@
-import useFeedsStore from './feeds-store'
+import feedsStore from './feeds-store'
 export * from './feeds-store'
-export default useFeedsStore
+export default feedsStore

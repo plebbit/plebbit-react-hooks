@@ -20,7 +20,7 @@ type SubplebbitsState = {
   createSubplebbit: Function
 }
 
-const useSubplebbitsStore = createStore<SubplebbitsState>((setState: Function, getState: Function) => ({
+const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getState: Function) => ({
   subplebbits: {},
 
   async addSubplebbitToStore(subplebbitAddress: string, account: Account) {
@@ -163,16 +163,16 @@ const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Acc
 }
 
 // reset store in between tests
-const originalState = useSubplebbitsStore.getState()
+const originalState = subplebbitsStore.getState()
 // async function because some stores have async init
 export const resetSubplebbitsStore = async () => {
   plebbitGetSubplebbitPending = {}
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
-  useSubplebbitsStore.destroy()
+  subplebbitsStore.destroy()
   // restore original state
-  useSubplebbitsStore.setState(originalState)
+  subplebbitsStore.setState(originalState)
 }
 
 // reset database and store in between tests
@@ -181,4 +181,4 @@ export const resetSubplebbitsDatabaseAndStore = async () => {
   await resetSubplebbitsStore()
 }
 
-export default useSubplebbitsStore
+export default subplebbitsStore

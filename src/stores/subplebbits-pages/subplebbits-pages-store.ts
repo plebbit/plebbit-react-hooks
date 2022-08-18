@@ -18,7 +18,7 @@ type SubplebbitsPagesState = {
   addNextSubplebbitPageToStore: Function
 }
 
-const useSubplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
+const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
   subplebbitsPages: {},
 
   addNextSubplebbitPageToStore: async (subplebbit: Subplebbit, sortType: string, account: Account) => {
@@ -143,16 +143,16 @@ export const getSubplebbitFirstPageCid = (subplebbit: Subplebbit, sortType: stri
 }
 
 // reset store in between tests
-const originalState = useSubplebbitsPagesStore.getState()
+const originalState = subplebbitsPagesStore.getState()
 // async function because some stores have async init
 export const resetSubplebbitsPagesStore = async () => {
   fetchPagePending = {}
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
-  useSubplebbitsPagesStore.destroy()
+  subplebbitsPagesStore.destroy()
   // restore original state
-  useSubplebbitsPagesStore.setState(originalState)
+  subplebbitsPagesStore.setState(originalState)
 }
 
 // reset database and store in between tests
@@ -161,4 +161,4 @@ export const resetSubplebbitsPagesDatabaseAndStore = async () => {
   await resetSubplebbitsPagesStore()
 }
 
-export default useSubplebbitsPagesStore
+export default subplebbitsPagesStore

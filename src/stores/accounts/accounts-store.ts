@@ -25,7 +25,7 @@ type AccountsState = {
   accountsActionsInternal: {[key: string]: Function}
 }
 
-const useAccountsStore = createStore<AccountsState>((setState: Function, getState: Function) => ({
+const accountsStore = createStore<AccountsState>((setState: Function, getState: Function) => ({
   accounts: {},
   accountIds: [],
   activeAccountId: undefined,
@@ -75,12 +75,12 @@ const initializeAccountsStore = async () => {
     accountsDatabase.getAccountsVotes(accountIds),
     accountsDatabase.getAccountsCommentsReplies(accountIds),
   ])
-  useAccountsStore.setState((state) => ({accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies}))
+  accountsStore.setState((state) => ({accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies}))
 
   // start looking for updates for all accounts comments in database
   for (const accountId in accountsComments) {
     for (const accountComment of accountsComments[accountId]) {
-      useAccountsStore
+      accountsStore
         .getState()
         .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
         .catch((error: unknown) =>
@@ -121,7 +121,7 @@ const initializeStartSubplebbits = async () => {
 
   const startSubplebbitsPollTime = 10000
   startSubplebbitsInterval = setInterval(() => {
-    const {accounts, activeAccountId} = useAccountsStore.getState()
+    const {accounts, activeAccountId} = accountsStore.getState()
     const account = activeAccountId && accounts?.[activeAccountId]
     if (!account?.plebbit) {
       return
@@ -166,7 +166,7 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
     await initializeAccountsStore()
   } catch (error) {
     // initializing can fail in tests when store is being reset at the same time as databases are being deleted
-    console.error('accountsStore.initializeAccountsStore error', {accountsStore: useAccountsStore.getState(), error})
+    console.error('accountsStore.initializeAccountsStore error', {accountsStore: accountsStore.getState(), error})
   } finally {
     // @ts-ignore
     delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
@@ -177,7 +177,7 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
 })()
 
 // reset store in between tests
-const originalState = useAccountsStore.getState()
+const originalState = accountsStore.getState()
 // async function because some stores have async init
 export const resetAccountsStore = async () => {
   // don't reset while initializing, it could happen during quick successive tests
@@ -191,9 +191,9 @@ export const resetAccountsStore = async () => {
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
-  useAccountsStore.destroy()
+  accountsStore.destroy()
   // restore original state
-  useAccountsStore.setState(originalState)
+  accountsStore.setState(originalState)
   // init the store
   await initializeAccountsStore()
   // init start subplebbits
@@ -213,4 +213,4 @@ export const resetAccountsDatabaseAndStore = async () => {
   await resetAccountsStore()
 }
 
-export default useAccountsStore
+export default accountsStore
