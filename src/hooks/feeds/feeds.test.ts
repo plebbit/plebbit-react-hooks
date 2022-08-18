@@ -7,7 +7,7 @@ import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '..
 import Debug from 'debug'
 setPlebbitJs(PlebbitJsMock)
 
-describe.skip('feeds', () => {
+describe('feeds', () => {
   beforeAll(() => {
     // some feeds tests are flaky
     // jest.retryTimes(5)
@@ -85,7 +85,7 @@ describe.skip('feeds', () => {
       expect(rendered2.result.current.feed.length).toBe(postsPerPage)
     })
 
-    test('change subplebbit addresses and sort type', async () => {
+    test.only('change subplebbit addresses and sort type', async () => {
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address 1/)
@@ -103,6 +103,8 @@ describe.skip('feeds', () => {
       // change sort type
       rendered.rerender({subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'new'})
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
+
+      console.log(rendered.result.current)
 
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
       // the 'new' sort type should give timestamp higher than 99 with the current mock

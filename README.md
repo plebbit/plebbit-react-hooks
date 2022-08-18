@@ -670,6 +670,7 @@ subplebbitsPagesStore {
   - in parallel:
     3. each feed subscribes to accountsStore changing
     4. on each accounts change, like a blockedAddress added for example, updateFeeds
+3. update feeds to rebuild the feeds using the already preloaded subplebbits and pages if any
 
 #### Flow of incrementing a feed's page
 

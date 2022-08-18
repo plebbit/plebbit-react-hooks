@@ -61,7 +61,7 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
       `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
     )
 
-    const {feedsOptions} = getState()
+    const {feedsOptions, updateFeeds} = getState()
     // feed is in store already, do nothing
     // if the feed already exist but is at page 1, reset it to page 1
     if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
@@ -91,6 +91,11 @@ const useFeedsStore = createStore<FeedsState>((setState: Function, getState: Fun
 
     // subscribe to accounts store change (for blocked addresses)
     accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange)
+
+    // update feeds right away to use the already loaded subplebbits and pages
+    // if no new subplebbits are added by the feed, like for a sort type change,
+    // a feed update will never be triggered, so must be triggered it manually
+    updateFeeds()
   },
 
   async incrementFeedPageNumber(feedName: string) {

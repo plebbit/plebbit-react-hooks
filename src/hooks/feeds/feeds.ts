@@ -31,7 +31,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
       return
     }
     addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account)
-  }, [feedName, uniqueSubplebbitAddresses?.toString(), account?.id])
+  }, [feedName, uniqueSubplebbitAddresses?.toString(), sortType, account?.id])
 
   const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''], feedShallowEqual)
   let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || ''])
@@ -48,7 +48,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   }
 
   const feed = loadedFeed || []
-  debug('useFeed', {feed, hasMore, subplebbitAddresses, sortType, account, feedsStore: useFeedsStore.getState()})
+  debug('useFeed', {feed: feed.length, hasMore, subplebbitAddresses, sortType, account, feedsStore: useFeedsStore.getState()})
   return {feed, hasMore, loadMore}
 }
 
