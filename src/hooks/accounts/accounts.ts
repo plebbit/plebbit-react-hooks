@@ -13,9 +13,9 @@ import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNoti
  * the active account id.
  */
 function useAccountId(accountName?: string) {
-  const accountsStore = useAccountsStore()
-  const accountId = accountName && accountsStore?.accountNamesToAccountIds[accountName]
-  const activeAccountId = accountsStore?.activeAccountId
+  const accountId = useAccountsStore((state) => accountName && state.accountNamesToAccountIds[accountName])
+  // don't consider active account if account name is defined
+  const activeAccountId = useAccountsStore((state) => !accountName && state.activeAccountId)
   const accountIdToUse = accountName ? accountId : activeAccountId
   return accountIdToUse
 }
@@ -102,7 +102,9 @@ export function useAccountSubplebbits(accountName?: string) {
       accountSubplebbits[subplebbitAddress].role = {role: 'owner'}
     }
   }
-  debug('useAccountSubplebbits', {accountSubplebbits})
+  if (account) {
+    debug('useAccountSubplebbits', {accountSubplebbits})
+  }
   return accountSubplebbits
 }
 
@@ -126,7 +128,9 @@ export function useAccountNotifications(accountName?: string) {
     }
     accountsStore.accountsActionsInternal.markAccountNotificationsAsRead(account)
   }
-  debug('useAccountNotifications', {notifications})
+  if (account) {
+    debug('useAccountNotifications', {notifications})
+  }
   return {notifications, markAsRead}
 }
 
@@ -153,7 +157,9 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
     return accountComments
   }, [JSON.stringify(accountComments), JSON.stringify(useAccountCommentsOptions)])
 
-  debug('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
+  if (accountComments && useAccountCommentsOptions) {
+    debug('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
+  }
   return filteredAccountComments
 }
 
@@ -184,7 +190,9 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
     return accountVotesArray
   }, [JSON.stringify(accountVotes), JSON.stringify(useAccountVotesOptions)])
 
-  debug('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
+  if (accountVotes && useAccountVotesOptions) {
+    debug('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
+  }
   return filteredAccountVotesArray
 }
 

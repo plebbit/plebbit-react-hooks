@@ -1,5 +1,3 @@
-import React from 'react'
-
 /**
  * TODO: define these undefined types
  */
@@ -69,24 +67,6 @@ export type SubplebbitPage = {
 }
 export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
 
-// TODO: delete
-export type SubplebbitPostsInfo = {
-  firstPageCid: string
-  account: Account
-  subplebbitAddress: string
-  sortType: string
-  bufferedPostCount: number
-}
-export type SubplebbitsPostsInfo = {[infoName: string]: SubplebbitPostsInfo}
-export type SubplebbitPageInfo = {
-  pageCid: string
-  page?: SubplebbitPage
-  account: Account
-  subplebbitAddress: string
-  sortType: string
-}
-export type SubplebbitsPagesInfo = {[infoName: string]: SubplebbitPageInfo}
-
 /**
  * Accounts hooks
  */
@@ -109,11 +89,6 @@ export type UseBufferedFeedOptions = {
   subplebbitAddresses: string[]
   sortType?: string
 }
-
-/**
- * Utils
- */
-export type Props = {children?: React.ReactChild}
 
 /**
  * Other
