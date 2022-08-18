@@ -35,7 +35,9 @@ export function useSubplebbit(subplebbitAddress, accountName) {
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbit addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddress, account === null || account === void 0 ? void 0 : account.id]);
-    debug('useSubplebbit', { subplebbitAddress, subplebbit, account });
+    if (account && subplebbitAddress) {
+        debug('useSubplebbit', { subplebbitAddress, subplebbit, account });
+    }
     return subplebbit;
 }
 /**
@@ -57,7 +59,9 @@ export function useSubplebbits(subplebbitAddresses = [], accountName) {
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
-    debug('useSubplebbits', { subplebbitAddresses, subplebbits, account });
+    if (account && (subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.length)) {
+        debug('useSubplebbits', { subplebbitAddresses, subplebbits, account });
+    }
     return subplebbits;
 }
 /**
@@ -76,10 +80,10 @@ export function useListSubplebbits() {
             if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
                 return;
             }
+            debug('useListSubplebbits', { subplebbitAddresses });
             setSubplebbitAddresses(_subplebbitAddresses);
         });
     }, delay, immediate);
-    debug('useListSubplebbits', { subplebbitAddresses });
     return subplebbitAddresses;
 }
 /**
@@ -115,7 +119,7 @@ export function useResolvedSubplebbitAddress(subplebbitAddress, accountName) {
             }
         }))();
     }, 15000, true, [subplebbitAddress, blockchainProviders]);
-    debug('useResolvedSubplebbitAddress', { subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders });
+    // debug('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
     return resolvedSubplebbitAddress;
 }
 // NOTE: resolveSubplebbitAddress tests are skipped, if changes are made they must be tested manually

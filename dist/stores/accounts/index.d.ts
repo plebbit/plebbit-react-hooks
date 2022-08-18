@@ -1,3 +1,3 @@
-import useAccountsStore from './accounts-store';
+import accountsStore from './accounts-store';
 export * from './accounts-store';
-export default useAccountsStore;
+export default accountsStore;

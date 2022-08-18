@@ -1,4 +1,3 @@
-import React from 'react';
 /**
  * TODO: define these undefined types
  */
@@ -71,31 +70,17 @@ export declare type Feeds = {
 export declare type FeedOptions = {
     subplebbitAddresses: string[];
     sortType: string;
-    account: Account;
+    accountId: string;
     pageNumber: number;
 };
 export declare type FeedsOptions = {
     [feedName: string]: FeedOptions;
 };
-export declare type SubplebbitPostsInfo = {
-    firstPageCid: string;
-    account: Account;
-    subplebbitAddress: string;
-    sortType: string;
-    bufferedPostCount: number;
+export declare type FeedSubplebbitsPostCounts = {
+    [subplebbitAddress: string]: number;
 };
-export declare type SubplebbitsPostsInfo = {
-    [infoName: string]: SubplebbitPostsInfo;
-};
-export declare type SubplebbitPageInfo = {
-    pageCid: string;
-    page?: SubplebbitPage;
-    account: Account;
-    subplebbitAddress: string;
-    sortType: string;
-};
-export declare type SubplebbitsPagesInfo = {
-    [infoName: string]: SubplebbitPageInfo;
+export declare type FeedsSubplebbitsPostCounts = {
+    [feedName: string]: FeedSubplebbitsPostCounts;
 };
 export declare type SubplebbitPage = {
     nextCid: string | null;
@@ -124,12 +109,6 @@ export declare type UseAccountCommentsOptions = {
 export declare type UseBufferedFeedOptions = {
     subplebbitAddresses: string[];
     sortType?: string;
-};
-/**
- * Utils
- */
-export declare type Props = {
-    children?: React.ReactChild;
 };
 /**
  * Other

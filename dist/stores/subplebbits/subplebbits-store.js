@@ -15,10 +15,10 @@ const debug = Debug('plebbit-react-hooks:stores:subplebbits');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
-const plebbitGetSubplebbitPending = {};
+let plebbitGetSubplebbitPending = {};
 // reset all event listeners in between tests
 export const listeners = [];
-const useSubplebbitsStore = createStore((setState, getState) => ({
+const subplebbitsStore = createStore((setState, getState) => ({
     subplebbits: {},
     addSubplebbitToStore(subplebbitAddress, account) {
         var _a;
@@ -138,19 +138,20 @@ const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void
     return subplebbit;
 });
 // reset store in between tests
-const originalState = useSubplebbitsStore.getState();
+const originalState = subplebbitsStore.getState();
 // async function because some stores have async init
 export const resetSubplebbitsStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    plebbitGetSubplebbitPending = {};
     // remove all event listeners
     listeners.forEach((listener) => listener.removeAllListeners());
     // destroy all component subscriptions to the store
-    useSubplebbitsStore.destroy();
+    subplebbitsStore.destroy();
     // restore original state
-    useSubplebbitsStore.setState(originalState);
+    subplebbitsStore.setState(originalState);
 });
 // reset database and store in between tests
 export const resetSubplebbitsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
     yield localForageLru.createInstance({ name: 'subplebbits' }).clear();
     yield resetSubplebbitsStore();
 });
-export default useSubplebbitsStore;
+export default subplebbitsStore;

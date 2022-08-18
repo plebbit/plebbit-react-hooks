@@ -27,7 +27,9 @@ export function useAuthorAvatarImageUrl(author, accountName) {
     // don't try to get avatar image url at all if signature isn't verified and whitelisted
     const avatar = verified && isWhitelisted ? author === null || author === void 0 ? void 0 : author.avatar : undefined;
     const nftImageUrl = useNftImageUrl(avatar, accountName);
-    debug('useAuthorAvatarImageUrl', { author, verified, isWhitelisted, nftImageUrl });
+    if (author) {
+        debug('useAuthorAvatarImageUrl', { author, verified, isWhitelisted, nftImageUrl });
+    }
     return nftImageUrl;
 }
 /**
@@ -58,7 +60,7 @@ export function useNftImageUrl(nft, accountName) {
             }
         }))();
     }, [nft === null || nft === void 0 ? void 0 : nft.chainTicker, nft === null || nft === void 0 ? void 0 : nft.address, nft === null || nft === void 0 ? void 0 : nft.id, ipfsGatewayUrl, JSON.stringify(blockchainProviders)]);
-    debug('useNftImageUrl', { nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders });
+    // debug('useNftImageUrl', {nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders})
     return nftImageUrl;
 }
 // NOTE: useVerifiedAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
@@ -87,7 +89,7 @@ export function useVerifiedAuthorAvatarSignature(author, accountName) {
     if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
         return true;
     }
-    debug('useVerifiedAuthorAvatarSignature', { author, verified, blockchainProviders });
+    // debug('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
     return verified;
 }
 function useAuthorAvatarIsWhitelisted(nft) {
@@ -196,7 +198,7 @@ export function useResolvedAuthorAddress(authorAddress, accountName) {
             }
         }))();
     }, 15000, true, [authorAddress, blockchainProviders]);
-    debug('useResolvedAuthorAddress', { authorAddress, resolvedAuthorAddress, blockchainProviders });
+    // debug('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
     return resolvedAuthorAddress;
 }
 // NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually

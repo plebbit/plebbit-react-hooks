@@ -24,7 +24,9 @@ export function useComment(commentCid, accountName) {
             addCommentToStore(commentCid, account).catch((error) => console.error('useComment addCommentToStore error', { commentCid, error }));
         }
     }, [commentCid, account === null || account === void 0 ? void 0 : account.id]);
-    debug('useComment', { commentCid, comment, commentsStore: useCommentsStore.getState().comments, account });
+    if (account && commentCid) {
+        debug('useComment', { commentCid, comment, commentsStore: useCommentsStore.getState().comments, account });
+    }
     return comment;
 }
 /**
@@ -46,6 +48,8 @@ export function useComments(commentCids = [], accountName) {
             addCommentToStore(commentCid, account).catch((error) => console.error('useComments addCommentToStore error', { commentCid, error }));
         }
     }, [commentCids.toString(), account === null || account === void 0 ? void 0 : account.id]);
-    debug('useComments', { commentCids, comments, commentsStore: useCommentsStore.getState().comments, account });
+    if (account && (commentCids === null || commentCids === void 0 ? void 0 : commentCids.length)) {
+        debug('useComments', { commentCids, comments, commentsStore: useCommentsStore.getState().comments, account });
+    }
     return comments;
 }

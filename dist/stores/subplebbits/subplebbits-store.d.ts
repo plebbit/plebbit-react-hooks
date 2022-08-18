@@ -6,7 +6,7 @@ declare type SubplebbitsState = {
     editSubplebbit: Function;
     createSubplebbit: Function;
 };
-declare const useSubplebbitsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<SubplebbitsState>>;
+declare const subplebbitsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<SubplebbitsState>>;
 export declare const resetSubplebbitsStore: () => Promise<void>;
 export declare const resetSubplebbitsDatabaseAndStore: () => Promise<void>;
-export default useSubplebbitsStore;
+export default subplebbitsStore;

@@ -14,10 +14,10 @@ const debug = Debug('plebbit-react-hooks:stores:comments');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
-const plebbitGetCommentPending = {};
+let plebbitGetCommentPending = {};
 // reset all event listeners in between tests
 export const listeners = [];
-const useCommentsStore = createStore((setState, getState) => ({
+const commentsStore = createStore((setState, getState) => ({
     comments: {},
     addCommentToStore(commentId, account) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -87,19 +87,20 @@ const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0,
     return comment;
 });
 // reset store in between tests
-const originalState = useCommentsStore.getState();
+const originalState = commentsStore.getState();
 // async function because some stores have async init
 export const resetCommentsStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    plebbitGetCommentPending = {};
     // remove all event listeners
     listeners.forEach((listener) => listener.removeAllListeners());
     // destroy all component subscriptions to the store
-    useCommentsStore.destroy();
+    commentsStore.destroy();
     // restore original state
-    useCommentsStore.setState(originalState);
+    commentsStore.setState(originalState);
 });
 // reset database and store in between tests
 export const resetCommentsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
     yield localForageLru.createInstance({ name: 'comments' }).clear();
     yield resetCommentsStore();
 });
-export default useCommentsStore;
+export default commentsStore;

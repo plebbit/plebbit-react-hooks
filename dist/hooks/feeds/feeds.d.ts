@@ -6,8 +6,8 @@ import { Feed, UseBufferedFeedOptions } from '../../types';
  * the active account.
  */
 export declare function useFeed(subplebbitAddresses?: string[], sortType?: string, accountName?: string): {
-    feed: any;
-    hasMore: any;
+    feed: Feed;
+    hasMore: boolean;
     loadMore: () => void;
 };
 /**

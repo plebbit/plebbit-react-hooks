@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useContext } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAccount } from '../accounts';
-import { FeedsContext } from '../../providers/feeds';
 import validator from '../../lib/validator';
 import Debug from 'debug';
 const debug = Debug('plebbit-react-hooks:hooks:feeds');
-import feedsStore from '../../stores/feeds';
+import useFeedsStore from '../../stores/feeds';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'topHour'| 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll'
@@ -14,32 +13,40 @@ import feedsStore from '../../stores/feeds';
 export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
     validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName);
     const account = useAccount(accountName);
-    const feedsContext = useContext(FeedsContext);
+    const addFeedToStore = useFeedsStore((state) => state.addFeedToStore);
+    const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber);
     const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses]);
     const [feedName] = useStringified([[account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses]]);
-    const loadedFeed = feedName && feedsContext.loadedFeeds[feedName];
     useEffect(() => {
         if (!uniqueSubplebbitAddresses || !account) {
             return;
         }
-        if (!loadedFeed) {
-            // if feed isn't already in store, add it
-            feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account);
-        }
-    }, [feedName, uniqueSubplebbitAddresses === null || uniqueSubplebbitAddresses === void 0 ? void 0 : uniqueSubplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
-    let hasMore = feedName && feedsContext.feedsHaveMore[feedName];
+        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error) => console.error('useFeed addFeedToStore error', { feedName, error }));
+    }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/]);
+    const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''], feedShallowEqual);
+    let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
     // if the feed is not yet defined, then it has more
-    if (!feedName || typeof feedsContext.feedsHaveMore[feedName] !== 'boolean') {
+    if (!feedName || typeof hasMore !== 'boolean') {
         hasMore = true;
     }
     const loadMore = () => {
         if (!uniqueSubplebbitAddresses || !account) {
             throw Error('useFeed cannot load more feed not initalized yet');
         }
-        feedsContext.feedsActions.incrementFeedPageNumber(feedName);
+        incrementFeedPageNumber(feedName);
     };
     const feed = loadedFeed || [];
-    debug('useFeed', { feed, hasMore, subplebbitAddresses, sortType, account, feedsStore: feedsStore.getState() });
+    if (account && (subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.length)) {
+        debug('useFeed', {
+            feed: feed.length,
+            hasMore,
+            subplebbitAddresses,
+            sortType,
+            account,
+            feedsStoreOptions: useFeedsStore.getState().feedsOptions,
+            feedsStore: useFeedsStore.getState(),
+        });
+    }
     return { feed, hasMore, loadMore };
 }
 /**
@@ -53,7 +60,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
 export function useBufferedFeeds(feedsOptions = [], accountName) {
     validator.validateUseBufferedFeedsArguments(feedsOptions, accountName);
     const account = useAccount(accountName);
-    const feedsContext = useContext(FeedsContext);
+    const addFeedToStore = useFeedsStore((state) => state.addFeedToStore);
     // do a bunch of calculations to get feedsOptionsFlattened and feedNames
     const subplebbitAddressesArrays = [];
     const sortTypes = [];
@@ -67,11 +74,16 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
         feedsOptionsFlattened[i] = [account === null || account === void 0 ? void 0 : account.id, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]];
     }
     const feedNames = useStringified(feedsOptionsFlattened);
-    // only give to the user the buffered feeds he requested
-    const bufferedFeeds = [];
-    for (const feedName of feedNames) {
-        bufferedFeeds.push(feedsContext.bufferedFeeds[feedName || ''] || []);
-    }
+    const bufferedFeeds = useFeedsStore((state) => {
+        const bufferedFeeds = {};
+        for (const feedName of feedNames) {
+            if (!feedName) {
+                continue;
+            }
+            bufferedFeeds[feedName] = state.bufferedFeeds[feedName];
+        }
+        return bufferedFeeds;
+    }, feedsShallowEqual);
     useEffect(() => {
         for (const i in feedsOptionsFlattened) {
             const [accountId, sortType, uniqueSubplebbitAddresses] = feedsOptionsFlattened[Number(i)];
@@ -80,14 +92,28 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
             if (!uniqueSubplebbitAddresses || !account) {
                 return;
             }
-            if (!feedsContext.bufferedFeeds[feedName || '']) {
+            if (!bufferedFeeds[feedName || '']) {
                 const isBufferedFeed = true;
-                feedsContext.feedsActions.addFeedToContext(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed);
+                addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed).catch((error) => console.error('useBufferedFeeds addFeedToStore error', { feedName, error }));
             }
         }
     }, [feedNames === null || feedNames === void 0 ? void 0 : feedNames.toString()]);
-    debug('useBufferedFeeds', { bufferedFeeds, feedsOptions, account, accountName, feedsStore: feedsStore.getState() });
-    return bufferedFeeds;
+    // only give to the user the buffered feeds he requested
+    const bufferedFeedsArray = [];
+    for (const feedName of feedNames) {
+        bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || []);
+    }
+    if (account && (feedsOptions === null || feedsOptions === void 0 ? void 0 : feedsOptions.length)) {
+        debug('useBufferedFeeds', {
+            bufferedFeeds,
+            feedsOptions,
+            account,
+            accountName,
+            feedsStoreOptions: useFeedsStore.getState().feedsOptions,
+            feedsStore: useFeedsStore.getState(),
+        });
+    }
+    return bufferedFeedsArray;
 }
 /**
  * Util to find unique and sorted subplebbit addresses for multiple feed options
@@ -122,4 +148,66 @@ function useStringified(objs) {
         }
         return stringified;
     }, [JSON.stringify(objs)]);
+}
+/**
+ * Equality function for if a feed has changed
+ */
+function feedShallowEqual(feedA, feedB) {
+    // handled undefined feeds
+    if (!feedA && !feedB) {
+        return true;
+    }
+    if (!feedA && feedB) {
+        return false;
+    }
+    if (feedA && !feedB) {
+        return false;
+    }
+    // fix typescript warning
+    feedA = feedA || [];
+    feedB = feedB || [];
+    // feeds have different lengths, not equal
+    if (feedA.length !== feedB.length) {
+        return false;
+    }
+    // a post cid is different, not equal
+    let index = feedA.length;
+    while (index--) {
+        if (feedA[index].cid !== feedB[index].cid) {
+            return false;
+        }
+    }
+    return true;
+}
+/**
+ * Equality function for if any feed in feeds have changed
+ */
+function feedsShallowEqual(feedsA, feedsB) {
+    // handled undefined feeds
+    if (!feedsA && !feedsB) {
+        return true;
+    }
+    if (!feedsA && feedsB) {
+        return false;
+    }
+    if (feedsA && !feedsB) {
+        return false;
+    }
+    // fix typescript warning
+    feedsA = feedsA || {};
+    feedsB = feedsB || {};
+    const feedsANames = Object.keys(feedsA).sort();
+    const feedsBNames = Object.keys(feedsB).sort();
+    // feeds names are not equal
+    if (feedsANames.toString() !== feedsBNames.toString()) {
+        return false;
+    }
+    // a feed is not equal
+    const feedNames = new Set([...feedsANames, ...feedsBNames]);
+    for (const feedName in feedsA) {
+        if (!feedShallowEqual(feedsA[feedName], feedsB[feedName])) {
+            return false;
+        }
+    }
+    return true;
 }

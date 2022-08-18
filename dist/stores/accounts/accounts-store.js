@@ -18,7 +18,7 @@ import * as accountsActionsInternal from './accounts-actions-internal';
 import localForage from 'localforage';
 // reset all event listeners in between tests
 export const listeners = [];
-const useAccountsStore = createStore((setState, getState) => ({
+const accountsStore = createStore((setState, getState) => ({
     accounts: {},
     accountIds: [],
     activeAccountId: undefined,
@@ -63,11 +63,11 @@ const initializeAccountsStore = () => __awaiter(void 0, void 0, void 0, function
         accountsDatabase.getAccountsVotes(accountIds),
         accountsDatabase.getAccountsCommentsReplies(accountIds),
     ]);
-    useAccountsStore.setState((state) => ({ accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies }));
+    accountsStore.setState((state) => ({ accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies }));
     // start looking for updates for all accounts comments in database
     for (const accountId in accountsComments) {
         for (const accountComment of accountsComments[accountId]) {
-            useAccountsStore
+            accountsStore
                 .getState()
                 .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
                 .catch((error) => console.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
@@ -103,7 +103,7 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
     pendingStartedSubplebbits = {};
     const startSubplebbitsPollTime = 10000;
     startSubplebbitsInterval = setInterval(() => {
-        const { accounts, activeAccountId } = useAccountsStore.getState();
+        const { accounts, activeAccountId } = accountsStore.getState();
         const account = activeAccountId && (accounts === null || accounts === void 0 ? void 0 : accounts[activeAccountId]);
         if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
             return;
@@ -146,7 +146,7 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
     }
     catch (error) {
         // initializing can fail in tests when store is being reset at the same time as databases are being deleted
-        console.error('accountsStore.initializeAccountsStore error', { accountsStore: useAccountsStore.getState(), error });
+        console.error('accountsStore.initializeAccountsStore error', { accountsStore: accountsStore.getState(), error });
     }
     finally {
         // @ts-ignore
@@ -156,7 +156,7 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
     yield initializeStartSubplebbits();
 }))();
 // reset store in between tests
-const originalState = useAccountsStore.getState();
+const originalState = accountsStore.getState();
 // async function because some stores have async init
 export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, function* () {
     // don't reset while initializing, it could happen during quick successive tests
@@ -168,9 +168,9 @@ export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, functi
     // remove all event listeners
     listeners.forEach((listener) => listener.removeAllListeners());
     // destroy all component subscriptions to the store
-    useAccountsStore.destroy();
+    accountsStore.destroy();
     // restore original state
-    useAccountsStore.setState(originalState);
+    accountsStore.setState(originalState);
     // init the store
     yield initializeAccountsStore();
     // init start subplebbits
@@ -187,4 +187,4 @@ export const resetAccountsDatabaseAndStore = () => __awaiter(void 0, void 0, voi
     yield Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()]);
     yield resetAccountsStore();
 });
-export default useAccountsStore;
+export default accountsStore;

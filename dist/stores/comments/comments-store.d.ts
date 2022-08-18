@@ -4,7 +4,7 @@ declare type CommentsState = {
     comments: Comments;
     addCommentToStore: Function;
 };
-declare const useCommentsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<CommentsState>>;
+declare const commentsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<CommentsState>>;
 export declare const resetCommentsStore: () => Promise<void>;
 export declare const resetCommentsDatabaseAndStore: () => Promise<void>;
-export default useCommentsStore;
+export default commentsStore;

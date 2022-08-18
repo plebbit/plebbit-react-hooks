@@ -18,7 +18,7 @@ declare type AccountsState = {
         [key: string]: Function;
     };
 };
-declare const useAccountsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<AccountsState>>;
+declare const accountsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<AccountsState>>;
 export declare const resetAccountsStore: () => Promise<void>;
 export declare const resetAccountsDatabaseAndStore: () => Promise<void>;
-export default useAccountsStore;
+export default accountsStore;

@@ -11,7 +11,7 @@ import { resetCommentsStore, resetCommentsDatabaseAndStore } from '../stores/com
 import { resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore } from '../stores/subplebbits';
 import { resetAccountsStore, resetAccountsDatabaseAndStore } from '../stores/accounts';
 import { resetFeedsStore, resetFeedsDatabaseAndStore } from '../stores/feeds';
-import { resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore } from '../hooks/feeds/use-subplebbits-pages';
+import { resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore } from '../stores/subplebbits-pages';
 const restorables = [];
 export const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
