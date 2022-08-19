@@ -9,7 +9,7 @@ import { filterPublications, useAccountsWithCalculatedProperties, useAccountsNot
  * the active account id.
  */
 function useAccountId(accountName) {
-    const accountId = useAccountsStore((state) => accountName && state.accountNamesToAccountIds[accountName]);
+    const accountId = useAccountsStore((state) => state.accountNamesToAccountIds[accountName || '']);
     // don't consider active account if account name is defined
     const activeAccountId = useAccountsStore((state) => !accountName && state.activeAccountId);
     const accountIdToUse = accountName ? accountId : activeAccountId;
@@ -55,12 +55,13 @@ export function useAccountsActions() {
  * Returns all subplebbits where the account is a creator or moderator
  */
 export function useAccountSubplebbits(accountName) {
-    const account = useAccount(accountName);
+    const accountId = useAccountId(accountName);
+    const accountsStoreAccountSubplebbits = useAccountsStore((state) => { var _a; return (_a = state.accounts[accountId || '']) === null || _a === void 0 ? void 0 : _a.subplebbits; }, jsonStringifyEqual);
     // get all unique account subplebbit addresses
     const ownerSubplebbitAddresses = useListSubplebbits();
     const accountSubplebbitAddresses = [];
-    if (account === null || account === void 0 ? void 0 : account.subplebbits) {
-        for (const subplebbitAddress in account.subplebbits) {
+    if (accountsStoreAccountSubplebbits) {
+        for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
             accountSubplebbitAddresses.push(subplebbitAddress);
         }
     }
@@ -75,9 +76,9 @@ export function useAccountSubplebbits(accountName) {
     }
     // merged subplebbit data with account.subplebbits data
     const accountSubplebbits = Object.assign({}, subplebbits);
-    if (account === null || account === void 0 ? void 0 : account.subplebbits) {
-        for (const subplebbitAddress in account.subplebbits) {
-            accountSubplebbits[subplebbitAddress] = Object.assign(Object.assign({}, accountSubplebbits[subplebbitAddress]), account.subplebbits[subplebbitAddress]);
+    if (accountsStoreAccountSubplebbits) {
+        for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
+            accountSubplebbits[subplebbitAddress] = Object.assign(Object.assign({}, accountSubplebbits[subplebbitAddress]), accountsStoreAccountSubplebbits[subplebbitAddress]);
         }
     }
     // add listSubplebbits data
@@ -86,7 +87,7 @@ export function useAccountSubplebbits(accountName) {
             accountSubplebbits[subplebbitAddress].role = { role: 'owner' };
         }
     }
-    if (account) {
+    if (accountId) {
         debug('useAccountSubplebbits', { accountSubplebbits });
     }
     return accountSubplebbits;
@@ -120,11 +121,7 @@ export function useAccountNotifications(accountName) {
  */
 export function useAccountComments(useAccountCommentsOptions) {
     const accountId = useAccountId(useAccountCommentsOptions === null || useAccountCommentsOptions === void 0 ? void 0 : useAccountCommentsOptions.accountName);
-    const accountsStore = useAccountsStore();
-    let accountComments;
-    if (accountId && accountsStore) {
-        accountComments = accountsStore.accountsComments[accountId];
-    }
+    const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''], jsonStringifyEqual);
     const filteredAccountComments = useMemo(() => {
         if (!accountComments) {
             return;
@@ -145,11 +142,7 @@ export function useAccountComments(useAccountCommentsOptions) {
  */
 export function useAccountVotes(useAccountVotesOptions) {
     const accountId = useAccountId(useAccountVotesOptions === null || useAccountVotesOptions === void 0 ? void 0 : useAccountVotesOptions.accountName);
-    const accountsStore = useAccountsStore();
-    let accountVotes;
-    if (accountId && accountsStore) {
-        accountVotes = accountsStore.accountsVotes[accountId];
-    }
+    const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''], jsonStringifyEqual);
     const filteredAccountVotesArray = useMemo(() => {
         if (!accountVotes) {
             return;
@@ -178,4 +171,10 @@ export function useAccountVote(commentCid, accountName) {
     }
     const accountVotes = useAccountVotes(useAccountVotesOptions);
     return accountVotes && accountVotes[0];
+}
+/**
+ * Equality function for zustand
+ */
+function jsonStringifyEqual(objA, objB) {
+    return JSON.stringify(objA) === JSON.stringify(objB);
 }
