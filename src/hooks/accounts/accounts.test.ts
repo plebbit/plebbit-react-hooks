@@ -1005,6 +1005,8 @@ describe('accounts', () => {
 
     describe('retry on fail', () => {
       beforeAll(() => {
+        // this test seems to depend on a race condition and must be retried
+        // most likely not a bug with the hook
         jest.retryTimes(10)
       })
       afterAll(() => {
