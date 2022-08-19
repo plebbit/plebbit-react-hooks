@@ -39,6 +39,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
     updatedComment = utils.merge(commentArgument, comment, updatedComment)
     await accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex)
+    debug('startUpdatingAccountCommentOnCommentUpdateEvents comment update', {commentCid: comment.cid, accountCommentIndex, updatedComment, account})
     accountsStore.setState(({accountsComments}) => {
       // account no longer exists
       if (!accountsComments[account.id]) {
@@ -124,6 +125,7 @@ export const addCidToAccountComment = async (comment: Comment) => {
     if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
       const commentWithCid = utils.merge(accountComment, comment)
       await accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index)
+      debug('accountsActions.addCidToAccountComment', {commentCid: comment.cid, accountCommentIndex: accountComment.index, accountComment: commentWithCid})
       accountsStore.setState(({accountsComments}) => {
         const updatedAccountComments = [...accountsComments[accountComment.accountId]]
         updatedAccountComments[accountComment.index] = commentWithCid

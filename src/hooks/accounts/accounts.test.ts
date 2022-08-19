@@ -19,8 +19,6 @@ import localForage from 'localforage'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
-import Debug from 'debug'
-// Debug.enable('plebbit-react-hooks:hooks:accounts,plebbit-react-hooks:stores:accounts')
 
 describe('accounts', () => {
   beforeAll(() => {
@@ -1005,10 +1003,9 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current, activeAccountId)
     })
 
-    // flaky because of react concurrency so retry several times
     describe('retry on fail', () => {
       beforeAll(() => {
-        jest.retryTimes(5)
+        jest.retryTimes(10)
       })
       afterAll(() => {
         jest.retryTimes(0)
@@ -1152,55 +1149,46 @@ describe('accounts', () => {
       expect(rendered.result.current.account.karma.postDownvoteCount).toBe(0)
     })
 
-    // flaky because of react concurrency so retry several times
-    describe('retry on fail', () => {
-      beforeAll(() => {
-        jest.retryTimes(5)
+    test(`account has karma after comments are published`, async () => {
+      await waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
+
+      // answer challenges to get the comments published
+      onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
+      onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
+      onChallenge.mock.calls[2][1].publishChallengeAnswers(['4'])
+
+      await waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9)
+      expect(rendered.result.current.account.karma.score).toBe(6)
+      expect(rendered.result.current.account.karma.upvoteCount).toBe(9)
+      expect(rendered.result.current.account.karma.downvoteCount).toBe(3)
+      expect(rendered.result.current.account.karma.replyScore).toBe(2)
+      expect(rendered.result.current.account.karma.replyUpvoteCount).toBe(3)
+      expect(rendered.result.current.account.karma.replyDownvoteCount).toBe(1)
+      expect(rendered.result.current.account.karma.postScore).toBe(4)
+      expect(rendered.result.current.account.karma.postUpvoteCount).toBe(6)
+      expect(rendered.result.current.account.karma.postDownvoteCount).toBe(2)
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
+      // get the karma from database by created new store
+      const rendered2 = renderHook<any, any>(() => {
+        const account = useAccount()
+        const accountComments = useAccountComments()
+        return {account, accountComments}
       })
-      afterAll(() => {
-        jest.retryTimes(0)
-      })
-      test(`account has karma after comments are published`, async () => {
-        await waitFor(() => Boolean(onChallenge.mock.calls[0] && onChallenge.mock.calls[1] && onChallenge.mock.calls[2]))
+      const waitFor2 = testUtils.createWaitFor(rendered2)
 
-        // answer challenges to get the comments published
-        onChallenge.mock.calls[0][1].publishChallengeAnswers(['4'])
-        onChallenge.mock.calls[1][1].publishChallengeAnswers(['4'])
-        onChallenge.mock.calls[2][1].publishChallengeAnswers(['4'])
-
-        await waitFor(() => rendered.result.current.account.karma.upvoteCount >= 9)
-        expect(rendered.result.current.account.karma.score).toBe(6)
-        expect(rendered.result.current.account.karma.upvoteCount).toBe(9)
-        expect(rendered.result.current.account.karma.downvoteCount).toBe(3)
-        expect(rendered.result.current.account.karma.replyScore).toBe(2)
-        expect(rendered.result.current.account.karma.replyUpvoteCount).toBe(3)
-        expect(rendered.result.current.account.karma.replyDownvoteCount).toBe(1)
-        expect(rendered.result.current.account.karma.postScore).toBe(4)
-        expect(rendered.result.current.account.karma.postUpvoteCount).toBe(6)
-        expect(rendered.result.current.account.karma.postDownvoteCount).toBe(2)
-
-        // reset stores to force using the db
-        await testUtils.resetStores()
-
-        // get the karma from database by created new store
-        const rendered2 = renderHook<any, any>(() => {
-          const account = useAccount()
-          const accountComments = useAccountComments()
-          return {account, accountComments}
-        })
-        const waitFor2 = testUtils.createWaitFor(rendered2)
-
-        await waitFor2(() => rendered2.result.current.account.karma.upvoteCount === 9 && rendered2.result.current.account.karma.score === 6)
-        expect(rendered2.result.current.account.karma.score).toBe(6)
-        expect(rendered2.result.current.account.karma.upvoteCount).toBe(9)
-        expect(rendered2.result.current.account.karma.downvoteCount).toBe(3)
-        expect(rendered2.result.current.account.karma.replyScore).toBe(2)
-        expect(rendered2.result.current.account.karma.replyUpvoteCount).toBe(3)
-        expect(rendered2.result.current.account.karma.replyDownvoteCount).toBe(1)
-        expect(rendered2.result.current.account.karma.postScore).toBe(4)
-        expect(rendered2.result.current.account.karma.postUpvoteCount).toBe(6)
-        expect(rendered2.result.current.account.karma.postDownvoteCount).toBe(2)
-      })
+      await waitFor2(() => rendered2.result.current.account.karma.upvoteCount === 9 && rendered2.result.current.account.karma.score === 6)
+      expect(rendered2.result.current.account.karma.score).toBe(6)
+      expect(rendered2.result.current.account.karma.upvoteCount).toBe(9)
+      expect(rendered2.result.current.account.karma.downvoteCount).toBe(3)
+      expect(rendered2.result.current.account.karma.replyScore).toBe(2)
+      expect(rendered2.result.current.account.karma.replyUpvoteCount).toBe(3)
+      expect(rendered2.result.current.account.karma.replyDownvoteCount).toBe(1)
+      expect(rendered2.result.current.account.karma.postScore).toBe(4)
+      expect(rendered2.result.current.account.karma.postUpvoteCount).toBe(6)
+      expect(rendered2.result.current.account.karma.postDownvoteCount).toBe(2)
     })
 
     test(`get all account votes`, async () => {
@@ -1468,9 +1456,11 @@ describe('accounts', () => {
 
   describe('useAccountSubplebbits', () => {
     describe('with setup', () => {
-      // roles tests are flaky
       beforeAll(() => {
-        jest.retryTimes(5)
+        // roles tests depend on race conditions as part of the test
+        // so not possible to make them deterministic, add a retry
+        // the hooks don't have the race condition, only the tests do
+        jest.retryTimes(10)
       })
       afterAll(() => {
         jest.retryTimes(0)

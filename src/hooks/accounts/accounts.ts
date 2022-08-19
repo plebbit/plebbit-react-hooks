@@ -13,7 +13,7 @@ import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNoti
  * the active account id.
  */
 function useAccountId(accountName?: string) {
-  const accountId = useAccountsStore((state) => accountName && state.accountNamesToAccountIds[accountName])
+  const accountId = useAccountsStore((state) => state.accountNamesToAccountIds[accountName || ''])
   // don't consider active account if account name is defined
   const activeAccountId = useAccountsStore((state) => !accountName && state.activeAccountId)
   const accountIdToUse = accountName ? accountId : activeAccountId
@@ -62,13 +62,14 @@ export function useAccountsActions() {
  * Returns all subplebbits where the account is a creator or moderator
  */
 export function useAccountSubplebbits(accountName?: string) {
-  const account = useAccount(accountName)
+  const accountId = useAccountId(accountName)
+  const accountsStoreAccountSubplebbits = useAccountsStore((state) => state.accounts[accountId || '']?.subplebbits, jsonStringifyEqual)
 
   // get all unique account subplebbit addresses
   const ownerSubplebbitAddresses = useListSubplebbits()
   const accountSubplebbitAddresses = []
-  if (account?.subplebbits) {
-    for (const subplebbitAddress in account.subplebbits) {
+  if (accountsStoreAccountSubplebbits) {
+    for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
       accountSubplebbitAddresses.push(subplebbitAddress)
     }
   }
@@ -87,11 +88,11 @@ export function useAccountSubplebbits(accountName?: string) {
 
   // merged subplebbit data with account.subplebbits data
   const accountSubplebbits: any = {...subplebbits}
-  if (account?.subplebbits) {
-    for (const subplebbitAddress in account.subplebbits) {
+  if (accountsStoreAccountSubplebbits) {
+    for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
       accountSubplebbits[subplebbitAddress] = {
         ...accountSubplebbits[subplebbitAddress],
-        ...account.subplebbits[subplebbitAddress],
+        ...accountsStoreAccountSubplebbits[subplebbitAddress],
       }
     }
   }
@@ -102,7 +103,7 @@ export function useAccountSubplebbits(accountName?: string) {
       accountSubplebbits[subplebbitAddress].role = {role: 'owner'}
     }
   }
-  if (account) {
+  if (accountId) {
     debug('useAccountSubplebbits', {accountSubplebbits})
   }
   return accountSubplebbits
@@ -140,12 +141,7 @@ export function useAccountNotifications(accountName?: string) {
  */
 export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
-  const accountsStore = useAccountsStore()
-
-  let accountComments: AccountComments | undefined
-  if (accountId && accountsStore) {
-    accountComments = accountsStore.accountsComments[accountId]
-  }
+  const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''], jsonStringifyEqual)
 
   const filteredAccountComments = useMemo(() => {
     if (!accountComments) {
@@ -169,12 +165,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
  */
 export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountVotesOptions?.accountName)
-  const accountsStore = useAccountsStore()
-
-  let accountVotes: any
-  if (accountId && accountsStore) {
-    accountVotes = accountsStore.accountsVotes[accountId]
-  }
+  const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''], jsonStringifyEqual)
 
   const filteredAccountVotesArray = useMemo(() => {
     if (!accountVotes) {
@@ -206,4 +197,11 @@ export function useAccountVote(commentCid?: string, accountName?: string) {
   }
   const accountVotes = useAccountVotes(useAccountVotesOptions)
   return accountVotes && accountVotes[0]
+}
+
+/**
+ * Equality function for zustand
+ */
+function jsonStringifyEqual(objA?: any, objB?: any) {
+  return JSON.stringify(objA) === JSON.stringify(objB)
 }

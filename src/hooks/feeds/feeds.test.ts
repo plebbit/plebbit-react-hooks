@@ -4,7 +4,6 @@ import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs}
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
-import Debug from 'debug'
 setPlebbitJs(PlebbitJsMock)
 
 describe('feeds', () => {
