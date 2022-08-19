@@ -65,7 +65,7 @@ const mockAccount: any = {
   blockedAddresses: {},
 }
 
-describe('useFeedsStore', () => {
+describe('feeds store', () => {
   let accountsStoreGetState = accountsStore.getState
   beforeAll(() => {
     testUtils.silenceReactWarnings()
@@ -108,7 +108,7 @@ describe('useFeedsStore', () => {
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
   })
 
-  test('add feed', async () => {
+  test('add feed, increment page, block address', async () => {
     const subplebbitAddresses = ['subplebbit address 1']
     const sortType = 'new'
     const feedName = JSON.stringify([mockAccount?.id, sortType, subplebbitAddresses])
@@ -147,7 +147,7 @@ describe('useFeedsStore', () => {
     })
 
     // wait for new page
-    await waitFor(() => rendered.result.current.feedsOptions[feedName].pageNumber > 1)
+    await waitFor(() => rendered.result.current.loadedFeeds[feedName].length >= postsPerPage * 2)
     // page was incremented
     expect(rendered.result.current.feedsOptions[feedName].pageNumber).toBe(2)
     // feed options are unchanged

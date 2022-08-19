@@ -10,7 +10,7 @@ setPlebbitJs(PlebbitJsMock)
 describe('feeds', () => {
   beforeAll(() => {
     // some feeds tests are flaky
-    jest.retryTimes(50)
+    jest.retryTimes(5)
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
@@ -192,9 +192,6 @@ describe('feeds', () => {
 
       // scroll 2 more times to get to buffered feeds length 50 and trigger a new buffer refill
       await scrollOnePage()
-      await scrollOnePage()
-
-      // TODO zustand: figure out why it is needed to call scroll a third time after migrating to zustand
       await scrollOnePage()
 
       await waitFor(() => getPageCalledTimes === 3)

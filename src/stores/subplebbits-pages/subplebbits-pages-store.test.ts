@@ -63,7 +63,7 @@ const mockAccount: any = {
   },
 }
 
-describe('subplebbitsPagesStore', () => {
+describe('subplebbits pages store', () => {
   beforeAll(() => {
     testUtils.silenceReactWarnings()
   })
