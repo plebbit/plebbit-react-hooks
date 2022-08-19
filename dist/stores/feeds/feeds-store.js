@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
-import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getFeedAfterIncrementPageNumber, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, } from './utils';
+import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const postsPerPage = 25;
@@ -25,7 +25,7 @@ export const subplebbitPostsLeftBeforeNextPage = 50;
 export const listeners = [];
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false;
-const updateFeedsMinIntervalTime = 50;
+const updateFeedsMinIntervalTime = 100;
 const feedsStore = createStore((setState, getState) => ({
     feedsOptions: {},
     bufferedFeeds: {},
@@ -73,26 +73,21 @@ const feedsStore = createStore((setState, getState) => ({
     },
     incrementFeedPageNumber(feedName) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { feedsOptions, loadedFeeds } = getState();
+            const { feedsOptions, loadedFeeds, updateFeeds } = getState();
             assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`);
             debug('feedsActions.incrementFeedPageNumber', { feedName });
             assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
-            setState(({ feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore }) => {
+            setState(({ feedsOptions, loadedFeeds }) => {
                 // don't increment page number before the current page has loaded
                 if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
                     return {};
                 }
                 const feedOptions = Object.assign(Object.assign({}, feedsOptions[feedName]), { pageNumber: feedsOptions[feedName].pageNumber + 1 });
-                // no need to do a full updateFeeds after page increment, only calculate partial update
-                const { bufferedFeed, loadedFeed, bufferedFeedSubplebbitsPostCounts, feedHasMore } = getFeedAfterIncrementPageNumber(feedName, feedOptions, bufferedFeeds[feedName], loadedFeeds[feedName], subplebbitsStore.getState().subplebbits, subplebbitsPagesStore.getState().subplebbitsPages, accountsStore.getState().accounts);
-                return {
-                    feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }),
-                    bufferedFeeds: Object.assign(Object.assign({}, bufferedFeeds), { [feedName]: bufferedFeed }),
-                    loadedFeeds: Object.assign(Object.assign({}, loadedFeeds), { [feedName]: loadedFeed }),
-                    bufferedFeedsSubplebbitsPostCounts: Object.assign(Object.assign({}, bufferedFeedsSubplebbitsPostCounts), { [feedName]: bufferedFeedSubplebbitsPostCounts }),
-                    feedsHaveMore: Object.assign(Object.assign({}, feedsHaveMore), { [feedName]: feedHasMore }),
-                };
+                return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }) };
             });
+            // do not update feed at the same time as increment a page number or it might cause
+            // a race condition, rather schedule a feed update
+            updateFeeds();
         });
     },
     // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
@@ -121,7 +116,7 @@ const feedsStore = createStore((setState, getState) => ({
             const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts);
             // set new feeds
             setState((state) => ({ bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore }));
-            debug('feedsStore.updateFeeds', { feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore });
+            debug('feedsStore.updateFeeds', { feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, subplebbits, subplebbitsPages });
         }, timeUntilNextUpdate);
     },
 }));
@@ -158,15 +153,20 @@ const updateFeedsOnFeedsSubplebbitsPagesChange = (subplebbitsPagesStoreState) =>
     feedsStore.getState().updateFeeds();
 };
 let previousBufferedFeedsSubplebbitsPostCounts;
+let previousBufferedFeedsSubplebbitsPostCountsPageCids = [];
 const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState) => {
     const { bufferedFeedsSubplebbitsPostCounts, feedsOptions } = feedsStore.getState();
-    // bufferedFeedsSubplebbitsPostCounts haven't changed, do nothing
+    const { subplebbits } = subplebbitsStore.getState();
+    // if subplebbits pages have changed, we must try adding them even if buffered posts counts haven't changed
+    const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits);
+    // bufferedFeedsSubplebbitsPostCounts haven't changed and subplebbits page cids haven't changed, do nothing
     const bufferedFeedsSubplebbitsPostCountsStringified = JSON.stringify(bufferedFeedsSubplebbitsPostCounts);
-    if (bufferedFeedsSubplebbitsPostCountsStringified === previousBufferedFeedsSubplebbitsPostCounts) {
+    if (bufferedFeedsSubplebbitsPostCountsStringified === previousBufferedFeedsSubplebbitsPostCounts &&
+        bufferedFeedsSubplebbitsPostCountsPageCids.toString() === previousBufferedFeedsSubplebbitsPostCountsPageCids.toString()) {
         return;
     }
     previousBufferedFeedsSubplebbitsPostCounts = bufferedFeedsSubplebbitsPostCountsStringified;
-    const { subplebbits } = subplebbitsStore.getState();
+    previousBufferedFeedsSubplebbitsPostCountsPageCids = bufferedFeedsSubplebbitsPostCountsPageCids;
     const { addNextSubplebbitPageToStore } = subplebbitsPagesStore.getState();
     const { accounts } = accountsStore.getState();
     // bufferedFeedsSubplebbitsPostCounts have changed, check if any of them are low
@@ -214,8 +214,9 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses, account) => {
 const originalState = feedsStore.getState();
 // async function because some stores have async init
 export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    previousBlockedAddresses = [];
     previousBufferedFeedsSubplebbitsPostCounts = undefined;
+    previousBufferedFeedsSubplebbitsPostCountsPageCids = [];
+    previousBlockedAddresses = [];
     previousFeedsSubplebbitsFirstPageCids = [];
     previousSubplebbitsPageCids = [];
     updateFeedsPending = false;
