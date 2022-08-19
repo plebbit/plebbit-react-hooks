@@ -10,11 +10,9 @@ setPlebbitJs(PlebbitJsMock)
 describe('feeds', () => {
   beforeAll(() => {
     // some feeds tests are flaky
-    jest.retryTimes(5)
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
-    jest.retryTimes(0)
     testUtils.restoreAll()
   })
 
@@ -299,64 +297,53 @@ describe('feeds', () => {
       Pages.prototype.getPage = getPage
     })
 
-    // getting feeds with multiple subs in them sometimes gets them in the wrong order because
-    // of react renders concurrency so retry a few times if it fails
-    describe('retry on fail', () => {
-      beforeAll(() => {
-        jest.retryTimes(5)
-      })
-      afterAll(() => {
-        jest.retryTimes(0)
+    test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
+      // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
+      rendered = renderHook<any, any>((props: any) => {
+        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+        const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
+        return {...feed, bufferedFeed: bufferedFeeds[0]}
       })
 
-      test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
-        // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
-        rendered = renderHook<any, any>((props: any) => {
-          const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
-          const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
-          return {...feed, bufferedFeed: bufferedFeeds[0]}
-        })
-
-        // get feed with 1 sub
-        rendered.rerender({
-          subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
-          sortType: 'topAll',
-        })
-        // initial state
-        expect(typeof rendered.result.current.hasMore).toBe('boolean')
-        expect(typeof rendered.result.current.loadMore).toBe('function')
-
-        // wait for feed array to render
-        await waitFor(() => Array.isArray(rendered.result.current.feed))
-        expect(rendered.result.current.feed).toEqual([])
-
-        // wait for posts to be added, should get full first page
-        await waitFor(() => rendered.result.current.feed.length > 0)
-        expect(rendered.result.current.feed.length).toBe(postsPerPage)
-        expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid topAll comment cid 100')
-        expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid topAll comment cid 100')
-        expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid topAll comment cid 100')
-        expect(rendered.result.current.feed[0].upvoteCount).toBe(100)
-        expect(rendered.result.current.feed[1].upvoteCount).toBe(100)
-        expect(rendered.result.current.feed[2].upvoteCount).toBe(100)
-
-        // wait until buffered feeds have sub 2 and 3 loaded
-        let bufferedFeedString
-        await waitFor(() => {
-          bufferedFeedString = JSON.stringify(rendered.result.current.bufferedFeed)
-          return Boolean(bufferedFeedString.match('subplebbit address 2') && bufferedFeedString.match('subplebbit address 3'))
-        })
-
-        expect(bufferedFeedString).toMatch('subplebbit address 2')
-        expect(bufferedFeedString).toMatch('subplebbit address 3')
-
-        // the second page first posts should be sub 2 and 3 with the highest upvotes
-        await scrollOnePage()
-        expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid 92/)
-        expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid 92/)
-        expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBeGreaterThan(91)
-        expect(rendered.result.current.feed[postsPerPage + 1].upvoteCount).toBeGreaterThan(91)
+      // get feed with 1 sub
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+        sortType: 'topAll',
       })
+      // initial state
+      expect(typeof rendered.result.current.hasMore).toBe('boolean')
+      expect(typeof rendered.result.current.loadMore).toBe('function')
+
+      // wait for feed array to render
+      await waitFor(() => Array.isArray(rendered.result.current.feed))
+      expect(rendered.result.current.feed).toEqual([])
+
+      // wait for posts to be added, should get full first page
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid topAll comment cid 100')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid topAll comment cid 100')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid topAll comment cid 100')
+      expect(rendered.result.current.feed[0].upvoteCount).toBe(100)
+      expect(rendered.result.current.feed[1].upvoteCount).toBe(100)
+      expect(rendered.result.current.feed[2].upvoteCount).toBe(100)
+
+      // wait until buffered feeds have sub 2 and 3 loaded
+      let bufferedFeedString
+      await waitFor(() => {
+        bufferedFeedString = JSON.stringify(rendered.result.current.bufferedFeed)
+        return Boolean(bufferedFeedString.match('subplebbit address 2') && bufferedFeedString.match('subplebbit address 3'))
+      })
+
+      expect(bufferedFeedString).toMatch('subplebbit address 2')
+      expect(bufferedFeedString).toMatch('subplebbit address 3')
+
+      // the second page first posts should be sub 2 and 3 with the highest upvotes
+      await scrollOnePage()
+      expect(rendered.result.current.feed[postsPerPage].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid 92/)
+      expect(rendered.result.current.feed[postsPerPage + 1].cid).toMatch(/subplebbit address (2|3) page cid topAll comment cid 92/)
+      expect(rendered.result.current.feed[postsPerPage].upvoteCount).toBeGreaterThan(91)
+      expect(rendered.result.current.feed[postsPerPage + 1].upvoteCount).toBeGreaterThan(91)
     })
 
     test(`useBufferedFeeds can fetch multiple subs in the background before delivering the first page`, async () => {
