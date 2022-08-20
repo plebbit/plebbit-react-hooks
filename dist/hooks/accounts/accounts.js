@@ -4,6 +4,7 @@ import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:hooks:accounts');
 import { useListSubplebbits, useSubplebbits } from '../subplebbits';
 import { filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications } from './utils';
+import { jsonStringifyEqual } from '../../lib/utils';
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account id.
@@ -171,10 +172,4 @@ export function useAccountVote(commentCid, accountName) {
     }
     const accountVotes = useAccountVotes(useAccountVotesOptions);
     return accountVotes && accountVotes[0];
-}
-/**
- * Equality function for zustand
- */
-function jsonStringifyEqual(objA, objB) {
-    return JSON.stringify(objA) === JSON.stringify(objB);
 }
