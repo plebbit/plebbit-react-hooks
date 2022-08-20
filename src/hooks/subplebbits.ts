@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:hooks:subplebbits')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
 import {Subplebbit, BlockchainProviders} from '../types'
 import useInterval from './utils/use-interval'
@@ -27,12 +27,12 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
     validator.validateUseSubplebbitArguments(subplebbitAddress, account)
     if (!subplebbit) {
       // if subplebbit isn't already in store, add it
-      addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => console.error('useSubplebbit addSubplebbitToStore error', {subplebbitAddress, error}))
+      addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => log.error('useSubplebbit addSubplebbitToStore error', {subplebbitAddress, error}))
     }
   }, [subplebbitAddress, account?.id])
 
   if (account && subplebbitAddress) {
-    debug('useSubplebbit', {subplebbitAddress, subplebbit, account})
+    log('useSubplebbit', {subplebbitAddress, subplebbit, account})
   }
   return subplebbit
 }
@@ -57,12 +57,12 @@ export function useSubplebbits(subplebbitAddresses: string[] = [], accountName?:
     validator.validateUseSubplebbitsArguments(subplebbitAddresses, account)
     const uniqueSubplebbitAddresses = new Set(subplebbitAddresses)
     for (const subplebbitAddress of uniqueSubplebbitAddresses) {
-      addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => console.error('useSubplebbits addSubplebbitToStore error', {subplebbitAddress, error}))
+      addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => log.error('useSubplebbits addSubplebbitToStore error', {subplebbitAddress, error}))
     }
   }, [subplebbitAddresses.toString(), account?.id])
 
   if (account && subplebbitAddresses?.length) {
-    debug('useSubplebbits', {subplebbitAddresses, subplebbits, account})
+    log('useSubplebbits', {subplebbitAddresses, subplebbits, account})
   }
   return subplebbits
 }
@@ -85,7 +85,7 @@ export function useListSubplebbits() {
         if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
           return
         }
-        debug('useListSubplebbits', {subplebbitAddresses})
+        log('useListSubplebbits', {subplebbitAddresses})
         setSubplebbitAddresses(_subplebbitAddresses)
       })
     },
@@ -124,7 +124,7 @@ export function useResolvedSubplebbitAddress(subplebbitAddress?: string, account
             setResolvedSubplebbitAddress(res)
           }
         } catch (error) {
-          debug('useResolvedSubplebbitAddress resolveSubplebbitAddress error', {subplebbitAddress, blockchainProviders, error})
+          log.error('useResolvedSubplebbitAddress resolveSubplebbitAddress error', {subplebbitAddress, blockchainProviders, error})
         }
       })()
     },
@@ -133,7 +133,7 @@ export function useResolvedSubplebbitAddress(subplebbitAddress?: string, account
     [subplebbitAddress, blockchainProviders]
   )
 
-  // debug('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
+  // log('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
   return resolvedSubplebbitAddress
 }
 

@@ -4,10 +4,10 @@ import accountsStore, {listeners} from './accounts-store'
 import subplebbitsStore from '../subplebbits'
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
-import Debug from 'debug'
+import Logger from '@plebbit/plebbit-logger'
 import validator from '../../lib/validator'
 import assert from 'assert'
-const debug = Debug('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:stores:accounts')
 import {
   Account,
   PublishCommentOptions,
@@ -50,7 +50,7 @@ export const createAccount = async (accountName?: string) => {
     newAccount.name = accountName
   }
   await addNewAccountToDatabaseAndState(newAccount)
-  debug('accountsActions.createAccount', {accountName, account: newAccount})
+  log('accountsActions.createAccount', {accountName, account: newAccount})
 }
 
 export const deleteAccount = async (accountName?: string) => {
@@ -91,7 +91,7 @@ export const setActiveAccount = async (accountName: string) => {
   validator.validateAccountsActionsSetActiveAccountArguments(accountName)
   const accountId = accountNamesToAccountIds[accountName]
   await accountsDatabase.accountsMetadataDatabase.setItem('activeAccountId', accountId)
-  debug('accountsActions.setActiveAccount', {accountName, accountId})
+  log('accountsActions.setActiveAccount', {accountName, accountId})
   accountsStore.setState({activeAccountId: accountId})
 }
 
@@ -107,7 +107,7 @@ export const setAccount = async (account: Account) => {
     accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
   ])
   const newAccounts = {...accounts, [newAccount.id]: newAccount}
-  debug('accountsActions.setAccount', {account: newAccount})
+  log('accountsActions.setAccount', {account: newAccount})
   accountsStore.setState({accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds})
 }
 
@@ -122,7 +122,7 @@ export const setAccountsOrder = async (newOrderedAccountNames: string[]) => {
     accountNames.push(accounts[accountId].name)
   }
   validator.validateAccountsActionsSetAccountsOrderArguments(newOrderedAccountNames, accountNames)
-  debug('accountsActions.setAccountsOrder', {
+  log('accountsActions.setAccountsOrder', {
     previousAccountNames: accountNames,
     newAccountNames: newOrderedAccountNames,
   })
@@ -148,7 +148,7 @@ export const importAccount = async (serializedAccount: string) => {
   const {id} = await accountGenerator.generateDefaultAccount()
   const newAccount = {...account, id}
   await addNewAccountToDatabaseAndState(newAccount)
-  debug('accountsActions.importAccount', {account: newAccount})
+  log('accountsActions.importAccount', {account: newAccount})
 
   // TODO: the 'account' should contain AccountComments and AccountVotes
   // TODO: add options to only import private key, account settings, or include all account comments/votes history
@@ -164,7 +164,7 @@ export const exportAccount = async (accountName?: string) => {
   }
   assert(account?.id, `accountsActions.exportAccount account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
   const accountJson = await accountsDatabase.getAccountJson(account.id)
-  debug('accountsActions.exportAccount', {accountJson})
+  log('accountsActions.exportAccount', {accountJson})
   return accountJson
 
   // TODO: the 'account' should contain AccountComments and AccountVotes
@@ -192,7 +192,7 @@ export const subscribe = async (subplebbitAddress: string | number, accountName?
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
-  debug('accountsActions.subscribe', {account: updatedAccount, accountName, subplebbitAddress})
+  log('accountsActions.subscribe', {account: updatedAccount, accountName, subplebbitAddress})
   accountsStore.setState({accounts: updatedAccounts})
 }
 
@@ -218,7 +218,7 @@ export const unsubscribe = async (subplebbitAddress: string | number, accountNam
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
-  debug('accountsActions.unsubscribe', {account: updatedAccount, accountName, subplebbitAddress})
+  log('accountsActions.unsubscribe', {account: updatedAccount, accountName, subplebbitAddress})
   accountsStore.setState({accounts: updatedAccounts})
 }
 
@@ -243,7 +243,7 @@ export const blockAddress = async (address: string | number, accountName?: strin
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
-  debug('accountsActions.blockAddress', {account: updatedAccount, accountName, address})
+  log('accountsActions.blockAddress', {account: updatedAccount, accountName, address})
   accountsStore.setState({accounts: updatedAccounts})
 }
 
@@ -268,7 +268,7 @@ export const unblockAddress = async (address: string | number, accountName?: str
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
-  debug('accountsActions.unblockAddress', {account: updatedAccount, accountName, address})
+  log('accountsActions.unblockAddress', {account: updatedAccount, accountName, address})
   accountsStore.setState({accounts: updatedAccounts})
 }
 
@@ -321,7 +321,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
           accountsActionsInternal
             .startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
             .catch((error: unknown) =>
-              console.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error})
+              log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error})
             )
         }
       }
@@ -338,7 +338,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
 
   publishAndRetryFailedChallengeVerification()
   await accountsDatabase.addAccountComment(account.id, createCommentOptions)
-  debug('accountsActions.publishComment', {createCommentOptions})
+  log('accountsActions.publishComment', {createCommentOptions})
   accountsStore.setState(({accountsComments}) => {
     // save account comment index to update the comment later
     accountCommentIndex = accountsComments[account.id].length
@@ -401,7 +401,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
 
   publishAndRetryFailedChallengeVerification()
   await accountsDatabase.addAccountVote(account.id, createVoteOptions)
-  debug('accountsActions.publishVote', {createVoteOptions})
+  log('accountsActions.publishVote', {createVoteOptions})
   accountsStore.setState(({accountsVotes}) => ({
     accountsVotes: {
       ...accountsVotes,
@@ -454,7 +454,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   }
 
   publishAndRetryFailedChallengeVerification()
-  debug('accountsActions.publishCommentEdit', {createCommentEditOptions})
+  log('accountsActions.publishCommentEdit', {createCommentEditOptions})
 
   // TODO: show pending edits somewhere
 }
@@ -518,7 +518,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   }
 
   publishAndRetryFailedChallengeVerification()
-  debug('accountsActions.publishSubplebbitEdit', {createSubplebbitEditOptions})
+  log('accountsActions.publishSubplebbitEdit', {createSubplebbitEditOptions})
 }
 
 export const createSubplebbit = async (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string) => {
@@ -531,6 +531,6 @@ export const createSubplebbit = async (createSubplebbitOptions: CreateSubplebbit
   }
 
   const subplebbit = await subplebbitsStore.getState().createSubplebbit(createSubplebbitOptions, account)
-  debug('accountsActions.createSubplebbit', {createSubplebbitOptions, subplebbit})
+  log('accountsActions.createSubplebbit', {createSubplebbitOptions, subplebbit})
   return subplebbit
 }

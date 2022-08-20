@@ -88,7 +88,7 @@ describe('feeds store', () => {
     try {
       await testUtils.resetDatabasesAndStores()
     } catch (e) {
-      console.error(e)
+      // console.error(e)
     }
   })
 

@@ -2,9 +2,9 @@
 
 import accountsStore, {listeners} from './accounts-store'
 import accountsDatabase from './accounts-database'
-import Debug from 'debug'
+import Logger from '@plebbit/plebbit-logger'
 import assert from 'assert'
-const debug = Debug('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:stores:accounts')
 import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
 import utils from '../../lib/utils'
 
@@ -39,11 +39,11 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
     updatedComment = utils.merge(commentArgument, comment, updatedComment)
     await accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex)
-    debug('startUpdatingAccountCommentOnCommentUpdateEvents comment update', {commentCid: comment.cid, accountCommentIndex, updatedComment, account})
+    log('startUpdatingAccountCommentOnCommentUpdateEvents comment update', {commentCid: comment.cid, accountCommentIndex, updatedComment, account})
     accountsStore.setState(({accountsComments}) => {
       // account no longer exists
       if (!accountsComments[account.id]) {
-        console.error(
+        log.error(
           `startUpdatingAccountCommentOnCommentUpdateEvents comment.on('update') invalid accountsStore.accountsComments['${account.id}'] '${
             accountsComments[account.id]
           }', account may have been deleted`
@@ -74,7 +74,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
       accountsStore.setState(({accountsCommentsReplies}) => {
         // account no longer exists
         if (!accountsCommentsReplies[account.id]) {
-          console.error(
+          log.error(
             `startUpdatingAccountCommentOnCommentUpdateEvents comment.on('update') invalid accountsStore.accountsCommentsReplies['${account.id}'] '${
               accountsCommentsReplies[account.id]
             }', account may have been deleted`
@@ -125,7 +125,7 @@ export const addCidToAccountComment = async (comment: Comment) => {
     if (accountComment.timestamp && accountComment.timestamp === comment.timestamp) {
       const commentWithCid = utils.merge(accountComment, comment)
       await accountsDatabase.addAccountComment(accountComment.accountId, commentWithCid, accountComment.index)
-      debug('accountsActions.addCidToAccountComment', {commentCid: comment.cid, accountCommentIndex: accountComment.index, accountComment: commentWithCid})
+      log('accountsActions.addCidToAccountComment', {commentCid: comment.cid, accountCommentIndex: accountComment.index, accountComment: commentWithCid})
       accountsStore.setState(({accountsComments}) => {
         const updatedAccountComments = [...accountsComments[accountComment.accountId]]
         updatedAccountComments[accountComment.index] = commentWithCid
@@ -133,7 +133,7 @@ export const addCidToAccountComment = async (comment: Comment) => {
       })
 
       startUpdatingAccountCommentOnCommentUpdateEvents(comment, accounts[accountComment.accountId], accountComment.index).catch((error: unknown) =>
-        console.error('accountsActions.addCidToAccountComment startUpdatingAccountCommentOnCommentUpdateEvents error', {
+        log.error('accountsActions.addCidToAccountComment startUpdatingAccountCommentOnCommentUpdateEvents error', {
           comment,
           account: accounts[accountComment.accountId],
           accountCommentIndex: accountComment.index,
@@ -204,7 +204,7 @@ export const markAccountNotificationsAsRead = async (account: Account) => {
   await Promise.all(promises)
 
   // add all to react store
-  debug('accountsActions.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
+  log('accountsActions.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
   accountsStore.setState(({accountsCommentsReplies}) => {
     const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
     return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}
@@ -266,7 +266,7 @@ export const addSubplebbitRoleToAccountsSubplebbits = async (subplebbit: Subpleb
       accountsDatabase.addAccount(account)
     }
 
-    debug('accountsActions.addSubplebbitRoleToAccountsSubplebbits', {subplebbit, toAdd, toRemove})
+    log('accountsActions.addSubplebbitRoleToAccountsSubplebbits', {subplebbit, toAdd, toRemove})
     return {accounts: nextAccounts}
   })
 }

@@ -1,7 +1,7 @@
 import utils from '../../lib/utils'
-import Debug from 'debug'
+import Logger from '@plebbit/plebbit-logger'
 // include subplebbits pages store with feeds for debugging
-const debug = Debug('plebbit-react-hooks:stores:feeds')
+const log = Logger('plebbit-react-hooks:stores:feeds')
 import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account} from '../../types'
 import accountsStore from '../accounts'
 import localForageLru from '../../lib/localforage-lru'
@@ -46,7 +46,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
       const nextCid = subplebbitPages[subplebbitPages.length - 1]?.nextCid
       // if last nextCid is null, reached end of pages
       if (!nextCid) {
-        debug('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', {subplebbitAddress: subplebbit.address, sortType, account})
+        log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', {subplebbitAddress: subplebbit.address, sortType, account})
         return
       }
 
@@ -62,11 +62,11 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
     let page: SubplebbitPage
     try {
       page = await fetchPage(pageCidToAdd, subplebbit.address, account)
-      debug('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account})
+      log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account})
       setState(({subplebbitsPages}: any) => ({
         subplebbitsPages: {...subplebbitsPages, [pageCidToAdd]: page},
       }))
-      debug('subplebbitsPagesStore.addNextSubplebbitPageToStore', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account})
+      log('subplebbitsPagesStore.addNextSubplebbitPageToStore', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account})
     } catch (e) {
       throw e
     } finally {
@@ -81,7 +81,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
       accountsStore
         .getState()
         .accountsActionsInternal.addCidToAccountComment(comment)
-        .catch((error: unknown) => console.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', {comment, error}))
+        .catch((error: unknown) => log.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', {comment, error}))
     }
   },
 }))

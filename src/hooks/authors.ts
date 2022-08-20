@@ -2,8 +2,8 @@ import {useEffect, useState} from 'react'
 import {useInterval} from './utils/use-interval'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:hooks:authors')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:hooks:authors')
 import assert from 'assert'
 import {Nft, BlockchainProviders, Author} from '../types'
 import {ethers} from 'ethers'
@@ -22,7 +22,7 @@ export function useAuthorAvatarImageUrl(author?: Author, accountName?: string) {
   const avatar = verified && isWhitelisted ? author?.avatar : undefined
   const nftImageUrl = useNftImageUrl(avatar, accountName)
   if (author) {
-    debug('useAuthorAvatarImageUrl', {author, verified, isWhitelisted, nftImageUrl})
+    log('useAuthorAvatarImageUrl', {author, verified, isWhitelisted, nftImageUrl})
   }
   return nftImageUrl
 }
@@ -49,12 +49,12 @@ export function useNftImageUrl(nft?: Nft, accountName?: string) {
         const url = await getNftImageUrl(nft, ipfsGatewayUrl, blockchainProviders)
         setNftImageUrl(url)
       } catch (error) {
-        debug('useNftImageUrl getNftImageUrl error', {nft, ipfsGatewayUrl, blockchainProviders, error})
+        log.error('useNftImageUrl getNftImageUrl error', {nft, ipfsGatewayUrl, blockchainProviders, error})
       }
     })()
   }, [nft?.chainTicker, nft?.address, nft?.id, ipfsGatewayUrl, JSON.stringify(blockchainProviders)])
 
-  // debug('useNftImageUrl', {nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders})
+  // log('useNftImageUrl', {nft, ipfsGatewayUrl, nftImageUrl, blockchainProviders})
   return nftImageUrl
 }
 
@@ -74,7 +74,7 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
         const res = await verifyAuthorAvatarSignature(author.avatar, author.address, blockchainProviders)
         setVerified(res)
       } catch (error) {
-        debug('useVerifiedAuthorAvatarSignature verifyAuthorAvatarSignature error', {author, blockchainProviders, error})
+        log.error('useVerifiedAuthorAvatarSignature verifyAuthorAvatarSignature error', {author, blockchainProviders, error})
       }
     })()
   }, [author?.avatar, author?.address, JSON.stringify(blockchainProviders)])
@@ -84,7 +84,7 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
     return true
   }
 
-  // debug('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
+  // log('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
   return verified
 }
 
@@ -197,7 +197,7 @@ export function useResolvedAuthorAddress(authorAddress?: string, accountName?: s
             setResolvedAuthorAddress(res)
           }
         } catch (error) {
-          debug('useResolvedAuthorAddress resolveAuthorAddress error', {authorAddress, blockchainProviders, error})
+          log.error('useResolvedAuthorAddress resolveAuthorAddress error', {authorAddress, blockchainProviders, error})
         }
       })()
     },
@@ -206,7 +206,7 @@ export function useResolvedAuthorAddress(authorAddress?: string, accountName?: s
     [authorAddress, blockchainProviders]
   )
 
-  // debug('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
+  // log('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
   return resolvedAuthorAddress
 }
 

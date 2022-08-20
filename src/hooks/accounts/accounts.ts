@@ -1,8 +1,8 @@
 import {useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
 import PlebbitJs from '../../lib/plebbit-js'
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:hooks:accounts')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
 import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../../types'
@@ -29,7 +29,7 @@ export function useAccount(accountName?: string) {
   const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
   const accountId = useAccountId(accountName)
   const account = accountId && accounts?.[accountId]
-  debug('useAccount', {accountId, account, accountName})
+  log('useAccount', {accountId, account, accountName})
   return account
 }
 
@@ -46,7 +46,7 @@ export function useAccounts() {
     }
     return accountsArray
   }
-  debug('useAccounts', {accounts, accountIds: accountsStore?.accountIds})
+  log('useAccounts', {accounts, accountIds: accountsStore?.accountIds})
   return accountsArray
 }
 
@@ -104,7 +104,7 @@ export function useAccountSubplebbits(accountName?: string) {
     }
   }
   if (accountId) {
-    debug('useAccountSubplebbits', {accountSubplebbits})
+    log('useAccountSubplebbits', {accountSubplebbits})
   }
   return accountSubplebbits
 }
@@ -130,7 +130,7 @@ export function useAccountNotifications(accountName?: string) {
     accountsStore.accountsActionsInternal.markAccountNotificationsAsRead(account)
   }
   if (account) {
-    debug('useAccountNotifications', {notifications})
+    log('useAccountNotifications', {notifications})
   }
   return {notifications, markAsRead}
 }
@@ -154,7 +154,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
   }, [JSON.stringify(accountComments), JSON.stringify(useAccountCommentsOptions)])
 
   if (accountComments && useAccountCommentsOptions) {
-    debug('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
+    log('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
   }
   return filteredAccountComments
 }
@@ -182,7 +182,7 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
   }, [JSON.stringify(accountVotes), JSON.stringify(useAccountVotesOptions)])
 
   if (accountVotes && useAccountVotesOptions) {
-    debug('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
+    log('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
   }
   return filteredAccountVotesArray
 }

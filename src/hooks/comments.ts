@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:hooks:comments')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
 import {Comment} from '../types'
 import useCommentsStore from '../stores/comments'
@@ -25,12 +25,12 @@ export function useComment(commentCid?: string, accountName?: string) {
     validator.validateUseCommentArguments(commentCid, account)
     if (!comment) {
       // if comment isn't already in store, add it
-      addCommentToStore(commentCid, account).catch((error: unknown) => console.error('useComment addCommentToStore error', {commentCid, error}))
+      addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComment addCommentToStore error', {commentCid, error}))
     }
   }, [commentCid, account?.id])
 
   if (account && commentCid) {
-    debug('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
+    log('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
   }
   return comment
 }
@@ -52,12 +52,12 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
     validator.validateUseCommentsArguments(commentCids, account)
     const uniqueCommentCids = new Set(commentCids)
     for (const commentCid of uniqueCommentCids) {
-      addCommentToStore(commentCid, account).catch((error: unknown) => console.error('useComments addCommentToStore error', {commentCid, error}))
+      addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComments addCommentToStore error', {commentCid, error}))
     }
   }, [commentCids.toString(), account?.id])
 
   if (account && commentCids?.length) {
-    debug('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
+    log('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
   }
   return comments
 }

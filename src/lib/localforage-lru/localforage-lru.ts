@@ -80,9 +80,8 @@ function createLocalForageInstance(localForageLruOptions: any): any {
   async function updateDatabases(key: string, value: any) {
     try {
       await database1.setItem(key, value)
-    } catch (e) {
-      console.error('TODO: figure out sure why this error happens', {localForageLruOptions, databaseSize})
-      console.error(e)
+    } catch (error) {
+      console.error('localforageLru.updateDatabases', {error})
     }
     databaseSize++
     if (databaseSize >= localForageLruOptions.size) {

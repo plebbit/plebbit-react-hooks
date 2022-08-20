@@ -1,8 +1,8 @@
 import validator from '../../lib/validator'
 import localForageLru from '../../lib/localforage-lru'
 const commentsDatabase = localForageLru.createInstance({name: 'comments', size: 5000})
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:stores:comments')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:stores:comments')
 import {Comment, Comments, Account} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'
@@ -38,10 +38,10 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     try {
       if (!comment) {
         comment = await account.plebbit.getComment(commentId)
-        debug('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
+        log.trace('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
         await commentsDatabase.setItem(commentId, utils.clone(comment))
       }
-      debug('commentsStore.addCommentToStore', {commentId, comment, account})
+      log('commentsStore.addCommentToStore', {commentId, comment, account})
       setState((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
     } catch (e) {
       throw e
@@ -53,7 +53,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     comment.on('update', async (updatedComment: Comment) => {
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
-      debug('commentsStore comment update', {commentId, updatedComment, account})
+      log('commentsStore comment update', {commentId, updatedComment, account})
       setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
     listeners.push(comment)

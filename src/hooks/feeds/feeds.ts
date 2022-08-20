@@ -1,8 +1,8 @@
 import {useEffect, useMemo, useState} from 'react'
 import {useAccount} from '../accounts'
 import validator from '../../lib/validator'
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:hooks:feeds')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
 import {Feed, Feeds, UseBufferedFeedOptions} from '../../types'
 import useFeedsStore from '../../stores/feeds'
@@ -26,7 +26,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     if (!uniqueSubplebbitAddresses || !account) {
       return
     }
-    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => console.error('useFeed addFeedToStore error', {feedName, error}))
+    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => log.error('useFeed addFeedToStore error', {feedName, error}))
   }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/])
 
   const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''], feedShallowEqual)
@@ -45,7 +45,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
 
   const feed = loadedFeed || []
   if (account && subplebbitAddresses?.length) {
-    debug('useFeed', {
+    log('useFeed', {
       feed: feed.length,
       hasMore,
       subplebbitAddresses,
@@ -107,7 +107,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
       if (!bufferedFeeds[feedName || '']) {
         const isBufferedFeed = true
         addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed).catch((error: unknown) =>
-          console.error('useBufferedFeeds addFeedToStore error', {feedName, error})
+          log.error('useBufferedFeeds addFeedToStore error', {feedName, error})
         )
       }
     }
@@ -120,7 +120,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
   }
 
   if (account && feedsOptions?.length) {
-    debug('useBufferedFeeds', {
+    log('useBufferedFeeds', {
       bufferedFeeds,
       feedsOptions,
       account,

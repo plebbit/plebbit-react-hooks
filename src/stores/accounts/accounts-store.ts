@@ -1,6 +1,6 @@
 import assert from 'assert'
-import Debug from 'debug'
-const debug = Debug('plebbit-react-hooks:stores:accounts')
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:stores:accounts')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import {Subplebbit, AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, AccountComment, AccountsComments, AccountsCommentsReplies} from '../../types'
@@ -84,7 +84,7 @@ const initializeAccountsStore = async () => {
         .getState()
         .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
         .catch((error: unknown) =>
-          console.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
+          log.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
             accountComment,
             accountCommentIndex: accountComment.index,
             accounts,
@@ -111,7 +111,7 @@ const initializeStartSubplebbits = async () => {
     try {
       await startedSubplebbits[subplebbitAddress].stop()
     } catch (error) {
-      console.error('accountsStore subplebbit.stop error', {subplebbitAddress, error})
+      log.error('accountsStore subplebbit.stop error', {subplebbitAddress, error})
     }
   }
 
@@ -136,9 +136,9 @@ const initializeStartSubplebbits = async () => {
           const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
           await subplebbit.start()
           startedSubplebbits[subplebbitAddress] = subplebbit
-          debug('subplebbit started', {subplebbit})
+          log('subplebbit started', {subplebbit})
         } catch (error) {
-          console.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
+          log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
         }
         pendingStartedSubplebbits[subplebbitAddress] = false
       }
@@ -161,17 +161,17 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
   // @ts-ignore
   window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING = true
 
-  debug('accounts store initializing started')
+  log('accounts store initializing started')
   try {
     await initializeAccountsStore()
   } catch (error) {
     // initializing can fail in tests when store is being reset at the same time as databases are being deleted
-    console.error('accountsStore.initializeAccountsStore error', {accountsStore: accountsStore.getState(), error})
+    log.error('accountsStore.initializeAccountsStore error', {accountsStore: accountsStore.getState(), error})
   } finally {
     // @ts-ignore
     delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
   }
-  debug('accounts store initializing finished')
+  log('accounts store initializing finished')
 
   await initializeStartSubplebbits()
 })()
@@ -186,7 +186,7 @@ export const resetAccountsStore = async () => {
     await new Promise((r) => setTimeout(r, 100))
   }
 
-  debug('accounts store reset started')
+  log('accounts store reset started')
 
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
@@ -199,7 +199,7 @@ export const resetAccountsStore = async () => {
   // init start subplebbits
   await initializeStartSubplebbits()
 
-  debug('accounts store reset finished')
+  log('accounts store reset finished')
 }
 
 // reset database and store in between tests
