@@ -12,10 +12,10 @@ import accountsStore, { listeners } from './accounts-store';
 import subplebbitsStore from '../subplebbits';
 import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
-import Debug from 'debug';
+import Logger from '@plebbit/plebbit-logger';
 import validator from '../../lib/validator';
 import assert from 'assert';
-const debug = Debug('plebbit-react-hooks:stores:accounts');
+const log = Logger('plebbit-react-hooks:stores:accounts');
 import * as accountsActionsInternal from './accounts-actions-internal';
 const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountsComments, accountsVotes } = accountsStore.getState();
@@ -45,7 +45,7 @@ export const createAccount = (accountName) => __awaiter(void 0, void 0, void 0, 
         newAccount.name = accountName;
     }
     yield addNewAccountToDatabaseAndState(newAccount);
-    debug('accountsActions.createAccount', { accountName, account: newAccount });
+    log('accountsActions.createAccount', { accountName, account: newAccount });
 });
 export const deleteAccount = (accountName) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds, activeAccountId, accountsComments, accountsVotes } = accountsStore.getState();
@@ -83,7 +83,7 @@ export const setActiveAccount = (accountName) => __awaiter(void 0, void 0, void 
     validator.validateAccountsActionsSetActiveAccountArguments(accountName);
     const accountId = accountNamesToAccountIds[accountName];
     yield accountsDatabase.accountsMetadataDatabase.setItem('activeAccountId', accountId);
-    debug('accountsActions.setActiveAccount', { accountName, accountId });
+    log('accountsActions.setActiveAccount', { accountName, accountId });
     accountsStore.setState({ activeAccountId: accountId });
 });
 export const setAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
@@ -98,7 +98,7 @@ export const setAccount = (account) => __awaiter(void 0, void 0, void 0, functio
         accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
     ]);
     const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
-    debug('accountsActions.setAccount', { account: newAccount });
+    log('accountsActions.setAccount', { account: newAccount });
     accountsStore.setState({ accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds });
 });
 export const setAccountsOrder = (newOrderedAccountNames) => __awaiter(void 0, void 0, void 0, function* () {
@@ -112,7 +112,7 @@ export const setAccountsOrder = (newOrderedAccountNames) => __awaiter(void 0, vo
         accountNames.push(accounts[accountId].name);
     }
     validator.validateAccountsActionsSetAccountsOrderArguments(newOrderedAccountNames, accountNames);
-    debug('accountsActions.setAccountsOrder', {
+    log('accountsActions.setAccountsOrder', {
         previousAccountNames: accountNames,
         newAccountNames: newOrderedAccountNames,
     });
@@ -136,7 +136,7 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
     const { id } = yield accountGenerator.generateDefaultAccount();
     const newAccount = Object.assign(Object.assign({}, account), { id });
     yield addNewAccountToDatabaseAndState(newAccount);
-    debug('accountsActions.importAccount', { account: newAccount });
+    log('accountsActions.importAccount', { account: newAccount });
     // TODO: the 'account' should contain AccountComments and AccountVotes
     // TODO: add options to only import private key, account settings, or include all account comments/votes history
 });
@@ -150,7 +150,7 @@ export const exportAccount = (accountName) => __awaiter(void 0, void 0, void 0, 
     }
     assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.exportAccount account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
     const accountJson = yield accountsDatabase.getAccountJson(account.id);
-    debug('accountsActions.exportAccount', { accountJson });
+    log('accountsActions.exportAccount', { accountJson });
     return accountJson;
     // TODO: the 'account' should contain AccountComments and AccountVotes
     // TODO: add options to only export private key, account settings, or include all account comments/votes history
@@ -174,7 +174,7 @@ export const subscribe = (subplebbitAddress, accountName) => __awaiter(void 0, v
     // update account in db
     yield accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
-    debug('accountsActions.subscribe', { account: updatedAccount, accountName, subplebbitAddress });
+    log('accountsActions.subscribe', { account: updatedAccount, accountName, subplebbitAddress });
     accountsStore.setState({ accounts: updatedAccounts });
 });
 export const unsubscribe = (subplebbitAddress, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -197,7 +197,7 @@ export const unsubscribe = (subplebbitAddress, accountName) => __awaiter(void 0,
     // update account in db
     yield accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
-    debug('accountsActions.unsubscribe', { account: updatedAccount, accountName, subplebbitAddress });
+    log('accountsActions.unsubscribe', { account: updatedAccount, accountName, subplebbitAddress });
     accountsStore.setState({ accounts: updatedAccounts });
 });
 export const blockAddress = (address, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -219,7 +219,7 @@ export const blockAddress = (address, accountName) => __awaiter(void 0, void 0, 
     // update account in db
     yield accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
-    debug('accountsActions.blockAddress', { account: updatedAccount, accountName, address });
+    log('accountsActions.blockAddress', { account: updatedAccount, accountName, address });
     accountsStore.setState({ accounts: updatedAccounts });
 });
 export const unblockAddress = (address, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -241,7 +241,7 @@ export const unblockAddress = (address, accountName) => __awaiter(void 0, void 0
     // update account in db
     yield accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
-    debug('accountsActions.unblockAddress', { account: updatedAccount, accountName, address });
+    log('accountsActions.unblockAddress', { account: updatedAccount, accountName, address });
     accountsStore.setState({ accounts: updatedAccounts });
 });
 export const publishComment = (publishCommentOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -286,7 +286,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                     });
                     accountsActionsInternal
                         .startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
-                        .catch((error) => console.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', { comment, account, accountCommentIndex, error }));
+                        .catch((error) => log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', { comment, account, accountCommentIndex, error }));
                 }
             }
         }));
@@ -302,7 +302,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     });
     publishAndRetryFailedChallengeVerification();
     yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
-    debug('accountsActions.publishComment', { createCommentOptions });
+    log('accountsActions.publishComment', { createCommentOptions });
     accountsStore.setState(({ accountsComments }) => {
         // save account comment index to update the comment later
         accountCommentIndex = accountsComments[account.id].length;
@@ -354,7 +354,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     });
     publishAndRetryFailedChallengeVerification();
     yield accountsDatabase.addAccountVote(account.id, createVoteOptions);
-    debug('accountsActions.publishVote', { createVoteOptions });
+    log('accountsActions.publishVote', { createVoteOptions });
     accountsStore.setState(({ accountsVotes }) => ({
         accountsVotes: Object.assign(Object.assign({}, accountsVotes), { [account.id]: Object.assign(Object.assign({}, accountsVotes[account.id]), { [createVoteOptions.commentCid]: createVoteOptions }) }),
     }));
@@ -397,7 +397,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
         }
     });
     publishAndRetryFailedChallengeVerification();
-    debug('accountsActions.publishCommentEdit', { createCommentEditOptions });
+    log('accountsActions.publishCommentEdit', { createCommentEditOptions });
     // TODO: show pending edits somewhere
 });
 export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -449,7 +449,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         }
     });
     publishAndRetryFailedChallengeVerification();
-    debug('accountsActions.publishSubplebbitEdit', { createSubplebbitEditOptions });
+    log('accountsActions.publishSubplebbitEdit', { createSubplebbitEditOptions });
 });
 export const createSubplebbit = (createSubplebbitOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
@@ -460,6 +460,6 @@ export const createSubplebbit = (createSubplebbitOptions, accountName) => __awai
         account = accounts[accountId];
     }
     const subplebbit = yield subplebbitsStore.getState().createSubplebbit(createSubplebbitOptions, account);
-    debug('accountsActions.createSubplebbit', { createSubplebbitOptions, subplebbit });
+    log('accountsActions.createSubplebbit', { createSubplebbitOptions, subplebbit });
     return subplebbit;
 });

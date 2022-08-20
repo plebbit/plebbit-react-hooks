@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import assert from 'assert';
 import localForageLru from '../../lib/localforage-lru';
 const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 });
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:stores:subplebbits');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:stores:subplebbits');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
@@ -46,7 +46,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
             if (!subplebbit) {
                 try {
                     subplebbit = yield account.plebbit.getSubplebbit(subplebbitAddress);
-                    debug('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', { subplebbitAddress, subplebbit, account });
+                    log.trace('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', { subplebbitAddress, subplebbit, account });
                 }
                 catch (e) {
                     errorGettingSubplebbit = e;
@@ -60,13 +60,13 @@ const subplebbitsStore = createStore((setState, getState) => ({
             }
             // success getting subplebbit
             yield subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit));
-            debug('subplebbitsStore.addSubplebbitToStore', { subplebbitAddress, subplebbit, account });
+            log('subplebbitsStore.addSubplebbitToStore', { subplebbitAddress, subplebbit, account });
             setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: utils.clone(subplebbit) }) }));
             // the subplebbit has published new posts
             subplebbit.on('update', (updatedSubplebbit) => __awaiter(this, void 0, void 0, function* () {
                 updatedSubplebbit = utils.clone(updatedSubplebbit);
                 yield subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit);
-                debug('subplebbitsStore subplebbit update', { subplebbitAddress, updatedSubplebbit, account });
+                log('subplebbitsStore subplebbit update', { subplebbitAddress, updatedSubplebbit, account });
                 setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: updatedSubplebbit }) }));
                 // if a subplebbit has a role with an account's address add it to the account.subplebbits
                 accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit);
@@ -89,7 +89,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
             // edit db of both old and new subplebbit address to not break the UI
             yield subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit);
             yield subplebbitsDatabase.setItem(subplebbit.address, updatedSubplebbit);
-            debug('subplebbitsStore.editSubplebbit', { subplebbitAddress, subplebbitEditOptions, subplebbit, account });
+            log('subplebbitsStore.editSubplebbit', { subplebbitAddress, subplebbitEditOptions, subplebbit, account });
             setState((state) => ({
                 subplebbits: Object.assign(Object.assign({}, state.subplebbits), { 
                     // edit react state of both old and new subplebbit address to not break the UI
@@ -108,7 +108,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsStore.createSubplebbit invalid account argument '${account}'`);
             const subplebbit = yield account.plebbit.createSubplebbit(createSubplebbitOptions);
             yield subplebbitsDatabase.setItem(subplebbit.address, utils.clone(subplebbit));
-            debug('subplebbitsStore.createSubplebbit', { createSubplebbitOptions, subplebbit, account });
+            log('subplebbitsStore.createSubplebbit', { createSubplebbitOptions, subplebbit, account });
             setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: utils.clone(subplebbit) }) }));
             return subplebbit;
         });

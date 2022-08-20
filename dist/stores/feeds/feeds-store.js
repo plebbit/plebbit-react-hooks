@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import assert from 'assert';
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:stores:feeds');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:stores:feeds');
 import createStore from 'zustand';
 import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
@@ -48,7 +48,7 @@ const feedsStore = createStore((setState, getState) => ({
             }
             // to add a buffered feed, add a feed with pageNumber 0
             const feedOptions = { subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1 };
-            debug('feedsActions.addFeedToStore', feedOptions);
+            log('feedsActions.addFeedToStore', feedOptions);
             setState(({ feedsOptions }) => {
                 // make sure to never overwrite a feed already added
                 if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
@@ -75,7 +75,7 @@ const feedsStore = createStore((setState, getState) => ({
         return __awaiter(this, void 0, void 0, function* () {
             const { feedsOptions, loadedFeeds, updateFeeds } = getState();
             assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`);
-            debug('feedsActions.incrementFeedPageNumber', { feedName });
+            log('feedsActions.incrementFeedPageNumber', { feedName });
             assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
             setState(({ feedsOptions, loadedFeeds }) => {
                 // don't increment page number before the current page has loaded
@@ -116,7 +116,7 @@ const feedsStore = createStore((setState, getState) => ({
             const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts);
             // set new feeds
             setState((state) => ({ bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore }));
-            debug('feedsStore.updateFeeds', { feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, subplebbits, subplebbitsPages });
+            log.trace('feedsStore.updateFeeds', { feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, subplebbits, subplebbitsPages });
         }, timeUntilNextUpdate);
     },
 }));
@@ -185,7 +185,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
             }
             // subplebbit post count is low, fetch next subplebbit page
             if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
-                addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error) => console.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', { subplebbitAddress, sortType, error }));
+                addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error) => log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', { subplebbitAddress, sortType, error }));
             }
         }
     }
@@ -207,7 +207,7 @@ const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState) => {
 const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses, account) => {
     const addSubplebbitToStore = subplebbitsStore.getState().addSubplebbitToStore;
     for (const subplebbitAddress of subplebbitAddresses) {
-        addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('feedsStore subplebbitsActions.addSubplebbitToStore error', { subplebbitAddress, error }));
+        addSubplebbitToStore(subplebbitAddress, account).catch((error) => log.error('feedsStore subplebbitsActions.addSubplebbitToStore error', { subplebbitAddress, error }));
     }
 };
 // reset store in between tests

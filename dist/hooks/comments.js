@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useAccount } from './accounts';
 import validator from '../lib/validator';
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:hooks:comments');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:hooks:comments');
 import useCommentsStore from '../stores/comments';
 import shallow from 'zustand/shallow';
 /**
@@ -21,11 +21,11 @@ export function useComment(commentCid, accountName) {
         validator.validateUseCommentArguments(commentCid, account);
         if (!comment) {
             // if comment isn't already in store, add it
-            addCommentToStore(commentCid, account).catch((error) => console.error('useComment addCommentToStore error', { commentCid, error }));
+            addCommentToStore(commentCid, account).catch((error) => log.error('useComment addCommentToStore error', { commentCid, error }));
         }
     }, [commentCid, account === null || account === void 0 ? void 0 : account.id]);
     if (account && commentCid) {
-        debug('useComment', { commentCid, comment, commentsStore: useCommentsStore.getState().comments, account });
+        log('useComment', { commentCid, comment, commentsStore: useCommentsStore.getState().comments, account });
     }
     return comment;
 }
@@ -45,11 +45,11 @@ export function useComments(commentCids = [], accountName) {
         validator.validateUseCommentsArguments(commentCids, account);
         const uniqueCommentCids = new Set(commentCids);
         for (const commentCid of uniqueCommentCids) {
-            addCommentToStore(commentCid, account).catch((error) => console.error('useComments addCommentToStore error', { commentCid, error }));
+            addCommentToStore(commentCid, account).catch((error) => log.error('useComments addCommentToStore error', { commentCid, error }));
         }
     }, [commentCids.toString(), account === null || account === void 0 ? void 0 : account.id]);
     if (account && (commentCids === null || commentCids === void 0 ? void 0 : commentCids.length)) {
-        debug('useComments', { commentCids, comments, commentsStore: useCommentsStore.getState().comments, account });
+        log('useComments', { commentCids, comments, commentsStore: useCommentsStore.getState().comments, account });
     }
     return comments;
 }

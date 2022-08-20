@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import useAccountsStore from '../../stores/accounts';
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:hooks:accounts');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:hooks:accounts');
 import { useListSubplebbits, useSubplebbits } from '../subplebbits';
 import { filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications } from './utils';
 /**
@@ -24,7 +24,7 @@ export function useAccount(accountName) {
     const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies);
     const accountId = useAccountId(accountName);
     const account = accountId && (accounts === null || accounts === void 0 ? void 0 : accounts[accountId]);
-    debug('useAccount', { accountId, account, accountName });
+    log('useAccount', { accountId, account, accountName });
     return account;
 }
 /**
@@ -41,7 +41,7 @@ export function useAccounts() {
         }
         return accountsArray;
     }
-    debug('useAccounts', { accounts, accountIds: accountsStore === null || accountsStore === void 0 ? void 0 : accountsStore.accountIds });
+    log('useAccounts', { accounts, accountIds: accountsStore === null || accountsStore === void 0 ? void 0 : accountsStore.accountIds });
     return accountsArray;
 }
 /**
@@ -88,7 +88,7 @@ export function useAccountSubplebbits(accountName) {
         }
     }
     if (accountId) {
-        debug('useAccountSubplebbits', { accountSubplebbits });
+        log('useAccountSubplebbits', { accountSubplebbits });
     }
     return accountSubplebbits;
 }
@@ -111,7 +111,7 @@ export function useAccountNotifications(accountName) {
         accountsStore.accountsActionsInternal.markAccountNotificationsAsRead(account);
     };
     if (account) {
-        debug('useAccountNotifications', { notifications });
+        log('useAccountNotifications', { notifications });
     }
     return { notifications, markAsRead };
 }
@@ -132,7 +132,7 @@ export function useAccountComments(useAccountCommentsOptions) {
         return accountComments;
     }, [JSON.stringify(accountComments), JSON.stringify(useAccountCommentsOptions)]);
     if (accountComments && useAccountCommentsOptions) {
-        debug('useAccountComments', { accountId, filteredAccountComments, accountComments, useAccountCommentsOptions });
+        log('useAccountComments', { accountId, filteredAccountComments, accountComments, useAccountCommentsOptions });
     }
     return filteredAccountComments;
 }
@@ -157,7 +157,7 @@ export function useAccountVotes(useAccountVotesOptions) {
         return accountVotesArray;
     }, [JSON.stringify(accountVotes), JSON.stringify(useAccountVotesOptions)]);
     if (accountVotes && useAccountVotesOptions) {
-        debug('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions });
+        log('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions });
     }
     return filteredAccountVotesArray;
 }

@@ -8,9 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import utils from '../../lib/utils';
-import Debug from 'debug';
+import Logger from '@plebbit/plebbit-logger';
 // include subplebbits pages store with feeds for debugging
-const debug = Debug('plebbit-react-hooks:stores:feeds');
+const log = Logger('plebbit-react-hooks:stores:feeds');
 import accountsStore from '../accounts';
 import localForageLru from '../../lib/localforage-lru';
 import createStore from 'zustand';
@@ -41,7 +41,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
             const nextCid = (_d = subplebbitPages[subplebbitPages.length - 1]) === null || _d === void 0 ? void 0 : _d.nextCid;
             // if last nextCid is null, reached end of pages
             if (!nextCid) {
-                debug('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', { subplebbitAddress: subplebbit.address, sortType, account });
+                log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', { subplebbitAddress: subplebbit.address, sortType, account });
                 return;
             }
             pageCidToAdd = nextCid;
@@ -54,11 +54,11 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         let page;
         try {
             page = yield fetchPage(pageCidToAdd, subplebbit.address, account);
-            debug('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account });
+            log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account });
             setState(({ subplebbitsPages }) => ({
                 subplebbitsPages: Object.assign(Object.assign({}, subplebbitsPages), { [pageCidToAdd]: page }),
             }));
-            debug('subplebbitsPagesStore.addNextSubplebbitPageToStore', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account });
+            log('subplebbitsPagesStore.addNextSubplebbitPageToStore', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account });
         }
         catch (e) {
             throw e;
@@ -74,7 +74,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
             accountsStore
                 .getState()
                 .accountsActionsInternal.addCidToAccountComment(comment)
-                .catch((error) => console.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', { comment, error }));
+                .catch((error) => log.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', { comment, error }));
         }
     }),
 }));

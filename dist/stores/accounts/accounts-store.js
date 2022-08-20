@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import assert from 'assert';
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:stores:accounts');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:stores:accounts');
 import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
 import createStore from 'zustand';
@@ -70,7 +70,7 @@ const initializeAccountsStore = () => __awaiter(void 0, void 0, void 0, function
             accountsStore
                 .getState()
                 .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
-                .catch((error) => console.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
+                .catch((error) => log.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
                 accountComment,
                 accountCommentIndex: accountComment.index,
                 accounts,
@@ -95,7 +95,7 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
             yield startedSubplebbits[subplebbitAddress].stop();
         }
         catch (error) {
-            console.error('accountsStore subplebbit.stop error', { subplebbitAddress, error });
+            log.error('accountsStore subplebbit.stop error', { subplebbitAddress, error });
         }
     }
     // don't start subplebbits twice
@@ -118,10 +118,10 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
                     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
                     yield subplebbit.start();
                     startedSubplebbits[subplebbitAddress] = subplebbit;
-                    debug('subplebbit started', { subplebbit });
+                    log('subplebbit started', { subplebbit });
                 }
                 catch (error) {
-                    console.error('accountsStore subplebbit.start error', { subplebbitAddress, error });
+                    log.error('accountsStore subplebbit.start error', { subplebbitAddress, error });
                 }
                 pendingStartedSubplebbits[subplebbitAddress] = false;
             }
@@ -140,19 +140,19 @@ const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIAL
     window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZED_ONCE = true;
     // @ts-ignore
     window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING = true;
-    debug('accounts store initializing started');
+    log('accounts store initializing started');
     try {
         yield initializeAccountsStore();
     }
     catch (error) {
         // initializing can fail in tests when store is being reset at the same time as databases are being deleted
-        console.error('accountsStore.initializeAccountsStore error', { accountsStore: accountsStore.getState(), error });
+        log.error('accountsStore.initializeAccountsStore error', { accountsStore: accountsStore.getState(), error });
     }
     finally {
         // @ts-ignore
         delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING;
     }
-    debug('accounts store initializing finished');
+    log('accounts store initializing finished');
     yield initializeStartSubplebbits();
 }))();
 // reset store in between tests
@@ -164,7 +164,7 @@ export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, functi
         console.warn(`can't reset accounts store while initializing, waiting 100ms`);
         yield new Promise((r) => setTimeout(r, 100));
     }
-    debug('accounts store reset started');
+    log('accounts store reset started');
     // remove all event listeners
     listeners.forEach((listener) => listener.removeAllListeners());
     // destroy all component subscriptions to the store
@@ -175,7 +175,7 @@ export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, functi
     yield initializeAccountsStore();
     // init start subplebbits
     yield initializeStartSubplebbits();
-    debug('accounts store reset finished');
+    log('accounts store reset finished');
 });
 // reset database and store in between tests
 export const resetAccountsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
