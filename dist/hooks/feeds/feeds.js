@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { useAccount } from '../accounts';
 import validator from '../../lib/validator';
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:hooks:feeds');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:hooks:feeds');
 import useFeedsStore from '../../stores/feeds';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
@@ -21,7 +21,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
         if (!uniqueSubplebbitAddresses || !account) {
             return;
         }
-        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error) => console.error('useFeed addFeedToStore error', { feedName, error }));
+        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
     }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/]);
     const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''], feedShallowEqual);
     let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
@@ -37,7 +37,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
     };
     const feed = loadedFeed || [];
     if (account && (subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.length)) {
-        debug('useFeed', {
+        log('useFeed', {
             feed: feed.length,
             hasMore,
             subplebbitAddresses,
@@ -94,7 +94,7 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
             }
             if (!bufferedFeeds[feedName || '']) {
                 const isBufferedFeed = true;
-                addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed).catch((error) => console.error('useBufferedFeeds addFeedToStore error', { feedName, error }));
+                addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed).catch((error) => log.error('useBufferedFeeds addFeedToStore error', { feedName, error }));
             }
         }
     }, [feedNames === null || feedNames === void 0 ? void 0 : feedNames.toString()]);
@@ -104,7 +104,7 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
         bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || []);
     }
     if (account && (feedsOptions === null || feedsOptions === void 0 ? void 0 : feedsOptions.length)) {
-        debug('useBufferedFeeds', {
+        log('useBufferedFeeds', {
             bufferedFeeds,
             feedsOptions,
             account,

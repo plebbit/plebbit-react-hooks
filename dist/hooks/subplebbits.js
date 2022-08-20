@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { useEffect, useState } from 'react';
 import { useAccount } from './accounts';
 import validator from '../lib/validator';
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:hooks:subplebbits');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:hooks:subplebbits');
 import useInterval from './utils/use-interval';
 import { resolveEnsTxtRecord } from '../lib/blockchain';
 import useSubplebbitsStore from '../stores/subplebbits';
@@ -32,11 +32,11 @@ export function useSubplebbit(subplebbitAddress, accountName) {
         validator.validateUseSubplebbitArguments(subplebbitAddress, account);
         if (!subplebbit) {
             // if subplebbit isn't already in store, add it
-            addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbit addSubplebbitToStore error', { subplebbitAddress, error }));
+            addSubplebbitToStore(subplebbitAddress, account).catch((error) => log.error('useSubplebbit addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddress, account === null || account === void 0 ? void 0 : account.id]);
     if (account && subplebbitAddress) {
-        debug('useSubplebbit', { subplebbitAddress, subplebbit, account });
+        log('useSubplebbit', { subplebbitAddress, subplebbit, account });
     }
     return subplebbit;
 }
@@ -56,11 +56,11 @@ export function useSubplebbits(subplebbitAddresses = [], accountName) {
         validator.validateUseSubplebbitsArguments(subplebbitAddresses, account);
         const uniqueSubplebbitAddresses = new Set(subplebbitAddresses);
         for (const subplebbitAddress of uniqueSubplebbitAddresses) {
-            addSubplebbitToStore(subplebbitAddress, account).catch((error) => console.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
+            addSubplebbitToStore(subplebbitAddress, account).catch((error) => log.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
         }
     }, [subplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
     if (account && (subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.length)) {
-        debug('useSubplebbits', { subplebbitAddresses, subplebbits, account });
+        log('useSubplebbits', { subplebbitAddresses, subplebbits, account });
     }
     return subplebbits;
 }
@@ -80,7 +80,7 @@ export function useListSubplebbits() {
             if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
                 return;
             }
-            debug('useListSubplebbits', { subplebbitAddresses });
+            log('useListSubplebbits', { subplebbitAddresses });
             setSubplebbitAddresses(_subplebbitAddresses);
         });
     }, delay, immediate);
@@ -115,11 +115,11 @@ export function useResolvedSubplebbitAddress(subplebbitAddress, accountName) {
                 }
             }
             catch (error) {
-                debug('useResolvedSubplebbitAddress resolveSubplebbitAddress error', { subplebbitAddress, blockchainProviders, error });
+                log.error('useResolvedSubplebbitAddress resolveSubplebbitAddress error', { subplebbitAddress, blockchainProviders, error });
             }
         }))();
     }, 15000, true, [subplebbitAddress, blockchainProviders]);
-    // debug('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
+    // log('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
     return resolvedSubplebbitAddress;
 }
 // NOTE: resolveSubplebbitAddress tests are skipped, if changes are made they must be tested manually

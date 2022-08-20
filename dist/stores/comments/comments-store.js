@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import localForageLru from '../../lib/localforage-lru';
 const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 });
-import Debug from 'debug';
-const debug = Debug('plebbit-react-hooks:stores:comments');
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:stores:comments');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
@@ -34,10 +34,10 @@ const commentsStore = createStore((setState, getState) => ({
             try {
                 if (!comment) {
                     comment = yield account.plebbit.getComment(commentId);
-                    debug('commentsStore.addCommentToStore plebbit.getComment', { commentId, comment, account });
+                    log.trace('commentsStore.addCommentToStore plebbit.getComment', { commentId, comment, account });
                     yield commentsDatabase.setItem(commentId, utils.clone(comment));
                 }
-                debug('commentsStore.addCommentToStore', { commentId, comment, account });
+                log('commentsStore.addCommentToStore', { commentId, comment, account });
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: utils.clone(comment) }) }));
             }
             catch (e) {
@@ -50,7 +50,7 @@ const commentsStore = createStore((setState, getState) => ({
             comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
                 updatedComment = utils.clone(updatedComment);
                 yield commentsDatabase.setItem(commentId, updatedComment);
-                debug('commentsStore comment update', { commentId, updatedComment, account });
+                log('commentsStore comment update', { commentId, updatedComment, account });
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: updatedComment }) }));
             }));
             listeners.push(comment);
