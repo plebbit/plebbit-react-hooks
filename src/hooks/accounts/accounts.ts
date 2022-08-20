@@ -1,12 +1,12 @@
 import {useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
-import PlebbitJs from '../../lib/plebbit-js'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
 import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../../types'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications} from './utils'
+import {jsonStringifyEqual} from '../../lib/utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -197,11 +197,4 @@ export function useAccountVote(commentCid?: string, accountName?: string) {
   }
   const accountVotes = useAccountVotes(useAccountVotesOptions)
   return accountVotes && accountVotes[0]
-}
-
-/**
- * Equality function for zustand
- */
-function jsonStringifyEqual(objA?: any, objB?: any) {
-  return JSON.stringify(objA) === JSON.stringify(objB)
 }
