@@ -162,6 +162,7 @@ export const validateUseSubplebbitsArguments = (subplebbitAddresses: any, accoun
 const feedSortTypes = new Set([
   'hot',
   'new',
+  'active',
   'topHour',
   'topDay',
   'topWeek',
