@@ -47,6 +47,7 @@ const clone = (obj) => {
 const sortTypes = [
     'hot',
     'new',
+    'active',
     'old',
     'topHour',
     'topDay',
