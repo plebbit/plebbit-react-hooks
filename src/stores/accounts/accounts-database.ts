@@ -202,8 +202,12 @@ const addAccountVote = async (accountId: string, createVoteOptions: CreateCommen
   const vote = {...createVoteOptions}
   delete vote.signer
   delete vote.author
-  delete vote.onChallenge
-  delete vote.onChallengeVerification
+  // delete all functions because they can't be added to indexeddb
+  for (const i in vote) {
+    if (typeof vote[i] === 'function') {
+      delete vote[i]
+    }
+  }
   await Promise.all([
     accountVotesDatabase.setItem(vote.commentCid, vote),
     accountVotesDatabase.setItem(String(length), vote),

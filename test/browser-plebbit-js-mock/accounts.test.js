@@ -78,6 +78,7 @@ describe('accounts (plebbit-js mock)', () => {
         commentVerified = _commentVerified
         onChallengeVerificationCalled++
       }
+      const onError = () => {}
 
       it('publish comment', async () => {
         const publishCommentOptions = {
@@ -86,6 +87,7 @@ describe('accounts (plebbit-js mock)', () => {
           content: 'some content',
           onChallenge,
           onChallengeVerification,
+          onError,
         }
         await act(async () => {
           await rendered.result.current.publishComment(publishCommentOptions)
@@ -133,6 +135,7 @@ describe('accounts (plebbit-js mock)', () => {
         voteVerified = _voteVerified
         onChallengeVerificationCalled++
       }
+      const onError = () => {}
 
       it('publish vote', async () => {
         const publishVoteOptions = {
@@ -141,6 +144,7 @@ describe('accounts (plebbit-js mock)', () => {
           vote: 1,
           onChallenge,
           onChallengeVerification,
+          onError,
         }
         await act(async () => {
           await rendered.result.current.publishVote(publishVoteOptions)

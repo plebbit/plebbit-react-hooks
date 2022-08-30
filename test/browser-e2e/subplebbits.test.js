@@ -99,6 +99,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         voteVerified = _voteVerified
         onChallengeVerificationCalled++
       }
+      const onError = () => {}
 
       it(`publish vote (${plebbitOptionsType})`, async () => {
         const publishVoteOptions = {
@@ -107,6 +108,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           vote: 1,
           onChallenge,
           onChallengeVerification,
+          onError,
         }
         console.log('before publish vote')
         await act(async () => {
