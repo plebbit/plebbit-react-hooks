@@ -241,7 +241,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
       // subplebbit post count is low, fetch next subplebbit page
       if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
         addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error: unknown) =>
-          log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, sortType, error})
+          log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, subplebbit: subplebbits[subplebbitAddress], sortType, error})
         )
       }
     }
