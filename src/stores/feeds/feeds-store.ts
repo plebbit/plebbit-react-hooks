@@ -98,7 +98,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     updateFeeds()
   },
 
-  async incrementFeedPageNumber(feedName: string) {
+  incrementFeedPageNumber(feedName: string) {
     const {feedsOptions, loadedFeeds, updateFeeds} = getState()
     assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`)
     log('feedsActions.incrementFeedPageNumber', {feedName})
