@@ -72,23 +72,21 @@ const feedsStore = createStore((setState, getState) => ({
         });
     },
     incrementFeedPageNumber(feedName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { feedsOptions, loadedFeeds, updateFeeds } = getState();
-            assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`);
-            log('feedsActions.incrementFeedPageNumber', { feedName });
-            assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
-            setState(({ feedsOptions, loadedFeeds }) => {
-                // don't increment page number before the current page has loaded
-                if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
-                    return {};
-                }
-                const feedOptions = Object.assign(Object.assign({}, feedsOptions[feedName]), { pageNumber: feedsOptions[feedName].pageNumber + 1 });
-                return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }) };
-            });
-            // do not update feed at the same time as increment a page number or it might cause
-            // a race condition, rather schedule a feed update
-            updateFeeds();
+        const { feedsOptions, loadedFeeds, updateFeeds } = getState();
+        assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`);
+        log('feedsActions.incrementFeedPageNumber', { feedName });
+        assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
+        setState(({ feedsOptions, loadedFeeds }) => {
+            // don't increment page number before the current page has loaded
+            if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
+                return {};
+            }
+            const feedOptions = Object.assign(Object.assign({}, feedsOptions[feedName]), { pageNumber: feedsOptions[feedName].pageNumber + 1 });
+            return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }) };
         });
+        // do not update feed at the same time as increment a page number or it might cause
+        // a race condition, rather schedule a feed update
+        updateFeeds();
     },
     // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
     updateFeeds() {
