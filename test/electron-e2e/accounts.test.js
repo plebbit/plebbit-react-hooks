@@ -1,7 +1,7 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {setPlebbitJs, PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
-// set PlebbitJs with native functions defined in preload.js
-setPlebbitJs(window.PlebbitJs)
+const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const {setNativeFunctions} = require('@plebbit/plebbit-js/dist/browser/plebbit')
+setNativeFunctions(window.plebbitNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
@@ -60,21 +60,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(account.plebbitOptions.ipfsHttpClientOptions).to.equal(undefined)
         expect(account.plebbitOptions.pubsubHttpClientOptions).to.equal('https://pubsubprovider.xyz/api/v0')
       })
-    })
-
-    it.only('debug create subplebbit', async () => {
-      console.log('do nothing, debug in the dev tool console')
-      const plebbitOptions = plebbitOptionsTypes[plebbitOptionsType]
-      console.log('plebbitOptions')
-      console.log(plebbitOptions)
-      console.log(window.PlebbitJs)
-      const plebbit = await window.PlebbitJs(plebbitOptions)
-      console.log(plebbit)
-      console.log('before create subplebbit')
-      const subplebbit = await plebbit.createSubplebbit({title: 'test title'})
-      console.log(subplebbit)
-      console.log('after create subplebbit')
-      await new Promise((r) => {})
     })
 
     describe.skip(`create subplebbit (${plebbitOptionsType})`, () => {

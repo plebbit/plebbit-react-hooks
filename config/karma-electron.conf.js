@@ -39,10 +39,11 @@ if (process.env.DEBUG) {
 
 // electron preload.js file
 const preloadJs = `
-  // inject PlebbitJs with native modules inside plebbit-react-hooks using window.PlebbitJs
-  const PlebbitJs = require('@plebbit/plebbit-js')
-  window.PlebbitJs = PlebbitJs
-  console.log('electron preload.js define window.PlebbitJs')
+// inject PlebbitJs with native modules inside plebbit-react-hooks using window.PlebbitJs
+const nodeNativeFunctions = require('@plebbit/plebbit-js/dist/node/runtime/node/native-functions')
+window.plebbitNativeFunctions = nodeNativeFunctions.default
+console.log('electron preload.js define window.plebbitNativeFunctions')
+
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
 fs.writeFileSync(preloadJsPath, preloadJs)
@@ -83,8 +84,8 @@ module.exports = function (config) {
         browserWindowOptions: {
           webPreferences: {
             // TODO: enable context isolation after plebbit-js native functions api is implemented
-            nodeIntegration: true,
-            contextIsolation: false,
+            nodeIntegration: false,
+            contextIsolation: true,
 
             // the electron window preload.js file
             preload: preloadJsPath,

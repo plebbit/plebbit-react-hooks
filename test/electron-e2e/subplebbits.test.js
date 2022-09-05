@@ -1,7 +1,7 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {setPlebbitJs, PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
-// set PlebbitJs with native functions defined in preload.js
-setPlebbitJs(window.PlebbitJs)
+const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {setNativeFunctions} = require('@plebbit/plebbit-js/dist/browser/plebbit')
+setNativeFunctions(window.plebbitNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
@@ -27,6 +27,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`subplebbits (${plebbitOptionsType})`, () => {
     before(async () => {
       console.log(`before subplebbits tests (${plebbitOptionsType})`)
+      console.log(`after testUtils.resetDatabasesAndStores`)
 
       testUtils.silenceReactWarnings()
       // reset before or init accounts sometimes fails
@@ -44,10 +45,16 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         rendered = renderHook(
           ({subplebbitAddress, commentCid} = {}) => {
             const account = useAccount()
+            console.log(`useAccount: ${account}`)
             const accountsActions = useAccountsActions()
+            console.log(`useAccountActions: ${accountsActions}`)
             const subplebbit = useSubplebbit(subplebbitAddress)
+            console.log(`useSubplebbit: ${subplebbit}`)
             const accountVotes = useAccountVotes()
+            console.log(`useAccountVotes: ${accountVotes}`)
             const comment = useComment(commentCid)
+            console.log(`useComment: ${comment}`)
+
             return {account, subplebbit, comment, accountVotes, ...accountsActions}
           },
           {wrapper: PlebbitProvider}
