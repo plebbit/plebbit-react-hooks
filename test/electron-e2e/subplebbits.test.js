@@ -45,15 +45,10 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         rendered = renderHook(
           ({subplebbitAddress, commentCid} = {}) => {
             const account = useAccount()
-            console.log(`useAccount: ${account}`)
             const accountsActions = useAccountsActions()
-            console.log(`useAccountActions: ${accountsActions}`)
             const subplebbit = useSubplebbit(subplebbitAddress)
-            console.log(`useSubplebbit: ${subplebbit}`)
             const accountVotes = useAccountVotes()
-            console.log(`useAccountVotes: ${accountVotes}`)
             const comment = useComment(commentCid)
-            console.log(`useComment: ${comment}`)
 
             return {account, subplebbit, comment, accountVotes, ...accountsActions}
           },
