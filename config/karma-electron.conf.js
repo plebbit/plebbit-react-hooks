@@ -39,11 +39,10 @@ if (process.env.DEBUG) {
 
 // electron preload.js file
 const preloadJs = `
-// inject PlebbitJs with native modules inside plebbit-react-hooks using window.PlebbitJs
-const nodeNativeFunctions = require('@plebbit/plebbit-js/dist/node/runtime/node/native-functions')
-window.plebbitNativeFunctions = nodeNativeFunctions.default
-console.log('electron preload.js define window.plebbitNativeFunctions')
-
+// expose plebbit-js native functions into electron's renderer
+const {contextBridge} = require('electron')
+contextBridge.exposeInMainWorld('plebbitJsNativeFunctions', require('@plebbit/plebbit-js/dist/node/runtime/node/native-functions').default)
+console.log('electron preload.js contextBridge.exposeInMainWorld plebbitJsNativeFunctions')
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
 fs.writeFileSync(preloadJsPath, preloadJs)
