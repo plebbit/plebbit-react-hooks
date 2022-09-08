@@ -2037,9 +2037,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#50fa2969347ba91a2bf18887d1ef731b6eeb3d7d":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#7fd19660c160dc1e9a963d0500fb0f106d6fe31a":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#50fa2969347ba91a2bf18887d1ef731b6eeb3d7d"
+  resolved "https://github.com/plebbit/plebbit-js.git#7fd19660c160dc1e9a963d0500fb0f106d6fe31a"
   dependencies:
     "@keyv/sqlite" "3.5.3"
     "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
