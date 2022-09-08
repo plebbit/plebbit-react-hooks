@@ -317,8 +317,7 @@ publishComment({
 // reply to a post or comment
 publishComment({
   content: 'hello',
-  postCid: 'Qm...', // the thread the comment is on
-  parentCommentCid: 'Qm...', // if top level reply to a post, same as postCid
+  parentCid: 'Qm...', // the cid of the comment to reply to
   subplebbitAddress: 'Qm...',
   onChallenge,
   onChallengeVerification,
