@@ -26,7 +26,7 @@
     "test:e2e:mock": "karma start config/karma.conf.js --plebbit-js-mock",
     "test:e2e:browser": "karma start config/karma.conf.js",
     "test:e2e:electron": "karma start config/karma-electron.conf.js",
-    "test:server": "node test/test-server",
+    "test:server": "rm -rf .plebbit/ && node test/test-server",
     "test:server:wait-on": "wait-on http://localhost:59281 --timeout 120000",
     "test:mock-content": "jest --config config/jest.config.cjs --testRegex plebbit-js-mock-content.donttest.ts",
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
