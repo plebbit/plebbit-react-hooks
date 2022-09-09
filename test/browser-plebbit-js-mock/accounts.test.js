@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
+const {useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 // mock right after importing or sometimes fails to mock
@@ -23,7 +23,7 @@ describe('accounts (plebbit-js mock)', () => {
   describe('no accounts in database', () => {
     it('generate default account on load', async () => {
       console.log('starting accounts tests')
-      const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
+      const rendered = renderHook(() => useAccount())
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
       await waitFor(() => rendered.result.current?.name === 'Account 1')
@@ -45,16 +45,13 @@ describe('accounts (plebbit-js mock)', () => {
     let rendered, waitFor
 
     beforeEach(async () => {
-      rendered = renderHook(
-        (accountName) => {
-          const account = useAccount(accountName)
-          const accountsActions = useAccountsActions()
-          const accountVotes = useAccountVotes()
-          const accountComments = useAccountComments()
-          return {account, accountVotes, accountComments, ...accountsActions}
-        },
-        {wrapper: PlebbitProvider}
-      )
+      rendered = renderHook((accountName) => {
+        const account = useAccount(accountName)
+        const accountsActions = useAccountsActions()
+        const accountVotes = useAccountVotes()
+        const accountComments = useAccountComments()
+        return {account, accountVotes, accountComments, ...accountsActions}
+      })
       waitFor = testUtils.createWaitFor(rendered, {timeout})
 
       await waitFor(() => rendered.result.current.account.name === 'Account 1')

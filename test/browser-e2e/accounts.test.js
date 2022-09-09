@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const {useAccount, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
@@ -42,7 +42,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       it(`generate default account on load (${plebbitOptionsType})`, async () => {
         console.log(`starting accounts tests (${plebbitOptionsType})`)
 
-        const rendered = renderHook(() => useAccount(), {wrapper: PlebbitProvider})
+        const rendered = renderHook(() => useAccount())
         const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current?.name === 'Account 1')
@@ -67,16 +67,13 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       let rendered, waitFor, publishedCid
 
       before(async () => {
-        rendered = renderHook(
-          () => {
-            const account = useAccount()
-            const accountsActions = useAccountsActions()
-            const accountVotes = useAccountVotes()
-            const accountComments = useAccountComments()
-            return {account, accountVotes, accountComments, ...accountsActions}
-          },
-          {wrapper: PlebbitProvider}
-        )
+        rendered = renderHook(() => {
+          const account = useAccount()
+          const accountsActions = useAccountsActions()
+          const accountVotes = useAccountVotes()
+          const accountComments = useAccountComments()
+          return {account, accountVotes, accountComments, ...accountsActions}
+        })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')

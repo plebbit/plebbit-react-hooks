@@ -11,7 +11,6 @@ process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useComment, useSubplebbit, useFeed, useAccountsActions, useAccountSubplebbits} from '../../index'
-import PlebbitProvider from '../../providers/plebbit'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 
@@ -28,7 +27,7 @@ describe('mock content', () => {
   })
 
   test('use comments', async () => {
-    const rendered = renderHook<any, any>((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
+    const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
     expect(rendered.result.current).toBe(undefined)
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa0')
     try {
@@ -70,9 +69,7 @@ describe('mock content', () => {
   })
 
   test.only('use subplebbits', async () => {
-    const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
-      wrapper: PlebbitProvider,
-    })
+    const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress))
     expect(rendered.result.current).toBe(undefined)
     rendered.rerender('anything2.eth')
     try {
@@ -103,16 +100,11 @@ describe('mock content', () => {
   })
 
   test('use account subplebbits', async () => {
-    const rendered = renderHook<any, any>(
-      () => {
-        const {createSubplebbit} = useAccountsActions()
-        const accountSubplebbits = useAccountSubplebbits()
-        return {createSubplebbit, accountSubplebbits}
-      },
-      {
-        wrapper: PlebbitProvider,
-      }
-    )
+    const rendered = renderHook<any, any>(() => {
+      const {createSubplebbit} = useAccountsActions()
+      const accountSubplebbits = useAccountSubplebbits()
+      return {createSubplebbit, accountSubplebbits}
+    })
 
     try {
       await rendered.waitFor(() => typeof rendered.result.current?.createSubplebbit === 'function', {timeout: 60000})
@@ -153,9 +145,7 @@ describe('mock content', () => {
   })
 
   test.only('use feed', async () => {
-    const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed(subplebbitAddresses, 'new'), {
-      wrapper: PlebbitProvider,
-    })
+    const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed(subplebbitAddresses, 'new'))
     const scrollOnePage = async () => {
       const nextFeedLength = (rendered.result.current.feed?.length || 0) + 25
       act(() => {
@@ -185,9 +175,7 @@ describe('mock content', () => {
   })
 
   test('publish', async () => {
-    const rendered = renderHook<any, any>(() => useAccountsActions(), {
-      wrapper: PlebbitProvider,
-    })
+    const rendered = renderHook<any, any>(() => useAccountsActions())
 
     try {
       await rendered.waitFor(() => typeof rendered.result.current.publishComment === 'function', {timeout: 60000})
@@ -237,9 +225,7 @@ describe('mock content', () => {
   })
 
   test('create subplebbit', async () => {
-    const rendered = renderHook<any, any>(() => useAccountsActions(), {
-      wrapper: PlebbitProvider,
-    })
+    const rendered = renderHook<any, any>(() => useAccountsActions())
 
     try {
       await rendered.waitFor(() => typeof rendered.result.current.createSubplebbit === 'function', {timeout: 60000})

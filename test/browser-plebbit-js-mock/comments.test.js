@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useComment, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
+const {useComment, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 // mock right after importing or sometimes fails to mock
@@ -23,7 +23,7 @@ describe('comments (plebbit-js mock)', () => {
   describe('no comments in database', () => {
     it('get comments one at a time', async () => {
       console.log('starting comments tests')
-      const rendered = renderHook((commentCid) => useComment(commentCid), {wrapper: PlebbitProvider})
+      const rendered = renderHook((commentCid) => useComment(commentCid))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).to.equal(undefined)
 

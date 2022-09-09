@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useFeed, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
+const {useFeed, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 // mock right after importing or sometimes fails to mock
 setPlebbitJs(PlebbitJsMock)
@@ -35,9 +35,7 @@ describe('feeds (plebbit-js mock)', () => {
     }
 
     beforeEach(async () => {
-      rendered = renderHook((props) => useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName), {
-        wrapper: PlebbitProvider,
-      })
+      rendered = renderHook((props) => useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName))
       waitFor = testUtils.createWaitFor(rendered, {timeout})
     })
 

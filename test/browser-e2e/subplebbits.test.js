@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
@@ -42,17 +42,14 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       let rendered, waitFor, commentCid
 
       before(async () => {
-        rendered = renderHook(
-          ({subplebbitAddress, commentCid} = {}) => {
-            const account = useAccount()
-            const accountsActions = useAccountsActions()
-            const subplebbit = useSubplebbit(subplebbitAddress)
-            const accountVotes = useAccountVotes()
-            const comment = useComment(commentCid)
-            return {account, subplebbit, comment, accountVotes, ...accountsActions}
-          },
-          {wrapper: PlebbitProvider}
-        )
+        rendered = renderHook(({subplebbitAddress, commentCid} = {}) => {
+          const account = useAccount()
+          const accountsActions = useAccountsActions()
+          const subplebbit = useSubplebbit(subplebbitAddress)
+          const accountVotes = useAccountVotes()
+          const comment = useComment(commentCid)
+          return {account, subplebbit, comment, accountVotes, ...accountsActions}
+        })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')

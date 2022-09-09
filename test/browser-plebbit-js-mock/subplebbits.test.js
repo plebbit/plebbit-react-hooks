@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useSubplebbit, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
+const {useSubplebbit, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 // mock right after importing or sometimes fails to mock
@@ -23,9 +23,7 @@ describe('subplebbits (plebbit-js mock)', () => {
   describe('no subplebbits in database', () => {
     it('get subplebbits one at a time', async () => {
       console.log('starting subplebbits tests')
-      const rendered = renderHook((subplebbitAddress) => useSubplebbit(subplebbitAddress), {
-        wrapper: PlebbitProvider,
-      })
+      const rendered = renderHook((subplebbitAddress) => useSubplebbit(subplebbitAddress))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
       expect(rendered.result.current).to.equal(undefined)
