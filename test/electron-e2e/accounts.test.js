@@ -12,7 +12,7 @@ const timeout = 600000
 
 // run tests using plebbit options gateway and httpClient
 const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
-const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
+const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}/api/v0`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
   'http client': {
