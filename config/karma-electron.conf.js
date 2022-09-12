@@ -41,7 +41,9 @@ if (process.env.DEBUG) {
 const preloadJs = `
 // expose plebbit-js native functions into electron's renderer
 const {contextBridge} = require('electron')
+const path = require ('path')
 contextBridge.exposeInMainWorld('plebbitJsNativeFunctions', require('@plebbit/plebbit-js/dist/node/runtime/node/native-functions').default)
+contextBridge.exposeInMainWorld('plebbitDataPath', path.join(process.cwd(), '.plebbit'))
 console.log('electron preload.js contextBridge.exposeInMainWorld plebbitJsNativeFunctions')
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
@@ -57,6 +59,7 @@ module.exports = function (config) {
 
       // in electron iframes don't get `nodeIntegration` but windows do
       useIframe: false,
+      runInParent: true,
     },
     plugins: [require('karma-electron'), require('karma-mocha'), require('karma-chai'), require('karma-sinon'), require('karma-spec-reporter'), injectCodeBeforePlugin],
 
@@ -78,6 +81,7 @@ module.exports = function (config) {
       // customimze electron browser launcher
       CustomElectron: {
         base: 'Electron',
+        flags: ['--browserWindowOptions.show'],
 
         // customimze electron create window options
         browserWindowOptions: {
