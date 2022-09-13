@@ -26,7 +26,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
     assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`)
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`)
 
-    // check the preloaded posts on subplebbit.posts.pages first, then the subplebbits.posts.pageCids
+    // check the preloaded posts on subplebbit.posts.pages first, then the subplebbit.posts.pageCids
     const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
     assert(
       subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string',
