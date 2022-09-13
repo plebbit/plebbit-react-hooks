@@ -20,6 +20,7 @@ const plebbitOptionsTypes = {
     // define pubsubHttpClientOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubHttpClientOptions: localPubsubProviderUrl,
+    dataPath: window.plebbitDataPath,
   },
 }
 
