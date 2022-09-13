@@ -59,6 +59,7 @@ module.exports = function (config) {
 
       // in electron iframes don't get `nodeIntegration` but windows do
       useIframe: false,
+      // run all tests in the main electron window, native functions don't work without it
       runInParent: true,
     },
     plugins: [require('karma-electron'), require('karma-mocha'), require('karma-chai'), require('karma-sinon'), require('karma-spec-reporter'), injectCodeBeforePlugin],

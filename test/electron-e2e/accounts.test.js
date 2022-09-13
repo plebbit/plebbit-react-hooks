@@ -1,5 +1,5 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils, useAccountSubplebbits} = require('../../dist')
 const {setNativeFunctions} = require('@plebbit/plebbit-js/dist/browser/plebbit')
 setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
@@ -63,15 +63,16 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
     })
 
-    describe.skip(`create subplebbit (${plebbitOptionsType})`, () => {
+    describe(`create subplebbit (${plebbitOptionsType})`, () => {
       let rendered, waitFor
 
       before(async () => {
         rendered = renderHook((subplebbitAddress) => {
           const account = useAccount()
+          const accountSubplebbits = useAccountSubplebbits()
           const accountsActions = useAccountsActions()
           const subplebbit = useSubplebbit(subplebbitAddress)
-          return {account, subplebbit, ...accountsActions}
+          return {account, accountSubplebbits, subplebbit, ...accountsActions}
         })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
@@ -93,33 +94,31 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         console.log('after set account')
       })
 
-      it('create a subplebbit', async () => {
+      it('create and edit a subplebbit', async () => {
         console.log('before create subplebbit')
         const createdSubplebbitTitle = 'my title'
         let subplebbit
         await act(async () => {
           subplebbit = await rendered.result.current.createSubplebbit({title: createdSubplebbitTitle})
         })
-        console.log('after create subplebbit', subplebbit.address, subplebbit)
+        console.log('after create subplebbit', subplebbit.address)
         const createdSubplebbitAddress = subplebbit?.address
         expect(typeof createdSubplebbitAddress).to.equal('string')
         expect(subplebbit.title).to.equal(createdSubplebbitTitle)
 
-        console.log(subplebbit)
-        return
-
-        // TODO: migrate from react context to be able to use subplebbit after creating
-
+        console.log('before used subplebbit')
         // can useSubplebbit
         rendered.rerender(createdSubplebbitAddress)
         await waitFor(() => rendered.result.current.subplebbit.title === createdSubplebbitTitle)
         expect(rendered.result.current.subplebbit.address).to.equal(createdSubplebbitAddress)
         expect(rendered.result.current.subplebbit.title).to.equal(createdSubplebbitTitle)
-        console.log('used subplebbit', rendered.result.current.subplebbit)
+        console.log('after used subplebbit')
 
         // wait for subplebbit to be added to account subplebbits
+        console.log('before subplebbit added to account subplebbits')
         await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
         expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).to.equal('owner')
+        console.log('after subplebbit added to account subplebbits')
 
         console.log('before edit subplebbit address')
         // publishSubplebbitEdit address
@@ -132,16 +131,23 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         })
         console.log('after edit subplebbit address')
 
+        // mock plebbit.resolver to return the test sub's address without using Ethereum
+        rendered.result.current.account.plebbit.resolver.resolveSubplebbitAddressIfNeeded = () => createdSubplebbitAddress
+
+        console.log('before use subplebbit')
         // change useSubplebbit address
         rendered.rerender(editedSubplebbitAddress)
         await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
         expect(rendered.result.current.subplebbit.address).to.equal(editedSubplebbitAddress)
         expect(rendered.result.current.subplebbit.title).to.equal(createdSubplebbitTitle)
+        console.log('after use subplebbit')
 
+        console.log('before onChallengeVerification')
         // onChallengeVerification should be called with success even if the sub is edited locally
-        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
+        await waitFor(() => onChallengeVerificationCalls.length >= 1)
         expect(onChallengeVerificationCalls.length).to.equal(1)
         expect(onChallengeVerificationCalls[0][0].challengeSuccess).to.equal(true)
+        console.log('after onChallengeVerification')
 
         console.log('before edit subplebbit title')
         // publishSubplebbitEdit title and description
@@ -157,14 +163,18 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         })
         console.log('after edit subplebbit title')
 
+        console.log('before subplebbit change')
         // wait for change
         await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
         expect(rendered.result.current.subplebbit.address).to.equal(editedSubplebbitAddress)
+        console.log('after subplebbit change')
 
+        console.log('before onChallengeVerification')
         // onChallengeVerification should be called with success even if the sub is edited locally
-        await waitFor(() => onChallengeVerification.mock.calls.length === 1)
-        expect(onChallengeVerificationCalls.length).to.equal(1)
-        expect(onChallengeVerificationCalls[0][0].challengeSuccess).to.equal(true)
+        await waitFor(() => onChallengeVerificationCalls.length >= 2)
+        expect(onChallengeVerificationCalls.length).to.equal(2)
+        expect(onChallengeVerificationCalls[1][0].challengeSuccess).to.equal(true)
+        console.log('after onChallengeVerification')
       })
     })
 
