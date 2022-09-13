@@ -32,7 +32,7 @@
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#d61772cc841584f7dcc6e7a4224041d35841e2aa",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#0bfc8222a59566f08b28d7469540ecd55c4db7b9",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
     "@types/uuid": "8.3.4",
     "assert": "2.0.0",
