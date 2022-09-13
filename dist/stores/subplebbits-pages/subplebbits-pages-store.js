@@ -25,7 +25,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         assert((subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) && typeof (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`);
         assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`);
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`);
-        // check the preloaded posts on subplebbit.posts.pages first, then the subplebbits.posts.pageCids
+        // check the preloaded posts on subplebbit.posts.pages first, then the subplebbit.posts.pageCids
         const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType);
         assert(subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts?.pageCids?.['${sortType}'] '${(_c = (_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.pageCids) === null || _c === void 0 ? void 0 : _c[sortType]}' invalid`);
         // all subplebbits pages in store
