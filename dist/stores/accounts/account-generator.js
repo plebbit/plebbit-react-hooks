@@ -31,23 +31,23 @@ const blockchainProviders = {
 export const getDefaultPlebbitOptions = () => {
     // default plebbit options defined by the electron process
     // @ts-ignore
-    if (window.DefaultPlebbitOptions) {
+    if (window.defaultPlebbitOptions) {
         // add missing blockchain providers
-        // mutate the window.DefaultPlebbitOptions on purpose instead of replacing it or it breaks the tests
+        // mutate the window.defaultPlebbitOptions on purpose instead of replacing it or it breaks the tests
         // @ts-ignore
-        if (!window.DefaultPlebbitOptions.blockchainProviders) {
+        if (!window.defaultPlebbitOptions.blockchainProviders) {
             // @ts-ignore
-            window.DefaultPlebbitOptions.blockchainProviders = {};
+            window.defaultPlebbitOptions.blockchainProviders = {};
         }
         for (const chainTicker in blockchainProviders) {
             // @ts-ignore
-            if (!window.DefaultPlebbitOptions.blockchainProviders[chainTicker]) {
+            if (!window.defaultPlebbitOptions.blockchainProviders[chainTicker]) {
                 // @ts-ignore
-                window.DefaultPlebbitOptions.blockchainProviders[chainTicker] = blockchainProviders[chainTicker];
+                window.defaultPlebbitOptions.blockchainProviders[chainTicker] = blockchainProviders[chainTicker];
             }
         }
         // @ts-ignore
-        return window.DefaultPlebbitOptions;
+        return window.defaultPlebbitOptions;
     }
     // default plebbit options for web client
     return {
