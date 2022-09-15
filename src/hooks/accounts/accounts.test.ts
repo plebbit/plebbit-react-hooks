@@ -56,7 +56,7 @@ describe('accounts', () => {
     test(`default plebbit options are not saved to database`, async () => {
       const plebbitOptions = {ipfsHttpClientOptions: 'http://one:5001/api/v0'}
       // @ts-ignore
-      window.DefaultPlebbitOptions = plebbitOptions
+      window.defaultPlebbitOptions = plebbitOptions
 
       // re-init accounts after changing plebbit defaults
       await testUtils.resetDatabasesAndStores()
@@ -98,7 +98,7 @@ describe('accounts', () => {
       expect(rendered2.result.current.account.author.displayName).toBe('john')
 
       // @ts-ignore
-      delete window.DefaultPlebbitOptions
+      delete window.defaultPlebbitOptions
     })
 
     test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
