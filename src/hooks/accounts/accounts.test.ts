@@ -67,24 +67,25 @@ describe('accounts', () => {
         return {account, setAccount}
       })
       const waitFor = testUtils.createWaitFor(rendered)
+
+      // reloaded accounts have new default plebbit options
       await waitFor(() => rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions === plebbitOptions.ipfsHttpClientOptions)
       expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
 
-      plebbitOptions.ipfsHttpClientOptions = 'http://two:5001/api/v0'
-
+      // set account with new default plebbit options
       await act(async () => {
         const author = {...rendered.result.current.account.author, displayName: 'john'}
         const account = {...rendered.result.current.account, author}
         await rendered.result.current.setAccount(account)
       })
 
+      // account has new default plebbit options
       await waitFor(() => rendered.result.current.account.author.displayName === 'john')
       expect(rendered.result.current.account.author.displayName).toBe('john')
       expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
 
-      plebbitOptions.ipfsHttpClientOptions = 'http://three:5001/api/v0'
-
-      // reset stores to force using the db
+      // change default plebbit options and reload accounts
+      plebbitOptions.ipfsHttpClientOptions = 'http://two:5001/api/v0'
       await testUtils.resetStores()
 
       // on second render get the account from database
@@ -94,6 +95,8 @@ describe('accounts', () => {
       })
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.account)
+
+      // account plebbit options were not saved, has new default plebbit options
       expect(rendered2.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
       expect(rendered2.result.current.account.author.displayName).toBe('john')
 
