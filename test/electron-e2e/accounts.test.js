@@ -1,7 +1,7 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils, useAccountSubplebbits} = require('../../dist')
-const {setNativeFunctions} = require('@plebbit/plebbit-js/dist/browser/plebbit')
-setNativeFunctions(window.plebbitJsNativeFunctions)
+const Plebbit = require('@plebbit/plebbit-js')
+Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
