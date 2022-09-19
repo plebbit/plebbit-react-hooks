@@ -1,5 +1,8 @@
 declare const PlebbitJs: {
-    Plebbit: (plebbitOptions?: import("@plebbit/plebbit-js/dist/node/types").PlebbitOptions | undefined) => Promise<import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit>;
+    Plebbit: {
+        (plebbitOptions?: import("@plebbit/plebbit-js/dist/node/types").PlebbitOptions | undefined): Promise<import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit>;
+        setNativeFunctions: (newNativeFunctions: Partial<import("@plebbit/plebbit-js/dist/node/types").NativeFunctions>) => void;
+    };
 };
 /**
  * replace PlebbitJs with a different implementation, for
