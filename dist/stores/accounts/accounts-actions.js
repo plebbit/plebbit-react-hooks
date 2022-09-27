@@ -256,6 +256,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentOptions);
     delete createCommentOptions.onChallenge;
     delete createCommentOptions.onChallengeVerification;
+    delete createCommentOptions.onError;
     let accountCommentIndex;
     let comment = yield account.plebbit.createComment(createCommentOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -327,6 +328,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     let createVoteOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
     delete createVoteOptions.onChallenge;
     delete createVoteOptions.onChallengeVerification;
+    delete createVoteOptions.onError;
     let vote = yield account.plebbit.createVote(createVoteOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _c;
@@ -371,6 +373,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     let createCommentEditOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentEditOptions);
     delete createCommentEditOptions.onChallenge;
     delete createCommentEditOptions.onChallengeVerification;
+    delete createCommentEditOptions.onError;
     let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _d;
@@ -423,6 +426,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         address: subplebbitAddress });
     delete createSubplebbitEditOptions.onChallenge;
     delete createSubplebbitEditOptions.onChallengeVerification;
+    delete createSubplebbitEditOptions.onError;
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _e;
