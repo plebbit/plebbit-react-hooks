@@ -290,6 +290,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   }
   delete createCommentOptions.onChallenge
   delete createCommentOptions.onChallengeVerification
+  delete createCommentOptions.onError
 
   let accountCommentIndex: number
 
@@ -374,6 +375,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   }
   delete createVoteOptions.onChallenge
   delete createVoteOptions.onChallengeVerification
+  delete createVoteOptions.onError
 
   let vote = await account.plebbit.createVote(createVoteOptions)
   const publishAndRetryFailedChallengeVerification = async () => {
@@ -428,6 +430,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   }
   delete createCommentEditOptions.onChallenge
   delete createCommentEditOptions.onChallengeVerification
+  delete createCommentEditOptions.onError
 
   let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
   const publishAndRetryFailedChallengeVerification = async () => {
@@ -492,6 +495,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   }
   delete createSubplebbitEditOptions.onChallenge
   delete createSubplebbitEditOptions.onChallengeVerification
+  delete createSubplebbitEditOptions.onError
 
   let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
   const publishAndRetryFailedChallengeVerification = async () => {
