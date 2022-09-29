@@ -108,7 +108,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     }
   })
   listeners.push(comment)
-  comment.update()
+  comment.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
 }
 
 // internal accounts action: the comment CID is not known at the time of publishing, so every time

@@ -57,7 +57,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
     listeners.push(comment)
-    comment.update()
+    comment.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own

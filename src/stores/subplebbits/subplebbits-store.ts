@@ -85,7 +85,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
       accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
     })
     listeners.push(subplebbit)
-    subplebbit.update()
+    subplebbit.update().catch((error: unknown) => log.trace('subplebbit.update error', {subplebbit, error}))
   },
 
   // user is the owner of the subplebbit and can edit it locally

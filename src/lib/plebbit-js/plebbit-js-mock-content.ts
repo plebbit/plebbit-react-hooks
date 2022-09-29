@@ -678,7 +678,7 @@ class Subplebbit extends EventEmitter {
     }
   }
 
-  update() {
+  async update() {
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (!this.address) {
       throw Error(`can't update without subplebbit.address`)
@@ -805,7 +805,7 @@ class Comment extends Publication {
     this.updating = false
   }
 
-  update() {
+  async update() {
     // is ipnsName is known, look for updates and emit updates immediately after creation
     if (!this.ipnsName) {
       throw Error(`can't update without comment.ipnsName`)

@@ -151,7 +151,7 @@ export class Subplebbit extends EventEmitter {
     this.posts = new Pages({subplebbit: this})
   }
 
-  update() {
+  async update() {
     this.updateCalledTimes++
     if (this.updateCalledTimes > 1) {
       throw Error(
@@ -324,7 +324,7 @@ export class Comment extends Publication {
     this.replies = new Pages({comment: this})
   }
 
-  update() {
+  async update() {
     this.updateCalledTimes++
     if (this.updateCalledTimes > 2) {
       throw Error(
