@@ -53,6 +53,10 @@ export const getDefaultPlebbitOptions = () => {
 export const generateDefaultAccount = async () => {
   const plebbitOptions = getDefaultPlebbitOptions()
   const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
+  // handle errors or error events are uncaught
+  // no need to log them because plebbit-js already logs them
+  plebbit.on('error', () => {})
+
   const signer = await plebbit.createSigner()
   const author = {
     address: signer.address,

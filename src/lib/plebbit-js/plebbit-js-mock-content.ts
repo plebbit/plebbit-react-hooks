@@ -509,7 +509,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
 // array of subplebbits probably created by the user
 const createdSubplebbits: any = []
 
-class Plebbit {
+class Plebbit extends EventEmitter {
   async createSigner() {
     return {
       privateKey:

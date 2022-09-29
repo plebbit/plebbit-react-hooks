@@ -19,7 +19,7 @@ export const debugPlebbitJsMock = () => {
   console.log({createdOwnerSubplebbits, editedOwnerSubplebbits})
 }
 
-export class Plebbit {
+export class Plebbit extends EventEmitter {
   async createSigner() {
     return {
       privateKey: 'private key',
