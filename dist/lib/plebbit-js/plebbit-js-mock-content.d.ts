@@ -40,7 +40,7 @@ declare class Subplebbit extends EventEmitter {
     signer: any | undefined;
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
-    update(): void;
+    update(): Promise<void>;
     simulateUpdateEvent(): void;
 }
 declare class Publication extends EventEmitter {
@@ -73,7 +73,7 @@ declare class Comment extends Publication {
     editTimestamp: number | undefined;
     reason: string | undefined;
     constructor(createCommentOptions?: any);
-    update(): void;
+    update(): Promise<void>;
     simulateUpdateEvent(): Promise<void>;
 }
 declare class Vote extends Publication {

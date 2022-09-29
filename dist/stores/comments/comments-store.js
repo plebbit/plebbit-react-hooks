@@ -54,7 +54,7 @@ const commentsStore = createStore((setState, getState) => ({
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: updatedComment }) }));
             }));
             listeners.push(comment);
-            comment.update();
+            comment.update().catch((error) => log.trace('comment.update error', { comment, error }));
             // when publishing a comment, you don't yet know its CID
             // so when a new comment is fetched, check to see if it's your own
             // comment, and if yes, add the CID to your account comments database

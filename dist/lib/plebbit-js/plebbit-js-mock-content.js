@@ -604,19 +604,21 @@ class Subplebbit extends EventEmitter {
         });
     }
     update() {
-        // is ipnsName is known, look for updates and emit updates immediately after creation
-        if (!this.address) {
-            throw Error(`can't update without subplebbit.address`);
-        }
-        // don't update twice
-        // @ts-ignore
-        if (this.updating) {
-            return;
-        }
-        // @ts-ignore
-        this.updating = true;
-        simulateLoadingTime().then(() => {
-            this.simulateUpdateEvent();
+        return __awaiter(this, void 0, void 0, function* () {
+            // is ipnsName is known, look for updates and emit updates immediately after creation
+            if (!this.address) {
+                throw Error(`can't update without subplebbit.address`);
+            }
+            // don't update twice
+            // @ts-ignore
+            if (this.updating) {
+                return;
+            }
+            // @ts-ignore
+            this.updating = true;
+            simulateLoadingTime().then(() => {
+                this.simulateUpdateEvent();
+            });
         });
     }
     simulateUpdateEvent() {
@@ -703,23 +705,25 @@ class Comment extends Publication {
         this.updating = false;
     }
     update() {
-        // is ipnsName is known, look for updates and emit updates immediately after creation
-        if (!this.ipnsName) {
-            throw Error(`can't update without comment.ipnsName`);
-        }
-        // don't update twice
-        // @ts-ignore
-        if (this.updating) {
-            return;
-        }
-        // @ts-ignore
-        this.updating = true;
-        (() => __awaiter(this, void 0, void 0, function* () {
-            while (true) {
-                yield simulateLoadingTime();
-                this.simulateUpdateEvent();
+        return __awaiter(this, void 0, void 0, function* () {
+            // is ipnsName is known, look for updates and emit updates immediately after creation
+            if (!this.ipnsName) {
+                throw Error(`can't update without comment.ipnsName`);
             }
-        }))();
+            // don't update twice
+            // @ts-ignore
+            if (this.updating) {
+                return;
+            }
+            // @ts-ignore
+            this.updating = true;
+            (() => __awaiter(this, void 0, void 0, function* () {
+                while (true) {
+                    yield simulateLoadingTime();
+                    this.simulateUpdateEvent();
+                }
+            }))();
+        });
     }
     simulateUpdateEvent() {
         return __awaiter(this, void 0, void 0, function* () {

@@ -34,7 +34,7 @@ export declare class Subplebbit extends EventEmitter {
     description: string | undefined;
     posts: Pages;
     constructor(createSubplebbitOptions?: any);
-    update(): void;
+    update(): Promise<void>;
     simulateUpdateEvent(): void;
     get roles(): {};
     rolesToGet(): {};
@@ -62,7 +62,7 @@ export declare class Comment extends Publication {
     parentCid: string | undefined;
     replies: any;
     constructor(createCommentOptions?: any);
-    update(): void;
+    update(): Promise<void>;
     simulateUpdateEvent(): void;
 }
 export declare class Vote extends Publication {

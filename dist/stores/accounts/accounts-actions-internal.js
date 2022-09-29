@@ -94,7 +94,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
         }
     }));
     listeners.push(comment);
-    comment.update();
+    comment.update().catch((error) => log.trace('comment.update error', { comment, error }));
 });
 // internal accounts action: the comment CID is not known at the time of publishing, so every time
 // we fetch a new comment, check if its our own, and attempt to add the CID

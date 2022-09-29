@@ -149,21 +149,23 @@ export class Subplebbit extends EventEmitter {
         this.posts = new Pages({ subplebbit: this });
     }
     update() {
-        this.updateCalledTimes++;
-        if (this.updateCalledTimes > 1) {
-            throw Error('with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times');
-        }
-        // is ipnsName is known, look for updates and emit updates immediately after creation
-        if (!this.address) {
-            throw Error(`can't update without subplebbit.address`);
-        }
-        // don't update twice
-        if (this.updating) {
-            return;
-        }
-        this.updating = true;
-        simulateLoadingTime().then(() => {
-            this.simulateUpdateEvent();
+        return __awaiter(this, void 0, void 0, function* () {
+            this.updateCalledTimes++;
+            if (this.updateCalledTimes > 1) {
+                throw Error('with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times');
+            }
+            // is ipnsName is known, look for updates and emit updates immediately after creation
+            if (!this.address) {
+                throw Error(`can't update without subplebbit.address`);
+            }
+            // don't update twice
+            if (this.updating) {
+                return;
+            }
+            this.updating = true;
+            simulateLoadingTime().then(() => {
+                this.simulateUpdateEvent();
+            });
         });
     }
     simulateUpdateEvent() {
@@ -297,21 +299,23 @@ export class Comment extends Publication {
         this.replies = new Pages({ comment: this });
     }
     update() {
-        this.updateCalledTimes++;
-        if (this.updateCalledTimes > 2) {
-            throw Error('with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times');
-        }
-        // is ipnsName is known, look for updates and emit updates immediately after creation
-        if (!this.ipnsName) {
-            throw Error(`can't update without comment.ipnsName`);
-        }
-        // don't update twice
-        if (this.updating) {
-            return;
-        }
-        this.updating = true;
-        simulateLoadingTime().then(() => {
-            this.simulateUpdateEvent();
+        return __awaiter(this, void 0, void 0, function* () {
+            this.updateCalledTimes++;
+            if (this.updateCalledTimes > 2) {
+                throw Error('with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times');
+            }
+            // is ipnsName is known, look for updates and emit updates immediately after creation
+            if (!this.ipnsName) {
+                throw Error(`can't update without comment.ipnsName`);
+            }
+            // don't update twice
+            if (this.updating) {
+                return;
+            }
+            this.updating = true;
+            simulateLoadingTime().then(() => {
+                this.simulateUpdateEvent();
+            });
         });
     }
     simulateUpdateEvent() {
