@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 export declare const simulateLoadingTime: () => Promise<unknown>;
 export declare const resetPlebbitJsMock: () => void;
 export declare const debugPlebbitJsMock: () => void;
-export declare class Plebbit {
+export declare class Plebbit extends EventEmitter {
     createSigner(): Promise<{
         privateKey: string;
         address: string;

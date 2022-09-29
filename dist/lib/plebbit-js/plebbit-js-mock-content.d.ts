@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import EventEmitter from 'events';
-declare class Plebbit {
+declare class Plebbit extends EventEmitter {
     createSigner(): Promise<{
         privateKey: string;
         address: string;

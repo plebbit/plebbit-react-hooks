@@ -57,6 +57,9 @@ export const getDefaultPlebbitOptions = () => {
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {
     const plebbitOptions = getDefaultPlebbitOptions();
     const plebbit = yield PlebbitJs.Plebbit(plebbitOptions);
+    // handle errors or error events are uncaught
+    // no need to log them because plebbit-js already logs them
+    plebbit.on('error', () => { });
     const signer = yield plebbit.createSigner();
     const author = {
         address: signer.address,

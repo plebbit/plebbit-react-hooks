@@ -456,7 +456,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
 });
 // array of subplebbits probably created by the user
 const createdSubplebbits = [];
-class Plebbit {
+class Plebbit extends EventEmitter {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
             return {
