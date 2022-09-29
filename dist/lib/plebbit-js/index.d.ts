@@ -2,6 +2,10 @@ declare const PlebbitJs: {
     Plebbit: {
         (plebbitOptions?: import("@plebbit/plebbit-js/dist/node/types").PlebbitOptions | undefined): Promise<import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit>;
         setNativeFunctions: (newNativeFunctions: Partial<import("@plebbit/plebbit-js/dist/node/types").NativeFunctions>) => void;
+        nativeFunctions: {
+            node: import("@plebbit/plebbit-js/dist/node/types").NativeFunctions;
+            browser: import("@plebbit/plebbit-js/dist/node/types").NativeFunctions;
+        };
     };
 };
 /**
