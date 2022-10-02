@@ -7,6 +7,10 @@ const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 
+window.fetch = () => {
+  throw Error(`electron tests shouldn't use window.fetch`)
+}
+
 // large value for manual debugging
 const timeout = 600000
 
