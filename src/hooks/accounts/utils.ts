@@ -53,6 +53,7 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
   // use a "shallow" check on the argument dependencies because the argument objects might change
   const useMemoDependencies = [...Object.values(accountsCommentsReplies || {}), ...Object.values(accountsBlockedAddresses)]
   // useMemo deps must always have the same length
+  // TODO: will break if there's more than 500 / 2 accounts, must find other solution
   useMemoDependencies.length = 500
 
   return useMemo(() => {
@@ -89,7 +90,8 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
   // use accountsCommentsReplies instead of accountsNotifications because useAccountsNotifications uses it
   const useMemoDependencies = [...Object.values(accounts || {}), ...Object.values(accountsComments || {}), ...Object.values(accountsCommentsReplies || {})]
   // useMemo deps must always have the same length
-  useMemoDependencies.length = 500
+  // TODO: will break if there's more than 1000 / 3 accounts, must find other solution
+  useMemoDependencies.length = 1000
 
   return useMemo(() => {
     if (!accounts) {
