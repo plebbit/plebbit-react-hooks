@@ -4,7 +4,16 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
-import type {UseAccountCommentsFilter, UseAccountCommentsOptions, AccountComments, AccountNotifications, Account} from '../../types'
+import type {
+  UseAccountCommentsFilter,
+  UseAccountCommentsOptions,
+  AccountComments,
+  AccountNotifications,
+  Account,
+  Accounts,
+  AccountsComments,
+  AccountsCommentsReplies,
+} from '../../types'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications} from './utils'
 import {jsonStringifyEqual} from '../../lib/utils'
 
@@ -25,10 +34,27 @@ function useAccountId(accountName?: string) {
  * the active account.
  */
 export function useAccount(accountName?: string) {
-  const accountsStore = useAccountsStore()
-  const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
+  // get state
   const accountId = useAccountId(accountName)
-  const account = accountId && accounts?.[accountId]
+  const accountStore = useAccountsStore((state) => state.accounts[accountId || ''])
+  const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''])
+  const accountCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies[accountId || ''])
+
+  // create objects arguments for useAccountsWithCalculatedProperties
+  const accounts: Accounts = {}
+  const accountsComments: AccountsComments = {}
+  const accountsCommentsReplies: AccountsCommentsReplies = {}
+  if (accountStore?.id) {
+    accounts[accountStore.id] = accountStore
+    if (accountComments) {
+      accountsComments[accountStore.id] = accountComments
+    }
+    if (accountCommentsReplies) {
+      accountsCommentsReplies[accountStore.id] = accountCommentsReplies
+    }
+  }
+  const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsCommentsReplies)
+  const account = accountId && accountsWithCalculatedProperties?.[accountId]
   log('useAccount', {accountId, account, accountName})
   return account
 }

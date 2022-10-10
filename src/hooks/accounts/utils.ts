@@ -49,97 +49,97 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
     Object.keys(accountsCommentsReplies || {}).map((accountId) => [accountId, accounts?.[accountId]?.blockedAddresses || {}])
   )
 
-  return useMemo(() => {
-    const accountsNotifications: AccountsNotifications = {}
-    if (!accountsCommentsReplies) {
-      return accountsNotifications
-    }
-    for (const accountId in accountsCommentsReplies) {
-      // get reply notifications
-      const accountCommentsReplies: AccountCommentReply[] = []
-      for (const replyCid in accountsCommentsReplies[accountId]) {
-        const reply = accountsCommentsReplies[accountId][replyCid]
-
-        // TODO: filter blocked addresses
-        // if (accountsBlockedAddresses[accountId][reply.subplebbitAddress] || accountsBlockedAddresses[accountId][reply.author.address]) {
-        //   continue
-        // }
-        accountCommentsReplies.push(reply)
-      }
-
-      // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
-
-      accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp)
-    }
+  // return useMemo(() => {
+  const accountsNotifications: AccountsNotifications = {}
+  if (!accountsCommentsReplies) {
     return accountsNotifications
-  }, [JSON.stringify(accountsBlockedAddresses), JSON.stringify(accountsCommentsReplies)])
+  }
+  for (const accountId in accountsCommentsReplies) {
+    // get reply notifications
+    const accountCommentsReplies: AccountCommentReply[] = []
+    for (const replyCid in accountsCommentsReplies[accountId]) {
+      const reply = accountsCommentsReplies[accountId][replyCid]
+
+      // TODO: filter blocked addresses
+      // if (accountsBlockedAddresses[accountId][reply.subplebbitAddress] || accountsBlockedAddresses[accountId][reply.author.address]) {
+      //   continue
+      // }
+      accountCommentsReplies.push(reply)
+    }
+
+    // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
+
+    accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp)
+  }
+  return accountsNotifications
+  // }, [JSON.stringify(accountsBlockedAddresses), JSON.stringify(accountsCommentsReplies)])
 }
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
 export const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: AccountsComments, accountsCommentsReplies?: AccountsCommentsReplies) => {
   const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies)
 
-  return useMemo(() => {
-    if (!accounts) {
-      return
-    }
-    if (!accountsComments) {
-      return accounts
-    }
-    const accountsWithCalculatedProperties = {...accounts}
+  // return useMemo(() => {
+  if (!accounts) {
+    return
+  }
+  if (!accountsComments) {
+    return accounts
+  }
+  const accountsWithCalculatedProperties = {...accounts}
 
-    // add karma
-    for (const accountId in accountsComments) {
-      const account = accounts[accountId]
-      const accountComments = accountsComments[accountId]
-      if (!accountComments || !account) {
-        continue
-      }
-      const karma = {
-        replyUpvoteCount: 0,
-        replyDownvoteCount: 0,
-        replyScore: 0,
-        postUpvoteCount: 0,
-        postDownvoteCount: 0,
-        postScore: 0,
-        upvoteCount: 0,
-        downvoteCount: 0,
-        score: 0,
-      }
-      for (const comment of accountComments) {
-        if (comment.parentCid && comment.upvoteCount) {
-          karma.replyUpvoteCount += comment.upvoteCount
-        }
-        if (comment.parentCid && comment.downvoteCount) {
-          karma.replyDownvoteCount += comment.downvoteCount
-        }
-        if (!comment.parentCid && comment.upvoteCount) {
-          karma.postUpvoteCount += comment.upvoteCount
-        }
-        if (!comment.parentCid && comment.downvoteCount) {
-          karma.postDownvoteCount += comment.downvoteCount
-        }
-      }
-      karma.replyScore = karma.replyUpvoteCount - karma.replyDownvoteCount
-      karma.postScore = karma.postUpvoteCount - karma.postDownvoteCount
-      karma.upvoteCount = karma.replyUpvoteCount + karma.postUpvoteCount
-      karma.downvoteCount = karma.replyDownvoteCount + karma.postDownvoteCount
-      karma.score = karma.upvoteCount - karma.downvoteCount
-      const accountWithCalculatedProperties = {...account, karma}
-      accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties
+  // add karma
+  for (const accountId in accountsComments) {
+    const account = accounts[accountId]
+    const accountComments = accountsComments[accountId]
+    if (!accountComments || !account) {
+      continue
     }
-
-    // add unreadNotificationCount
-    for (const accountId in accountsWithCalculatedProperties) {
-      let unreadNotificationCount = 0
-      for (const notification of accountsNotifications?.[accountId] || []) {
-        if (!notification.markedAsRead) {
-          unreadNotificationCount++
-        }
-      }
-      accountsWithCalculatedProperties[accountId].unreadNotificationCount = unreadNotificationCount
+    const karma = {
+      replyUpvoteCount: 0,
+      replyDownvoteCount: 0,
+      replyScore: 0,
+      postUpvoteCount: 0,
+      postDownvoteCount: 0,
+      postScore: 0,
+      upvoteCount: 0,
+      downvoteCount: 0,
+      score: 0,
     }
+    for (const comment of accountComments) {
+      if (comment.parentCid && comment.upvoteCount) {
+        karma.replyUpvoteCount += comment.upvoteCount
+      }
+      if (comment.parentCid && comment.downvoteCount) {
+        karma.replyDownvoteCount += comment.downvoteCount
+      }
+      if (!comment.parentCid && comment.upvoteCount) {
+        karma.postUpvoteCount += comment.upvoteCount
+      }
+      if (!comment.parentCid && comment.downvoteCount) {
+        karma.postDownvoteCount += comment.downvoteCount
+      }
+    }
+    karma.replyScore = karma.replyUpvoteCount - karma.replyDownvoteCount
+    karma.postScore = karma.postUpvoteCount - karma.postDownvoteCount
+    karma.upvoteCount = karma.replyUpvoteCount + karma.postUpvoteCount
+    karma.downvoteCount = karma.replyDownvoteCount + karma.postDownvoteCount
+    karma.score = karma.upvoteCount - karma.downvoteCount
+    const accountWithCalculatedProperties = {...account, karma}
+    accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties
+  }
 
-    return accountsWithCalculatedProperties
-  }, [JSON.stringify(accounts), JSON.stringify(accountsComments), JSON.stringify(accountsNotifications)])
+  // add unreadNotificationCount
+  for (const accountId in accountsWithCalculatedProperties) {
+    let unreadNotificationCount = 0
+    for (const notification of accountsNotifications?.[accountId] || []) {
+      if (!notification.markedAsRead) {
+        unreadNotificationCount++
+      }
+    }
+    accountsWithCalculatedProperties[accountId].unreadNotificationCount = unreadNotificationCount
+  }
+
+  return accountsWithCalculatedProperties
+  // }, [JSON.stringify(accounts), JSON.stringify(accountsComments), JSON.stringify(accountsNotifications)])
 }
