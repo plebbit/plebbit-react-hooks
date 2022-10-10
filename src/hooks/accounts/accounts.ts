@@ -15,7 +15,6 @@ import type {
   AccountsCommentsReplies,
 } from '../../types'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications} from './utils'
-import {jsonStringifyEqual} from '../../lib/utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
