@@ -63,16 +63,19 @@ export function useAccount(accountName?: string) {
  * Return all accounts in the order of `accountsStore.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
 export function useAccounts() {
-  const accountsStore = useAccountsStore()
-  const accounts = useAccountsWithCalculatedProperties(accountsStore.accounts, accountsStore.accountsComments, accountsStore.accountsCommentsReplies)
+  const accountIds = useAccountsStore((state) => state.accountIds)
+  const accountsStore = useAccountsStore((state) => state.accounts)
+  const accountsComments = useAccountsStore((state) => state.accountsComments)
+  const accountsCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies)
+  const accounts = useAccountsWithCalculatedProperties(accountsStore, accountsComments, accountsCommentsReplies)
   const accountsArray: Account[] = []
-  if (accountsStore?.accountIds?.length && accounts) {
-    for (const accountId of accountsStore.accountIds) {
+  if (accountIds?.length && accounts) {
+    for (const accountId of accountIds) {
       accountsArray.push(accounts[accountId])
     }
     return accountsArray
   }
-  log('useAccounts', {accounts, accountIds: accountsStore?.accountIds})
+  log('useAccounts', {accounts, accountIds})
   return accountsArray
 }
 
