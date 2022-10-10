@@ -145,18 +145,29 @@ export function useAccountSubplebbits(accountName?: string) {
  * the active account's notifications.
  */
 export function useAccountNotifications(accountName?: string) {
-  const accountsStore = useAccountsStore()
-  const accountsNotifications = useAccountsNotifications(accountsStore.accounts, accountsStore.accountsCommentsReplies)
-
+  // get state
   const accountId = useAccountId(accountName)
-  const account = accountId && accountsStore?.accounts[accountId]
+  const account = useAccountsStore((state) => state.accounts[accountId || ''])
+  const accountCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies[accountId || ''])
+  const accountsActionsInternal = useAccountsStore((state) => state.accountsActionsInternal)
+
+  // create objects arguments for useAccountsNotifications
+  const accounts: Accounts = {}
+  const accountsCommentsReplies: AccountsCommentsReplies = {}
+  if (account?.id) {
+    accounts[account.id] = account
+    if (accountCommentsReplies) {
+      accountsCommentsReplies[account.id] = accountCommentsReplies
+    }
+  }
+  const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies)
   const notifications: AccountNotifications = (accountId && accountsNotifications?.[accountId]) || []
 
   const markAsRead = () => {
     if (!account) {
       throw Error('useAccountNotifications cannot mark as read accounts not initalized yet')
     }
-    accountsStore.accountsActionsInternal.markAccountNotificationsAsRead(account)
+    accountsActionsInternal.markAccountNotificationsAsRead(account)
   }
   if (account) {
     log('useAccountNotifications', {notifications})
