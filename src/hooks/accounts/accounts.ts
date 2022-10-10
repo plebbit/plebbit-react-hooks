@@ -92,7 +92,7 @@ export function useAccountsActions() {
  */
 export function useAccountSubplebbits(accountName?: string) {
   const accountId = useAccountId(accountName)
-  const accountsStoreAccountSubplebbits = useAccountsStore((state) => state.accounts[accountId || '']?.subplebbits, jsonStringifyEqual)
+  const accountsStoreAccountSubplebbits = useAccountsStore((state) => state.accounts[accountId || '']?.subplebbits)
 
   // get all unique account subplebbit addresses
   const ownerSubplebbitAddresses = useListSubplebbits()
