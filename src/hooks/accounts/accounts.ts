@@ -181,7 +181,7 @@ export function useAccountNotifications(accountName?: string) {
  */
 export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountCommentsOptions?.accountName)
-  const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''], jsonStringifyEqual)
+  const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''])
 
   const filteredAccountComments = useMemo(() => {
     if (!accountComments) {
@@ -191,7 +191,9 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
       return filterPublications(accountComments, useAccountCommentsOptions.filter)
     }
     return accountComments
-  }, [JSON.stringify(accountComments), JSON.stringify(useAccountCommentsOptions)])
+    // use stringify on useAccountCommentsOptions because the argument object could change
+    // while still having the same value, or stay the same, while having different values
+  }, [accountComments, JSON.stringify(useAccountCommentsOptions)])
 
   if (accountComments && useAccountCommentsOptions) {
     log('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
@@ -205,7 +207,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
  */
 export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
   const accountId = useAccountId(useAccountVotesOptions?.accountName)
-  const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''], jsonStringifyEqual)
+  const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
 
   const filteredAccountVotesArray = useMemo(() => {
     if (!accountVotes) {
@@ -219,7 +221,9 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
       accountVotesArray = filterPublications(accountVotesArray, useAccountVotesOptions.filter)
     }
     return accountVotesArray
-  }, [JSON.stringify(accountVotes), JSON.stringify(useAccountVotesOptions)])
+    // use stringify on useAccountVotesOptions because the argument object could change
+    // while still having the same value, or stay the same, while having different values
+  }, [accountVotes, JSON.stringify(useAccountVotesOptions)])
 
   if (accountVotes && useAccountVotesOptions) {
     log('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
@@ -231,10 +235,7 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
  * Returns an account's single vote on a comment, e.g. to know if you already voted on a comment.
  */
 export function useAccountVote(commentCid?: string, accountName?: string) {
-  const useAccountVotesOptions: UseAccountCommentsOptions = {accountName}
-  if (commentCid) {
-    useAccountVotesOptions.filter = {commentCids: [commentCid]}
-  }
-  const accountVotes = useAccountVotes(useAccountVotesOptions)
-  return accountVotes && accountVotes[0]
+  const accountId = useAccountId(accountName)
+  const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
+  return commentCid && accountVotes[commentCid]
 }
