@@ -80,8 +80,8 @@ export function useAccounts() {
  * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
  */
 export function useAccountsActions() {
-  const accountsStore = useAccountsStore()
-  return accountsStore.accountsActions
+  const accountsActions = useAccountsStore((state) => state.accountsActions)
+  return accountsActions
 }
 
 /**
