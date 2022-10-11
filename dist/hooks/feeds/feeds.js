@@ -4,6 +4,7 @@ import validator from '../../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:hooks:feeds');
 import useFeedsStore from '../../stores/feeds';
+import shallow from 'zustand/shallow';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'active' | 'topHour' | 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll' | 'controversialHour' | 'controversialDay' | 'controversialWeek' | 'controversialMonth' | 'controversialYear' | 'controversialAll'
@@ -23,7 +24,7 @@ export function useFeed(subplebbitAddresses, sortType = 'hot', accountName) {
         }
         addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
     }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/]);
-    const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''], feedShallowEqual);
+    const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || '']);
     let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
     // if the feed is not yet defined, then it has more
     if (!feedName || typeof hasMore !== 'boolean') {
@@ -83,7 +84,7 @@ export function useBufferedFeeds(feedsOptions = [], accountName) {
             bufferedFeeds[feedName] = state.bufferedFeeds[feedName];
         }
         return bufferedFeeds;
-    }, feedsShallowEqual);
+    }, shallow);
     useEffect(() => {
         for (const i in feedsOptionsFlattened) {
             const [accountId, sortType, uniqueSubplebbitAddresses] = feedsOptionsFlattened[Number(i)];
@@ -148,66 +149,4 @@ function useStringified(objs) {
         }
         return stringified;
     }, [JSON.stringify(objs)]);
-}
-/**
- * Equality function for if a feed has changed
- */
-function feedShallowEqual(feedA, feedB) {
-    // handled undefined feeds
-    if (!feedA && !feedB) {
-        return true;
-    }
-    if (!feedA && feedB) {
-        return false;
-    }
-    if (feedA && !feedB) {
-        return false;
-    }
-    // fix typescript warning
-    feedA = feedA || [];
-    feedB = feedB || [];
-    // feeds have different lengths, not equal
-    if (feedA.length !== feedB.length) {
-        return false;
-    }
-    // a post cid is different, not equal
-    let index = feedA.length;
-    while (index--) {
-        if (feedA[index].cid !== feedB[index].cid) {
-            return false;
-        }
-    }
-    return true;
-}
-/**
- * Equality function for if any feed in feeds have changed
- */
-function feedsShallowEqual(feedsA, feedsB) {
-    // handled undefined feeds
-    if (!feedsA && !feedsB) {
-        return true;
-    }
-    if (!feedsA && feedsB) {
-        return false;
-    }
-    if (feedsA && !feedsB) {
-        return false;
-    }
-    // fix typescript warning
-    feedsA = feedsA || {};
-    feedsB = feedsB || {};
-    const feedsANames = Object.keys(feedsA).sort();
-    const feedsBNames = Object.keys(feedsB).sort();
-    // feeds names are not equal
-    if (feedsANames.toString() !== feedsBNames.toString()) {
-        return false;
-    }
-    // a feed is not equal
-    const feedNames = new Set([...feedsANames, ...feedsBNames]);
-    for (const feedName in feedsA) {
-        if (!feedShallowEqual(feedsA[feedName], feedsB[feedName])) {
-            return false;
-        }
-    }
-    return true;
 }

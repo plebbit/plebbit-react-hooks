@@ -43,7 +43,14 @@ export const filterPublications = (publications, filter) => {
     return filteredPublications;
 };
 export const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
-    const accountsBlockedAddresses = Object.fromEntries(Object.keys(accountsCommentsReplies || {}).map((accountId) => { var _a; return [accountId, ((_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.blockedAddresses) || {}]; }));
+    const accountsBlockedAddresses = Object.fromEntries(
+    // do not do `account.blockedAddresses || {}` otherwise can't use as useMemoDependencies
+    Object.keys(accountsCommentsReplies || {}).map((accountId) => { var _a; return [accountId, (_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.blockedAddresses]; }));
+    // use a "shallow" check on the argument dependencies because the argument objects might change
+    const useMemoDependencies = [...Object.values(accountsCommentsReplies || {}), ...Object.values(accountsBlockedAddresses)];
+    // useMemo deps must always have the same length
+    // TODO: will break if there's more than 500 / 2 accounts, must find other solution
+    useMemoDependencies.length = 500;
     return useMemo(() => {
         const accountsNotifications = {};
         if (!accountsCommentsReplies) {
@@ -55,7 +62,7 @@ export const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
             for (const replyCid in accountsCommentsReplies[accountId]) {
                 const reply = accountsCommentsReplies[accountId][replyCid];
                 // TODO: filter blocked addresses
-                // if (accountsBlockedAddresses[accountId][reply.subplebbitAddress] || accountsBlockedAddresses[accountId][reply.author.address]) {
+                // if (accountsBlockedAddresses[accountId]?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
                 //   continue
                 // }
                 accountCommentsReplies.push(reply);
@@ -64,11 +71,17 @@ export const useAccountsNotifications = (accounts, accountsCommentsReplies) => {
             accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp);
         }
         return accountsNotifications;
-    }, [JSON.stringify(accountsBlockedAddresses), JSON.stringify(accountsCommentsReplies)]);
+    }, useMemoDependencies);
 };
 // add calculated properties to accounts, like karma and unreadNotificationCount
 export const useAccountsWithCalculatedProperties = (accounts, accountsComments, accountsCommentsReplies) => {
     const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies);
+    // use a "shallow" check on the argument dependencies because the argument objects might change
+    // use accountsCommentsReplies instead of accountsNotifications because useAccountsNotifications uses it
+    const useMemoDependencies = [...Object.values(accounts || {}), ...Object.values(accountsComments || {}), ...Object.values(accountsCommentsReplies || {})];
+    // useMemo deps must always have the same length
+    // TODO: will break if there's more than 1000 / 3 accounts, must find other solution
+    useMemoDependencies.length = 1000;
     return useMemo(() => {
         if (!accounts) {
             return;
@@ -128,5 +141,5 @@ export const useAccountsWithCalculatedProperties = (accounts, accountsComments, 
             accountsWithCalculatedProperties[accountId].unreadNotificationCount = unreadNotificationCount;
         }
         return accountsWithCalculatedProperties;
-    }, [JSON.stringify(accounts), JSON.stringify(accountsComments), JSON.stringify(accountsNotifications)]);
+    }, useMemoDependencies);
 };
