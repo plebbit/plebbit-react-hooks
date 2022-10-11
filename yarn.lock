@@ -2055,9 +2055,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#3b3d0941c258b3a99ad4369ec155ca648b91b9fb":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#b01733d42190c88ecf2681ce87874c899fd9ef7d":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#3b3d0941c258b3a99ad4369ec155ca648b91b9fb"
+  resolved "https://github.com/plebbit/plebbit-js.git#b01733d42190c88ecf2681ce87874c899fd9ef7d"
   dependencies:
     "@keyv/sqlite" "3.6.1"
     "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
@@ -2077,7 +2077,7 @@
     knex "2.3.0"
     libp2p-crypto "0.21.2"
     peer-id "0.16.0"
-    sqlite3 "5.1.1"
+    sqlite3 "5.1.2"
     tinycache "1.1.2"
     uuid "8.3.2"
 
@@ -8245,7 +8245,18 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==
 
-sqlite3@5.1.1, sqlite3@^5.1.1:
+sqlite3@5.1.2:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-5.1.2.tgz#f50d5b1482b6972fb650daf6f718e6507c6cfb0f"
+  integrity sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==
+  dependencies:
+    "@mapbox/node-pre-gyp" "^1.0.0"
+    node-addon-api "^4.2.0"
+    tar "^6.1.11"
+  optionalDependencies:
+    node-gyp "8.x"
+
+sqlite3@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-5.1.1.tgz#c6561220fd875fd88eb2ef717631e0a11af1ec38"
   integrity sha512-mMinkrQr/LKJqFiFF+AF7imPSzRCCpTCreusZO3D/ssJHVjZOrbu2Caz+zPH5KTmGGXBxXMGSRDssL+44CLxvg==
