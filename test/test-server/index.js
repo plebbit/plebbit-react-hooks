@@ -39,7 +39,7 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
 -----END ENCRYPTED PRIVATE KEY-----`
 
 // set up a subplebbit for testing
-;(async () => {
+;async () => {
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
 
@@ -84,25 +84,27 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
 
   console.log('starting subplebbit...')
   await subplebbit.start(500)
-  console.log(`subplebbit started with address ${signer.address}`)
+  subplebbit.once('update', async () => {
+    console.log(`subplebbit started with address ${signer.address}`)
 
-  console.log('publish test comment')
-  const comment = await plebbit2.createComment({
-    title: 'comment title',
-    content: 'comment content',
-    subplebbitAddress: signer.address,
-    signer,
-    author: {address: signer.address},
-  })
-  comment.once('challenge', () => comment.publishChallengeAnswers(['2']))
-  await comment.publish()
-  console.log('test comment published')
-  console.log('test server ready')
+    console.log('publish test comment')
+    const comment = await plebbit2.createComment({
+      title: 'comment title',
+      content: 'comment content',
+      subplebbitAddress: signer.address,
+      signer,
+      author: {address: signer.address},
+    })
+    comment.once('challenge', () => comment.publishChallengeAnswers(['2']))
+    await comment.publish()
+    console.log('test comment published')
+    console.log('test server ready')
 
-  // create a test server to be able to use npm module 'wait-on'
-  // to know when the test server is finished getting ready
-  // and able to start the automated tests
-  require('http')
-    .createServer((req, res) => res.end('test server ready'))
-    .listen(59281)
-})()
+    // create a test server to be able to use npm module 'wait-on'
+    // to know when the test server is finished getting ready
+    // and able to start the automated tests
+    require('http')
+      .createServer((req, res) => res.end('test server ready'))
+      .listen(59281)
+  })()
+}
