@@ -39,7 +39,7 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
 -----END ENCRYPTED PRIVATE KEY-----`
 
 // set up a subplebbit for testing
-;async () => {
+;(async () => {
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
 
@@ -106,5 +106,5 @@ ij9V8ZU7Xc1cDNjOSq9kWQOuigqPQR8f8JubiPFGHcRpa5r9KRqgxp76C54=
     require('http')
       .createServer((req, res) => res.end('test server ready'))
       .listen(59281)
-  })()
-}
+  })
+})()
