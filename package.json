@@ -25,7 +25,7 @@
     "test:e2e": "yarn test:e2e:mock && yarn test:e2e:browser && yarn test:e2e:electron",
     "test:e2e:mock": "karma start config/karma.conf.js --plebbit-js-mock",
     "test:e2e:browser": "karma start config/karma.conf.js",
-    "test:e2e:electron": "karma start config/karma-electron.conf.js",
+    "test:e2e:electron": "rm -rf .plebbit/ && karma start config/karma-electron.conf.js",
     "test:server": "rm -rf .plebbit/ && node test/test-server",
     "test:server:wait-on": "wait-on http://localhost:59281 --timeout 120000",
     "test:mock-content": "jest --config config/jest.config.cjs --testRegex plebbit-js-mock-content.donttest.ts",
