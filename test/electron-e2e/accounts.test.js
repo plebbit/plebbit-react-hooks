@@ -179,6 +179,16 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(onChallengeVerificationCalls.length).to.equal(2)
         expect(onChallengeVerificationCalls[1][0].challengeSuccess).to.equal(true)
         console.log('after onChallengeVerification')
+
+        // delete subplebbit
+        // console.log('before deleteSubplebbit')
+        // await act(async () => {
+        //   await rendered.result.current.deleteSubplebbit(editedSubplebbitAddress)
+        // })
+        // await waitFor(() => rendered.result.current.subplebbit === undefined)
+        // expect(rendered.result.current.subplebbit).to.equal(undefined)
+        // await waitFor(() => rendered.result.current.accountSubplebbits[editedSubplebbitAddress] === undefined)
+        // console.log('after deleteSubplebbit')
       })
     })
 
