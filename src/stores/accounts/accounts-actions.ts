@@ -340,10 +340,11 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   publishAndRetryFailedChallengeVerification()
   await accountsDatabase.addAccountComment(account.id, createCommentOptions)
   log('accountsActions.publishComment', {createCommentOptions})
+  let createdAccountComment
   accountsStore.setState(({accountsComments}) => {
     // save account comment index to update the comment later
     accountCommentIndex = accountsComments[account.id].length
-    const createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
+    createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
     return {
       accountsComments: {
         ...accountsComments,
@@ -351,6 +352,8 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       },
     }
   })
+
+  return createdAccountComment
 }
 
 export const deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {

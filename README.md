@@ -305,7 +305,7 @@ const onError = (error, comment) => console.error(error)
 const {publishComment} = useAccountsActions()
 
 // create post
-publishComment({
+const pendingComment = await publishComment({
   content: 'hello',
   title: 'hello',
   subplebbitAddress: 'Qm...',
@@ -313,6 +313,8 @@ publishComment({
   onChallengeVerification,
   onError
 })
+// pending comment index
+console.log(pendingComment.index)
 
 // reply to a post or comment
 publishComment({

@@ -673,9 +673,11 @@ describe('accounts', () => {
           onChallenge,
           onChallengeVerification,
         }
+        let pendingComment: any
         await act(async () => {
-          await rendered.result.current.publishComment(publishCommentOptions)
+          pendingComment = await rendered.result.current.publishComment(publishCommentOptions)
         })
+        expect(pendingComment.index).toBe(0)
       })
 
       let comment: any
