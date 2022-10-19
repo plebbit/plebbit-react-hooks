@@ -304,14 +304,16 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     publishAndRetryFailedChallengeVerification();
     yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
     log('accountsActions.publishComment', { createCommentOptions });
+    let createdAccountComment;
     accountsStore.setState(({ accountsComments }) => {
         // save account comment index to update the comment later
         accountCommentIndex = accountsComments[account.id].length;
-        const createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
+        createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
         return {
             accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: [...accountsComments[account.id], createdAccountComment] }),
         };
     });
+    return createdAccountComment;
 });
 export const deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(void 0, void 0, void 0, function* () {
     throw Error('TODO: not implemented');
