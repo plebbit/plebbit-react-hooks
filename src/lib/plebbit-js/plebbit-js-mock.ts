@@ -172,6 +172,13 @@ export class Subplebbit extends EventEmitter {
     })
   }
 
+  async delete() {
+    if (this.address) {
+      delete createdOwnerSubplebbits[this.address]
+      delete editedOwnerSubplebbits[this.address]
+    }
+  }
+
   simulateUpdateEvent() {
     this.description = this.address + ' description updated'
     this.emit('update', this)

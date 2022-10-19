@@ -541,3 +541,16 @@ export const createSubplebbit = async (createSubplebbitOptions: CreateSubplebbit
   log('accountsActions.createSubplebbit', {createSubplebbitOptions, subplebbit})
   return subplebbit
 }
+
+export const deleteSubplebbit = async (subplebbitAddress: string, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+
+  await subplebbitsStore.getState().deleteSubplebbit(subplebbitAddress, account)
+  log('accountsActions.deleteSubplebbit', {subplebbitAddress})
+}

@@ -1645,6 +1645,30 @@ describe('accounts', () => {
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
     })
 
+    test('create owner subplebbit and delete it', async () => {
+      const createdSubplebbitAddress = 'created subplebbit address'
+      let subplebbit: any
+      await act(async () => {
+        subplebbit = await rendered.result.current.createSubplebbit()
+      })
+      expect(subplebbit?.address).toBe(createdSubplebbitAddress)
+
+      // can useSubplebbit
+      rendered.rerender(createdSubplebbitAddress)
+      await waitFor(() => rendered.result.current.subplebbit)
+      expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
+      expect(rendered.result.current.subplebbit.title).toBe(undefined)
+
+      // delete it
+      await act(async () => {
+        await rendered.result.current.deleteSubplebbit(createdSubplebbitAddress)
+      })
+
+      // useSubplebbit is edited
+      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      expect(rendered.result.current.subplebbit).toBe(undefined)
+    })
+
     test('create and edit owner subplebbit useSubplebbit persists after reload', async () => {
       const createdSubplebbitAddress = 'created subplebbit address'
       const createdSubplebbitTitle = 'created subplebbit title'

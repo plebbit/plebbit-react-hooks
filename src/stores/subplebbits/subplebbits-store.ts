@@ -18,6 +18,7 @@ type SubplebbitsState = {
   addSubplebbitToStore: Function
   editSubplebbit: Function
   createSubplebbit: Function
+  deleteSubplebbit: Function
 }
 
 const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getState: Function) => ({
@@ -135,6 +136,18 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     log('subplebbitsStore.createSubplebbit', {createSubplebbitOptions, subplebbit, account})
     setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbit.address]: utils.clone(subplebbit)}}))
     return subplebbit
+  },
+
+  // internal action called by accountsActions.deleteSubplebbit
+  async deleteSubplebbit(subplebbitAddress: string, account: Account) {
+    assert(subplebbitAddress && typeof subplebbitAddress === 'string', `subplebbitsStore.deleteSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`)
+    assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsStore.deleteSubplebbit invalid account argument '${account}'`)
+
+    const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+    await subplebbit.delete()
+    await subplebbitsDatabase.removeItem(subplebbitAddress)
+    log('subplebbitsStore.deleteSubplebbit', {subplebbitAddress, subplebbit, account})
+    setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: undefined}}))
   },
 }))
 

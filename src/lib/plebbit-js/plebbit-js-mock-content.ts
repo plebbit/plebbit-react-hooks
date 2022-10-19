@@ -507,7 +507,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
 }
 
 // array of subplebbits probably created by the user
-const createdSubplebbits: any = []
+const createdSubplebbits: any = {}
 
 class Plebbit extends EventEmitter {
   async createSigner() {
@@ -524,7 +524,7 @@ class Plebbit extends EventEmitter {
 
     // keep a list of subplebbits the user probably created himself to use with listSubplebbits
     if (!createSubplebbitOptions?.address) {
-      createdSubplebbits.push(subplebbit)
+      createdSubplebbits[subplebbit.address || ''] = subplebbit
     }
 
     return subplebbit
@@ -553,8 +553,8 @@ class Plebbit extends EventEmitter {
   }
 
   async listSubplebbits() {
-    const subplebbitAddresses = createdSubplebbits.map((subplebbit: any) => subplebbit.address)
-    return [...new Set(subplebbitAddresses)]
+    const subplebbitAddresses = Object.keys(createdSubplebbits)
+    return subplebbitAddresses
   }
 
   async createComment(createCommentOptions: any) {
@@ -693,6 +693,12 @@ class Subplebbit extends EventEmitter {
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
+  }
+
+  async delete() {
+    if (this.address) {
+      delete createdSubplebbits[this.address]
+    }
   }
 
   simulateUpdateEvent() {
