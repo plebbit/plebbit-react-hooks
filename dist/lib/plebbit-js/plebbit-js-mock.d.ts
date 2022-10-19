@@ -35,6 +35,7 @@ export declare class Subplebbit extends EventEmitter {
     posts: Pages;
     constructor(createSubplebbitOptions?: any);
     update(): Promise<void>;
+    delete(): Promise<void>;
     simulateUpdateEvent(): void;
     get roles(): {};
     rolesToGet(): {};

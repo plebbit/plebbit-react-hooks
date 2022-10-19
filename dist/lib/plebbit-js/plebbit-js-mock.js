@@ -168,6 +168,14 @@ export class Subplebbit extends EventEmitter {
             });
         });
     }
+    delete() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.address) {
+                delete createdOwnerSubplebbits[this.address];
+                delete editedOwnerSubplebbits[this.address];
+            }
+        });
+    }
     simulateUpdateEvent() {
         this.description = this.address + ' description updated';
         this.emit('update', this);

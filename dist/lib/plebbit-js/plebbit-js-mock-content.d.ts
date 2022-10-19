@@ -7,7 +7,7 @@ declare class Plebbit extends EventEmitter {
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    listSubplebbits(): Promise<unknown[]>;
+    listSubplebbits(): Promise<string[]>;
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     createVote(): Promise<Vote>;
@@ -41,6 +41,7 @@ declare class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
     update(): Promise<void>;
+    delete(): Promise<void>;
     simulateUpdateEvent(): void;
 }
 declare class Publication extends EventEmitter {
