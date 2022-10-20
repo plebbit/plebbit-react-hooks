@@ -455,7 +455,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
     return page;
 });
 // array of subplebbits probably created by the user
-const createdSubplebbits = [];
+const createdSubplebbits = {};
 class Plebbit extends EventEmitter {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -471,7 +471,7 @@ class Plebbit extends EventEmitter {
             const subplebbit = new Subplebbit(Object.assign({ signer }, createSubplebbitOptions));
             // keep a list of subplebbits the user probably created himself to use with listSubplebbits
             if (!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address)) {
-                createdSubplebbits.push(subplebbit);
+                createdSubplebbits[subplebbit.address || ''] = subplebbit;
             }
             return subplebbit;
         });
@@ -500,8 +500,8 @@ class Plebbit extends EventEmitter {
     }
     listSubplebbits() {
         return __awaiter(this, void 0, void 0, function* () {
-            const subplebbitAddresses = createdSubplebbits.map((subplebbit) => subplebbit.address);
-            return [...new Set(subplebbitAddresses)];
+            const subplebbitAddresses = Object.keys(createdSubplebbits);
+            return subplebbitAddresses;
         });
     }
     createComment(createCommentOptions) {
@@ -619,6 +619,13 @@ class Subplebbit extends EventEmitter {
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
             });
+        });
+    }
+    delete() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.address) {
+                delete createdSubplebbits[this.address];
+            }
         });
     }
     simulateUpdateEvent() {

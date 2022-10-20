@@ -469,3 +469,14 @@ export const createSubplebbit = (createSubplebbitOptions, accountName) => __awai
     log('accountsActions.createSubplebbit', { createSubplebbitOptions, subplebbit });
     return subplebbit;
 });
+export const deleteSubplebbit = (subplebbitAddress, accountName) => __awaiter(void 0, void 0, void 0, function* () {
+    const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`);
+    let account = accounts[activeAccountId];
+    if (accountName) {
+        const accountId = accountNamesToAccountIds[accountName];
+        account = accounts[accountId];
+    }
+    yield subplebbitsStore.getState().deleteSubplebbit(subplebbitAddress, account);
+    log('accountsActions.deleteSubplebbit', { subplebbitAddress });
+});

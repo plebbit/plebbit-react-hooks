@@ -16,3 +16,4 @@ export declare const publishVote: (publishVoteOptions: PublishVoteOptions, accou
 export declare const publishCommentEdit: (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string | undefined) => Promise<void>;
 export declare const publishSubplebbitEdit: (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string | undefined) => Promise<void>;
 export declare const createSubplebbit: (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string | undefined) => Promise<any>;
+export declare const deleteSubplebbit: (subplebbitAddress: string, accountName?: string | undefined) => Promise<void>;

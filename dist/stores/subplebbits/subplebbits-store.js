@@ -113,6 +113,19 @@ const subplebbitsStore = createStore((setState, getState) => ({
             return subplebbit;
         });
     },
+    // internal action called by accountsActions.deleteSubplebbit
+    deleteSubplebbit(subplebbitAddress, account) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            assert(subplebbitAddress && typeof subplebbitAddress === 'string', `subplebbitsStore.deleteSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`);
+            assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsStore.deleteSubplebbit invalid account argument '${account}'`);
+            const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
+            yield subplebbit.delete();
+            yield subplebbitsDatabase.removeItem(subplebbitAddress);
+            log('subplebbitsStore.deleteSubplebbit', { subplebbitAddress, subplebbit, account });
+            setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: undefined }) }));
+        });
+    },
 }));
 const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
