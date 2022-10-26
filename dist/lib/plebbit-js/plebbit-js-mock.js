@@ -122,6 +122,14 @@ export class Plebbit extends EventEmitter {
             return new SubplebbitEdit(createSubplebbitEditOptions);
         });
     }
+    fetchCid(cid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (cid === null || cid === void 0 ? void 0 : cid.startsWith('metricscid')) {
+                return JSON.stringify({ hourActiveUserCount: 1 });
+            }
+            throw Error(`plebbit.fetchCid not implemented in plebbit-js mock for cid '${cid}'`);
+        });
+    }
 }
 export class Pages {
     constructor(pagesOptions) {
@@ -147,6 +155,7 @@ export class Subplebbit extends EventEmitter {
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
         this.posts = new Pages({ subplebbit: this });
+        this.metricsCid = 'metricscid';
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
