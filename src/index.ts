@@ -21,7 +21,7 @@ import {
 } from './hooks/accounts'
 
 import {useComment, useComments} from './hooks/comments'
-import {useSubplebbit, useSubplebbits, useResolvedSubplebbitAddress} from './hooks/subplebbits'
+import {useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress} from './hooks/subplebbits'
 import {useFeed, useBufferedFeeds} from './hooks/feeds'
 import {useAuthorAvatarImageUrl, useResolvedAuthorAddress} from './hooks/authors'
 import debugUtils from './lib/debug-utils'
@@ -41,6 +41,7 @@ export {
   useComments,
   useSubplebbit,
   useSubplebbits,
+  useSubplebbitMetrics,
   useFeed,
   useBufferedFeeds,
   setPlebbitJs,

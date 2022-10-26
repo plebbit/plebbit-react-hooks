@@ -38,6 +38,39 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
 }
 
 /**
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+export function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: string) {
+  const account = useAccount(accountName)
+  const subplebbit = useSubplebbit(subplebbitAddress)
+  const subplebbitMetricsCid = subplebbit?.metricsCid
+  const [subplebbitMetrics, setSubplebbitMetrics] = useState()
+
+  useEffect(() => {
+    if (!subplebbitMetricsCid || !account) {
+      return
+    }
+    ;(async () => {
+      let fetchedCid
+      try {
+        fetchedCid = await account.plebbit.fetchCid(subplebbitMetricsCid)
+        fetchedCid = JSON.parse(fetchedCid)
+        setSubplebbitMetrics(fetchedCid)
+      } catch (error) {
+        log.error('useSubplebbitMetrics plebbit.fetchCid error', {subplebbitAddress, subplebbitMetricsCid, subplebbit, fetchedCid, error})
+      }
+    })()
+  }, [subplebbitMetricsCid, account?.id])
+
+  if (account && subplebbitMetricsCid) {
+    log('useSubplebbitMetrics', {subplebbitAddress, subplebbitMetricsCid, subplebbitMetrics, subplebbit, account})
+  }
+  return subplebbitMetrics
+}
+
+/**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.

@@ -599,6 +599,26 @@ class Plebbit extends EventEmitter {
   async createSubplebbitEdit() {
     return new SubplebbitEdit()
   }
+
+  async fetchCid(cid: string) {
+    if (cid?.startsWith('metricscid')) {
+      return JSON.stringify({
+        hourActiveUserCount: 1,
+        dayActiveUserCount: 11,
+        weekActiveUserCount: 111,
+        monthActiveUserCount: 1111,
+        yearActiveUserCount: 11111,
+        allActiveUserCount: 111111,
+        hourPostCount: 2,
+        dayPostCount: 22,
+        weekPostCount: 222,
+        monthPostCount: 2222,
+        yearPostCount: 22222,
+        allPostCount: 222222,
+      })
+    }
+    throw Error(`plebbit.fetchCid not implemented in mock content for cid '${cid}'`)
+  }
 }
 
 class Pages {
@@ -635,6 +655,7 @@ class Subplebbit extends EventEmitter {
   features: any | undefined
   rules: string[] | undefined
   signer: any | undefined
+  metricsCid: string
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -650,6 +671,7 @@ class Subplebbit extends EventEmitter {
     this.rules = createSubplebbitOptions?.rules
     this.title = createSubplebbitOptions?.title
     this.description = createSubplebbitOptions?.description
+    this.metricsCid = 'metricscid'
 
     for (const prop in createSubplebbitOptions) {
       if (createSubplebbitOptions[prop]) {
