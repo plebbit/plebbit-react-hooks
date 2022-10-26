@@ -42,18 +42,9 @@ const preloadJs = `
 // expose plebbit-js native functions into electron's renderer
 console.log('before electron preload.js contextBridge.exposeInMainWorld plebbitJsNativeFunctions')
 const {contextBridge} = require('electron')
-const path = require('path')
-
-// plebbit-react-hooks use window.defaultPlebbitOptions to initially set plebbit options
-// must be defined or dataPath is initially undefined and some plebbit functions throw
-contextBridge.exposeInMainWorld('defaultPlebbitOptions', {
-  dataPath: path.join(process.cwd(), '.plebbit'),
-  // set invalid urls, they should never be used
-  pubsubHttpClientOptions: 'http://255.255.255.255:5001/api/v0',
-  ipfsGatewayUrl: 'http://255.255.255.255:8080',
-})
-
+const path = require ('path')
 contextBridge.exposeInMainWorld('plebbitJsNativeFunctions', require('@plebbit/plebbit-js').nativeFunctions.node)
+contextBridge.exposeInMainWorld('plebbitDataPath', path.join(process.cwd(), '.plebbit'))
 console.log('after electron preload.js contextBridge.exposeInMainWorld plebbitJsNativeFunctions')
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
