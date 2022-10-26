@@ -24,7 +24,7 @@ const plebbitOptionsTypes = {
     // define pubsubHttpClientOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubHttpClientOptions: localPubsubProviderUrl,
-    dataPath: window.plebbitDataPath,
+    dataPath: window.defaultPlebbitOptions.dataPath,
   },
 }
 
@@ -61,9 +61,9 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').to.equal(true)
         expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
         expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').to.equal(true)
-        expect(account.plebbitOptions.ipfsGatewayUrl).to.equal('https://cloudflare-ipfs.com')
+        expect(typeof account.plebbitOptions.ipfsGatewayUrl).to.equal('string')
         expect(account.plebbitOptions.ipfsHttpClientOptions).to.equal(undefined)
-        expect(account.plebbitOptions.pubsubHttpClientOptions).to.equal('https://pubsubprovider.xyz/api/v0')
+        expect(typeof account.plebbitOptions.pubsubHttpClientOptions).to.equal('string')
       })
     })
 
