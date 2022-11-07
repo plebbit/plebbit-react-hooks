@@ -200,5 +200,5 @@ export function useAccountVotes(useAccountVotesOptions) {
 export function useAccountVote(commentCid, accountName) {
     const accountId = useAccountId(accountName);
     const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || '']);
-    return commentCid && accountVotes[commentCid];
+    return commentCid && accountVotes && accountVotes[commentCid];
 }
