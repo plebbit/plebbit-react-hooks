@@ -13,6 +13,7 @@ declare class Plebbit extends EventEmitter {
     createVote(): Promise<Vote>;
     createCommentEdit(): Promise<CommentEdit>;
     createSubplebbitEdit(): Promise<SubplebbitEdit>;
+    fetchCid(cid: string): Promise<string>;
 }
 declare class Pages {
     pageCids: any;
@@ -38,6 +39,7 @@ declare class Subplebbit extends EventEmitter {
     features: any | undefined;
     rules: string[] | undefined;
     signer: any | undefined;
+    metricsCid: string;
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
     update(): Promise<void>;

@@ -546,6 +546,27 @@ class Plebbit extends EventEmitter {
             return new SubplebbitEdit();
         });
     }
+    fetchCid(cid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (cid === null || cid === void 0 ? void 0 : cid.startsWith('metricscid')) {
+                return JSON.stringify({
+                    hourActiveUserCount: 1,
+                    dayActiveUserCount: 11,
+                    weekActiveUserCount: 111,
+                    monthActiveUserCount: 1111,
+                    yearActiveUserCount: 11111,
+                    allActiveUserCount: 111111,
+                    hourPostCount: 2,
+                    dayPostCount: 22,
+                    weekPostCount: 222,
+                    monthPostCount: 2222,
+                    yearPostCount: 22222,
+                    allPostCount: 222222,
+                });
+            }
+            throw Error(`plebbit.fetchCid not implemented in mock content for cid '${cid}'`);
+        });
+    }
 }
 class Pages {
     constructor(pagesOptions) {
@@ -578,6 +599,7 @@ class Subplebbit extends EventEmitter {
         this.rules = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.rules;
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
+        this.metricsCid = 'metricscid';
         for (const prop in createSubplebbitOptions) {
             if (createSubplebbitOptions[prop]) {
                 // @ts-ignore
