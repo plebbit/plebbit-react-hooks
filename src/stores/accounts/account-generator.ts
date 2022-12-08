@@ -59,7 +59,7 @@ export const generateDefaultAccount = async () => {
 
   const signer = await plebbit.createSigner()
   const author = {
-    address: signer.address,
+    address: await signer.getAddress(),
   }
 
   const accountName = await getNextAvailableDefaultAccountName()
