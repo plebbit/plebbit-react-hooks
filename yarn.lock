@@ -2076,6 +2076,36 @@
     tinycache "1.1.2"
     uuid "9.0.0"
 
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#8c050b36a021a373793cbb0b74479487004c2b6e":
+  version "0.0.3"
+  resolved "https://github.com/plebbit/plebbit-js.git#8c050b36a021a373793cbb0b74479487004c2b6e"
+  dependencies:
+    "@keyv/sqlite" "3.6.2"
+    "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
+    "@types/node-fetch" "2.6.2"
+    "@types/uuid" "8.3.4"
+    assert "2.0.0"
+    buffer "6.0.3"
+    captcha-canvas "3.2.1"
+    err-code "3.0.1"
+    ethers "5.7.2"
+    form-data "4.0.0"
+    ipfs-http-client "56.0.3"
+    ipfs-only-hash "4.0.0"
+    is-ipfs "6.0.2"
+    jose "4.11.0"
+    js-sha256 "0.9.0"
+    keyv "4.5.2"
+    knex "2.3.0"
+    libp2p-crypto "0.21.2"
+    lodash-es "4.17.21"
+    peer-id "0.16.0"
+    safe-stable-stringify "2.4.1"
+    skia-canvas "1.0.0"
+    sqlite3 "5.1.2"
+    tinycache "1.1.2"
+    uuid "9.0.0"
+
 "@plebbit/plebbit-logger@github:plebbit/plebbit-logger":
   version "0.0.1"
   resolved "https://codeload.github.com/plebbit/plebbit-logger/tar.gz/9525ca9539479918931c3b334e8d490d1c87e507"
@@ -8462,7 +8492,7 @@ sisteransi@^1.0.5:
   resolved "https://registry.yarnpkg.com/sisteransi/-/sisteransi-1.0.5.tgz#134d681297756437cc05ca01370d3a7a571075ed"
   integrity sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==
 
-skia-canvas@^1.0.0:
+skia-canvas@1.0.0, skia-canvas@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/skia-canvas/-/skia-canvas-1.0.0.tgz#9c4cfabb65f722bb3dc27d5411eccbb153004f78"
   integrity sha512-Ec7R7hNdJb1nES/oVryIuQ9rgcpjA1Zjjr7JG718BC7AQBJWaKHRiypOJb7g1V0Msk4YKoPIdvGYY0cnkOoDow==
