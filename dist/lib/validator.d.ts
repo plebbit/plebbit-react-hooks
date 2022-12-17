@@ -7,7 +7,7 @@ export declare const validateAccountsActionsSetAccountsOrderArguments: (newOrder
 export declare const validateAccountsActionsSetAccountArguments: (account: any) => void;
 export declare const validateAccountsActionsSetActiveAccountArguments: (accountName: any) => void;
 export declare const validateAccountsDatabaseGetAccountsArguments: (accountIds: any) => void;
-export declare const validateAccountsProviderAccountNames: (accountNames: any) => void;
+export declare const validateAccountsDatabaseAccountNames: (accountNames: any) => void;
 export declare const validateAccountsDatabaseAddAccountArguments: (account: any) => void;
 export declare const validateUseCommentArguments: (commentCid: any, account: any) => void;
 export declare const validateUseCommentsArguments: (commentCids: any, account: any) => void;
@@ -27,7 +27,7 @@ declare const validator: {
     validateAccountsActionsSetActiveAccountArguments: (accountName: any) => void;
     validateAccountsDatabaseAddAccountArguments: (account: any) => void;
     validateAccountsDatabaseGetAccountsArguments: (accountIds: any) => void;
-    validateAccountsProviderAccountNames: (accountNames: any) => void;
+    validateAccountsDatabaseAccountNames: (accountNames: any) => void;
     validateUseCommentArguments: (commentCid: any, account: any) => void;
     validateUseCommentsArguments: (commentCids: any, account: any) => void;
     validateUseSubplebbitArguments: (subplebbitAddress: any, account: any) => void;

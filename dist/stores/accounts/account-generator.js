@@ -93,7 +93,7 @@ const getNextAvailableDefaultAccountName = () => __awaiter(void 0, void 0, void 
     if (!(accountNames === null || accountNames === void 0 ? void 0 : accountNames.length)) {
         return `Account ${accountNumber}`;
     }
-    validator.validateAccountsProviderAccountNames(accountNames);
+    validator.validateAccountsDatabaseAccountNames(accountNames);
     const accountNamesSet = new Set(accountNames);
     while (true) {
         const accountName = `Account ${accountNumber}`;
