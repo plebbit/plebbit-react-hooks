@@ -94,7 +94,7 @@ const getNextAvailableDefaultAccountName = async () => {
   if (!accountNames?.length) {
     return `Account ${accountNumber}`
   }
-  validator.validateAccountsProviderAccountNames(accountNames)
+  validator.validateAccountsDatabaseAccountNames(accountNames)
 
   const accountNamesSet = new Set(accountNames)
   while (true) {

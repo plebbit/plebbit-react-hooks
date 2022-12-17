@@ -115,10 +115,10 @@ export const validateAccountsDatabaseGetAccountsArguments = (accountIds: any) =>
   }
 }
 
-export const validateAccountsProviderAccountNames = (accountNames: any) => {
-  assert(Array.isArray(accountNames), `AccountsProviders accountNames '${accountNames}' not an array`)
+export const validateAccountsDatabaseAccountNames = (accountNames: any) => {
+  assert(Array.isArray(accountNames), `accountsDatabase accountNames '${accountNames}' not an array`)
   for (const accountName of accountNames) {
-    assert(typeof accountName === 'string', `AccountsProviders accountNames '${accountNames}' accountName '${accountName}' not a string`)
+    assert(typeof accountName === 'string', `accountsDatabase accountNames '${accountNames}' accountName '${accountName}' not a string`)
   }
 }
 
@@ -226,7 +226,7 @@ const validator = {
   validateAccountsActionsSetActiveAccountArguments,
   validateAccountsDatabaseAddAccountArguments,
   validateAccountsDatabaseGetAccountsArguments,
-  validateAccountsProviderAccountNames,
+  validateAccountsDatabaseAccountNames,
   validateUseCommentArguments,
   validateUseCommentsArguments,
   validateUseSubplebbitArguments,
