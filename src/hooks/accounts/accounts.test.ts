@@ -325,6 +325,8 @@ describe('accounts', () => {
       expect(typeof exportedAccountJson).toBe('string')
       expect(typeof exportedAccount?.id).toBe('string')
       expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
+      // account.plebbit has been removed
+      expect(exportedAccount.plebbit).toBe(undefined)
     })
 
     test('import account', async () => {
@@ -336,6 +338,8 @@ describe('accounts', () => {
       })
       expect(typeof exportedAccount?.id).toBe('string')
       expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
+      // account.plebbit has been removed
+      expect(exportedAccount.plebbit).toBe(undefined)
 
       exportedAccount.author.name = 'imported author name'
       exportedAccount.name = 'imported account name'
@@ -348,6 +352,10 @@ describe('accounts', () => {
       await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
       expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
       expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
+      // account.id has been reset
+      expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
+      // account.plebbit has been initialized
+      expect(typeof rendered.result.current.account?.plebbit?.getSubplebbit).toBe('function')
 
       // reset stores to force using the db
       await testUtils.resetStores()
@@ -358,6 +366,10 @@ describe('accounts', () => {
       await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
       expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
       expect(rendered2.result.current.name).toBe(exportedAccount.name)
+      // account.id has been reset
+      expect(rendered.result.current.id).not.toBe(exportedAccount.id)
+      // account.plebbit has been initialized
+      expect(typeof rendered2.result.current.plebbit?.getSubplebbit).toBe('function')
     })
 
     test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {

@@ -144,9 +144,10 @@ export const importAccount = async (serializedAccount: string) => {
     account.name += ' 2'
   }
 
-  // create a new account id
-  const {id} = await accountGenerator.generateDefaultAccount()
-  const newAccount = {...account, id}
+  const generatedAccount = await accountGenerator.generateDefaultAccount()
+  // use generatedAccount to init properties like .plebbit and .id on a new account
+  // overwrite account.id to avoid duplicate ids
+  const newAccount = {...generatedAccount, ...account, id: generatedAccount.id}
   await addNewAccountToDatabaseAndState(newAccount)
   log('accountsActions.importAccount', {account: newAccount})
 
