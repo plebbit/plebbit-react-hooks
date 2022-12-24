@@ -353,6 +353,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
       expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
       // account.id has been reset
+      expect(typeof rendered.result.current.account?.id).toBe('string')
       expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
       // account.plebbit has been initialized
       expect(typeof rendered.result.current.account?.plebbit?.getSubplebbit).toBe('function')
@@ -367,7 +368,8 @@ describe('accounts', () => {
       expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
       expect(rendered2.result.current.name).toBe(exportedAccount.name)
       // account.id has been reset
-      expect(rendered.result.current.id).not.toBe(exportedAccount.id)
+      expect(typeof rendered2.result.current.id).toBe('string')
+      expect(rendered2.result.current.id).not.toBe(exportedAccount.id)
       // account.plebbit has been initialized
       expect(typeof rendered2.result.current.plebbit?.getSubplebbit).toBe('function')
     })
