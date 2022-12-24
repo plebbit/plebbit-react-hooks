@@ -87,10 +87,10 @@ export const validateAccountsDatabaseGetAccountsArguments = (accountIds) => {
         assert(accountId !== '', `accountsDatabase.getAccounts accountIds '${accountIds}' an accountId argument is empty string`);
     }
 };
-export const validateAccountsProviderAccountNames = (accountNames) => {
-    assert(Array.isArray(accountNames), `AccountsProviders accountNames '${accountNames}' not an array`);
+export const validateAccountsDatabaseAccountNames = (accountNames) => {
+    assert(Array.isArray(accountNames), `accountsDatabase accountNames '${accountNames}' not an array`);
     for (const accountName of accountNames) {
-        assert(typeof accountName === 'string', `AccountsProviders accountNames '${accountNames}' accountName '${accountName}' not a string`);
+        assert(typeof accountName === 'string', `accountsDatabase accountNames '${accountNames}' accountName '${accountName}' not a string`);
     }
 };
 export const validateAccountsDatabaseAddAccountArguments = (account) => {
@@ -182,7 +182,7 @@ const validator = {
     validateAccountsActionsSetActiveAccountArguments,
     validateAccountsDatabaseAddAccountArguments,
     validateAccountsDatabaseGetAccountsArguments,
-    validateAccountsProviderAccountNames,
+    validateAccountsDatabaseAccountNames,
     validateUseCommentArguments,
     validateUseCommentsArguments,
     validateUseSubplebbitArguments,

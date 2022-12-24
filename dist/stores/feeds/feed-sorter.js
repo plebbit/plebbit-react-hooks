@@ -104,6 +104,6 @@ export const sort = (sortType, feed) => {
     if (sortType.match('controversial')) {
         return sortByControversial(feed);
     }
-    throw Error(`FeedsProvider feedSorter sort type '${sortType}' doesn't exist`);
+    throw Error(`feedsStore feedSorter sort type '${sortType}' doesn't exist`);
 };
 export default { sort };
