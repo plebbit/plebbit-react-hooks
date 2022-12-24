@@ -132,9 +132,10 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
     if (accountNamesToAccountIds[account.name]) {
         account.name += ' 2';
     }
-    // create a new account id
-    const { id } = yield accountGenerator.generateDefaultAccount();
-    const newAccount = Object.assign(Object.assign({}, account), { id });
+    const generatedAccount = yield accountGenerator.generateDefaultAccount();
+    // use generatedAccount to init properties like .plebbit and .id on a new account
+    // overwrite account.id to avoid duplicate ids
+    const newAccount = Object.assign(Object.assign(Object.assign({}, generatedAccount), account), { id: generatedAccount.id });
     yield addNewAccountToDatabaseAndState(newAccount);
     log('accountsActions.importAccount', { account: newAccount });
     // TODO: the 'account' should contain AccountComments and AccountVotes
