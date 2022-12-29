@@ -55,7 +55,8 @@ const privateKey = signers[0].privateKey
   console.log('subplebbit created')
 
   console.log('starting subplebbit...')
-  await subplebbit.start(500)
+  subplebbit._syncIntervalMs = 500
+  await subplebbit.start()
   subplebbit.once('update', async () => {
     console.log(`subplebbit started with address ${signer.address}`)
 
