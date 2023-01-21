@@ -479,7 +479,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[2].name).toBe('custom name')
     })
 
-    test(`delete active account, active account switches second account in accountNames`, async () => {
+    test(`delete active account, active account switches to second account in accountNames`, async () => {
       const activeAccountIdBefore = rendered.result.current.account.id
       const accountCountBefore = rendered.result.current.accounts.length
       await act(async () => {
