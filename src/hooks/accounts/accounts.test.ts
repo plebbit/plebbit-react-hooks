@@ -479,7 +479,7 @@ describe('accounts', () => {
       expect(rendered2.result.current[2].name).toBe('custom name')
     })
 
-    test(`delete active account, active account switches second account in accountNames`, async () => {
+    test(`delete active account, active account switches to second account in accountNames`, async () => {
       const activeAccountIdBefore = rendered.result.current.account.id
       const accountCountBefore = rendered.result.current.accounts.length
       await act(async () => {
@@ -1192,7 +1192,7 @@ describe('accounts', () => {
       // reset stores to force using the db
       await testUtils.resetStores()
 
-      // get the karma from database by created new store
+      // get the karma from database by creating new store
       const rendered2 = renderHook<any, any>(() => {
         const account = useAccount()
         const accountComments = useAccountComments()
@@ -1409,7 +1409,7 @@ describe('accounts', () => {
       expect(rendered.result.current.account.unreadNotificationCount).toBe(3)
 
       act(() => {
-        // mark te notifications as read
+        // mark the notifications as read
         rendered.result.current.markAsRead()
       })
 
