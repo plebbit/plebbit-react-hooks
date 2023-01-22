@@ -2047,14 +2047,14 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#604ddec37da74168498b2f68ba268f62b6b3c63a":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#695d574ed87aa153ce1202e294e2539e94451303":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#604ddec37da74168498b2f68ba268f62b6b3c63a"
+  resolved "https://github.com/plebbit/plebbit-js.git#695d574ed87aa153ce1202e294e2539e94451303"
   dependencies:
     "@keyv/sqlite" "3.6.2"
     "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
     "@types/node-fetch" "2.6.2"
-    "@types/proper-lockfile" "^4.1.2"
+    "@types/proper-lockfile" "4.1.2"
     "@types/uuid" "8.3.4"
     assert "2.0.0"
     async-wait-until "2.0.12"
@@ -2074,37 +2074,7 @@
     libp2p-crypto "0.21.2"
     lodash-es "4.17.21"
     peer-id "0.16.0"
-    proper-lockfile "^4.1.2"
-    safe-stable-stringify "2.4.1"
-    skia-canvas "1.0.0"
-    sqlite3 "5.1.2"
-    tinycache "1.1.2"
-    uuid "9.0.0"
-
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#8c050b36a021a373793cbb0b74479487004c2b6e":
-  version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#8c050b36a021a373793cbb0b74479487004c2b6e"
-  dependencies:
-    "@keyv/sqlite" "3.6.2"
-    "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
-    "@types/node-fetch" "2.6.2"
-    "@types/uuid" "8.3.4"
-    assert "2.0.0"
-    buffer "6.0.3"
-    captcha-canvas "3.2.1"
-    err-code "3.0.1"
-    ethers "5.7.2"
-    form-data "4.0.0"
-    ipfs-http-client "56.0.3"
-    ipfs-only-hash "4.0.0"
-    is-ipfs "6.0.2"
-    jose "4.11.0"
-    js-sha256 "0.9.0"
-    keyv "4.5.2"
-    knex "2.3.0"
-    libp2p-crypto "0.21.2"
-    lodash-es "4.17.21"
-    peer-id "0.16.0"
+    proper-lockfile "github:Rinse12/node-proper-lockfile"
     safe-stable-stringify "2.4.1"
     skia-canvas "1.0.0"
     sqlite3 "5.1.2"
@@ -2317,14 +2287,14 @@
     "@babel/types" "^7.3.0"
 
 "@types/cacheable-request@^6.0.1":
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/@types/cacheable-request/-/cacheable-request-6.0.2.tgz#c324da0197de0a98a2312156536ae262429ff6b9"
-  integrity sha512-B3xVo+dlKM6nnKTcmm5ZtY/OL8bOAOd2Olee9M1zft65ox50OzjEHW91sDiU9j6cvW8Ejg1/Qkf4xd2kugApUA==
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/@types/cacheable-request/-/cacheable-request-6.0.3.tgz#a430b3260466ca7b5ca5bfd735693b36e7a9d183"
+  integrity sha512-IQ3EbTzGxIigb1I3qPZc1rWJnH0BmSKv5QYTalEwweFvyBDLSAe24zP0le/hyi7ecGfZVlIVAg4BZqb8WBwKqw==
   dependencies:
     "@types/http-cache-semantics" "*"
-    "@types/keyv" "*"
+    "@types/keyv" "^3.1.4"
     "@types/node" "*"
-    "@types/responselike" "*"
+    "@types/responselike" "^1.0.0"
 
 "@types/cookie@^0.4.1":
   version "0.4.1"
@@ -2406,7 +2376,7 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"
   integrity sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==
 
-"@types/keyv@*":
+"@types/keyv@^3.1.4":
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.4.tgz#3ccdb1c6751b0c7e52300bcdacd5bcbf8faa75b6"
   integrity sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==
@@ -2471,7 +2441,7 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.5.tgz#5f19d2b85a98e9558036f6a3cacc8819420f05cf"
   integrity sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==
 
-"@types/proper-lockfile@^4.1.2":
+"@types/proper-lockfile@4.1.2":
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/@types/proper-lockfile/-/proper-lockfile-4.1.2.tgz#49537cee7134055ee13a1833b76a1c298f39bb26"
   integrity sha512-kd4LMvcnpYkspDcp7rmXKedn8iJSCoa331zRRamUp5oanKt/CefbEGPQP7G89enz7sKD4bvsr8mHSsC8j5WOvA==
@@ -2510,7 +2480,7 @@
     "@types/scheduler" "*"
     csstype "^3.0.2"
 
-"@types/responselike@*", "@types/responselike@^1.0.0":
+"@types/responselike@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/responselike/-/responselike-1.0.0.tgz#251f4fe7d154d2bad125abe1b429b23afd262e29"
   integrity sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==
@@ -5060,10 +5030,10 @@ globby@^11.0.1, globby@^11.0.4:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-go-ipfs@0.15.0:
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/go-ipfs/-/go-ipfs-0.15.0.tgz#9bf597e2f35aeb12b1865a1447e8c4b03af5ce8f"
-  integrity sha512-Ischwb8Gs5FSr9cKUPNr6ZY1ukNcZNY0xyMUtbiR08zg4fB4vT6t2c5YMR9TglEfS1FlFpHyV77+RSkexYS/PA==
+go-ipfs@0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/go-ipfs/-/go-ipfs-0.16.0.tgz#01ddde23969810989dfaa14f8d154d9c7aadaaba"
+  integrity sha512-AxA/CGZgXlU3NCIAFJKdnCcF5TmOiryxtjxH4SmT7FdquAwemgQWzOWxUZzhDDzqlk32mqoDID2sVxmAOfcfcA==
   dependencies:
     cachedir "^2.3.0"
     got "^11.7.0"
@@ -5074,9 +5044,9 @@ go-ipfs@0.15.0:
     unzip-stream "^0.3.0"
 
 got@^11.7.0:
-  version "11.8.5"
-  resolved "https://registry.yarnpkg.com/got/-/got-11.8.5.tgz#ce77d045136de56e8f024bebb82ea349bc730046"
-  integrity sha512-o0Je4NvQObAuZPHLFoRSkdG2lTgtcynqymzg2Vupdx6PorhaT5MCbIyXG6d4D94kk8ZG57QeosgdiqfJWhEhlQ==
+  version "11.8.6"
+  resolved "https://registry.yarnpkg.com/got/-/got-11.8.6.tgz#276e827ead8772eddbcfc97170590b841823233a"
+  integrity sha512-6tfZ91bOr7bOXnK7PRDCGBLa1H4U080YHNaAQ2KsMGlLEzRbk44nsZF2E1IeRc3vtJHPVbKCYgdFbaGO2ljd8g==
   dependencies:
     "@sindresorhus/is" "^4.0.0"
     "@szmarczak/http-timer" "^4.0.5"
@@ -6653,7 +6623,7 @@ keypress@0.1.x:
   resolved "https://registry.yarnpkg.com/keypress/-/keypress-0.1.0.tgz#4a3188d4291b66b4f65edb99f806aa9ae293592a"
   integrity sha512-x0yf9PL/nx9Nw9oLL8ZVErFAk85/lslwEP7Vz7s5SI1ODXZIgit3C5qyWjw4DxOuO/3Hb4866SQh28a1V1d+WA==
 
-keyv@4.5.2:
+keyv@4.5.2, keyv@^4.0.0:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-4.5.2.tgz#0e310ce73bf7851ec702f2eaf46ec4e3805cce56"
   integrity sha512-5MHbFaKn8cNSmVW7BYnijeAVlE4cYA/SVkifVgrh7yotnfhKmjuXpDKjrABLnT0SfHWV21P8ow07OGfRrNDg8g==
@@ -6666,13 +6636,6 @@ keyv@^3.0.0:
   integrity sha512-9ykJ/46SN/9KPM/sichzQ7OvXyGDYKGTaDlKMGCAlg2UK8KRy4jb0d8sFc+0Tt0YYnThq8X2RZgCg74RPxgcVA==
   dependencies:
     json-buffer "3.0.0"
-
-keyv@^4.0.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/keyv/-/keyv-4.5.0.tgz#dbce9ade79610b6e641a9a65f2f6499ba06b9bc6"
-  integrity sha512-2YvuMsA+jnFGtBareKqgANOEKe1mk3HKiXu2fRmAfyxG0MJAywNhi5ttWA3PMjl4NmpyjZNbFifR2vNjW1znfA==
-  dependencies:
-    json-buffer "3.0.1"
 
 kind-of@^6.0.2, kind-of@^6.0.3:
   version "6.0.3"
@@ -7899,10 +7862,9 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-proper-lockfile@^4.1.2:
+"proper-lockfile@github:Rinse12/node-proper-lockfile":
   version "4.1.2"
-  resolved "https://registry.yarnpkg.com/proper-lockfile/-/proper-lockfile-4.1.2.tgz#c8b9de2af6b2f1601067f98e01ac66baa223141f"
-  integrity sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==
+  resolved "https://codeload.github.com/Rinse12/node-proper-lockfile/tar.gz/072ee9e37d52858cf8410ce55c281599cef1fb92"
   dependencies:
     graceful-fs "^4.2.4"
     retry "^0.12.0"
