@@ -17,6 +17,7 @@ import {
   PublishCommentEditOptions,
   PublishSubplebbitEditOptions,
   CreateSubplebbitOptions,
+  Subplebbits,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
 
@@ -150,6 +151,12 @@ export const importAccount = async (serializedAccount: string) => {
   const newAccount = {...generatedAccount, ...account, id: generatedAccount.id}
   await addNewAccountToDatabaseAndState(newAccount)
   log('accountsActions.importAccount', {account: newAccount})
+
+  // add subplebbit roles to imported account
+  const subplebbits: Subplebbits = subplebbitsStore.getState()
+  for (const subplebbitAddress in subplebbits) {
+    accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress])
+  }
 
   // TODO: the 'account' should contain AccountComments and AccountVotes
   // TODO: add options to only import private key, account settings, or include all account comments/votes history
