@@ -10,6 +10,7 @@ import assert from 'assert'
 const log = Logger('plebbit-react-hooks:stores:accounts')
 import {
   Account,
+  Accounts,
   PublishCommentOptions,
   Challenge,
   ChallengeVerification,
@@ -107,7 +108,7 @@ export const setAccount = async (account: Account) => {
     accountsDatabase.getAccount(account.id),
     accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
   ])
-  const newAccounts = {...accounts, [newAccount.id]: newAccount}
+  const newAccounts: Accounts = {...accounts, [newAccount.id]: newAccount}
   log('accountsActions.setAccount', {account: newAccount})
   accountsStore.setState({accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds})
 
