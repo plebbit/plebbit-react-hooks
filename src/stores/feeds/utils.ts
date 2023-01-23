@@ -63,6 +63,12 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
         continue
       }
 
+      // if a feed has more than 1 sub, don't include pinned posts
+      // TODO: add test to check if pinned are filtered
+      if (post.pinned && subplebbitAddresses.length > 1) {
+        continue
+      }
+
       filteredSortedBufferedFeedPosts.push(post)
     }
 
