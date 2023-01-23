@@ -100,6 +100,13 @@ export const setAccount = (account) => __awaiter(void 0, void 0, void 0, functio
     const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
     log('accountsActions.setAccount', { account: newAccount });
     accountsStore.setState({ accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds });
+    // add subplebbit roles to account if account.author.address has changed
+    if (accounts[account.id].author.address !== newAccounts[account.id].author.address) {
+        const subplebbits = subplebbitsStore.getState();
+        for (const subplebbitAddress in subplebbits) {
+            accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress]);
+        }
+    }
 });
 export const setAccountsOrder = (newOrderedAccountNames) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds } = accountsStore.getState();
@@ -138,6 +145,11 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
     const newAccount = Object.assign(Object.assign(Object.assign({}, generatedAccount), account), { id: generatedAccount.id });
     yield addNewAccountToDatabaseAndState(newAccount);
     log('accountsActions.importAccount', { account: newAccount });
+    // add subplebbit roles to imported account
+    const subplebbits = subplebbitsStore.getState();
+    for (const subplebbitAddress in subplebbits) {
+        accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress]);
+    }
     // TODO: the 'account' should contain AccountComments and AccountVotes
     // TODO: add options to only import private key, account settings, or include all account comments/votes history
 });
