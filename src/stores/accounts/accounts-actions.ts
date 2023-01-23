@@ -110,6 +110,14 @@ export const setAccount = async (account: Account) => {
   const newAccounts = {...accounts, [newAccount.id]: newAccount}
   log('accountsActions.setAccount', {account: newAccount})
   accountsStore.setState({accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds})
+
+  // add subplebbit roles to account if account.author.address has changed
+  if (accounts[account.id].author.address !== newAccounts[account.id].author.address) {
+    const subplebbits: Subplebbits = subplebbitsStore.getState()
+    for (const subplebbitAddress in subplebbits) {
+      accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress])
+    }
+  }
 }
 
 export const setAccountsOrder = async (newOrderedAccountNames: string[]) => {
@@ -155,7 +163,7 @@ export const importAccount = async (serializedAccount: string) => {
   // add subplebbit roles to imported account
   const subplebbits: Subplebbits = subplebbitsStore.getState()
   for (const subplebbitAddress in subplebbits) {
-    accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress])
+    accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress])
   }
 
   // TODO: the 'account' should contain AccountComments and AccountVotes
