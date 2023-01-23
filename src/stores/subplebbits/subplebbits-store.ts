@@ -57,6 +57,9 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
       try {
         subplebbit = await account.plebbit.getSubplebbit(subplebbitAddress)
         log.trace('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', {subplebbitAddress, subplebbit, account})
+
+        // if a subplebbit has a role with an account's address add it to the account.subplebbits
+        accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbit)
       } catch (e) {
         errorGettingSubplebbit = e
       }
