@@ -103,7 +103,7 @@ export const setAccount = (account) => __awaiter(void 0, void 0, void 0, functio
     // add subplebbit roles to account if account.author.address has changed
     // TODO: add test to check if roles get added
     if (accounts[account.id].author.address !== newAccounts[account.id].author.address) {
-        const subplebbits = subplebbitsStore.getState();
+        const subplebbits = subplebbitsStore.getState().subplebbits;
         for (const subplebbitAddress in subplebbits) {
             accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress]);
         }
@@ -148,7 +148,7 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
     log('accountsActions.importAccount', { account: newAccount });
     // add subplebbit roles to imported account
     // TODO: add test to check if roles get added
-    const subplebbits = subplebbitsStore.getState();
+    const subplebbits = subplebbitsStore.getState().subplebbits;
     for (const subplebbitAddress in subplebbits) {
         accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress]);
     }
