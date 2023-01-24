@@ -52,6 +52,11 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
             if (accounts[accountId].blockedAddresses[post.subplebbitAddress] || (((_e = post.author) === null || _e === void 0 ? void 0 : _e.address) && accounts[accountId].blockedAddresses[post.author.address])) {
                 continue;
             }
+            // if a feed has more than 1 sub, don't include pinned posts
+            // TODO: add test to check if pinned are filtered
+            if (post.pinned && subplebbitAddresses.length > 1) {
+                continue;
+            }
             filteredSortedBufferedFeedPosts.push(post);
         }
         newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts;
