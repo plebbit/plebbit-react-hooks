@@ -93,19 +93,50 @@ const sortByHot = (feed: any[]) => {
     .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid])
 }
 
+/**
+ * Sort by new is made using relative timestamp score, to encourage small communities to grow
+ * and to not incentivize communities to inflate their timestamp
+ */
+const sortByNew = (feed: any[]) => {
+  const subplebbitScores: {[key: string]: number} = {}
+  const postScores: {[key: string]: number} = {}
+  const postRelativeScores: {[key: string]: number} = {}
+  for (const post of feed) {
+    const score = post.timestamp
+    if (!subplebbitScores[post.subplebbitAddress]) {
+      subplebbitScores[post.subplebbitAddress] = 0
+    }
+    subplebbitScores[post.subplebbitAddress] += score
+    postScores[post.cid] = score
+  }
+  for (const post of feed) {
+    // don't use subplebbit scores lower than 1 or it reverses the relative score
+    const subplebbitScore = subplebbitScores[post.subplebbitAddress] || 1
+    postRelativeScores[post.cid] = postScores[post.cid] / subplebbitScore
+  }
+  // sort by new and upvoteCount first, for tiebreaker, then relative scores
+  return feed
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .sort((a, b) => b.upvoteCount - a.upvoteCount)
+    .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid])
+}
+
 export const sort = (sortType: string, feed: any[]) => {
-  feed = [...feed]
+  // pinned posts are not sorted, maybe in a future version we can sort them based on something
+  const pinnedPosts = feed.filter((post) => post.pinned)
+
+  feed = feed.filter((post) => !post.pinned)
   if (sortType === 'new') {
-    return feed.sort((a, b) => b.timestamp - a.timestamp)
+    return [...pinnedPosts, ...sortByNew(feed)]
   }
   if (sortType === 'hot') {
-    return sortByHot(feed)
+    return [...pinnedPosts, ...sortByHot(feed)]
   }
   if (sortType.match('top')) {
-    return sortByTop(feed)
+    return [...pinnedPosts, ...sortByTop(feed)]
   }
   if (sortType.match('controversial')) {
-    return sortByControversial(feed)
+    return [...pinnedPosts, ...sortByControversial(feed)]
   }
   throw Error(`feedsStore feedSorter sort type '${sortType}' doesn't exist`)
 }
