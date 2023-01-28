@@ -56,8 +56,11 @@ export declare type AccountNotifications = AccountNotification[];
 export declare type AccountsNotifications = {
     [accountId: string]: AccountNotifications;
 };
-export declare type AccountSubplebbit = {
+export declare type Role = {
     role: 'owner' | 'admin' | 'moderator';
+};
+export declare type AccountSubplebbit = {
+    role: Role;
     autoStart?: boolean;
 };
 /**

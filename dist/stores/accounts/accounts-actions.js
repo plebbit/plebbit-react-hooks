@@ -17,6 +17,7 @@ import validator from '../../lib/validator';
 import assert from 'assert';
 const log = Logger('plebbit-react-hooks:stores:accounts');
 import * as accountsActionsInternal from './accounts-actions-internal';
+import { getAccountSubplebbits } from './utils';
 const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountsComments, accountsVotes } = accountsStore.getState();
     yield accountsDatabase.addAccount(newAccount);
@@ -90,6 +91,12 @@ export const setAccount = (account) => __awaiter(void 0, void 0, void 0, functio
     const { accounts } = accountsStore.getState();
     validator.validateAccountsActionsSetAccountArguments(account);
     assert(accounts === null || accounts === void 0 ? void 0 : accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`);
+    // if author.address has changed, add new subplebbit roles of author.address found in subplebbits store
+    // TODO: add test to check if roles get added
+    if (account.author.address !== accounts[account.id].author.address) {
+        const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits);
+        account = Object.assign(Object.assign({}, account), { subplebbits });
+    }
     // use this function to serialize and update all databases
     yield accountsDatabase.addAccount(account);
     const [newAccount, newAccountNamesToAccountIds] = yield Promise.all([
@@ -100,14 +107,6 @@ export const setAccount = (account) => __awaiter(void 0, void 0, void 0, functio
     const newAccounts = Object.assign(Object.assign({}, accounts), { [newAccount.id]: newAccount });
     log('accountsActions.setAccount', { account: newAccount });
     accountsStore.setState({ accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds });
-    // add subplebbit roles to account if account.author.address has changed
-    // TODO: add test to check if roles get added
-    if (accounts[account.id].author.address !== newAccounts[account.id].author.address) {
-        const subplebbits = subplebbitsStore.getState().subplebbits;
-        for (const subplebbitAddress in subplebbits) {
-            accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress]);
-        }
-    }
 });
 export const setAccountsOrder = (newOrderedAccountNames) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds } = accountsStore.getState();
@@ -136,6 +135,9 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
     }
     catch (e) { }
     assert(account && (account === null || account === void 0 ? void 0 : account.id) && (account === null || account === void 0 ? void 0 : account.name), `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`);
+    // add subplebbit roles already in subplebbits store to imported account
+    // TODO: add test to check if roles get added
+    const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits);
     // if account.name already exists, add ' 2', don't overwrite
     if (accountNamesToAccountIds[account.name]) {
         account.name += ' 2';
@@ -143,15 +145,9 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
     const generatedAccount = yield accountGenerator.generateDefaultAccount();
     // use generatedAccount to init properties like .plebbit and .id on a new account
     // overwrite account.id to avoid duplicate ids
-    const newAccount = Object.assign(Object.assign(Object.assign({}, generatedAccount), account), { id: generatedAccount.id });
+    const newAccount = Object.assign(Object.assign(Object.assign({}, generatedAccount), account), { subplebbits, id: generatedAccount.id });
     yield addNewAccountToDatabaseAndState(newAccount);
     log('accountsActions.importAccount', { account: newAccount });
-    // add subplebbit roles to imported account
-    // TODO: add test to check if roles get added
-    const subplebbits = subplebbitsStore.getState().subplebbits;
-    for (const subplebbitAddress in subplebbits) {
-        accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress]);
-    }
     // TODO: the 'account' should contain AccountComments and AccountVotes
     // TODO: add options to only import private key, account settings, or include all account comments/votes history
 });
