@@ -42,8 +42,11 @@ export type AccountCommentsReplies = {[replyCid: string]: AccountCommentReply}
 export type AccountsCommentsReplies = {[accountId: string]: AccountCommentsReplies}
 export type AccountNotifications = AccountNotification[]
 export type AccountsNotifications = {[accountId: string]: AccountNotifications}
-export type AccountSubplebbit = {
+export type Role = {
   role: 'owner' | 'admin' | 'moderator'
+}
+export type AccountSubplebbit = {
+  role: Role
   autoStart?: boolean
 }
 

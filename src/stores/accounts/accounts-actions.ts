@@ -21,6 +21,7 @@ import {
   Subplebbits,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
+import {getAccountSubplebbits} from './utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
   const {accounts, accountsComments, accountsVotes} = accountsStore.getState()
@@ -101,6 +102,14 @@ export const setAccount = async (account: Account) => {
   const {accounts} = accountsStore.getState()
   validator.validateAccountsActionsSetAccountArguments(account)
   assert(accounts?.[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`)
+
+  // if author.address has changed, add new subplebbit roles of author.address found in subplebbits store
+  // TODO: add test to check if roles get added
+  if (account.author.address !== accounts[account.id].author.address) {
+    const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits)
+    account = {...account, subplebbits}
+  }
+
   // use this function to serialize and update all databases
   await accountsDatabase.addAccount(account)
   const [newAccount, newAccountNamesToAccountIds] = await Promise.all<any>([
@@ -111,15 +120,6 @@ export const setAccount = async (account: Account) => {
   const newAccounts: Accounts = {...accounts, [newAccount.id]: newAccount}
   log('accountsActions.setAccount', {account: newAccount})
   accountsStore.setState({accounts: newAccounts, accountNamesToAccountIds: newAccountNamesToAccountIds})
-
-  // add subplebbit roles to account if account.author.address has changed
-  // TODO: add test to check if roles get added
-  if (accounts[account.id].author.address !== newAccounts[account.id].author.address) {
-    const subplebbits: Subplebbits = subplebbitsStore.getState().subplebbits
-    for (const subplebbitAddress in subplebbits) {
-      accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress])
-    }
-  }
 }
 
 export const setAccountsOrder = async (newOrderedAccountNames: string[]) => {
@@ -150,6 +150,10 @@ export const importAccount = async (serializedAccount: string) => {
   } catch (e) {}
   assert(account && account?.id && account?.name, `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`)
 
+  // add subplebbit roles already in subplebbits store to imported account
+  // TODO: add test to check if roles get added
+  const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits)
+
   // if account.name already exists, add ' 2', don't overwrite
   if (accountNamesToAccountIds[account.name]) {
     account.name += ' 2'
@@ -158,16 +162,9 @@ export const importAccount = async (serializedAccount: string) => {
   const generatedAccount = await accountGenerator.generateDefaultAccount()
   // use generatedAccount to init properties like .plebbit and .id on a new account
   // overwrite account.id to avoid duplicate ids
-  const newAccount = {...generatedAccount, ...account, id: generatedAccount.id}
+  const newAccount = {...generatedAccount, ...account, subplebbits, id: generatedAccount.id}
   await addNewAccountToDatabaseAndState(newAccount)
   log('accountsActions.importAccount', {account: newAccount})
-
-  // add subplebbit roles to imported account
-  // TODO: add test to check if roles get added
-  const subplebbits: Subplebbits = subplebbitsStore.getState().subplebbits
-  for (const subplebbitAddress in subplebbits) {
-    accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbits[subplebbitAddress])
-  }
 
   // TODO: the 'account' should contain AccountComments and AccountVotes
   // TODO: add options to only import private key, account settings, or include all account comments/votes history
