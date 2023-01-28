@@ -22,7 +22,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
       // and doesn't have a cid, so has no way to know the ipns name
       return
     }
-    comment = await account.plebbit.getComment(comment.cid)
+    comment = await utils.retryInfinity(() => account.plebbit.getComment(comment.cid))
   }
   // account comment already updating
   if (accountsStore.getState().accountsCommentsUpdating[comment.cid]) {
