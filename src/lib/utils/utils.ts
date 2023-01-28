@@ -1,5 +1,4 @@
 import assert from 'assert'
-import pRetry from 'p-retry'
 
 const merge = (...args: any) => {
   // @ts-ignore
@@ -108,25 +107,35 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   return uniqueFlattened
 }
 
+// define for typescript
+const retryInfinityType = (f: any): any => {}
+
 const utils = {
   merge,
   clone,
   flattenCommentsPages,
-  retryInfinity: (f: any) => pRetry(f), // define for typescript
+  // define for typescript
+  retryInfinity: retryInfinityType,
   // export timeout values to mock them in tests
   retryInfinityMinTimeout: 1000,
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
 }
 
-// redefine retryInfinity to include mockable minTimeout and maxTimeout
-export const retryInfinity = (functionToRetry: any) =>
-  pRetry(functionToRetry, {
-    // retry timeout increases by a factor of 2 until a maximum of 1 day
-    retries: 9999, // Infinity doesn't work
-    minTimeout: utils.retryInfinityMinTimeout,
-    maxTimeout: utils.retryInfinityMaxTimeout,
-    factor: 2,
-  })
+export const retryInfinity = async (functionToRetry: any) => {
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+  let attempt = 0
+  while (true) {
+    try {
+      const res = await functionToRetry()
+      return res
+    } catch (e) {
+      const factor = 2
+      let timeout = Math.round(utils.retryInfinityMinTimeout * Math.pow(factor, attempt++))
+      timeout = Math.min(timeout, utils.retryInfinityMaxTimeout)
+      await sleep(timeout)
+    }
+  }
+}
 utils.retryInfinity = retryInfinity
 
 export default utils
