@@ -1,5 +1,13 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import assert from 'assert';
-import pRetry from 'p-retry';
 const merge = (...args) => {
     // @ts-ignore
     const clonedArgs = args.map((arg) => {
@@ -100,22 +108,33 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance) => {
     }
     return uniqueFlattened;
 };
+// define for typescript
+const retryInfinityType = (f) => { };
 const utils = {
     merge,
     clone,
     flattenCommentsPages,
-    retryInfinity: (f) => pRetry(f),
+    // define for typescript
+    retryInfinity: retryInfinityType,
     // export timeout values to mock them in tests
     retryInfinityMinTimeout: 1000,
     retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
 };
-// redefine retryInfinity to include mockable minTimeout and maxTimeout
-export const retryInfinity = (functionToRetry) => pRetry(functionToRetry, {
-    // retry timeout increases by a factor of 2 until a maximum of 1 day
-    retries: 9999,
-    minTimeout: utils.retryInfinityMinTimeout,
-    maxTimeout: utils.retryInfinityMaxTimeout,
-    factor: 2,
+export const retryInfinity = (functionToRetry) => __awaiter(void 0, void 0, void 0, function* () {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    let attempt = 0;
+    while (true) {
+        try {
+            const res = yield functionToRetry();
+            return res;
+        }
+        catch (e) {
+            const factor = 2;
+            let timeout = Math.round(utils.retryInfinityMinTimeout * Math.pow(factor, attempt++));
+            timeout = Math.min(timeout, utils.retryInfinityMaxTimeout);
+            yield sleep(timeout);
+        }
+    }
 });
 utils.retryInfinity = retryInfinity;
 export default utils;
