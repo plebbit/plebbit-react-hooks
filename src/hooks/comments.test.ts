@@ -3,6 +3,7 @@ import testUtils from '../lib/test-utils'
 import {useComment, useComments, setPlebbitJs} from '..'
 import commentsStore from '../stores/comments'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
+import utils from '../lib/utils'
 setPlebbitJs(PlebbitJsMock)
 
 describe('comments', () => {
@@ -123,6 +124,43 @@ describe('comments', () => {
       expect(rendered.result.current[0].upvoteCount).toBe(3)
       expect(rendered.result.current[1].upvoteCount).toBe(3)
       expect(rendered.result.current[2].upvoteCount).toBe(3)
+    })
+
+    test('get comment. plebbit.getComment fails 3 times', async () => {
+      // mock getComment on the Plebbit class to fail 3 times
+      const getComment = Plebbit.prototype.getComment
+      const retryInfinityMinTimeout = utils.retryInfinityMinTimeout
+      const retryInfinityMaxTimeout = utils.retryInfinityMaxTimeout
+      utils.retryInfinityMinTimeout = 10
+      utils.retryInfinityMaxTimeout = 10
+      let failCount = 0
+      Plebbit.prototype.getComment = async (commentCid) => {
+        // restore original function after 3 fails
+        if (++failCount >= 3) {
+          Plebbit.prototype.getComment = getComment
+        }
+        throw Error(`failed to get comment`)
+      }
+
+      // on first render, the account is undefined because it's not yet loaded from database
+      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current).toBe(undefined)
+
+      rendered.rerender('comment cid 1')
+      await waitFor(() => typeof rendered.result.current.cid === 'string')
+      expect(rendered.result.current?.cid).toBe('comment cid 1')
+      expect(failCount).toBe(3)
+
+      // wait for comment.on('update') to fetch the ipns
+      await waitFor(() => typeof rendered.result.current.cid === 'string' && typeof rendered.result.current.upvoteCount === 'number')
+      expect(rendered.result.current?.cid).toBe('comment cid 1')
+      expect(rendered.result.current?.upvoteCount).toBe(3)
+
+      // restore mock
+      Plebbit.prototype.getComment = getComment
+      utils.retryInfinityMinTimeout = retryInfinityMinTimeout
+      utils.retryInfinityMaxTimeout = retryInfinityMaxTimeout
     })
   })
 })
