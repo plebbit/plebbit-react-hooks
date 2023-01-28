@@ -126,7 +126,7 @@ describe('comments', () => {
       expect(rendered.result.current[2].upvoteCount).toBe(3)
     })
 
-    test('get comment. plebbit.getComment fails 3 times', async () => {
+    test('get comment, plebbit.getComment fails 3 times', async () => {
       // mock getComment on the Plebbit class to fail 3 times
       const getComment = Plebbit.prototype.getComment
       const retryInfinityMinTimeout = utils.retryInfinityMinTimeout
