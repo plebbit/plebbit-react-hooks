@@ -33,7 +33,7 @@ const commentsStore = createStore((setState, getState) => ({
             // comment not in database, fetch from plebbit-js
             try {
                 if (!comment) {
-                    comment = yield account.plebbit.getComment(commentId);
+                    comment = yield utils.retryInfinity(() => account.plebbit.getComment(commentId));
                     log.trace('commentsStore.addCommentToStore plebbit.getComment', { commentId, comment, account });
                     yield commentsDatabase.setItem(commentId, utils.clone(comment));
                 }
