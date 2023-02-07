@@ -389,7 +389,7 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         commentUpdateContent.replyCount = Math.round(commentUpdateContent.replyCount);
     }
     // simulate finding replies from IPNS record
-    commentUpdateContent.replies = { pages: { topAll: { nextCid: null, comments: [] } } };
+    commentUpdateContent.replies = { pages: { topAll: { nextCid: undefined, comments: [] } } };
     const getReplyContentOptions = { depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid };
     let replyCount = commentUpdateContent.replyCount;
     while (replyCount-- > 0) {

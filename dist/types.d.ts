@@ -86,7 +86,7 @@ export declare type FeedsSubplebbitsPostCounts = {
     [feedName: string]: FeedSubplebbitsPostCounts;
 };
 export declare type SubplebbitPage = {
-    nextCid: string | null;
+    nextCid?: string;
     comments: Comment[];
 };
 export declare type SubplebbitsPages = {

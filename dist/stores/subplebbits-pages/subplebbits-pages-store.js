@@ -39,7 +39,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         }
         else {
             const nextCid = (_d = subplebbitPages[subplebbitPages.length - 1]) === null || _d === void 0 ? void 0 : _d.nextCid;
-            // if last nextCid is null, reached end of pages
+            // if last nextCid is undefined, reached end of pages
             if (!nextCid) {
                 log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', { subplebbitAddress: subplebbit.address, sortType, account });
                 return;
@@ -86,7 +86,7 @@ const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, voi
         return cachedSubplebbitPage;
     }
     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
-    const fetchedSubplebbitPage = yield subplebbit.posts.getPage(pageCid);
+    const fetchedSubplebbitPage = yield utils.retryInfinity(() => subplebbit.posts.getPage(pageCid));
     yield subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage);
     return fetchedSubplebbitPage;
 });
