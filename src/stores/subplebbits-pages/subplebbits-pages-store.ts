@@ -94,7 +94,7 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
     return cachedSubplebbitPage
   }
   const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
-  const fetchedSubplebbitPage = await subplebbit.posts.getPage(pageCid)
+  const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid))
   await subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage)
   return fetchedSubplebbitPage
 }
