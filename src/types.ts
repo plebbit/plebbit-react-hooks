@@ -65,7 +65,7 @@ export type FeedsOptions = {[feedName: string]: FeedOptions}
 export type FeedSubplebbitsPostCounts = {[subplebbitAddress: string]: number}
 export type FeedsSubplebbitsPostCounts = {[feedName: string]: FeedSubplebbitsPostCounts}
 export type SubplebbitPage = {
-  nextCid: string | null
+  nextCid?: string
   comments: Comment[]
 }
 export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}

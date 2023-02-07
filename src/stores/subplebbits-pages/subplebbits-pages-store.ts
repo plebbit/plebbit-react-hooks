@@ -44,7 +44,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
       pageCidToAdd = subplebbitFirstPageCid
     } else {
       const nextCid = subplebbitPages[subplebbitPages.length - 1]?.nextCid
-      // if last nextCid is null, reached end of pages
+      // if last nextCid is undefined, reached end of pages
       if (!nextCid) {
         log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', {subplebbitAddress: subplebbit.address, sortType, account})
         return

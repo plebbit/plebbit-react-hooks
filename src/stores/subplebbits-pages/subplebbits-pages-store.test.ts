@@ -113,7 +113,7 @@ describe('subplebbits pages store', () => {
 
     // no more pages
     const getPage = MockPages.prototype.getPage
-    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: null})
+    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: undefined})
 
     act(() => {
       rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
@@ -121,8 +121,8 @@ describe('subplebbits pages store', () => {
 
     // wait for third page to be defined
     const subplebbitAddress1ThirdPageCid = `${subplebbitAddress1SecondPageCid} - next page cid`
-    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid === null)
-    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid).toBe(null)
+    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid === undefined)
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid).toBe(undefined)
     expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].comments.length).toBe(0)
 
     // adding a next page when no more pages does nothing
@@ -166,7 +166,7 @@ describe('subplebbits pages store', () => {
 
     // no more pages
     const getPage = MockPages.prototype.getPage
-    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: null})
+    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: undefined})
 
     act(() => {
       rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
@@ -174,8 +174,8 @@ describe('subplebbits pages store', () => {
 
     // wait for third page to be defined
     const subplebbitAddress1ThirdPageCid = `${subplebbitAddress1SecondPageCid} - next page cid`
-    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid === null)
-    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid).toBe(null)
+    await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid === undefined)
+    expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].nextCid).toBe(undefined)
     expect(rendered.result.current.subplebbitsPages[subplebbitAddress1ThirdPageCid].comments.length).toBe(0)
 
     // adding a next page when no more pages does nothing

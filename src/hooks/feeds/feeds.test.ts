@@ -476,7 +476,7 @@ describe('feeds', () => {
           // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
           await simulateLoadingTime()
           await simulateLoadingTime()
-          const page: any = {nextCid: null, comments: []}
+          const page: any = {nextCid: undefined, comments: []}
           const postCount = 100
           let index = 0
           while (index++ < postCount) {
@@ -605,7 +605,7 @@ describe('feeds', () => {
           if (!pageCid.match('next')) {
             throw Error(`subplebbit.getPage() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`)
           }
-          return {nextCid: null, comments: []}
+          return {nextCid: undefined, comments: []}
         }
       })
 

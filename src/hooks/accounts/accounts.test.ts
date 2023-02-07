@@ -1127,7 +1127,7 @@ describe('accounts', () => {
             subplebbitAddress: accountCommentSubplebbitAddress,
           },
         ],
-        nextCid: null,
+        nextCid: undefined,
       })
       rendered.rerender({subplebbitAddresses: [accountCommentSubplebbitAddress]})
 
@@ -1384,7 +1384,7 @@ describe('accounts', () => {
         comment.replies = {
           pages: {
             topAll: {
-              nextCid: null,
+              nextCid: undefined,
               comments: [
                 {cid: 'reply cid 1', timestamp: 1},
                 {cid: 'reply cid 2', timestamp: 2},
@@ -1430,7 +1430,7 @@ describe('accounts', () => {
         comment.replies = {
           pages: {
             topAll: {
-              nextCid: null,
+              nextCid: undefined,
               comments: [
                 {cid: 'reply cid 3', timestamp: 3},
                 {cid: 'reply cid 4', timestamp: 4},
