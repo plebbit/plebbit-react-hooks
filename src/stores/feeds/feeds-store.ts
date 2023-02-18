@@ -1,7 +1,7 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:stores:feeds')
-import {Feed, Feeds, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts} from '../../types'
+import {Feed, Feeds, Subplebbit, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
 import accountsStore from '../accounts'
@@ -18,6 +18,8 @@ import {
   getAccountsBlockedAddresses,
   feedsHaveChangedBlockedAddresses,
   accountsBlockedAddressesChanged,
+  feedsSubplebbitsChanged,
+  getFeedsSubplebbits,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -164,7 +166,6 @@ let previousBlockedAddresses: string[] = []
 let previousAccountsBlockedAddresses: {[address: string]: boolean}[] = []
 const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) => {
   const {accounts} = accountsStoreState
-  const blockedAddresses = getAccountsBlockedAddresses(accounts)
 
   // blocked addresses haven't changed, do nothing
   const accountsBlockedAddresses = []
@@ -172,10 +173,11 @@ const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) =>
     accountsBlockedAddresses.push(accounts[i].blockedAddresses)
   }
   if (!accountsBlockedAddressesChanged(previousAccountsBlockedAddresses, accountsBlockedAddresses)) {
-    previousAccountsBlockedAddresses = accountsBlockedAddresses
     return
   }
   previousAccountsBlockedAddresses = accountsBlockedAddresses
+
+  const blockedAddresses = getAccountsBlockedAddresses(accounts)
 
   // blocked addresses haven't changed, do nothing
   if (blockedAddresses.toString() === previousBlockedAddresses.toString()) {
@@ -219,7 +221,8 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
   const {subplebbits} = subplebbitsStore.getState()
 
   // if subplebbits pages have changed, we must try adding them even if buffered posts counts haven't changed
-  const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits)
+  const feedsSubplebbits = getFeedsSubplebbits(feedsOptions, subplebbits)
+  const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(feedsSubplebbits)
 
   // bufferedFeedsSubplebbitsPostCounts haven't changed and subplebbits page cids haven't changed, do nothing
   const bufferedFeedsSubplebbitsPostCountsStringified = JSON.stringify(bufferedFeedsSubplebbitsPostCounts)
@@ -262,14 +265,23 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 }
 
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
+let previousFeedsSubplebbits: Map<string, Subplebbit> = new Map()
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
   const {subplebbits} = subplebbitsStoreState
   const {feedsOptions, updateFeeds} = feedsStore.getState()
 
-  // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
-  const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits)
-
   // feeds subplebbits haven't changed, do nothing
+  const feedsSubplebbits = getFeedsSubplebbits(feedsOptions, subplebbits)
+  if (!feedsSubplebbitsChanged(previousFeedsSubplebbits, feedsSubplebbits)) {
+    return
+  }
+  previousFeedsSubplebbits = feedsSubplebbits
+
+  // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
+  // (in case that a subplebbit changed, but its first page cid didn't)
+  const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsSubplebbits)
+
+  // first page cids haven't changed, do nothing
   if (feedsSubplebbitsFirstPageCids.toString() === previousFeedsSubplebbitsFirstPageCids.toString()) {
     return
   }

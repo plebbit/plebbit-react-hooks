@@ -1,5 +1,17 @@
 import assert from 'assert'
-import {Feed, Feeds, FeedOptions, FeedsOptions, Subplebbits, Account, Accounts, SubplebbitPage, SubplebbitsPages, FeedsSubplebbitsPostCounts} from '../../types'
+import {
+  Feed,
+  Feeds,
+  FeedOptions,
+  FeedsOptions,
+  Subplebbit,
+  Subplebbits,
+  Account,
+  Accounts,
+  SubplebbitPage,
+  SubplebbitsPages,
+  FeedsSubplebbitsPostCounts,
+} from '../../types'
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
 import {postsPerPage} from './feeds-store'
@@ -232,16 +244,37 @@ export const getFeedAfterIncrementPageNumber = (
 }
 
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
-export const getFeedsSubplebbitsFirstPageCids = (feedsOptions: FeedsOptions, subplebbits: Subplebbits): string[] => {
+export const getFeedsSubplebbits = (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => {
   // find all feeds subplebbits
-  const feedNames = Object.keys(feedsOptions)
   const feedsSubplebbitAddresses = new Set<string>()
   Object.keys(feedsOptions).forEach((i) => feedsOptions[i].subplebbitAddresses.forEach((a) => feedsSubplebbitAddresses.add(a)))
 
+  // use map for performance increase when checking size
+  const feedsSubplebbits = new Map<string, Subplebbit>()
+  for (const subplebbitAddress of feedsSubplebbitAddresses) {
+    feedsSubplebbits.set(subplebbitAddress, subplebbits[subplebbitAddress])
+  }
+  return feedsSubplebbits
+}
+
+export const feedsSubplebbitsChanged = (previousFeedsSubplebbits: Map<string, Subplebbit>, feedsSubplebbits: Map<string, Subplebbit>) => {
+  if (previousFeedsSubplebbits.size !== feedsSubplebbits.size) {
+    return true
+  }
+  for (let subplebbitAddress of previousFeedsSubplebbits.keys()) {
+    // check if the object is still the same
+    if (previousFeedsSubplebbits.get(subplebbitAddress) !== feedsSubplebbits.get(subplebbitAddress)) {
+      return true
+    }
+  }
+  return false
+}
+
+// get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
+export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, Subplebbit>): string[] => {
   // find all the feeds subplebbits first page cids
   const feedsSubplebbitsFirstPageCids = new Set<string>()
-  for (const subplebbitAddress of feedsSubplebbitAddresses) {
-    const subplebbit = subplebbits[subplebbitAddress]
+  for (const subplebbit of feedsSubplebbits.values()) {
     if (!subplebbit?.posts) {
       continue
     }
