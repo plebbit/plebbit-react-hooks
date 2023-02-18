@@ -17,6 +17,7 @@ import {
   getFeedAfterIncrementPageNumber,
   getAccountsBlockedAddresses,
   feedsHaveChangedBlockedAddresses,
+  accountsBlockedAddressesChanged,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -160,9 +161,21 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
 }))
 
 let previousBlockedAddresses: string[] = []
+let previousAccountsBlockedAddresses: {[address: string]: boolean}[] = []
 const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) => {
   const {accounts} = accountsStoreState
   const blockedAddresses = getAccountsBlockedAddresses(accounts)
+
+  // blocked addresses haven't changed, do nothing
+  const accountsBlockedAddresses = []
+  for (const i in accounts) {
+    accountsBlockedAddresses.push(accounts[i].blockedAddresses)
+  }
+  if (!accountsBlockedAddressesChanged(previousAccountsBlockedAddresses, accountsBlockedAddresses)) {
+    previousAccountsBlockedAddresses = accountsBlockedAddresses
+    return
+  }
+  previousAccountsBlockedAddresses = accountsBlockedAddresses
 
   // blocked addresses haven't changed, do nothing
   if (blockedAddresses.toString() === previousBlockedAddresses.toString()) {

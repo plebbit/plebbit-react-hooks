@@ -280,6 +280,22 @@ export const getAccountsBlockedAddresses = (accounts: Accounts) => {
   return [...blockedAddressesSet].sort()
 }
 
+export const accountsBlockedAddressesChanged = (
+  previousAccountsBlockedAddresses: {[address: string]: boolean}[],
+  accountsBlockedAddresses: {[address: string]: boolean}[]
+) => {
+  if (previousAccountsBlockedAddresses.length !== accountsBlockedAddresses.length) {
+    return true
+  }
+  for (const i in previousAccountsBlockedAddresses) {
+    // check if the object is still the same
+    if (previousAccountsBlockedAddresses[i] !== accountsBlockedAddresses[i]) {
+      return true
+    }
+  }
+  return false
+}
+
 export const feedsHaveChangedBlockedAddresses = (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, blockedAddresses: string[], previousBlockedAddresses: string[]) => {
   // find the difference between current and previous blocked addresses
   const changedBlockedAddresses = blockedAddresses
