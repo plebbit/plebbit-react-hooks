@@ -41,6 +41,7 @@ class MockPages {
         timestamp: index,
         cid: pageCid + ' comment cid ' + index,
         subplebbitAddress: this.subplebbitAddress,
+        updatedAt: index,
       })
     }
     return comments
@@ -100,6 +101,11 @@ describe('subplebbits pages store', () => {
     await waitFor(() => rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].nextCid === subplebbitAddress1FirstPageCid + ' - next page cid')
     expect(rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].nextCid).toBe(subplebbitAddress1FirstPageCid + ' - next page cid')
     expect(rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].comments.length).toBe(100)
+
+    // comments are individually stored in comments store
+    const firstCommentCid = rendered.result.current.subplebbitsPages[subplebbitAddress1FirstPageCid].comments[0].cid
+    expect(rendered.result.current.comments[firstCommentCid].cid).toBe(firstCommentCid)
+    expect(Object.keys(rendered.result.current.comments).length).toBe(100)
 
     act(() => {
       rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)

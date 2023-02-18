@@ -2,7 +2,7 @@ import utils from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 // include subplebbits pages store with feeds for debugging
 const log = Logger('plebbit-react-hooks:stores:feeds')
-import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account} from '../../types'
+import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
@@ -15,11 +15,13 @@ export const listeners: any = []
 
 type SubplebbitsPagesState = {
   subplebbitsPages: SubplebbitsPages
+  comments: Comments
   addNextSubplebbitPageToStore: Function
 }
 
 const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
   subplebbitsPages: {},
+  comments: {},
 
   addNextSubplebbitPageToStore: async (subplebbit: Subplebbit, sortType: string, account: Account) => {
     assert(subplebbit?.address && typeof subplebbit?.address === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`)
@@ -63,21 +65,42 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
     try {
       page = await fetchPage(pageCidToAdd, subplebbit.address, account)
       log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account})
-      setState(({subplebbitsPages}: any) => ({
-        subplebbitsPages: {...subplebbitsPages, [pageCidToAdd]: page},
-      }))
-      log('subplebbitsPagesStore.addNextSubplebbitPageToStore', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account})
     } catch (e) {
       throw e
     } finally {
       fetchPagePending[account.id + pageCidToAdd] = false
     }
 
+    // failed getting the page
+    if (!page) {
+      return
+    }
+
+    // find new comments in the page
+    const flattenedComments = utils.flattenCommentsPages(page)
+    const {comments} = getState()
+    let hasNewComments = false
+    const newComments: Comments = {}
+    for (const comment of flattenedComments) {
+      if (comment.cid && (comment.updatedAt || 0) > (comments[comment.cid]?.updatedAt || 0)) {
+        newComments[comment.cid] = comment
+        hasNewComments = true
+      }
+    }
+
+    setState(({subplebbitsPages, comments}: any) => {
+      const newState: any = {subplebbitsPages: {...subplebbitsPages, [pageCidToAdd]: page}}
+      if (hasNewComments) {
+        newState.comments = {...comments, ...newComments}
+      }
+      return newState
+    })
+    log('subplebbitsPagesStore.addNextSubplebbitPageToStore', {pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account})
+
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
     // comment, and if yes, add the CID to your account comments database
-    const flattenedReplies = utils.flattenCommentsPages(page)
-    for (const comment of flattenedReplies) {
+    for (const comment of flattenedComments) {
       accountsStore
         .getState()
         .accountsActionsInternal.addCidToAccountComment(comment)

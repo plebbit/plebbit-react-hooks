@@ -66,6 +66,8 @@ const sortTypes = [
   'controversialYear',
   'controversialAll',
 ]
+
+// this function should not clone the comments to not waste memory
 export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   const flattenedComments = []
 
