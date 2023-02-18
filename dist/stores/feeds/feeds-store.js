@@ -159,21 +159,28 @@ const updateFeedsOnFeedsSubplebbitsPagesChange = (subplebbitsPagesStoreState) =>
     // triggering an update
     feedsStore.getState().updateFeeds();
 };
-let previousBufferedFeedsSubplebbitsPostCounts;
 let previousBufferedFeedsSubplebbitsPostCountsPageCids = [];
+let previousBufferedFeedsSubplebbits = new Map();
+let previousBufferedFeedsSubplebbitsPostCounts = {};
 const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState) => {
     const { bufferedFeedsSubplebbitsPostCounts, feedsOptions } = feedsStore.getState();
     const { subplebbits } = subplebbitsStore.getState();
-    // if subplebbits pages have changed, we must try adding them even if buffered posts counts haven't changed
-    const feedsSubplebbits = getFeedsSubplebbits(feedsOptions, subplebbits);
-    const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(feedsSubplebbits);
-    // bufferedFeedsSubplebbitsPostCounts haven't changed and subplebbits page cids haven't changed, do nothing
-    const bufferedFeedsSubplebbitsPostCountsStringified = JSON.stringify(bufferedFeedsSubplebbitsPostCounts);
-    if (bufferedFeedsSubplebbitsPostCountsStringified === previousBufferedFeedsSubplebbitsPostCounts &&
-        bufferedFeedsSubplebbitsPostCountsPageCids.toString() === previousBufferedFeedsSubplebbitsPostCountsPageCids.toString()) {
+    // if feeds subplebbits have changed, we must try adding them even if buffered posts counts haven't changed
+    const bufferedFeedsSubplebbits = getFeedsSubplebbits(feedsOptions, subplebbits);
+    const _feedsSubplebbitsChanged = feedsSubplebbitsChanged(previousBufferedFeedsSubplebbits, bufferedFeedsSubplebbits);
+    const bufferedFeedsSubplebbitsPostCountsChanged = previousBufferedFeedsSubplebbitsPostCounts !== bufferedFeedsSubplebbitsPostCounts;
+    // if feeds subplebbits havent changed and buffered posts counts also havent changed, do nothing
+    if (!_feedsSubplebbitsChanged && !bufferedFeedsSubplebbitsPostCountsChanged) {
         return;
     }
-    previousBufferedFeedsSubplebbitsPostCounts = bufferedFeedsSubplebbitsPostCountsStringified;
+    previousBufferedFeedsSubplebbits = bufferedFeedsSubplebbits;
+    previousBufferedFeedsSubplebbitsPostCounts = bufferedFeedsSubplebbitsPostCounts;
+    // in case feeds subplebbit changed, but the first page cids haven't
+    const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(bufferedFeedsSubplebbits);
+    const bufferedFeedsSubplebbitsPostCountsPageCidsChanged = bufferedFeedsSubplebbitsPostCountsPageCids.toString() !== previousBufferedFeedsSubplebbitsPostCountsPageCids.toString();
+    if (!bufferedFeedsSubplebbitsPostCountsPageCidsChanged && !bufferedFeedsSubplebbitsPostCountsChanged) {
+        return;
+    }
     previousBufferedFeedsSubplebbitsPostCountsPageCids = bufferedFeedsSubplebbitsPostCountsPageCids;
     const { addNextSubplebbitPageToStore } = subplebbitsPagesStore.getState();
     const { accounts } = accountsStore.getState();
@@ -230,9 +237,11 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses, account) => {
 const originalState = feedsStore.getState();
 // async function because some stores have async init
 export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    previousBufferedFeedsSubplebbitsPostCounts = undefined;
+    previousBufferedFeedsSubplebbitsPostCounts = {};
     previousBufferedFeedsSubplebbitsPostCountsPageCids = [];
+    previousBufferedFeedsSubplebbits = new Map();
     previousBlockedAddresses = [];
+    previousAccountsBlockedAddresses = [];
     previousFeedsSubplebbitsFirstPageCids = [];
     previousFeedsSubplebbits = new Map();
     previousSubplebbitsPages = {};
