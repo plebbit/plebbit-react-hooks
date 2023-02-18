@@ -20,6 +20,7 @@ type SubplebbitsPagesState = {
 }
 
 const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
+  // TODO: eventually clear old pages and comments from memory
   subplebbitsPages: {},
   comments: {},
 
@@ -83,6 +84,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
     const newComments: Comments = {}
     for (const comment of flattenedComments) {
       if (comment.cid && (comment.updatedAt || 0) > (comments[comment.cid]?.updatedAt || 0)) {
+        // don't clone the comment to save memory, comments remain a pointer to the page object
         newComments[comment.cid] = comment
         hasNewComments = true
       }

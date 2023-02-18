@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useComment, useComments, setPlebbitJs} from '..'
 import commentsStore from '../stores/comments'
+import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
 setPlebbitJs(PlebbitJsMock)
@@ -161,6 +162,59 @@ describe('comments', () => {
       Plebbit.prototype.getComment = getComment
       utils.retryInfinityMinTimeout = retryInfinityMinTimeout
       utils.retryInfinityMaxTimeout = retryInfinityMaxTimeout
+    })
+
+    test('get comment from subplebbit pages', async () => {
+      // on first render, the account is undefined because it's not yet loaded from database
+      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current).toBe(undefined)
+
+      rendered.rerender('comment cid 1')
+      await waitFor(() => typeof rendered.result.current.cid === 'string')
+      expect(rendered.result.current.cid).toBe('comment cid 1')
+      expect(rendered.result.current.replyCount).toBe(undefined)
+
+      // mock getting a subplebbit page with an updated comment
+      const subplebbitsPagesComment = {
+        ...rendered.result.current,
+        replyCount: 100,
+        updatedAt: Math.round(Date.now() / 1000) + 60, // 1 minute in the future to make sure it's more recent
+      }
+      act(() => {
+        subplebbitsPagesStore.setState((state: any) => ({comments: {'comment cid 1': subplebbitsPagesComment}}))
+      })
+
+      // using the subplebbit page comment
+      await waitFor(() => rendered.result.current.replyCount === 100)
+      expect(rendered.result.current.replyCount).toBe(100)
+    })
+
+    test('get comments from subplebbit pages', async () => {
+      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current).toEqual([])
+
+      rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
+      expect(rendered.result.current).toEqual([undefined, undefined, undefined])
+      await waitFor(
+        () =>
+          typeof rendered.result.current[0].cid === 'string' && typeof rendered.result.current[1].cid === 'string' && typeof rendered.result.current[2].cid === 'string'
+      )
+      expect(rendered.result.current[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current[2].cid).toBe('comment cid 3')
+      expect(rendered.result.current[1].replyCount).toBe(undefined)
+
+      // mock getting a subplebbit page with an updated comment
+      const subplebbitsPagesComment = {...rendered.result.current, replyCount: 100, updatedAt: Math.round(Date.now() / 1000) + 60}
+      act(() => {
+        subplebbitsPagesStore.setState((state: any) => ({comments: {'comment cid 2': subplebbitsPagesComment}}))
+      })
+
+      // using the subplebbit page comment
+      await waitFor(() => rendered.result.current[1].replyCount === 100)
+      expect(rendered.result.current[1].replyCount).toBe(100)
     })
   })
 })

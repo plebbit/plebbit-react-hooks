@@ -6,6 +6,7 @@ const log = Logger('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
 import {Comment} from '../types'
 import useCommentsStore from '../stores/comments'
+import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
 import shallow from 'zustand/shallow'
 
 /**
@@ -15,8 +16,9 @@ import shallow from 'zustand/shallow'
  */
 export function useComment(commentCid?: string, accountName?: string) {
   const account = useAccount(accountName)
-  const comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
+  let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
+  const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
 
   useEffect(() => {
     if (!commentCid || !account) {
@@ -32,6 +34,12 @@ export function useComment(commentCid?: string, accountName?: string) {
   if (account && commentCid) {
     log('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
   }
+
+  // if comment from subplebbit pages is more recent, use it instead
+  if (commentCid && (subplebbitsPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
+    comment = subplebbitsPagesComment
+  }
+
   return comment
 }
 
@@ -42,7 +50,9 @@ export function useComment(commentCid?: string, accountName?: string) {
  */
 export function useComments(commentCids: string[] = [], accountName?: string) {
   const account = useAccount(accountName)
-  const comments: Comment[] = useCommentsStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
+  let comments: Comment[] = useCommentsStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
+  const subplebbitsPagesComments: Comment[] = useSubplebbitsPagesStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
+
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
 
   useEffect(() => {
@@ -59,5 +69,14 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
   if (account && commentCids?.length) {
     log('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
   }
+
+  // if comment from subplebbit pages is more recent, use it instead
+  comments = [...comments]
+  for (const i in comments) {
+    if ((subplebbitsPagesComments[i]?.updatedAt || 0) > (comments[i]?.updatedAt || 0)) {
+      comments[i] = subplebbitsPagesComments[i]
+    }
+  }
+
   return comments
 }
