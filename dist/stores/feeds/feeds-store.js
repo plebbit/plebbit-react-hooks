@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
-import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, } from './utils';
+import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const postsPerPage = 25;
@@ -119,9 +119,20 @@ const feedsStore = createStore((setState, getState) => ({
     },
 }));
 let previousBlockedAddresses = [];
+let previousAccountsBlockedAddresses = [];
 const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState) => {
     const { accounts } = accountsStoreState;
     const blockedAddresses = getAccountsBlockedAddresses(accounts);
+    // blocked addresses haven't changed, do nothing
+    const accountsBlockedAddresses = [];
+    for (const i in accounts) {
+        accountsBlockedAddresses.push(accounts[i].blockedAddresses);
+    }
+    if (!accountsBlockedAddressesChanged(previousAccountsBlockedAddresses, accountsBlockedAddresses)) {
+        previousAccountsBlockedAddresses = accountsBlockedAddresses;
+        return;
+    }
+    previousAccountsBlockedAddresses = accountsBlockedAddresses;
     // blocked addresses haven't changed, do nothing
     if (blockedAddresses.toString() === previousBlockedAddresses.toString()) {
         return;

@@ -21,4 +21,9 @@ export declare const getFeedAfterIncrementPageNumber: (feedName: string, feedOpt
 };
 export declare const getFeedsSubplebbitsFirstPageCids: (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => string[];
 export declare const getAccountsBlockedAddresses: (accounts: Accounts) => string[];
+export declare const accountsBlockedAddressesChanged: (previousAccountsBlockedAddresses: {
+    [address: string]: boolean;
+}[], accountsBlockedAddresses: {
+    [address: string]: boolean;
+}[]) => boolean;
 export declare const feedsHaveChangedBlockedAddresses: (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, blockedAddresses: string[], previousBlockedAddresses: string[]) => boolean;
