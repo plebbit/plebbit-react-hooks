@@ -20,8 +20,9 @@ const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebb
 export const listeners = [];
 const subplebbitsPagesStore = createStore((setState, getState) => ({
     subplebbitsPages: {},
+    comments: {},
     addNextSubplebbitPageToStore: (subplebbit, sortType, account) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         assert((subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) && typeof (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`);
         assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`);
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`);
@@ -55,10 +56,6 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         try {
             page = yield fetchPage(pageCidToAdd, subplebbit.address, account);
             log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account });
-            setState(({ subplebbitsPages }) => ({
-                subplebbitsPages: Object.assign(Object.assign({}, subplebbitsPages), { [pageCidToAdd]: page }),
-            }));
-            log('subplebbitsPagesStore.addNextSubplebbitPageToStore', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account });
         }
         catch (e) {
             throw e;
@@ -66,11 +63,33 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         finally {
             fetchPagePending[account.id + pageCidToAdd] = false;
         }
+        // failed getting the page
+        if (!page) {
+            return;
+        }
+        // find new comments in the page
+        const flattenedComments = utils.flattenCommentsPages(page);
+        const { comments } = getState();
+        let hasNewComments = false;
+        const newComments = {};
+        for (const comment of flattenedComments) {
+            if (comment.cid && (comment.updatedAt || 0) > (((_e = comments[comment.cid]) === null || _e === void 0 ? void 0 : _e.updatedAt) || 0)) {
+                newComments[comment.cid] = comment;
+                hasNewComments = true;
+            }
+        }
+        setState(({ subplebbitsPages, comments }) => {
+            const newState = { subplebbitsPages: Object.assign(Object.assign({}, subplebbitsPages), { [pageCidToAdd]: page }) };
+            if (hasNewComments) {
+                newState.comments = Object.assign(Object.assign({}, comments), newComments);
+            }
+            return newState;
+        });
+        log('subplebbitsPagesStore.addNextSubplebbitPageToStore', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, sortType, page, account });
         // when publishing a comment, you don't yet know its CID
         // so when a new comment is fetched, check to see if it's your own
         // comment, and if yes, add the CID to your account comments database
-        const flattenedReplies = utils.flattenCommentsPages(page);
-        for (const comment of flattenedReplies) {
+        for (const comment of flattenedComments) {
             accountsStore
                 .getState()
                 .accountsActionsInternal.addCidToAccountComment(comment)

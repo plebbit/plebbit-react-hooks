@@ -1,7 +1,8 @@
-import { Subplebbit, SubplebbitPage, SubplebbitsPages } from '../../types';
+import { Subplebbit, SubplebbitPage, SubplebbitsPages, Comments } from '../../types';
 export declare const listeners: any;
 declare type SubplebbitsPagesState = {
     subplebbitsPages: SubplebbitsPages;
+    comments: Comments;
     addNextSubplebbitPageToStore: Function;
 };
 declare const subplebbitsPagesStore: import("zustand").UseBoundStore<import("zustand").StoreApi<SubplebbitsPagesState>>;
