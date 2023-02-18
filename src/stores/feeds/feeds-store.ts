@@ -196,16 +196,15 @@ const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) =>
   updateFeeds()
 }
 
-let previousSubplebbitsPageCids: string[] = []
+let previousSubplebbitsPages: {[pageCid: string]: SubplebbitPage} = {}
 const updateFeedsOnFeedsSubplebbitsPagesChange = (subplebbitsPagesStoreState: any) => {
   const {subplebbitsPages} = subplebbitsPagesStoreState
-  const subplebbitsPageCids = Object.keys(subplebbitsPages).sort()
 
   // no changes, do nothing
-  if (subplebbitsPageCids.toString() === previousSubplebbitsPageCids.toString()) {
+  if (subplebbitsPages === previousSubplebbitsPages) {
     return
   }
-  previousSubplebbitsPageCids = subplebbitsPageCids
+  previousSubplebbitsPages = subplebbitsPages
 
   // currently only the feeds use subplebbitsPagesStore, so any change must
   // trigger a feed update, if in the future another hook uses the subplebbitsPagesStore
@@ -308,7 +307,8 @@ export const resetFeedsStore = async () => {
   previousBufferedFeedsSubplebbitsPostCountsPageCids = []
   previousBlockedAddresses = []
   previousFeedsSubplebbitsFirstPageCids = []
-  previousSubplebbitsPageCids = []
+  previousFeedsSubplebbits = new Map()
+  previousSubplebbitsPages = {}
   updateFeedsPending = false
   // remove all event listeners
   listeners.forEach((listener: any) => listener.removeAllListeners())
