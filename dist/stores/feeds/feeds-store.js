@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
-import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, } from './utils';
+import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const postsPerPage = 25;
@@ -122,17 +122,16 @@ let previousBlockedAddresses = [];
 let previousAccountsBlockedAddresses = [];
 const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState) => {
     const { accounts } = accountsStoreState;
-    const blockedAddresses = getAccountsBlockedAddresses(accounts);
     // blocked addresses haven't changed, do nothing
     const accountsBlockedAddresses = [];
     for (const i in accounts) {
         accountsBlockedAddresses.push(accounts[i].blockedAddresses);
     }
     if (!accountsBlockedAddressesChanged(previousAccountsBlockedAddresses, accountsBlockedAddresses)) {
-        previousAccountsBlockedAddresses = accountsBlockedAddresses;
         return;
     }
     previousAccountsBlockedAddresses = accountsBlockedAddresses;
+    const blockedAddresses = getAccountsBlockedAddresses(accounts);
     // blocked addresses haven't changed, do nothing
     if (blockedAddresses.toString() === previousBlockedAddresses.toString()) {
         return;
@@ -167,7 +166,8 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
     const { bufferedFeedsSubplebbitsPostCounts, feedsOptions } = feedsStore.getState();
     const { subplebbits } = subplebbitsStore.getState();
     // if subplebbits pages have changed, we must try adding them even if buffered posts counts haven't changed
-    const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits);
+    const feedsSubplebbits = getFeedsSubplebbits(feedsOptions, subplebbits);
+    const bufferedFeedsSubplebbitsPostCountsPageCids = getFeedsSubplebbitsFirstPageCids(feedsSubplebbits);
     // bufferedFeedsSubplebbitsPostCounts haven't changed and subplebbits page cids haven't changed, do nothing
     const bufferedFeedsSubplebbitsPostCountsStringified = JSON.stringify(bufferedFeedsSubplebbitsPostCounts);
     if (bufferedFeedsSubplebbitsPostCountsStringified === previousBufferedFeedsSubplebbitsPostCounts &&
@@ -200,12 +200,20 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
     }
 };
 let previousFeedsSubplebbitsFirstPageCids = [];
+let previousFeedsSubplebbits = new Map();
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState) => {
     const { subplebbits } = subplebbitsStoreState;
     const { feedsOptions, updateFeeds } = feedsStore.getState();
-    // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
-    const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsOptions, subplebbits);
     // feeds subplebbits haven't changed, do nothing
+    const feedsSubplebbits = getFeedsSubplebbits(feedsOptions, subplebbits);
+    if (!feedsSubplebbitsChanged(previousFeedsSubplebbits, feedsSubplebbits)) {
+        return;
+    }
+    previousFeedsSubplebbits = feedsSubplebbits;
+    // decide if feeds subplebbits have changed by looking at all feeds subplebbits page cids
+    // (in case that a subplebbit changed, but its first page cid didn't)
+    const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsSubplebbits);
+    // first page cids haven't changed, do nothing
     if (feedsSubplebbitsFirstPageCids.toString() === previousFeedsSubplebbitsFirstPageCids.toString()) {
         return;
     }

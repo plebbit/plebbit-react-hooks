@@ -198,15 +198,34 @@ export const getFeedAfterIncrementPageNumber = (feedName, feedOptions, bufferedF
     };
 };
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
-export const getFeedsSubplebbitsFirstPageCids = (feedsOptions, subplebbits) => {
+export const getFeedsSubplebbits = (feedsOptions, subplebbits) => {
     // find all feeds subplebbits
-    const feedNames = Object.keys(feedsOptions);
     const feedsSubplebbitAddresses = new Set();
     Object.keys(feedsOptions).forEach((i) => feedsOptions[i].subplebbitAddresses.forEach((a) => feedsSubplebbitAddresses.add(a)));
+    // use map for performance increase when checking size
+    const feedsSubplebbits = new Map();
+    for (const subplebbitAddress of feedsSubplebbitAddresses) {
+        feedsSubplebbits.set(subplebbitAddress, subplebbits[subplebbitAddress]);
+    }
+    return feedsSubplebbits;
+};
+export const feedsSubplebbitsChanged = (previousFeedsSubplebbits, feedsSubplebbits) => {
+    if (previousFeedsSubplebbits.size !== feedsSubplebbits.size) {
+        return true;
+    }
+    for (let subplebbitAddress of previousFeedsSubplebbits.keys()) {
+        // check if the object is still the same
+        if (previousFeedsSubplebbits.get(subplebbitAddress) !== feedsSubplebbits.get(subplebbitAddress)) {
+            return true;
+        }
+    }
+    return false;
+};
+// get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
+export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits) => {
     // find all the feeds subplebbits first page cids
     const feedsSubplebbitsFirstPageCids = new Set();
-    for (const subplebbitAddress of feedsSubplebbitAddresses) {
-        const subplebbit = subplebbits[subplebbitAddress];
+    for (const subplebbit of feedsSubplebbits.values()) {
         if (!(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts)) {
             continue;
         }
