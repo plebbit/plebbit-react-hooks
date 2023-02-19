@@ -19,6 +19,7 @@ const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebb
 // reset all event listeners in between tests
 export const listeners = [];
 const subplebbitsPagesStore = createStore((setState, getState) => ({
+    // TODO: eventually clear old pages and comments from memory
     subplebbitsPages: {},
     comments: {},
     addNextSubplebbitPageToStore: (subplebbit, sortType, account) => __awaiter(void 0, void 0, void 0, function* () {
@@ -74,6 +75,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         const newComments = {};
         for (const comment of flattenedComments) {
             if (comment.cid && (comment.updatedAt || 0) > (((_e = comments[comment.cid]) === null || _e === void 0 ? void 0 : _e.updatedAt) || 0)) {
+                // don't clone the comment to save memory, comments remain a pointer to the page object
                 newComments[comment.cid] = comment;
                 hasNewComments = true;
             }
