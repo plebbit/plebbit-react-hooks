@@ -8,7 +8,6 @@ setPlebbitJs(PlebbitJsMock)
 
 describe('feeds', () => {
   beforeAll(() => {
-    // some feeds tests are flaky
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
