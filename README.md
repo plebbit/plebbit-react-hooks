@@ -230,16 +230,16 @@ const account = useAccount()
 ```js
 const account = useAccount()
 const {accounts} = useAccounts()
-const {createAccount} = useCreateAccount()
-const {setActiveAccount} = useSetActiveAccount({accountName: 'Account 3'})
-const {publishComment} = usePublishComment(comment)
 
 // on first render
 console.log(accounts.length) // 1
 console.log(account.name) // 'Account 1'
 
+const {createAccount} = useCreateAccount()
 await createAccount() // create 'Account 2'
 await createAccount() // create 'Account 3'
+
+const {setActiveAccount} = useSetActiveAccount({accountName: 'Account 3'})
 await setActiveAccount() // set 'Account 3' as active because useSetActiveAccount('Account 3')
 
 // on render after updates
@@ -247,6 +247,7 @@ console.log(accounts.length) // 3
 console.log(account.name) // 'Account 3'
 
 // you are now publishing from 'Account 3' because it is the active one
+const {publishComment} = usePublishComment(publishCommentOptions)
 await publishComment()
 ```
 
@@ -454,7 +455,8 @@ const {setAccount} = useSetAccount({account: editedAccount})
 await setAccount()
 
 // check if the user has set his ENS name properly
-const {address} = useResolvedAuthorAddress({authorAddress: 'username.eth'})
+const author = {...account.author, address: 'username.eth'}
+const {state, error, address} = useResolvedAuthorAddress({author})
 // authorAddress should equal to account.signer.address
 ```
 
