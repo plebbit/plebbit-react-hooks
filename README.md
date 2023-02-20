@@ -216,7 +216,7 @@ Challenge {
 import {useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
 
 const account = useAccount()
-const comment = useComment(commentCid)
+const comment = useComment({commentCid})
 ```
 
 #### Get the active account, if none exist in browser database, a default account is generated
@@ -229,8 +229,10 @@ const account = useAccount()
 
 ```js
 const account = useAccount()
-const accounts = useAccounts()
-const {createAccount, setActiveAccount, publishComment} = useAccountsActions()
+const {accounts} = useAccounts()
+const {createAccount} = useCreateAccount()
+const {setActiveAccount} = useSetActiveAccount({accountName: 'Account 3'})
+const {publishComment} = usePublishComment(comment)
 
 // on first render
 console.log(accounts.length) // 1
@@ -238,38 +240,38 @@ console.log(account.name) // 'Account 1'
 
 await createAccount() // create 'Account 2'
 await createAccount() // create 'Account 3'
-await setActiveAccount('Account 3')
+await setActiveAccount() // set 'Account 3' as active because useSetActiveAccount('Account 3')
 
 // on render after updates
 console.log(accounts.length) // 3
-console.log(account.name) // 'Account 1'
+console.log(account.name) // 'Account 3'
 
 // you are now publishing from 'Account 3' because it is the active one
-await publishComment(comment)
+await publishComment()
 ```
 
 #### Get a post
 
 ```js
-const post = useComment(commentCid)
+const post = useComment({commentCid})
 ```
 
 #### Get a comment
 
 ```js
-const comment = useComment(commentCid)
-const comments = useComments([commentCid1, commentCid2, commentCid3])
+const comment = useComment({commentCid})
+const {comments} = useComments({commentCids: [commentCid1, commentCid2, commentCid3]})
 
 // get the nft avatar image url of the comment author
-const authorAvatarImageUrl = useAuthorAvatarImageUrl(comment.author)
+const {imageUrl} = useAuthorAvatarImageUrl({author: comment.author})
 ```
 
 #### Get a subplebbit
 
 ```js
-const subplebbit = useSubplebbit(subplebbitAddress)
-const subplebbitMetrics = useSubplebbitMetrics(subplebbitAddress)
-const subplebbits = useSubplebbits([subplebbitAddress, subplebbitAddress2, subplebbitAddress3])
+const subplebbit = useSubplebbit({subplebbitAddress})
+const subplebbitMetrics = useSubplebbitMetrics({subplebbitAddress})
+const subplebbits = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3]})
 ```
 
 #### Create a post or comment
@@ -304,74 +306,89 @@ const onChallengeVerification = (challengeVerification, comment) => {
 
 const onError = (error, comment) => console.error(error)
 
-const {publishComment} = useAccountsActions()
-
-// create post
-const pendingComment = await publishComment({
+const publishCommentOptions = {
   content: 'hello',
   title: 'hello',
   subplebbitAddress: 'Qm...',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+
+const {index, state, publishComment} = usePublishComment(publishCommentOptions)
+
+// create post
+await publishComment()
 // pending comment index
-console.log(pendingComment.index)
+console.log(index)
+// pending comment state
+console.log(state)
 
 // reply to a post or comment
-publishComment({
+const publishReplyOptions = {
   content: 'hello',
   parentCid: 'Qm...', // the cid of the comment to reply to
   subplebbitAddress: 'Qm...',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {publishComment} = usePublishComment(publishReplyOptions)
+await publishComment()
 ```
 
 #### Create a vote
 
 ```js
-const {publishVote} = useAccountsActions()
-
-publishVote({
+const publishVoteOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   vote: 1,
   subplebbitAddress: 'news.eth',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {state, error, publishVote} = usePublishVote(publishVoteOptions)
+
+await publishVote()
+console.log(state)
+console.log(error)
 ```
 
 #### Create a comment edit
 
 ```js
-const {publishCommentEdit} = useAccountsActions()
-
-publishCommentEdit({
+const publishCommentEditOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   content: 'edited content',
   subplebbitAddress: 'news.eth',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {state, error, publishCommentEdit} = usePublishCommentEdit(publishCommentEditOptions)
+
+await publishCommentEdit()
+console.log(state)
+console.log(error)
 ```
 
 #### Delete a comment
 
 ```js
-const {publishCommentEdit} = useAccountsActions()
-
-publishCommentEdit({
+const publishCommentEditOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   removed: true,
   subplebbitAddress: 'news.eth',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {state, error, publishCommentEdit} = usePublishCommentEdit(publishCommentEditOptions)
+
+await publishCommentEdit()
+console.log(state)
+console.log(error)
 
 // TODO: implement accountActions.deleteComment to remove your comment from your local accountComments database
 ```
@@ -379,20 +396,22 @@ publishCommentEdit({
 #### Subscribe to a subplebbit
 
 ```js
-const {subscribe, unsubscribe} = useAccountsActions()
-await subscribe('news.eth')
-await subscribe('QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui')
-await subscribe('tech.eth')
+let subplebbitAddress = 'news.eth'
+subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
+subplebbitAddress = 'tech.eth'
+const {subscribed, subscribe, unsubscribe} = useSubscribe({subplebbitAddress})
+await subscribe()
+console.log(subscribed) // true
 
 // view subscriptions
 const account = useAccount()
 console.log(account.subscriptions) // ['news.eth', 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui', 'tech.eth']
 
 // unsubscribe
-await unsubscribe('news.eth')
+await unsubscribe()
 
 // get a feed of subscriptions
-const {feed, hasMore, loadMore} = useFeed(account.subscriptions, 'topAll')
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: account.subscriptions, sortType: 'topAll'})
 console.log(feed)
 ```
 
@@ -400,7 +419,7 @@ console.log(feed)
 
 ```js
 import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
-const {feed, hasMore, loadMore} = useFeed(['memes.eth', 'Qm...', 'Qm...'], 'topAll')
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['memes.eth', 'Qm...', 'Qm...'], sortType: 'topAll'})
 const posts = feed.map(post => <Post post={post} />)
 
 <InfiniteScroll
@@ -414,27 +433,29 @@ const posts = feed.map(post => <Post post={post} />)
 
 // you probably will want to buffer some feeds in the background so they are already loaded
 // when you need them
-useBufferedFeeds([
-  {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
-  {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
-  {subplebbitAddresses: ['Qm...', 'Qm...', 'Qm...', 'Qm...'], sortType: 'hot'}
-])
+useBufferedFeeds({
+  feedsOptions: [
+    {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
+    {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
+    {subplebbitAddresses: ['Qm...', 'Qm...', 'Qm...', 'Qm...'], sortType: 'hot'}
+  ]
+})
 ```
 
 #### Edit an account
 
 ```js
-const {setAccount} = useAccountsActions()
 const account = useAccount() // or useAccount('Account 2') to use an account other than the active one
 
 const author: {...account.author, displayName: 'John'}
 const editedAccount = {...account, author}
 
-await setAccount(editedAccount)
+const {setAccount} = useSetAccount({account: editedAccount})
+await setAccount()
 
 // check if the user has set his ENS name properly
-const resolvedAuthorAddress = useResolvedAuthorAddress('username.eth')
-// resolvedAuthorAddress should equal to account.signer.address
+const {address} = useResolvedAuthorAddress({authorAddress: 'username.eth'})
+// authorAddress should equal to account.signer.address
 ```
 
 #### Delete account
@@ -442,49 +463,59 @@ const resolvedAuthorAddress = useResolvedAuthorAddress('username.eth')
 > Note: deleting account is unrecoverable, warn the user to export/backup his account before deleting
 
 ```js
-const {deleteAccount} = useAccountsActions()
-
 // delete active account
+const {deleteAccount} = useDeleteAccount()
 await deleteAccount()
 
 // delete account by name
-await deleteAccount('Account 2')
+const {deleteAccount} = useDeleteAccount({accountName: 'Account 2'})
+await deleteAccount()
 ```
 
 #### Get your own comments and votes
 
 ```js
-const myComments = useAccountComments()
-const myVotes = useAccountVotes()
-const subplebbitAddress = 'memes.eth'
+// all my own comments
+const {accountComments} = useAccountComments()
+
+// all my own votes
+const {accountVotes} = useAccountVotes()
+
+// my own comments in memes.eth
 const myCommentsInMemesEth = useAccountComments({
-  filter: {subplebbitAddresses: [subplebbitAddress]}
+  filter: {subplebbitAddresses: ['memes.eth']}
 })
+
+// my own posts in memes.eth
 const myPostsInMemesEth = useAccountComments({
   filter: {
     hasParentCommentCid: false, 
-    subplebbitAddresses: [subplebbitAddress]
+    subplebbitAddresses: ['memes.eth']
   }
 })
+
+// my own replies in a post with cid 'Qm...'
 const postCid = 'Qm...'
 const myCommentsInSomePost = useAccountComments({
   filter: {postCids: [postCid]}
 })
+
+// my own replies to a comment with cid 'Qm...'
 const parentCommentCid = 'Qm...'
 const myRepliesToSomeComment = useAccountComments({
   filter: {parentCommentCids: [parentCommentCid]}
 })
 
-// know if you upvoted a comment already or not
-const myVoteOnSomePost = useAccountVote(postCid)
-const myVoteOnSomeComment = useAccountVote(commentCid, 'Account 2') // to get account that isn't active use the account name
+// know if you upvoted a comment already with cid 'Qm...'
+const {vote} = useAccountVote({commentCid: 'Qm...'})
+console.log(vote) // 1, -1 or 0
 ```
 
 #### Determine if a comment is your own
 
 ```js
 const account = useAccount()
-const comment = useComment(commentCid)
+const comment = useComment({commentCid})
 const isMyOwnComment = account?.author.address === comment?.author.address
 ```
 
@@ -497,38 +528,39 @@ for (const notification of notifications) {
 }
 await markAsRead()
 
-const johnsNotifications = useAccountNotifications('John')
+const johnsNotifications = useAccountNotifications({accountName: 'John'})
 for (const notification of johnsNotifications.notifications) {
   console.log(notification)
 }
 await johnsNotifications.markAsRead()
 
 // get the unread notification counts for all accounts
-const accounts = useAccounts()
+const {accounts} = useAccounts()
 const accountsUnreadNotificationsCounts = accounts?.map(account => account.unreadNotificationCount)
 ```
 
 #### (Desktop only) Create a subplebbit
 
 ```js
-const {createSubplebbit} = useAccountsActions()
 const createSubplebbitOptions = {title: 'My subplebbit title'}
-const subplebbit = await createSubplebbit(createSubplebbitOptions)
+const {subplebbit, createSubplebbit} = useCreateSubplebbit(createSubplebbitOptions)
+await createSubplebbit()
+console.log(subplebbit.title)
 
 // after the subplebbit is created, fetch it using
-const accountSubplebbits = useAccountSubplebbits()
+const {accountSubplebbits} = useAccountSubplebbits()
 const accountSubplebbitAddresses = Object.keys(accountSubplebbits)
-const subplebbits = useSubplebbits(accountSubplebbitAddresses)
+const subplebbits = useSubplebbits({subplebbitAddresses: accountSubplebbitAddresses})
 // or
-const _subplebbit = useSubplebbit(subplebbit.address)
+const _subplebbit = useSubplebbit({subplebbitAddress: subplebbit.address})
 ```
 
 #### (Desktop only) List the subplebbits you created
 
 ```js
-const accountSubplebbits = useAccountSubplebbits()
+const {accountSubplebbits} = useAccountSubplebbits()
 const ownerSubplebbitAddresses = Object.keys(accountSubplebbits).map(subplebbitAddress => accountSubplebbits[subplebbitAddress].role === 'owner')
-const subplebbits = useSubplebbits(ownerSubplebbitAddresses)
+const subplebbits = useSubplebbits({subplebbitAddresses: ownerSubplebbitAddresses})
 ```
 
 #### (Desktop only) Edit your subplebbit settings
@@ -551,56 +583,59 @@ const onChallengeVerification = (challengeVerification, subplebbitEdit) => {
 
 const onError = (error, subplebbitEdit) => console.error(error)
 
-const {publishSubplebbitEdit} = useAccountsActions()
-
 // add ENS to your subplebbit
-const subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 const editSubplebbitOptions = {
-  address: 'your-subplebbit-address.eth', 
+  subplebbitAddress: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui', // the previous address before changing it
+  address: 'your-subplebbit-address.eth', // the new address to change to
   onChallenge, 
   onChallengeVerification,
   onError
 }
-await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
+
+await publishSubplebbitEdit()
 
 // edit other subplebbit settings
-const subplebbitAddress = 'your-subplebbit-address.eth'
 const editSubplebbitOptions = {
+  subplebbitAddress: 'your-subplebbit-address.eth', // the address of the subplebbit to change
   title: 'Your title', 
   description: 'Your description',
   onChallenge, 
   onChallengeVerification,
   onError
 }
-await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
+const {publishSubplebbitEdit} = usePublishSubplebbitEdit(editSubplebbitOptions)
+await publishSubplebbitEdit()
 
 // verify if ENS was set correctly
-const resolvedSubplebbitAddress = useResolvedSubplebbitAddress('your-subplebbit-address.eth')
-console.log('ENS set correctly', resolvedSubplebbitAddress === subplebbit.signer.address)
+const {address} = useResolvedSubplebbitAddress({subplebbitAddress: 'your-subplebbit-address.eth'})
+console.log('ENS set correctly', address === subplebbit.signer.address)
 ```
 
 #### Export and import account
 
 ```js
-const {exportAccount, importAccount, setActiveAccount, setAccountsOrder} = useAccountsActions()
-
 // get active account 'Account 1'
 const activeAccount = useAccount()
 
 // export active account, tell user to copy or download this json
-const activeAccountJson = await exportAccount()
+const {exportedAccount, exportAccount} = useExportAccount()
+await exportAccount()
 
 // import account
-await importAccount(activeAccountJson)
+const {importedAccount, importAccount} = useImportAccount({account: exportedAccount})
+await importAccount(exportedAccount)
 
 // get imported account 'Account 1 2' (' 2' gets added to account.name if account.name already exists)
-const importedAccount = useAccount('Account 1 2')
+const _importedAccount = useAccount({accountName: 'Account 1 2'})
+importedAccount.name === _importedAccount.name === 'Account 1 2' // they are the same account
 
 // make imported account active account
-await setActiveAccount('Account 1 2')
+const {setActiveAccount} = useSetActiveAccount({accountName: 'Account 1 2'})
+await setActiveAccount()
 
 // reorder the accounts list
-await setAccountsOrder(['Account 1 2', 'Account 1'])
+const {setAccountsOrder} = useSetAccountsOrder({accountNames: ['Account 1 2', 'Account 1']})
+await setAccountsOrder()
 ```
 
 ### Algorithms
