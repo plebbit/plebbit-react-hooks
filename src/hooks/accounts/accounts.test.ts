@@ -15,7 +15,6 @@ import {
   useSubplebbit,
   setPlebbitJs,
 } from '../..'
-import localForage from 'localforage'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
@@ -1481,7 +1480,7 @@ describe('accounts', () => {
         // roles tests depend on race conditions as part of the test
         // so not possible to make them deterministic, add a retry
         // the hooks don't have the race condition, only the tests do
-        jest.retryTimes(10)
+        jest.retryTimes(20)
       })
       afterAll(() => {
         jest.retryTimes(0)

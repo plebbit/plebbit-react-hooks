@@ -20,6 +20,8 @@ import {
   useAccountSubplebbits,
 } from './hooks/accounts'
 
+import {useSubscribe} from './hooks/actions'
+
 import {useComment, useComments} from './hooks/comments'
 import {useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress} from './hooks/subplebbits'
 import {useFeed, useBufferedFeeds} from './hooks/feeds'
@@ -44,6 +46,7 @@ export {
   useSubplebbitMetrics,
   useFeed,
   useBufferedFeeds,
+  useSubscribe,
   setPlebbitJs,
   restorePlebbitJs,
   useAuthorAvatarImageUrl,
