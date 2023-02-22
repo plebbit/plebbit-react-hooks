@@ -158,5 +158,38 @@ describe('actions', () => {
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
     })
+
+    test(`can error`, async () => {
+      // mock the comment publish to error out
+      const commentPublish = Comment.prototype.publish
+      Comment.prototype.publish = async () => {
+        throw Error('publish error')
+      }
+
+      const publishCommentOptions = {
+        subplebbitAddress: 'Qm...',
+        parentCid: 'Qm...',
+        content: 'some content',
+      }
+      rendered.rerender(publishCommentOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishComment()
+      })
+
+      // wait for error
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('publish error')
+      expect(rendered.result.current.errors.length).toBe(1)
+
+      // restore mock
+      Comment.prototype.publish = commentPublish
+    })
   })
 })
