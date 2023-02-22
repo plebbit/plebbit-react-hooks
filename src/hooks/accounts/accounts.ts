@@ -20,7 +20,7 @@ import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNoti
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account id.
  */
-function useAccountId(accountName?: string) {
+export function useAccountId(accountName?: string) {
   const accountId = useAccountsStore((state) => state.accountNamesToAccountIds[accountName || ''])
   // don't consider active account if account name is defined
   const activeAccountId = useAccountsStore((state) => !accountName && state.activeAccountId)

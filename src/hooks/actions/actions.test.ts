@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useSubscribe, setPlebbitJs} from '../..'
+import {useSubscribe, usePublishComment, setPlebbitJs} from '../..'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
@@ -105,6 +105,58 @@ describe('actions', () => {
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor(() => rendered.result.current.state === 'ready')
       expect(rendered.result.current[1].subscribed).toBe(true)
+    })
+  })
+
+  describe('usePublishComment', () => {
+    let rendered: any, waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options) => {
+        const result = usePublishComment(options)
+        return result
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test(`can publish comment`, async () => {
+      const publishCommentOptions = {
+        subplebbitAddress: 'Qm...',
+        parentCid: 'Qm...',
+        content: 'some content',
+      }
+      rendered.rerender(publishCommentOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishComment()
+      })
+
+      // wait for challenge
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge')
+      expect(rendered.result.current.state).toBe('waiting-challenge')
+      await waitFor(() => rendered.result.current.challenge)
+      expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+
+      // publish challenge verification
+      await act(async () => {
+        await rendered.result.current.publishChallengeAnswers(['4'])
+      })
+
+      // wait for challenge verification
+      await waitFor(() => rendered.result.current.challengeVerification)
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
+      expect(rendered.result.current.error).toBe(undefined)
     })
   })
 })

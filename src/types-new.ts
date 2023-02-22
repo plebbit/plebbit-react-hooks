@@ -1,5 +1,5 @@
 /**
- * Public options
+ * Public interface
  */
 
 export interface Options {
@@ -214,13 +214,13 @@ export interface UseExportAccountResult extends Result {
 
 // usePublishComment(options): result
 export interface UsePublishCommentOptions extends Options {
-  onChallenge?(): Promise<void>
-  onChallengeVerification?(): Promise<void>
+  onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
+  onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>
   [publishOption: string]: any
 }
 export interface UsePublishCommentResult extends Result {
   publishComment(): Promise<void>
-  publishChallengeAnswers(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   index: number | undefined
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
@@ -228,26 +228,26 @@ export interface UsePublishCommentResult extends Result {
 
 // usePublishVote(options): result
 export interface UsePublishVoteOptions extends Options {
-  onChallenge?(): Promise<void>
-  onChallengeVerification?(): Promise<void>
+  onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
+  onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>
   [publishOption: string]: any
 }
 export interface UsePublishVoteResult extends Result {
   publishVote(): Promise<void>
-  publishChallengeAnswers(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
 }
 
 // usePublishCommentEdit(options): result
 export interface UsePublishCommentEditOptions extends Options {
-  onChallenge?(): Promise<void>
-  onChallengeVerification?(): Promise<void>
+  onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
+  onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>
   [publishOption: string]: any
 }
 export interface UsePublishCommentEditResult extends Result {
   publishCommentEdit(): Promise<void>
-  publishChallengeAnswers(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
 }
@@ -255,13 +255,13 @@ export interface UsePublishCommentEditResult extends Result {
 // usePublishSubplebbitEdit(options): result
 export interface UsePublishSubplebbitEditOptions extends Options {
   subplebbitAddress?: string
-  onChallenge?(): Promise<void>
-  onChallengeVerification?(): Promise<void>
+  onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
+  onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>
   [publishOption: string]: any
 }
 export interface UsePublishSubplebbitEditResult extends Result {
   publishSubplebbitEdit(): Promise<void>
-  publishChallengeAnswers(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
 }
