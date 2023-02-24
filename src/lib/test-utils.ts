@@ -76,7 +76,8 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
     } catch (e) {
       // @ts-ignore
       errorWithUsefulStackTrace.message = `${e.message} ${waitForFunction.toString()}`
-      console.warn(errorWithUsefulStackTrace)
+      // uncomment to debug failed waitFor
+      // console.warn(errorWithUsefulStackTrace)
     }
   }
   return waitFor

@@ -148,6 +148,13 @@ const initializeStartSubplebbits = async () => {
 
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
+const waitForInitialized = async () => {
+  while (isInitializing()) {
+    // uncomment to debug accounts init
+    // console.warn(`can't reset accounts store while initializing, waiting 100ms`)
+    await new Promise((r) => setTimeout(r, 100))
+  }
+}
 
 ;(async () => {
   // don't initialize on load multiple times when loading the file multiple times during karma tests
@@ -181,10 +188,7 @@ const originalState = accountsStore.getState()
 // async function because some stores have async init
 export const resetAccountsStore = async () => {
   // don't reset while initializing, it could happen during quick successive tests
-  while (isInitializing()) {
-    console.warn(`can't reset accounts store while initializing, waiting 100ms`)
-    await new Promise((r) => setTimeout(r, 100))
-  }
+  await waitForInitialized()
 
   log('accounts store reset started')
 
@@ -205,10 +209,8 @@ export const resetAccountsStore = async () => {
 // reset database and store in between tests
 export const resetAccountsDatabaseAndStore = async () => {
   // don't reset while initializing, it could happen during quick successive tests
-  while (isInitializing()) {
-    console.warn(`can't reset accounts database while initializing, waiting 100ms`)
-    await new Promise((r) => setTimeout(r, 100))
-  }
+  await waitForInitialized()
+
   await Promise.all([localForage.createInstance({name: 'accountsMetadata'}).clear(), localForage.createInstance({name: 'accounts'}).clear()])
   await resetAccountsStore()
 }

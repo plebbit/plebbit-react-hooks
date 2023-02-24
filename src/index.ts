@@ -20,7 +20,7 @@ import {
   useAccountSubplebbits,
 } from './hooks/accounts'
 
-import {useSubscribe, useBlock, usePublishComment} from './hooks/actions'
+import {useSubscribe, useBlock, usePublishComment, useCreateSubplebbit} from './hooks/actions'
 
 import {useComment, useComments} from './hooks/comments'
 import {useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress} from './hooks/subplebbits'
@@ -30,7 +30,9 @@ import debugUtils from './lib/debug-utils'
 
 export * from './types'
 
+// IMPORTANT: should be the same as 'export default hooks'
 export {
+  // accounts
   useAccount,
   useAccounts,
   useAccountsActions,
@@ -39,25 +41,34 @@ export {
   useAccountVote,
   useAccountSubplebbits,
   useAccountNotifications,
+  // comments
   useComment,
   useComments,
+  // subplebbits
   useSubplebbit,
   useSubplebbits,
   useSubplebbitMetrics,
+  useResolvedSubplebbitAddress,
+  // authors
+  useAuthorAvatarImageUrl,
+  useResolvedAuthorAddress,
+  // feeds
   useFeed,
   useBufferedFeeds,
+  // actions
   useSubscribe,
   useBlock,
   usePublishComment,
+  useCreateSubplebbit,
+  // utils
   setPlebbitJs,
   restorePlebbitJs,
-  useAuthorAvatarImageUrl,
-  useResolvedAuthorAddress,
-  useResolvedSubplebbitAddress,
   debugUtils,
 }
 
+// IMPORTANT: should be the same as 'export {}'
 const hooks = {
+  // accounts
   useAccount,
   useAccounts,
   useAccountsActions,
@@ -66,12 +77,28 @@ const hooks = {
   useAccountVote,
   useAccountSubplebbits,
   useAccountNotifications,
+  // comments
   useComment,
+  useComments,
+  // subplebbits
   useSubplebbit,
   useSubplebbits,
+  useSubplebbitMetrics,
+  useResolvedSubplebbitAddress,
+  // authors
+  useAuthorAvatarImageUrl,
+  useResolvedAuthorAddress,
+  // feeds
   useFeed,
   useBufferedFeeds,
+  // actions
+  useSubscribe,
+  useBlock,
+  usePublishComment,
+  useCreateSubplebbit,
+  // utils
   setPlebbitJs,
+  restorePlebbitJs,
   debugUtils,
 }
 

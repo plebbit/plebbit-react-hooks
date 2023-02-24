@@ -11,9 +11,12 @@ import type {
   UsePublishCommentResult,
   UseBlockOptions,
   UseBlockResult,
+  UseCreateSubplebbitOptions,
+  UseCreateSubplebbitResult,
   Challenge,
   ChallengeVerification,
   Comment,
+  Subplebbit,
 } from '../../types-new'
 
 type PublishChallengeAnswers = (challengeAnswers: string[]) => Promise<void>
@@ -171,5 +174,41 @@ export function usePublishComment(options: UsePublishCommentOptions): UsePublish
     index,
     challenge,
     challengeVerification,
+  }
+}
+
+export function useCreateSubplebbit(options?: UseCreateSubplebbitOptions): UseCreateSubplebbitResult {
+  const {accountName, onError, ...createSubplebbitOptions} = options || {}
+  const accountId = useAccountId(accountName)
+  const accountsActions = useAccountsStore((state) => state.accountsActions)
+  const [errors, setErrors] = useState<Error[]>([])
+  const [state, setState] = useState<string>()
+  const [createdSubplebbit, setCreatedSubplebbit] = useState<Subplebbit>()
+
+  let initialState = 'initializing'
+  // before the accountId and options is defined, nothing can happen
+  if (accountId && options) {
+    initialState = 'ready'
+  }
+
+  const createSubplebbit = async () => {
+    try {
+      setState('creating')
+      const createdSubplebbit = await accountsActions.createSubplebbit(createSubplebbitOptions, accountName)
+      setCreatedSubplebbit(createdSubplebbit)
+      setState('succeeded')
+    } catch (e: any) {
+      setErrors([...errors, e])
+      setState('failed')
+      onError?.(e)
+    }
+  }
+
+  return {
+    state: state || initialState,
+    error: errors[errors.length - 1],
+    errors,
+    createSubplebbit,
+    createdSubplebbit,
   }
 }

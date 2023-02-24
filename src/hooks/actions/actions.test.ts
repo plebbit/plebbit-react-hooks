@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useSubscribe, usePublishComment, useBlock, useAccount, setPlebbitJs} from '../..'
+import {useSubscribe, usePublishComment, useBlock, useAccount, useCreateSubplebbit, setPlebbitJs} from '../..'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
@@ -204,6 +204,85 @@ describe('actions', () => {
     })
   })
 
+  describe('useCreateSubplebbit', () => {
+    let rendered: any, waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((useCreateSubplebbitOptions = []) => {
+        const result1 = useCreateSubplebbit(useCreateSubplebbitOptions[0])
+        const result2 = useCreateSubplebbit(useCreateSubplebbitOptions[1])
+        return [result1, result2]
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test(`can create subplebbit`, async () => {
+      expect(rendered.result.current[0].state).toBe('initializing')
+      expect(rendered.result.current[0].createdSubplebbit).toBe(undefined)
+      expect(typeof rendered.result.current[0].createSubplebbit).toBe('function')
+
+      const options1 = {
+        title: 'title',
+      }
+
+      // add options
+      rendered.rerender([options1])
+      await waitFor(() => rendered.result.current[0].state === 'ready')
+      expect(rendered.result.current[0].state).toBe('ready')
+      expect(rendered.result.current[0].createdSubplebbit).toBe(undefined)
+
+      // create subplebbit
+      await act(async () => {
+        await rendered.result.current[0].createSubplebbit()
+      })
+      await waitFor(() => rendered.result.current[0].createdSubplebbit)
+      expect(rendered.result.current[0].state).toBe('succeeded')
+      expect(rendered.result.current[0].createdSubplebbit?.title).toBe(options1.title)
+
+      // useCreateSubplebbit 2 with same option not created
+      rendered.rerender([options1, options1])
+      await waitFor(() => rendered.result.current[1].state === 'ready')
+      expect(rendered.result.current[1].state).toBe('ready')
+      expect(rendered.result.current[1].createdSubplebbit).toBe(undefined)
+    })
+
+    test(`can error`, async () => {
+      // mock the comment publish to error out
+      const createSubplebbit = Plebbit.prototype.createSubplebbit
+      Plebbit.prototype.createSubplebbit = async () => {
+        throw Error('create subplebbit error')
+      }
+
+      const options1 = {
+        title: 'title',
+      }
+
+      // add options
+      rendered.rerender([options1])
+      await waitFor(() => rendered.result.current[0].state === 'ready')
+      expect(rendered.result.current[0].state).toBe('ready')
+      expect(rendered.result.current[0].createdSubplebbit).toBe(undefined)
+
+      // create subplebbit
+      await act(async () => {
+        await rendered.result.current[0].createSubplebbit()
+      })
+      // wait for error
+      await waitFor(() => rendered.result.current[0].error)
+      expect(rendered.result.current[0].error.message).toBe('create subplebbit error')
+      expect(rendered.result.current[0].createdSubplebbit).toBe(undefined)
+      expect(rendered.result.current[0].state).toBe('failed')
+      expect(rendered.result.current[0].errors.length).toBe(1)
+
+      // restore mock
+      Plebbit.prototype.createSubplebbit = createSubplebbit
+    })
+  })
+
   describe('usePublishComment', () => {
     let rendered: any, waitFor: Function
 
@@ -221,9 +300,9 @@ describe('actions', () => {
 
     test(`can publish comment`, async () => {
       const publishCommentOptions = {
-        subplebbitAddress: 'Qm...',
-        parentCid: 'Qm...',
-        content: 'some content',
+        subplebbitAddress: 'Qm... acions.test',
+        parentCid: 'Qm... acions.test',
+        content: 'some content acions.test',
       }
       rendered.rerender(publishCommentOptions)
 
@@ -263,9 +342,9 @@ describe('actions', () => {
       }
 
       const publishCommentOptions = {
-        subplebbitAddress: 'Qm...',
-        parentCid: 'Qm...',
-        content: 'some content',
+        subplebbitAddress: 'Qm... acions.test',
+        parentCid: 'Qm... acions.test',
+        content: 'some content acions.test',
       }
       rendered.rerender(publishCommentOptions)
 
