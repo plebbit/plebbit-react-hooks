@@ -83,6 +83,14 @@ export interface UseCommentsResult extends Result {
   comments: Comment[]
 }
 
+// useCommentThumbnailUrl(options): result
+// export interface UseCommentThumbnailUrlOptions extends Options {
+//   comment?: Comment
+// }
+// export interface UseCommentThumbnailUrlResult extends Result {
+//   thumnbailUrl: string | undefined
+// }
+
 // TODO
 // useSubplebbit(options): result
 export interface UseSubplebbitOptions extends Options {
@@ -318,20 +326,6 @@ export interface UseSubscribeResult extends Result {
   subscribed: boolean | undefined
 }
 
-// useNotify(options): result
-export interface UseNotifyOptions extends Options {
-  subplebbitAddress?: string
-  multisubAddress?: string
-  authorAddress?: string
-  commentCid?: string
-}
-export interface UseNotifySubplebbitResult extends Result {
-  notify(): Promise<void>
-  unnotify(): Promise<void>
-  notifying: boolean | undefined
-}
-
-// TODO
 // useBlock(options): result
 export interface UseBlockOptions extends Options {
   address?: string
@@ -341,6 +335,19 @@ export interface UseBlockResult extends Result {
   unblock(): Promise<void>
   blocked: boolean | undefined
 }
+
+// useNotify(options): result
+// export interface UseNotifyOptions extends Options {
+//   subplebbitAddress?: string
+//   multisubAddress?: string
+//   authorAddress?: string
+//   commentCid?: string
+// }
+// export interface UseNotifySubplebbitResult extends Result {
+//   notify(): Promise<void>
+//   unnotify(): Promise<void>
+//   notifying: boolean | undefined
+// }
 
 // useLimitAddress(options): result
 // export interface UseLimitOptions extends Options {
