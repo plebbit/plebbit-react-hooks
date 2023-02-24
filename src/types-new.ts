@@ -295,7 +295,6 @@ export interface UsePublishSubplebbitEditResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
-// TODO
 // useCreateSubplebbit(options): result
 export interface UseCreateSubplebbitOptions extends Options {
   [createSubplebbitOption: string]: any
@@ -391,24 +390,24 @@ export interface UseBlockResult extends Result {
 // }
 
 /**
- * TODO: define these undefined types
+ * TODO: define these types more in depth
  */
-export type Account = any
-export type AccountsActions = any
-export type PublishCommentOptions = any
-export type PublishVoteOptions = any
-export type PublishCommentEditOptions = any
-export type PublishSubplebbitEditOptions = any
-export type Challenge = any
-export type ChallengeVerification = any
-export type CreateCommentOptions = any
-export type CreateSubplebbitOptions = any
-export type CreateVoteOptions = any
-export type Comment = any
-export type Subplebbit = any
-export type AccountNotification = any
-export type Nft = any
-export type Author = any
+export type Account = {[key: string]: any}
+export type AccountsActions = {[key: string]: any}
+export type PublishCommentOptions = {[key: string]: any}
+export type PublishVoteOptions = {[key: string]: any}
+export type PublishCommentEditOptions = {[key: string]: any}
+export type PublishSubplebbitEditOptions = {[key: string]: any}
+export type Challenge = {[key: string]: any}
+export type ChallengeVerification = {[key: string]: any}
+export type CreateCommentOptions = {[key: string]: any}
+export type CreateSubplebbitOptions = {[key: string]: any}
+export type CreateVoteOptions = {[key: string]: any}
+export type Comment = {[key: string]: any}
+export type Subplebbit = {[key: string]: any}
+export type AccountNotification = {[key: string]: any}
+export type Nft = {[key: string]: any}
+export type Author = {[key: string]: any}
 
 /**
  * Subplebbits and comments store

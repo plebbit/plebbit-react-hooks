@@ -50,14 +50,14 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     }
 
     // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
-    comment.on('update', async (updatedComment: Comment) => {
+    comment?.on('update', async (updatedComment: Comment) => {
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
       log('commentsStore comment update', {commentId, updatedComment, account})
       setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
     listeners.push(comment)
-    comment.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
+    comment?.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own

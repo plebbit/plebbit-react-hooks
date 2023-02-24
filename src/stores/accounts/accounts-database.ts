@@ -16,7 +16,7 @@ const getAccounts = async (accountIds: string[]) => {
   for (const accountId of accountIds) {
     promises.push(accountsDatabase.getItem(accountId))
   }
-  const accountsArray = await Promise.all(promises)
+  const accountsArray: any = await Promise.all(promises)
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
     accounts[accountId] = accountsArray[i]
@@ -59,7 +59,7 @@ const addAccount = async (account: Account) => {
   }
 
   // handle updating accounts database
-  const accountToPutInDatabase = {...account, plebbit: undefined}
+  const accountToPutInDatabase: any = {...account, plebbit: undefined}
   // don't save default plebbit options in database in case they change
   if (JSON.stringify(accountToPutInDatabase.plebbitOptions) === JSON.stringify(getDefaultPlebbitOptions())) {
     delete accountToPutInDatabase.plebbitOptions

@@ -5,7 +5,7 @@ import accountsDatabase from './accounts-database'
 import Logger from '@plebbit/plebbit-logger'
 import assert from 'assert'
 const log = Logger('plebbit-react-hooks:stores:accounts')
-import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
+import {Account, PublishCommentOptions, AccountCommentReply, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
 import utils from '../../lib/utils'
 
 // TODO: we currently subscribe to updates for every single comment
@@ -83,7 +83,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
         }
 
         // check which replies are read or not
-        const updatedAccountCommentsReplies: {[replyCid: string]: Comment} = {}
+        const updatedAccountCommentsReplies: {[replyCid: string]: AccountCommentReply} = {}
         for (const replyPage of replyPageArray) {
           for (const reply of replyPage?.comments || []) {
             const markedAsRead = accountsCommentsReplies[account.id]?.[reply.cid]?.markedAsRead === true ? true : false

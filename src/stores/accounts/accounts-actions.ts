@@ -204,7 +204,7 @@ export const subscribe = async (subplebbitAddress: string, accountName?: string)
   }
   subscriptions.push(subplebbitAddress)
 
-  const updatedAccount = {...account, subscriptions}
+  const updatedAccount: Account = {...account, subscriptions}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -230,7 +230,7 @@ export const unsubscribe = async (subplebbitAddress: string, accountName?: strin
   // remove subplebbitAddress
   subscriptions = subscriptions.filter((address) => address !== subplebbitAddress)
 
-  const updatedAccount = {...account, subscriptions}
+  const updatedAccount: Account = {...account, subscriptions}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -255,7 +255,7 @@ export const blockAddress = async (address: string, accountName?: string) => {
   }
   blockedAddresses[address] = true
 
-  const updatedAccount = {...account, blockedAddresses}
+  const updatedAccount: Account = {...account, blockedAddresses}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -280,7 +280,7 @@ export const unblockAddress = async (address: string, accountName?: string) => {
   }
   delete blockedAddresses[address]
 
-  const updatedAccount = {...account, blockedAddresses}
+  const updatedAccount: Account = {...account, blockedAddresses}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -298,7 +298,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   }
   validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
-  let createCommentOptions = {
+  let createCommentOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
@@ -386,7 +386,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   }
   validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
 
-  let createVoteOptions = {
+  let createVoteOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
@@ -441,7 +441,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   }
   validator.validateAccountsActionsPublishCommentEditArguments({publishCommentEditOptions, accountName, account})
 
-  let createCommentEditOptions = {
+  let createCommentEditOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
@@ -504,7 +504,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
     !publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress,
     `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`
   )
-  let createSubplebbitEditOptions = {
+  let createSubplebbitEditOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
