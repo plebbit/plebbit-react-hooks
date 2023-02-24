@@ -187,7 +187,7 @@ export const exportAccount = async (accountName?: string) => {
   // TODO: add options to only export private key, account settings, or include all account comments/votes history
 }
 
-export const subscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+export const subscribe = async (subplebbitAddress: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.subscribe invalid subplebbitAddress '${subplebbitAddress}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -212,7 +212,7 @@ export const subscribe = async (subplebbitAddress: string | number, accountName?
   accountsStore.setState({accounts: updatedAccounts})
 }
 
-export const unsubscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+export const unsubscribe = async (subplebbitAddress: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.unsubscribe invalid subplebbitAddress '${subplebbitAddress}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -238,7 +238,7 @@ export const unsubscribe = async (subplebbitAddress: string | number, accountNam
   accountsStore.setState({accounts: updatedAccounts})
 }
 
-export const blockAddress = async (address: string | number, accountName?: string) => {
+export const blockAddress = async (address: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(address && typeof address === 'string', `accountsActions.blockAddress invalid address '${address}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -263,7 +263,7 @@ export const blockAddress = async (address: string | number, accountName?: strin
   accountsStore.setState({accounts: updatedAccounts})
 }
 
-export const unblockAddress = async (address: string | number, accountName?: string) => {
+export const unblockAddress = async (address: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(address && typeof address === 'string', `accountsActions.unblockAddress invalid address '${address}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)

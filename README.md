@@ -152,12 +152,22 @@ Account {
   signer: Signer,
   plebbit: Plebbit,
   plebbitOptions: PlebbitOptions,
-  subscriptions: SubplebbitAddress[],
-  blockedAddresses: {[address: Address]: boolean}, // hide address from feed and notifications
-  limitedAddresses: {[address: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
+  // subscriptions to show in feed
+  subscriptions: string[], // subplebbit subscriptions
+  multisubSubscriptions: string[],
+  authorSubscriptions: string[],
+  // notifications turned on for addresses/cids
+  notifyingSubplebbits: {[address: string]: boolean}
+  notifyingMultisubs: {[address: string]: boolean}
+  notifyingAuthors: {[address: string]: boolean}
+  notifyingComments: {[commentCid: string]: boolean}
+  blockedAddresses: {[address: string]: boolean}, // hide address from feed and notifications
+  limitedAddresses: {[address: string]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
+  hiddenComments: {[commentCid: string]: boolean}, // hide a specific cid from feed and notifications
+  savedComments: string[], // save a list of comments for later
   karma: Karma
   unreadNotificationCount: number
-  subplebbits: {[subplebbitAddress: Address]: AccountSubplebbit} // the subplebbits moderated or created by the user
+  subplebbits: {[subplebbitAddress: string]: AccountSubplebbit} // the subplebbits moderated or created by the user
 }
 Karma {
   replyUpvoteCount

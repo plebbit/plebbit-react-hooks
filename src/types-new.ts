@@ -13,17 +13,20 @@ export interface Result {
   errors: Error[]
 }
 
+// TODO
 // useAccount(options): result
 export interface UseAccountOptions extends Options {}
 export interface UseAccountResult extends Result, Account {}
 
+// TODO
 // useAccounts(options)
 export interface UseAccountsOptions extends Options {}
 export interface UseAccountsResult extends Result {
   accounts: Account[]
 }
 
-// useAccounts(): result
+// TODO
+// useAccountComments(): result
 export interface UseAccountCommentsOptions extends Options {
   filter?: AccountPublicationsFilter
 }
@@ -31,6 +34,7 @@ export interface UseAccountCommentsResult extends Result {
   accountComments: AccountComment[]
 }
 
+// TODO
 // useAccountVotes(options): result
 export interface UseAccountVotesOptions extends Options {
   filter?: AccountPublicationsFilter
@@ -39,6 +43,7 @@ export interface UseAccountVotesResult extends Result {
   accountVotes: number[]
 }
 
+// TODO
 // useAccountVote(options): result
 export interface UseAccountVoteOptions extends Options {
   commentCid?: string
@@ -47,6 +52,7 @@ export interface UseAccountVotesResult extends Result {
   vote: number
 }
 
+// TODO
 // useAccountNotifications(options): result
 export interface UseAccountNotificationsOptions extends Options {}
 export interface UseAccountNotificationsResult extends Result {
@@ -54,19 +60,21 @@ export interface UseAccountNotificationsResult extends Result {
   markAsRead(): Promise<void>
 }
 
+// TODO
 // useAccountSubplebbits(options): result
 export interface UseAccountSubplebbitsOptions extends Options {}
 export interface UseAccountSubplebbitsResult extends Result {
-  notifications: Notification[]
-  markAsRead(): Promise<void>
+  accountSubplebbits: AccountSubplebbit[]
 }
 
+// TODO
 // useComment(options): result
 export interface UseCommentOptions extends Options {
   commentCid?: string
 }
 export interface UseCommentResult extends Result, Comment {}
 
+// TODO
 // useComments(options): result
 export interface UseCommentsOptions extends Options {
   commentCids?: string[]
@@ -75,26 +83,30 @@ export interface UseCommentsResult extends Result {
   comments: Comment[]
 }
 
+// TODO
 // useSubplebbit(options): result
 export interface UseSubplebbitOptions extends Options {
   subplebbitAddress?: string
 }
 export interface UseSubplebbitResult extends Result, Subplebbit {}
 
+// TODO
 // useSubplebbits(options): result
 export interface UseSubplebbitsOptions extends Options {
   subplebbitAddresses?: string[]
 }
 export interface UseSubplebbitsResult extends Result {
-  subplebbits: Comment[]
+  subplebbits: Subplebbit[]
 }
 
+// TODO
 // useSubplebbitMetrics(options): result
 export interface UseSubplebbitMetricsOptions extends Options {
   subplebbitAddress?: string
 }
 export interface UseSubplebbitsMetricsResult extends Result, SubplebbitMetrics {}
 
+// TODO
 // useResolvedSubplebbitAddress(options): result
 export interface UseResolvedSubplebbitAddressOptions extends Options {
   subplebbitAddress: string | undefined
@@ -103,6 +115,7 @@ export interface UseResolvedSubplebbitAddressResult extends Result {
   resolvedAddress: string | undefined
 }
 
+// TODO
 // useFeed(options): result
 export interface UseFeedOptions extends Options {
   subplebbitAddresses: string[]
@@ -114,6 +127,7 @@ export interface UseFeedResult extends Result {
   loadMore(): Promise<void>
 }
 
+// TODO
 // useBufferedFeeds(options): result
 export interface UseBufferedFeedsOptions extends Options {
   feedsOptions?: UseFeedOptions[]
@@ -123,24 +137,25 @@ export interface UseBufferedFeedsResult extends Result {
 }
 
 // useAuthorComments(options): result
-export interface UseAuthorCommentsOptions extends Options {
-  authorAddress?: string
-}
-export interface UseAuthorCommentsResult extends Result {
-  authorComments: Comment[]
-}
+// export interface UseAuthorCommentsOptions extends Options {
+//   authorAddress?: string
+// }
+// export interface UseAuthorCommentsResult extends Result {
+//   authorComments: Comment[]
+// }
 
 // useReplies(options): result
-export interface UseRepliesOptions extends Options {
-  commentCid?: string
-  nested?: boolean
-}
-export interface UseRepliesResult extends Result {
-  replies: Comment[]
-  hasMore(): Promise<void>
-  loadMore(): Promise<void>
-}
+// export interface UseRepliesOptions extends Options {
+//   commentCid?: string
+//   nested?: boolean
+// }
+// export interface UseRepliesResult extends Result {
+//   replies: Comment[]
+//   hasMore(): Promise<void>
+//   loadMore(): Promise<void>
+// }
 
+// TODO
 // useResolvedAuthorAddress(options): result
 export interface UseResolvedAuthorAddressOptions extends Options {
   author?: Author
@@ -149,6 +164,7 @@ export interface UseResolvedAuthorAddressResult extends Result {
   resolvedAddress: string | undefined
 }
 
+// TODO
 // useAuthorAvatarImageUrl(options): result
 export interface UseAuthorAvatarImageUrlOptions extends Options {
   author?: Author
@@ -158,59 +174,61 @@ export interface UseAuthorAvatarImageUrlResult extends Result {
 }
 
 // useCreateAccount(options): result
-export interface UseCreateAccountOptions extends Options {}
-export interface UseCreateAccountResult extends Result {
-  createAccount(): Promise<void>
-  createdAccount: Account | undefined
-}
+// export interface UseCreateAccountOptions extends Options {}
+// export interface UseCreateAccountResult extends Result {
+//   createAccount(): Promise<void>
+//   createdAccount: Account | undefined
+// }
 
 // useDeleteAccount(options): result
-export interface UseDeleteAccountOptions extends Options {}
-export interface UseDeleteAccountResult extends Result {
-  deleteAccount(): Promise<void>
-  deletedAccount: Account | undefined
-}
+// export interface UseDeleteAccountOptions extends Options {}
+// export interface UseDeleteAccountResult extends Result {
+//   deleteAccount(): Promise<void>
+//   deletedAccount: Account | undefined
+// }
 
 // useSetAccount(options): result
-export interface UseSetAccountOptions extends Options {
-  account?: Account
-}
-export interface UseSetAccountResult extends Result {
-  setAccount(): Promise<void>
-  account: Account | undefined
-}
+// export interface UseSetAccountOptions extends Options {
+//   account?: Account
+// }
+// export interface UseSetAccountResult extends Result {
+//   setAccount(): Promise<void>
+//   account: Account | undefined
+// }
 
 // useSetActiveAccount(options): result
-export interface UseSetActiveAccountOptions extends Options {}
-export interface UseSetActiveAccountResult extends Result {
-  setActiveAccount(): Promise<void>
-  activeAccount: Account | undefined
-}
+// export interface UseSetActiveAccountOptions extends Options {
+//   activeAccount?: string
+// }
+// export interface UseSetActiveAccountResult extends Result {
+//   setActiveAccount(): Promise<void>
+//   activeAccount: string | undefined
+// }
 
 // useSetAccountsOrder(options): result
-export interface UseSetAccountsOrderOptions extends Options {
-  accountNames?: string[]
-}
-export interface UseSetAccountsOrderResult extends Result {
-  setAccountsOrder(): Promise<void>
-  accountNames: string[]
-}
+// export interface UseSetAccountsOrderOptions extends Options {
+//   accountsOrder?: string[]
+// }
+// export interface UseSetAccountsOrderResult extends Result {
+//   setAccountsOrder(): Promise<void>
+//   accountsOrder: string[]
+// }
 
 // useImportAccount(options): result
-export interface UseImportAccountOptions extends Options {
-  account?: string
-}
-export interface UseImportAccountResult extends Result {
-  importAccount(): Promise<void>
-  importedAccount: Account | undefined
-}
+// export interface UseImportAccountOptions extends Options {
+//   account?: string
+// }
+// export interface UseImportAccountResult extends Result {
+//   importAccount(): Promise<void>
+//   importedAccount: Account | undefined
+// }
 
 // useExportAccount(options): result
-export interface UseExportAccountOptions extends Options {}
-export interface UseExportAccountResult extends Result {
-  exportAccount(): Promise<void>
-  exportedAccount: string | undefined
-}
+// export interface UseExportAccountOptions extends Options {}
+// export interface UseExportAccountResult extends Result {
+//   exportAccount(): Promise<void>
+//   exportedAccount: string | undefined
+// }
 
 // usePublishComment(options): result
 export interface UsePublishCommentOptions extends Options {
@@ -226,6 +244,7 @@ export interface UsePublishCommentResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
+// TODO
 // usePublishVote(options): result
 export interface UsePublishVoteOptions extends Options {
   onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
@@ -239,6 +258,7 @@ export interface UsePublishVoteResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
+// TODO
 // usePublishCommentEdit(options): result
 export interface UsePublishCommentEditOptions extends Options {
   onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
@@ -252,6 +272,7 @@ export interface UsePublishCommentEditResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
+// TODO
 // usePublishSubplebbitEdit(options): result
 export interface UsePublishSubplebbitEditOptions extends Options {
   subplebbitAddress?: string
@@ -266,9 +287,10 @@ export interface UsePublishSubplebbitEditResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
+// TODO
 // useCreateSubplebbit(options): result
 export interface UseCreateSubplebbitOptions extends Options {
-  subplebbitAddress?: string
+  [createSubplebbitOption: string]: any
 }
 export interface UseCreateSubplebbitResult extends Result {
   createSubplebbit(): Promise<void>
@@ -276,17 +298,19 @@ export interface UseCreateSubplebbitResult extends Result {
 }
 
 // useDeleteSubplebbit(options): result
-export interface UseDeleteSubplebbitOptions extends Options {
-  subplebbitAddress?: string
-}
-export interface UseDeleteSubplebbitResult extends Result {
-  deleteSubplebbit(): Promise<void>
-  deletedSubplebbit: Subplebbit | undefined
-}
+// export interface UseDeleteSubplebbitOptions extends Options {
+//   subplebbitAddress?: string
+// }
+// export interface UseDeleteSubplebbitResult extends Result {
+//   deleteSubplebbit(): Promise<void>
+//   deletedSubplebbit: Subplebbit | undefined
+// }
 
 // useSubscribe(options): result
 export interface UseSubscribeOptions extends Options {
   subplebbitAddress?: string
+  multisubAddress?: string
+  authorAddress?: string
 }
 export interface UseSubscribeResult extends Result {
   subscribe(): Promise<void>
@@ -294,26 +318,20 @@ export interface UseSubscribeResult extends Result {
   subscribed: boolean | undefined
 }
 
-// useSubscribeMultisub(options): result
-export interface UseSubscribeMultisubOptions extends Options {
+// useNotify(options): result
+export interface UseNotifyOptions extends Options {
+  subplebbitAddress?: string
   multisubAddress?: string
-}
-export interface UseSubscribeMultisubResult extends Result {
-  subscribe(): Promise<void>
-  unsubscribe(): Promise<void>
-  subscribed: boolean | undefined
-}
-
-// useFollow(options): result
-export interface UseFollowOptions extends Options {
   authorAddress?: string
+  commentCid?: string
 }
-export interface UseFollowResult extends Result {
-  follow(): Promise<void>
-  unfollow(): Promise<void>
-  following: boolean | undefined
+export interface UseNotifySubplebbitResult extends Result {
+  notify(): Promise<void>
+  unnotify(): Promise<void>
+  notifying: boolean | undefined
 }
 
+// TODO
 // useBlock(options): result
 export interface UseBlockOptions extends Options {
   address?: string
@@ -324,46 +342,46 @@ export interface UseBlockResult extends Result {
   blocked: boolean | undefined
 }
 
-// useLimit(options): result
-export interface UseLimitOptions extends Options {
-  address?: string
-}
-export interface UseLimitResult extends Result {
-  limit(): Promise<void>
-  unlimit(): Promise<void>
-  limited: boolean | undefined
-}
+// useLimitAddress(options): result
+// export interface UseLimitOptions extends Options {
+//   address?: string
+// }
+// export interface UseLimitResult extends Result {
+//   limit(): Promise<void>
+//   unlimit(): Promise<void>
+//   limited: number | undefined
+// }
 
 // useHide(options): result
-export interface UseHideOptions extends Options {
-  commentCid?: string
-}
-export interface UseHideResult extends Result {
-  hide(): Promise<void>
-  unhide(): Promise<void>
-  hidden: boolean | undefined
-}
+// export interface UseHideOptions extends Options {
+//   commentCid?: string
+// }
+// export interface UseHideResult extends Result {
+//   hide(): Promise<void>
+//   unhide(): Promise<void>
+//   hidden: boolean | undefined
+// }
 
 // useSave(options): result
-export interface UseSaveOptions extends Options {
-  commentCid?: string
-}
-export interface UseSaveResult extends Result {
-  save(): Promise<void>
-  unsave(): Promise<void>
-  saved: boolean | undefined
-}
+// export interface UseSaveOptions extends Options {
+//   commentCid?: string
+// }
+// export interface UseSaveResult extends Result {
+//   save(): Promise<void>
+//   unsave(): Promise<void>
+//   saved: boolean | undefined
+// }
 
 // useDeleteComment(options): result
-export interface UseDeleteCommentOptions extends Options {
-  commentCid?: string
-  commentIndex?: number
-}
-export interface UseDeleteCommentResult extends Result {
-  deleteComment(): Promise<void>
-  undeleteComment(): Promise<void>
-  deletedComment: Comment | undefined
-}
+// export interface UseDeleteCommentOptions extends Options {
+//   commentCid?: string
+//   accountCommentIndex?: number
+// }
+// export interface UseDeleteCommentResult extends Result {
+//   deleteComment(): Promise<void>
+//   undeleteComment(): Promise<void>
+//   deletedComment: Comment | undefined
+// }
 
 /**
  * TODO: define these undefined types

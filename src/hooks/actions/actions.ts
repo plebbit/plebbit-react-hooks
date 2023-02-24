@@ -4,12 +4,20 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useAccount, useAccountId} from '../accounts'
-import type {UseSubscribeOptions, UseSubscribeResult, UsePublishCommentOptions, UsePublishCommentResult, Challenge, ChallengeVerification, Comment} from '../../types-new'
+import type {
+  UseSubscribeOptions,
+  UseSubscribeResult,
+  UsePublishCommentOptions,
+  UsePublishCommentResult,
+  UseBlockOptions,
+  UseBlockResult,
+  Challenge,
+  ChallengeVerification,
+  Comment,
+} from '../../types-new'
 
 type PublishChallengeAnswers = (challengeAnswers: string[]) => Promise<void>
-
-const onErrorNoop = (error: Error) => {}
-const publishChallengeAnswersNoop: PublishChallengeAnswers = async (challengeAnswers) => {
+const publishChallengeAnswersNotReady: PublishChallengeAnswers = async (challengeAnswers) => {
   throw Error(`can't call publishChallengeAnswers() before result.challenge is defined (before the challenge message is received)`)
 }
 
@@ -55,6 +63,48 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
   }
 }
 
+export function useBlock(options?: UseBlockOptions): UseBlockResult {
+  const {address, accountName, onError} = options || {}
+  const account = useAccount(accountName)
+  const accountsActions = useAccountsStore((state) => state.accountsActions)
+  const [errors, setErrors] = useState<Error[]>([])
+  let state = 'initializing'
+  let blocked = undefined
+
+  // before the account and address is defined, nothing can happen
+  if (account && address) {
+    state = 'ready'
+    blocked = Boolean(account.blockedAddresses[address])
+  }
+
+  const block = async () => {
+    try {
+      await accountsActions.blockAddress(address, accountName)
+    } catch (e: any) {
+      setErrors([...errors, e])
+      onError?.(e)
+    }
+  }
+
+  const unblock = async () => {
+    try {
+      await accountsActions.unblockAddress(address, accountName)
+    } catch (e: any) {
+      setErrors([...errors, e])
+      onError?.(e)
+    }
+  }
+
+  return {
+    state,
+    error: errors[errors.length - 1],
+    errors,
+    blocked,
+    block,
+    unblock,
+  }
+}
+
 export function usePublishComment(options: UsePublishCommentOptions): UsePublishCommentResult {
   const {accountName, ...publishCommentOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
@@ -85,6 +135,7 @@ export function usePublishComment(options: UsePublishCommentOptions): UsePublish
   const originalOnChallenge = publishCommentOptions.onChallenge
   const onChallenge = async (challenge: Challenge, comment: Comment) => {
     setState('waiting-challenge-verification')
+    // cannot set a function directly with setState
     setPublishChallengeAnswers(() => comment?.publishChallengeAnswers.bind(comment))
     setChallenge(challenge)
     originalOnChallenge?.(challenge)
@@ -116,37 +167,9 @@ export function usePublishComment(options: UsePublishCommentOptions): UsePublish
     error: errors[errors.length - 1],
     errors,
     publishComment,
-    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNoop,
+    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
     index,
     challenge,
     challengeVerification,
   }
 }
-
-// interface SetAccountResult extends Result {
-//   account: Account
-//   setAccount: Function
-// }
-
-// export function useSetAccount(account: Account) {
-//   const accountsActions = useAccountsStore((state) => state.accountsActions)
-
-//   const setAccount = async () => {
-//     try {
-//       await accountsActions.setAccount(account)
-//       // set index, challenge, etc
-//     }
-//     catch (e) {
-//       // set error
-//     }
-//   }
-
-//   const result: SetAccountResult = {
-//     state: 'initializing'
-//     error: undefined,
-//     errors: [],
-//     setAccount,
-//     account: undefined
-//   }
-//   return result
-// }

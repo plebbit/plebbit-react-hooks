@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useSubscribe, usePublishComment, setPlebbitJs} from '../..'
+import {useSubscribe, usePublishComment, useBlock, useAccount, setPlebbitJs} from '../..'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
@@ -105,6 +105,102 @@ describe('actions', () => {
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor(() => rendered.result.current.state === 'ready')
       expect(rendered.result.current[1].subscribed).toBe(true)
+    })
+  })
+
+  describe('useBlock', () => {
+    let rendered: any, waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((useBlockOptionsArray = []) => {
+        const result1 = useBlock(useBlockOptionsArray[0])
+        const result2 = useBlock(useBlockOptionsArray[1])
+        return [result1, result2]
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test(`block and unblock to subplebbit`, async () => {
+      const address = 'address.eth'
+      const address2 = 'address2.eth'
+
+      expect(rendered.result.current[0].state).toBe('initializing')
+      expect(rendered.result.current[0].blocked).toBe(undefined)
+      expect(typeof rendered.result.current[0].block).toBe('function')
+      expect(typeof rendered.result.current[0].unblock).toBe('function')
+
+      // get the default value
+      rendered.rerender([{address}])
+      await waitFor(() => typeof rendered.result.current[0].blocked === 'boolean')
+      expect(rendered.result.current[0].state).toBe('ready')
+      expect(rendered.result.current[0].blocked).toBe(false)
+
+      // block to 1 address
+      await act(async () => {
+        await rendered.result.current[0].block()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === true)
+      expect(rendered.result.current[0].blocked).toEqual(true)
+
+      // fail blocking twice
+      expect(rendered.result.current[0].errors.length).toBe(0)
+      await act(async () => {
+        await rendered.result.current[0].block()
+      })
+      expect(rendered.result.current[0].errors.length).toBe(1)
+
+      // unblock
+      await act(async () => {
+        await rendered.result.current[0].unblock()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === false)
+      expect(rendered.result.current[0].blocked).toEqual(false)
+
+      // fail unblocking twice
+      expect(rendered.result.current[0].errors.length).toBe(1)
+      await act(async () => {
+        await rendered.result.current[0].unblock()
+      })
+      expect(rendered.result.current[0].errors.length).toBe(2)
+
+      // block 2 addresses
+      rendered.rerender([{address}, {address: address2}])
+      await waitFor(() => rendered.result.current[0].state === 'ready')
+      await waitFor(() => rendered.result.current[1].state === 'ready')
+      expect(rendered.result.current[0].state).toBe('ready')
+      expect(rendered.result.current[1].state).toBe('ready')
+      expect(rendered.result.current[0].blocked).toBe(false)
+      expect(rendered.result.current[1].blocked).toBe(false)
+
+      await act(async () => {
+        await rendered.result.current[0].block()
+        await rendered.result.current[1].block()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === true)
+      await waitFor(() => rendered.result.current[1].blocked === true)
+      expect(rendered.result.current[0].blocked).toBe(true)
+      expect(rendered.result.current[1].blocked).toBe(true)
+
+      // unblock with 2 addresses
+      await act(async () => {
+        await rendered.result.current[0].unblock()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === false)
+      expect(rendered.result.current[0].blocked).toBe(false)
+      expect(rendered.result.current[1].blocked).toBe(true)
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
+      // subscribing persists in database after store reset
+      const rendered2 = renderHook<any, any>(() => useBlock({address: address2}))
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current[1].blocked).toBe(true)
     })
   })
 
