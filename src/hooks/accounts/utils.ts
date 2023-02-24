@@ -1,5 +1,14 @@
 import assert from 'assert'
-import type {UseAccountCommentsFilter, AccountsCommentsReplies, AccountsComments, Accounts, AccountsNotifications, AccountCommentReply} from '../../types'
+import type {
+  Account,
+  UseAccountCommentsFilter,
+  AccountsCommentsReplies,
+  AccountCommentsReplies,
+  AccountsComments,
+  Accounts,
+  AccountsNotifications,
+  AccountCommentReply,
+} from '../../types'
 import {useMemo} from 'react'
 
 /**
@@ -44,6 +53,31 @@ export const filterPublications = (publications: any, filter: UseAccountComments
   return filteredPublications
 }
 
+const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies: AccountCommentsReplies) => {
+  // get reply notifications
+  const replyNotifications: AccountCommentReply[] = []
+  for (const replyCid in accountCommentsReplies) {
+    const reply = accountCommentsReplies[replyCid]
+    // TODO: filter blocked addresses
+    // if (accountsBlockedAddresses[accountId]?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
+    //   continue
+    // }
+    replyNotifications.push(reply)
+  }
+  return replyNotifications.sort((a, b) => b.timestamp - a.timestamp)
+}
+
+export const useAccountNotifications = (account?: Account, accountCommentsReplies?: AccountCommentsReplies) => {
+  if (!account || !accountCommentsReplies) {
+    return []
+  }
+  return useMemo(() => {
+    // get reply notifications only
+    // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
+    return getReplyNotificationsFromAccountCommentsReplies(accountCommentsReplies)
+  }, [accountCommentsReplies, account?.blockedAddresses])
+}
+
 export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
   const accountsBlockedAddresses = Object.fromEntries(
     // do not do `account.blockedAddresses || {}` otherwise can't use as useMemoDependencies
@@ -62,21 +96,9 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
       return accountsNotifications
     }
     for (const accountId in accountsCommentsReplies) {
-      // get reply notifications
-      const accountCommentsReplies: AccountCommentReply[] = []
-      for (const replyCid in accountsCommentsReplies[accountId]) {
-        const reply = accountsCommentsReplies[accountId][replyCid]
-
-        // TODO: filter blocked addresses
-        // if (accountsBlockedAddresses[accountId]?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
-        //   continue
-        // }
-        accountCommentsReplies.push(reply)
-      }
-
+      // get reply notifications only
       // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
-
-      accountsNotifications[accountId] = accountCommentsReplies.sort((a, b) => b.timestamp - a.timestamp)
+      accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(accountsCommentsReplies[accountId])
     }
     return accountsNotifications
   }, useMemoDependencies)
