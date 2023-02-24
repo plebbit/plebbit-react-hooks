@@ -5,8 +5,10 @@ import type {
   AccountsCommentsReplies,
   AccountCommentsReplies,
   AccountsComments,
+  AccountComments,
   Accounts,
   AccountsNotifications,
+  AccountNotifications,
   AccountCommentReply,
 } from '../../types'
 import {useMemo} from 'react'
@@ -104,6 +106,54 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
   }, useMemoDependencies)
 }
 
+const getAccountWithCalculatedProperties = (account: Account, accountComments: AccountComments, accountNotifications: AccountNotifications) => {
+  const accountWithCalculatedProperties = {...account}
+
+  // add karma
+  const karma = {
+    replyUpvoteCount: 0,
+    replyDownvoteCount: 0,
+    replyScore: 0,
+    postUpvoteCount: 0,
+    postDownvoteCount: 0,
+    postScore: 0,
+    upvoteCount: 0,
+    downvoteCount: 0,
+    score: 0,
+  }
+  for (const comment of accountComments || []) {
+    if (comment.parentCid && comment.upvoteCount) {
+      karma.replyUpvoteCount += comment.upvoteCount
+    }
+    if (comment.parentCid && comment.downvoteCount) {
+      karma.replyDownvoteCount += comment.downvoteCount
+    }
+    if (!comment.parentCid && comment.upvoteCount) {
+      karma.postUpvoteCount += comment.upvoteCount
+    }
+    if (!comment.parentCid && comment.downvoteCount) {
+      karma.postDownvoteCount += comment.downvoteCount
+    }
+  }
+  karma.replyScore = karma.replyUpvoteCount - karma.replyDownvoteCount
+  karma.postScore = karma.postUpvoteCount - karma.postDownvoteCount
+  karma.upvoteCount = karma.replyUpvoteCount + karma.postUpvoteCount
+  karma.downvoteCount = karma.replyDownvoteCount + karma.postDownvoteCount
+  karma.score = karma.upvoteCount - karma.downvoteCount
+  accountWithCalculatedProperties.karma = karma
+
+  // add unreadNotificationCount
+  let unreadNotificationCount = 0
+  for (const notification of accountNotifications || []) {
+    if (!notification.markedAsRead) {
+      unreadNotificationCount++
+    }
+  }
+  accountWithCalculatedProperties.unreadNotificationCount = unreadNotificationCount
+
+  return accountWithCalculatedProperties
+}
+
 // add calculated properties to accounts, like karma and unreadNotificationCount
 export const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: AccountsComments, accountsCommentsReplies?: AccountsCommentsReplies) => {
   const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies)
@@ -122,60 +172,10 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
     if (!accountsComments) {
       return accounts
     }
-    const accountsWithCalculatedProperties = {...accounts}
-
-    // add karma
-    for (const accountId in accountsComments) {
-      const account = accounts[accountId]
-      const accountComments = accountsComments[accountId]
-      if (!accountComments || !account) {
-        continue
-      }
-      const karma = {
-        replyUpvoteCount: 0,
-        replyDownvoteCount: 0,
-        replyScore: 0,
-        postUpvoteCount: 0,
-        postDownvoteCount: 0,
-        postScore: 0,
-        upvoteCount: 0,
-        downvoteCount: 0,
-        score: 0,
-      }
-      for (const comment of accountComments) {
-        if (comment.parentCid && comment.upvoteCount) {
-          karma.replyUpvoteCount += comment.upvoteCount
-        }
-        if (comment.parentCid && comment.downvoteCount) {
-          karma.replyDownvoteCount += comment.downvoteCount
-        }
-        if (!comment.parentCid && comment.upvoteCount) {
-          karma.postUpvoteCount += comment.upvoteCount
-        }
-        if (!comment.parentCid && comment.downvoteCount) {
-          karma.postDownvoteCount += comment.downvoteCount
-        }
-      }
-      karma.replyScore = karma.replyUpvoteCount - karma.replyDownvoteCount
-      karma.postScore = karma.postUpvoteCount - karma.postDownvoteCount
-      karma.upvoteCount = karma.replyUpvoteCount + karma.postUpvoteCount
-      karma.downvoteCount = karma.replyDownvoteCount + karma.postDownvoteCount
-      karma.score = karma.upvoteCount - karma.downvoteCount
-      const accountWithCalculatedProperties = {...account, karma}
-      accountsWithCalculatedProperties[accountId] = accountWithCalculatedProperties
+    const accountsWithCalculatedProperties: Accounts = {}
+    for (const accountId in accounts) {
+      accountsWithCalculatedProperties[accountId] = getAccountWithCalculatedProperties(accounts[accountId], accountsComments[accountId], accountsNotifications[accountId])
     }
-
-    // add unreadNotificationCount
-    for (const accountId in accountsWithCalculatedProperties) {
-      let unreadNotificationCount = 0
-      for (const notification of accountsNotifications?.[accountId] || []) {
-        if (!notification.markedAsRead) {
-          unreadNotificationCount++
-        }
-      }
-      accountsWithCalculatedProperties[accountId].unreadNotificationCount = unreadNotificationCount
-    }
-
     return accountsWithCalculatedProperties
   }, useMemoDependencies)
 }
