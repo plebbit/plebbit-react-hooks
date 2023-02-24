@@ -56,10 +56,10 @@ export const filterPublications = (publications: any, filter: UseAccountComments
 }
 
 export const useCalculatedAccountNotifications = (account?: Account, accountCommentsReplies?: AccountCommentsReplies) => {
-  if (!account || !accountCommentsReplies) {
-    return []
-  }
   return useMemo(() => {
+    if (!account || !accountCommentsReplies) {
+      return []
+    }
     // get reply notifications only
     // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
     return getReplyNotificationsFromAccountCommentsReplies(accountCommentsReplies)
@@ -107,14 +107,21 @@ const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies:
 }
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
-export const useAccountWithCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
+const useAccountCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
   const accountNotifications = useCalculatedAccountNotifications(account, accountCommentsReplies)
-  if (!account) {
-    return
-  }
   return useMemo(() => {
-    return getAccountWithCalculatedProperties(account, accountComments, accountNotifications)
+    return getAccountCalculatedProperties(accountComments, accountNotifications)
   }, [accountComments, accountCommentsReplies])
+}
+
+export const useAccountWithCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
+  const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies)
+  return useMemo(() => {
+    if (!account) {
+      return
+    }
+    return {...account, ...accountCalculatedProperties}
+  }, [account, accountCalculatedProperties])
 }
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
@@ -137,14 +144,15 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
     }
     const accountsWithCalculatedProperties: Accounts = {}
     for (const accountId in accounts) {
-      accountsWithCalculatedProperties[accountId] = getAccountWithCalculatedProperties(accounts[accountId], accountsComments[accountId], accountsNotifications[accountId])
+      const calculatedProperties = getAccountCalculatedProperties(accountsComments[accountId], accountsNotifications[accountId])
+      accountsWithCalculatedProperties[accountId] = {...accounts[accountId], ...calculatedProperties}
     }
     return accountsWithCalculatedProperties
   }, useMemoDependencies)
 }
 
-const getAccountWithCalculatedProperties = (account: Account, accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
-  const accountWithCalculatedProperties = {...account}
+const getAccountCalculatedProperties = (accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
+  const accountCalculatedProperties: any = {}
 
   // add karma
   const karma = {
@@ -177,7 +185,7 @@ const getAccountWithCalculatedProperties = (account: Account, accountComments?: 
   karma.upvoteCount = karma.replyUpvoteCount + karma.postUpvoteCount
   karma.downvoteCount = karma.replyDownvoteCount + karma.postDownvoteCount
   karma.score = karma.upvoteCount - karma.downvoteCount
-  accountWithCalculatedProperties.karma = karma
+  accountCalculatedProperties.karma = karma
 
   // add unreadNotificationCount
   let unreadNotificationCount = 0
@@ -186,7 +194,7 @@ const getAccountWithCalculatedProperties = (account: Account, accountComments?: 
       unreadNotificationCount++
     }
   }
-  accountWithCalculatedProperties.unreadNotificationCount = unreadNotificationCount
+  accountCalculatedProperties.unreadNotificationCount = unreadNotificationCount
 
-  return accountWithCalculatedProperties
+  return accountCalculatedProperties
 }

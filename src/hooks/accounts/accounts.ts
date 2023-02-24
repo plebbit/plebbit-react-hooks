@@ -14,7 +14,7 @@ import type {
   AccountsComments,
   AccountsCommentsReplies,
 } from '../../types'
-import {filterPublications, useAccountsWithCalculatedProperties, useCalculatedAccountNotifications} from './utils'
+import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedAccountNotifications} from './utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -38,22 +38,7 @@ export function useAccount(accountName?: string) {
   const accountStore = useAccountsStore((state) => state.accounts[accountId || ''])
   const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''])
   const accountCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies[accountId || ''])
-
-  // create objects arguments for useAccountsWithCalculatedProperties
-  const accounts: Accounts = {}
-  const accountsComments: AccountsComments = {}
-  const accountsCommentsReplies: AccountsCommentsReplies = {}
-  if (accountStore?.id) {
-    accounts[accountStore.id] = accountStore
-    if (accountComments) {
-      accountsComments[accountStore.id] = accountComments
-    }
-    if (accountCommentsReplies) {
-      accountsCommentsReplies[accountStore.id] = accountCommentsReplies
-    }
-  }
-  const accountsWithCalculatedProperties = useAccountsWithCalculatedProperties(accounts, accountsComments, accountsCommentsReplies)
-  const account = accountId && accountsWithCalculatedProperties?.[accountId]
+  const account = useAccountWithCalculatedProperties(accountStore, accountComments, accountCommentsReplies)
   log('useAccount', {accountId, account, accountName})
   return account
 }
