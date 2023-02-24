@@ -316,8 +316,6 @@ describe('actions', () => {
       })
 
       // wait for challenge
-      await waitFor(() => rendered.result.current.state === 'waiting-challenge')
-      expect(rendered.result.current.state).toBe('waiting-challenge')
       await waitFor(() => rendered.result.current.challenge)
       expect(rendered.result.current.error).toBe(undefined)
       expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])

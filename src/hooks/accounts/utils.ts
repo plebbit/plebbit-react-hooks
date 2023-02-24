@@ -12,6 +12,8 @@ import type {
   AccountCommentReply,
 } from '../../types'
 import {useMemo} from 'react'
+// @ts-ignore
+import memoize from 'memoizee'
 
 /**
  * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
@@ -66,11 +68,32 @@ export const useCalculatedAccountNotifications = (account?: Account, accountComm
   }, [accountCommentsReplies, account?.blockedAddresses])
 }
 
+// accountsBlockedAddresses must be cached to prevent rerenders
+// TODO: add accountsBlockedAddresses as an object in the store that can easily be === checked for equality
+const getAccountsBlockedAddresses = (...args: any) => {
+  const accountsBlockedAddresses: {[accountId: string]: {[address: string]: boolean}} = {}
+  const separator = Math.ceil(args.length / 2)
+  for (const [i] of args.entries()) {
+    const accountId = args[i]
+    const accountBlockedAddresses = args[i + separator]
+    if (accountBlockedAddresses) {
+      accountsBlockedAddresses[accountId] = accountBlockedAddresses
+    }
+  }
+  return accountsBlockedAddresses
+}
+// length false because variable arguments legnth
+const getAccountsBlockedAddressesCached = memoize(getAccountsBlockedAddresses, {max: 100, length: false})
+
 export const useCalculatedAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
-  const accountsBlockedAddresses = Object.fromEntries(
-    // do not do `account.blockedAddresses || {}` otherwise can't use as useMemoDependencies
-    Object.keys(accountsCommentsReplies || {}).map((accountId) => [accountId, accounts?.[accountId]?.blockedAddresses])
-  )
+  // accountsBlockedAddresses must be cached to prevent rerenders
+  // TODO: add accountsBlockedAddresses as an object in the store that can easily be === checked for equality
+  let accountsBlockedAddresses: any
+  if (accounts && accountsCommentsReplies) {
+    const accountIds = Object.keys(accountsCommentsReplies)
+    const accountsBlockedAddressesArray = accountIds.map((accountId) => accounts[accountId]?.blockedAddresses)
+    accountsBlockedAddresses = getAccountsBlockedAddressesCached(...accountIds, ...accountsBlockedAddressesArray)
+  }
 
   return useMemo(() => {
     const accountsNotifications: AccountsNotifications = {}
@@ -83,8 +106,7 @@ export const useCalculatedAccountsNotifications = (accounts?: Accounts, accounts
       accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(accountsCommentsReplies[accountId], accountsBlockedAddresses[accountId])
     }
     return accountsNotifications
-    // TODO: find a way to cache accountsBlockedAddresses, so we can replace 'accounts' with 'accountsBlockedAddresses' in useMemo deps
-  }, [accountsCommentsReplies, accounts])
+  }, [accountsCommentsReplies, accountsBlockedAddresses])
 }
 
 const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies: AccountCommentsReplies, accountBlockedAddresses?: {[address: string]: boolean}) => {
@@ -132,7 +154,7 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
     }
     const accountsWithCalculatedProperties: Accounts = {}
     for (const accountId in accounts) {
-      // TODO: cache getAccountCalculatedProperties() or it recalculates every account, instead of only the one changed
+      // must cache getAccountCalculatedProperties() or it recalculates every account, instead of only the one changed
       const accountCalculatedProperties = getAccountCalculatedProperties(accountsComments[accountId], accountsNotifications[accountId])
       accountsWithCalculatedProperties[accountId] = {...accounts[accountId], ...accountCalculatedProperties}
     }
@@ -140,7 +162,7 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
   }, [accounts, accountsComments, accountsCommentsReplies])
 }
 
-const getAccountCalculatedProperties = (accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
+const _getAccountCalculatedProperties = (accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
   const accountCalculatedProperties: any = {}
 
   // add karma
@@ -187,3 +209,4 @@ const getAccountCalculatedProperties = (accountComments?: AccountComments, accou
 
   return accountCalculatedProperties
 }
+const getAccountCalculatedProperties = memoize(_getAccountCalculatedProperties, {max: 100})

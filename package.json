@@ -34,10 +34,10 @@
   "dependencies": {
     "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#695d574ed87aa153ce1202e294e2539e94451303",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
-    "@types/uuid": "8.3.4",
     "assert": "2.0.0",
     "ethers": "5.6.9",
     "localforage": "1.10.0",
+    "memoizee": "0.4.15",
     "uuid": "8.3.2",
     "zustand": "4.0.0"
   },
@@ -49,6 +49,8 @@
     "@babel/preset-env": "7.17.12",
     "@testing-library/react-hooks": "7.0.2",
     "@tsconfig/recommended": "1.0.1",
+    "@types/memoizee": "0.4.8",
+    "@types/uuid": "8.3.4",
     "@types/jest": "27.0.2",
     "@types/node": "16.9.0",
     "@types/react": "17.0.21",
