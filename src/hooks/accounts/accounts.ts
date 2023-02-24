@@ -14,7 +14,7 @@ import type {
   AccountsComments,
   AccountsCommentsReplies,
 } from '../../types'
-import {filterPublications, useAccountsWithCalculatedProperties, useAccountsNotifications} from './utils'
+import {filterPublications, useAccountsWithCalculatedProperties, useCalculatedAccountNotifications} from './utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -149,18 +149,7 @@ export function useAccountNotifications(accountName?: string) {
   const account = useAccountsStore((state) => state.accounts[accountId || ''])
   const accountCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies[accountId || ''])
   const accountsActionsInternal = useAccountsStore((state) => state.accountsActionsInternal)
-
-  // create objects arguments for useAccountsNotifications
-  const accounts: Accounts = {}
-  const accountsCommentsReplies: AccountsCommentsReplies = {}
-  if (account?.id) {
-    accounts[account.id] = account
-    if (accountCommentsReplies) {
-      accountsCommentsReplies[account.id] = accountCommentsReplies
-    }
-  }
-  const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies)
-  const notifications: AccountNotifications = (accountId && accountsNotifications?.[accountId]) || []
+  const notifications = useCalculatedAccountNotifications(account, accountCommentsReplies)
 
   const markAsRead = () => {
     if (!account) {

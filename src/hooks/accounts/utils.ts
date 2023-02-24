@@ -55,21 +55,7 @@ export const filterPublications = (publications: any, filter: UseAccountComments
   return filteredPublications
 }
 
-const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies: AccountCommentsReplies) => {
-  // get reply notifications
-  const replyNotifications: AccountCommentReply[] = []
-  for (const replyCid in accountCommentsReplies) {
-    const reply = accountCommentsReplies[replyCid]
-    // TODO: filter blocked addresses
-    // if (accountsBlockedAddresses[accountId]?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
-    //   continue
-    // }
-    replyNotifications.push(reply)
-  }
-  return replyNotifications.sort((a, b) => b.timestamp - a.timestamp)
-}
-
-export const useAccountNotifications = (account?: Account, accountCommentsReplies?: AccountCommentsReplies) => {
+export const useCalculatedAccountNotifications = (account?: Account, accountCommentsReplies?: AccountCommentsReplies) => {
   if (!account || !accountCommentsReplies) {
     return []
   }
@@ -80,7 +66,7 @@ export const useAccountNotifications = (account?: Account, accountCommentsReplie
   }, [accountCommentsReplies, account?.blockedAddresses])
 }
 
-export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
+export const useCalculatedAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
   const accountsBlockedAddresses = Object.fromEntries(
     // do not do `account.blockedAddresses || {}` otherwise can't use as useMemoDependencies
     Object.keys(accountsCommentsReplies || {}).map((accountId) => [accountId, accounts?.[accountId]?.blockedAddresses])
@@ -106,7 +92,58 @@ export const useAccountsNotifications = (accounts?: Accounts, accountsCommentsRe
   }, useMemoDependencies)
 }
 
-const getAccountWithCalculatedProperties = (account: Account, accountComments: AccountComments, accountNotifications: AccountNotifications) => {
+const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies: AccountCommentsReplies) => {
+  // get reply notifications
+  const replyNotifications: AccountCommentReply[] = []
+  for (const replyCid in accountCommentsReplies) {
+    const reply = accountCommentsReplies[replyCid]
+    // TODO: filter blocked addresses
+    // if (accountsBlockedAddresses[accountId]?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
+    //   continue
+    // }
+    replyNotifications.push(reply)
+  }
+  return replyNotifications.sort((a, b) => b.timestamp - a.timestamp)
+}
+
+// add calculated properties to accounts, like karma and unreadNotificationCount
+export const useAccountWithCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
+  const accountNotifications = useCalculatedAccountNotifications(account, accountCommentsReplies)
+  if (!account) {
+    return
+  }
+  return useMemo(() => {
+    return getAccountWithCalculatedProperties(account, accountComments, accountNotifications)
+  }, [accountComments, accountCommentsReplies])
+}
+
+// add calculated properties to accounts, like karma and unreadNotificationCount
+export const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: AccountsComments, accountsCommentsReplies?: AccountsCommentsReplies) => {
+  const accountsNotifications = useCalculatedAccountsNotifications(accounts, accountsCommentsReplies)
+
+  // use a "shallow" check on the argument dependencies because the argument objects might change
+  // use accountsCommentsReplies instead of accountsNotifications because useAccountsNotifications uses it
+  const useMemoDependencies = [...Object.values(accounts || {}), ...Object.values(accountsComments || {}), ...Object.values(accountsCommentsReplies || {})]
+  // useMemo deps must always have the same length
+  // TODO: will break if there's more than 1000 / 3 accounts, must find other solution
+  useMemoDependencies.length = 1000
+
+  return useMemo(() => {
+    if (!accounts) {
+      return
+    }
+    if (!accountsComments) {
+      return accounts
+    }
+    const accountsWithCalculatedProperties: Accounts = {}
+    for (const accountId in accounts) {
+      accountsWithCalculatedProperties[accountId] = getAccountWithCalculatedProperties(accounts[accountId], accountsComments[accountId], accountsNotifications[accountId])
+    }
+    return accountsWithCalculatedProperties
+  }, useMemoDependencies)
+}
+
+const getAccountWithCalculatedProperties = (account: Account, accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
   const accountWithCalculatedProperties = {...account}
 
   // add karma
@@ -152,30 +189,4 @@ const getAccountWithCalculatedProperties = (account: Account, accountComments: A
   accountWithCalculatedProperties.unreadNotificationCount = unreadNotificationCount
 
   return accountWithCalculatedProperties
-}
-
-// add calculated properties to accounts, like karma and unreadNotificationCount
-export const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: AccountsComments, accountsCommentsReplies?: AccountsCommentsReplies) => {
-  const accountsNotifications = useAccountsNotifications(accounts, accountsCommentsReplies)
-
-  // use a "shallow" check on the argument dependencies because the argument objects might change
-  // use accountsCommentsReplies instead of accountsNotifications because useAccountsNotifications uses it
-  const useMemoDependencies = [...Object.values(accounts || {}), ...Object.values(accountsComments || {}), ...Object.values(accountsCommentsReplies || {})]
-  // useMemo deps must always have the same length
-  // TODO: will break if there's more than 1000 / 3 accounts, must find other solution
-  useMemoDependencies.length = 1000
-
-  return useMemo(() => {
-    if (!accounts) {
-      return
-    }
-    if (!accountsComments) {
-      return accounts
-    }
-    const accountsWithCalculatedProperties: Accounts = {}
-    for (const accountId in accounts) {
-      accountsWithCalculatedProperties[accountId] = getAccountWithCalculatedProperties(accounts[accountId], accountsComments[accountId], accountsNotifications[accountId])
-    }
-    return accountsWithCalculatedProperties
-  }, useMemoDependencies)
 }
