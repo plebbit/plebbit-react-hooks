@@ -52,13 +52,16 @@ export function useAccounts() {
   const accountsComments = useAccountsStore((state) => state.accountsComments)
   const accountsCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies)
   const accounts = useAccountsWithCalculatedProperties(accountsStore, accountsComments, accountsCommentsReplies)
-  const accountsArray: Account[] = []
-  if (accountIds?.length && accounts) {
-    for (const accountId of accountIds) {
-      accountsArray.push(accounts[accountId])
+  const accountsArray: Account[] = useMemo(() => {
+    const accountsArray = []
+    if (accountIds?.length && accounts) {
+      for (const accountId of accountIds) {
+        accountsArray.push(accounts[accountId])
+      }
     }
     return accountsArray
-  }
+  }, [accounts, accountIds])
+
   log('useAccounts', {accounts, accountIds})
   return accountsArray
 }
@@ -80,42 +83,51 @@ export function useAccountSubplebbits(accountName?: string) {
 
   // get all unique account subplebbit addresses
   const ownerSubplebbitAddresses = useListSubplebbits()
-  const accountSubplebbitAddresses = []
-  if (accountsStoreAccountSubplebbits) {
-    for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
-      accountSubplebbitAddresses.push(subplebbitAddress)
+  const uniqueSubplebbitAddresses: string[] = useMemo(() => {
+    const accountSubplebbitAddresses = []
+    if (accountsStoreAccountSubplebbits) {
+      for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
+        accountSubplebbitAddresses.push(subplebbitAddress)
+      }
     }
-  }
-  const uniqueSubplebbitAddresses = [...new Set([...ownerSubplebbitAddresses, ...accountSubplebbitAddresses])].sort()
+    const uniqueSubplebbitAddresses = [...new Set([...ownerSubplebbitAddresses, ...accountSubplebbitAddresses])].sort()
+    return uniqueSubplebbitAddresses
+  }, [accountsStoreAccountSubplebbits, ownerSubplebbitAddresses])
 
   // fetch all subplebbit data
   const subplebbitsArray = useSubplebbits(uniqueSubplebbitAddresses, accountName)
-  const subplebbits: any = {}
-  for (const [i, subplebbit] of subplebbitsArray.entries()) {
-    subplebbits[uniqueSubplebbitAddresses[i]] = {
-      ...subplebbit,
-      // make sure the address is defined if the subplebbit hasn't fetched yet
-      address: uniqueSubplebbitAddresses[i],
-    }
-  }
-
-  // merged subplebbit data with account.subplebbits data
-  const accountSubplebbits: any = {...subplebbits}
-  if (accountsStoreAccountSubplebbits) {
-    for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
-      accountSubplebbits[subplebbitAddress] = {
-        ...accountSubplebbits[subplebbitAddress],
-        ...accountsStoreAccountSubplebbits[subplebbitAddress],
+  const subplebbits: any = useMemo(() => {
+    const subplebbits: any = {}
+    for (const [i, subplebbit] of subplebbitsArray.entries()) {
+      subplebbits[uniqueSubplebbitAddresses[i]] = {
+        ...subplebbit,
+        // make sure the address is defined if the subplebbit hasn't fetched yet
+        address: uniqueSubplebbitAddresses[i],
       }
     }
-  }
+    return subplebbits
+  }, [subplebbitsArray, uniqueSubplebbitAddresses])
 
-  // add listSubplebbits data
-  for (const subplebbitAddress in accountSubplebbits) {
-    if (ownerSubplebbitAddresses.includes(subplebbitAddress)) {
-      accountSubplebbits[subplebbitAddress].role = {role: 'owner'}
+  // merged subplebbit data with account.subplebbits data
+  const accountSubplebbits: any = useMemo(() => {
+    const accountSubplebbits: any = {...subplebbits}
+    if (accountsStoreAccountSubplebbits) {
+      for (const subplebbitAddress in accountsStoreAccountSubplebbits) {
+        accountSubplebbits[subplebbitAddress] = {
+          ...accountSubplebbits[subplebbitAddress],
+          ...accountsStoreAccountSubplebbits[subplebbitAddress],
+        }
+      }
     }
-  }
+    // add listSubplebbits data
+    for (const subplebbitAddress in accountSubplebbits) {
+      if (ownerSubplebbitAddresses.includes(subplebbitAddress)) {
+        accountSubplebbits[subplebbitAddress].role = {role: 'owner'}
+      }
+    }
+    return accountSubplebbits
+  }, [accountsStoreAccountSubplebbits, ownerSubplebbitAddresses, subplebbits])
+
   if (accountId) {
     log('useAccountSubplebbits', {accountSubplebbits})
   }
@@ -164,9 +176,7 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
       return filterPublications(accountComments, useAccountCommentsOptions.filter)
     }
     return accountComments
-    // use stringify on useAccountCommentsOptions because the argument object could change
-    // while still having the same value, or stay the same, while having different values
-  }, [accountComments, JSON.stringify(useAccountCommentsOptions)])
+  }, [accountComments, useAccountCommentsOptions])
 
   if (accountComments && useAccountCommentsOptions) {
     log('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
@@ -194,9 +204,7 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
       accountVotesArray = filterPublications(accountVotesArray, useAccountVotesOptions.filter)
     }
     return accountVotesArray
-    // use stringify on useAccountVotesOptions because the argument object could change
-    // while still having the same value, or stay the same, while having different values
-  }, [accountVotes, JSON.stringify(useAccountVotesOptions)])
+  }, [accountVotes, useAccountVotesOptions])
 
   if (accountVotes && useAccountVotesOptions) {
     log('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
@@ -210,5 +218,5 @@ export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptio
 export function useAccountVote(commentCid?: string, accountName?: string) {
   const accountId = useAccountId(accountName)
   const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
-  return commentCid && accountVotes && accountVotes[commentCid]
+  return (commentCid && accountVotes && accountVotes[commentCid]) || 0
 }
