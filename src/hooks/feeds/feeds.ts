@@ -20,9 +20,10 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
 
-  const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses])
-  const [feedName] = useStringified([[account?.id, sortType, uniqueSubplebbitAddresses]])
+  const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
+  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses)
 
+  // add feed to store
   useEffect(() => {
     if (!uniqueSubplebbitAddresses || !account) {
       return
@@ -44,7 +45,7 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     incrementFeedPageNumber(feedName)
   }
 
-  const feed = loadedFeed || []
+  const feed = useMemo(() => loadedFeed || [], [loadedFeed])
   if (account && subplebbitAddresses?.length) {
     log('useFeed', {
       feed: feed.length,
@@ -73,18 +74,17 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
 
   // do a bunch of calculations to get feedsOptionsFlattened and feedNames
-  const subplebbitAddressesArrays = []
-  const sortTypes = []
-  for (const feedOptions of feedsOptions) {
-    subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses)
-    sortTypes.push(feedOptions.sortType)
-  }
-  const uniqueSubplebbitAddressesArrays = useUniqueSorted(subplebbitAddressesArrays)
-  const feedsOptionsFlattened: any = []
-  for (const i in feedsOptions) {
-    feedsOptionsFlattened[i] = [account?.id, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]]
-  }
-  const feedNames: (string | undefined)[] = useStringified(feedsOptionsFlattened)
+  const {subplebbitAddressesArrays, sortTypes} = useMemo(() => {
+    const subplebbitAddressesArrays = []
+    const sortTypes = []
+    for (const feedOptions of feedsOptions) {
+      subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses)
+      sortTypes.push(feedOptions.sortType)
+    }
+    return {subplebbitAddressesArrays, sortTypes}
+  }, [feedsOptions])
+  const uniqueSubplebbitAddressesArrays = useUniqueSortedArrays(subplebbitAddressesArrays)
+  const feedNames = useFeedNames(account?.id, sortTypes, uniqueSubplebbitAddressesArrays)
 
   const bufferedFeeds = useFeedsStore((state) => {
     const bufferedFeeds: Feeds = {}
@@ -97,11 +97,13 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
     return bufferedFeeds
   }, shallow)
 
+  // add feed to store
   useEffect(() => {
-    for (const i in feedsOptionsFlattened) {
-      const [accountId, sortType, uniqueSubplebbitAddresses] = feedsOptionsFlattened[Number(i)]
+    for (const [i] of uniqueSubplebbitAddressesArrays.entries()) {
+      const sortType = sortTypes[i] || 'hot'
+      const uniqueSubplebbitAddresses = uniqueSubplebbitAddressesArrays[i]
       validator.validateFeedSortType(sortType)
-      const feedName = feedNames[Number(i)]
+      const feedName = feedNames[i]
       if (!uniqueSubplebbitAddresses || !account) {
         return
       }
@@ -112,13 +114,16 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
         )
       }
     }
-  }, [feedNames?.toString()])
+  }, [feedNames])
 
   // only give to the user the buffered feeds he requested
-  const bufferedFeedsArray: Feed[] = []
-  for (const feedName of feedNames) {
-    bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || [])
-  }
+  const bufferedFeedsArray: Feed[] = useMemo(() => {
+    const bufferedFeedsArray: Feed[] = []
+    for (const feedName of feedNames) {
+      bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || [])
+    }
+    return bufferedFeedsArray
+  }, [bufferedFeeds, feedNames])
 
   if (account && feedsOptions?.length) {
     log('useBufferedFeeds', {
@@ -136,33 +141,37 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
 /**
  * Util to find unique and sorted subplebbit addresses for multiple feed options
  */
-function useUniqueSorted(stringsArrays?: (string[] | undefined)[]) {
+function useUniqueSortedArrays(stringsArrays?: string[][]) {
   return useMemo(() => {
-    const uniqueSorted: (string[] | undefined)[] = []
+    const uniqueSorted: string[][] = []
     for (const stringsArray of stringsArrays || []) {
-      if (!stringsArray) {
-        uniqueSorted.push(undefined)
-      } else {
-        uniqueSorted.push([...new Set(stringsArray.sort())])
-      }
+      uniqueSorted.push([...new Set(stringsArray.sort())])
     }
     return uniqueSorted
-  }, [stringsArrays?.toString()])
+  }, [stringsArrays])
 }
 
-/**
- * Util to stringify multiple objects or return undefineds
- */
-function useStringified(objs?: any[]) {
+function useUniqueSorted(stringsArray?: string[]) {
   return useMemo(() => {
-    const stringified: (string | undefined)[] = []
-    for (const obj of objs || []) {
-      if (obj === undefined) {
-        stringified.push(undefined)
-      } else {
-        stringified.push(JSON.stringify(obj))
-      }
+    if (!stringsArray) {
+      return []
     }
-    return stringified
-  }, [JSON.stringify(objs)])
+    return [...new Set(stringsArray.sort())]
+  }, [stringsArray])
+}
+
+function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[]) {
+  return useMemo(() => {
+    return JSON.stringify([accountId, sortType, uniqueSubplebbitAddresses])
+  }, [accountId, sortType, uniqueSubplebbitAddresses])
+}
+
+function useFeedNames(accountId: string, sortTypes: (string | undefined)[], uniqueSubplebbitAddressesArrays: string[][]) {
+  return useMemo(() => {
+    const feedNames = []
+    for (const [i] of uniqueSubplebbitAddressesArrays.entries()) {
+      feedNames.push(JSON.stringify([accountId, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]]))
+    }
+    return feedNames
+  }, [accountId, sortTypes, uniqueSubplebbitAddressesArrays])
 }

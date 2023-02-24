@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useState, useMemo} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
@@ -50,7 +50,7 @@ export function useComment(commentCid?: string, accountName?: string) {
  */
 export function useComments(commentCids: string[] = [], accountName?: string) {
   const account = useAccount(accountName)
-  let comments: Comment[] = useCommentsStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
+  const comments: Comment[] = useCommentsStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
   const subplebbitsPagesComments: Comment[] = useSubplebbitsPagesStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
 
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
@@ -71,12 +71,15 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
   }
 
   // if comment from subplebbit pages is more recent, use it instead
-  comments = [...comments]
-  for (const i in comments) {
-    if ((subplebbitsPagesComments[i]?.updatedAt || 0) > (comments[i]?.updatedAt || 0)) {
-      comments[i] = subplebbitsPagesComments[i]
+  const _comments = useMemo(() => {
+    const _comments = [...comments]
+    for (const i in _comments) {
+      if ((subplebbitsPagesComments[i]?.updatedAt || 0) > (_comments[i]?.updatedAt || 0)) {
+        _comments[i] = subplebbitsPagesComments[i]
+      }
     }
-  }
+    return _comments
+  }, [comments, subplebbitsPagesComments])
 
-  return comments
+  return _comments
 }
