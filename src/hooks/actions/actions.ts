@@ -13,9 +13,12 @@ import type {
   UseBlockResult,
   UseCreateSubplebbitOptions,
   UseCreateSubplebbitResult,
+  UsePublishVoteOptions,
+  UsePublishVoteResult,
   Challenge,
   ChallengeVerification,
   Comment,
+  Vote,
   Subplebbit,
 } from '../../types-new'
 
@@ -172,6 +175,72 @@ export function usePublishComment(options: UsePublishCommentOptions): UsePublish
     publishComment,
     publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
     index,
+    challenge,
+    challengeVerification,
+  }
+}
+
+export function usePublishVote(options: UsePublishVoteOptions): UsePublishVoteResult {
+  const {accountName, ...publishVoteOptions} = options || {}
+  const accountsActions = useAccountsStore((state) => state.accountsActions)
+  const accountId = useAccountId(accountName)
+  const [errors, setErrors] = useState<Error[]>([])
+  const [state, setState] = useState<string>()
+  const [challenge, setChallenge] = useState<Challenge>()
+  const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
+  const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+
+  let initialState = 'initializing'
+  // before the accountId and options is defined, nothing can happen
+  if (accountId && options) {
+    initialState = 'ready'
+  }
+
+  // define onError if not defined
+  const originalOnError = publishVoteOptions.onError
+  const onError = async (error: Error) => {
+    setState('failed')
+    setErrors([...errors, error])
+    originalOnError?.(error)
+  }
+  publishVoteOptions.onError = onError
+
+  // define onChallenge if not defined
+  const originalOnChallenge = publishVoteOptions.onChallenge
+  const onChallenge = async (challenge: Challenge, vote: Vote) => {
+    setState('waiting-challenge-verification')
+    // cannot set a function directly with setState
+    setPublishChallengeAnswers(() => vote?.publishChallengeAnswers.bind(vote))
+    setChallenge(challenge)
+    originalOnChallenge?.(challenge)
+  }
+  publishVoteOptions.onChallenge = onChallenge
+
+  // define onChallengeVerification if not defined
+  const originalOnChallengeVerification = publishVoteOptions.onChallengeVerification
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
+    setState(challengeVerification?.challengeSuccess === true ? 'succeeded' : 'failed')
+    setChallengeVerification(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification)
+  }
+  publishVoteOptions.onChallengeVerification = onChallengeVerification
+
+  const publishVote = async () => {
+    try {
+      await accountsActions.publishVote(publishVoteOptions, accountName)
+      setState('waiting-challenge')
+    } catch (e: any) {
+      setErrors([...errors, e])
+      publishVoteOptions.onError?.(e)
+    }
+  }
+
+  return {
+    state: state || initialState,
+    error: errors[errors.length - 1],
+    errors,
+    publishVote,
+    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
     challenge,
     challengeVerification,
   }

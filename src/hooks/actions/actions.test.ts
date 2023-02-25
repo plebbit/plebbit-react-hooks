@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useSubscribe, usePublishComment, useBlock, useAccount, useCreateSubplebbit, setPlebbitJs} from '../..'
-import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
+import {useSubscribe, usePublishComment, usePublishVote, useBlock, useAccount, useCreateSubplebbit, setPlebbitJs} from '../..'
+import PlebbitJsMock, {Plebbit, Comment, Vote, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
 describe('actions', () => {
@@ -328,6 +328,7 @@ describe('actions', () => {
       // wait for challenge verification
       await waitFor(() => rendered.result.current.challengeVerification)
       expect(rendered.result.current.state).toBe('succeeded')
+      expect(typeof rendered.result.current.index).toBe('number')
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
     })
@@ -363,6 +364,89 @@ describe('actions', () => {
 
       // restore mock
       Comment.prototype.publish = commentPublish
+    })
+  })
+
+  describe('usePublishVote', () => {
+    let rendered: any, waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options) => {
+        const result = usePublishVote(options)
+        return result
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test(`can publish vote`, async () => {
+      const publishVoteOptions = {
+        subplebbitAddress: 'Qm... acions.test',
+        commentCid: 'Qm... acions.test',
+        vote: 1,
+      }
+      rendered.rerender(publishVoteOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishVote()
+      })
+
+      // wait for challenge
+      await waitFor(() => rendered.result.current.challenge)
+      expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+
+      // publish challenge verification
+      await act(async () => {
+        await rendered.result.current.publishChallengeAnswers(['4'])
+      })
+
+      // wait for challenge verification
+      await waitFor(() => rendered.result.current.challengeVerification)
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
+      expect(rendered.result.current.error).toBe(undefined)
+    })
+
+    test(`can error`, async () => {
+      // mock the vote publish to error out
+      const votePublish = Vote.prototype.publish
+      Vote.prototype.publish = async () => {
+        throw Error('publish error')
+      }
+
+      const publishVoteOptions = {
+        subplebbitAddress: 'Qm... acions.test',
+        commentCid: 'Qm... acions.test',
+        vote: 1,
+      }
+      rendered.rerender(publishVoteOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishVote()
+      })
+
+      // wait for error
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('publish error')
+      expect(rendered.result.current.errors.length).toBe(1)
+
+      // restore mock
+      Vote.prototype.publish = votePublish
     })
   })
 })
