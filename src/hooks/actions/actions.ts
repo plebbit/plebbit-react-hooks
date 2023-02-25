@@ -15,9 +15,12 @@ import type {
   UseCreateSubplebbitResult,
   UsePublishVoteOptions,
   UsePublishVoteResult,
+  UsePublishCommentEditOptions,
+  UsePublishCommentEditResult,
   Challenge,
   ChallengeVerification,
   Comment,
+  CommentEdit,
   Vote,
   Subplebbit,
 } from '../../types-new'
@@ -240,6 +243,72 @@ export function usePublishVote(options: UsePublishVoteOptions): UsePublishVoteRe
     error: errors[errors.length - 1],
     errors,
     publishVote,
+    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+    challenge,
+    challengeVerification,
+  }
+}
+
+export function usePublishCommentEdit(options: UsePublishCommentEditOptions): UsePublishCommentEditResult {
+  const {accountName, ...publishCommentEditOptions} = options || {}
+  const accountsActions = useAccountsStore((state) => state.accountsActions)
+  const accountId = useAccountId(accountName)
+  const [errors, setErrors] = useState<Error[]>([])
+  const [state, setState] = useState<string>()
+  const [challenge, setChallenge] = useState<Challenge>()
+  const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
+  const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+
+  let initialState = 'initializing'
+  // before the accountId and options is defined, nothing can happen
+  if (accountId && options) {
+    initialState = 'ready'
+  }
+
+  // define onError if not defined
+  const originalOnError = publishCommentEditOptions.onError
+  const onError = async (error: Error) => {
+    setState('failed')
+    setErrors([...errors, error])
+    originalOnError?.(error)
+  }
+  publishCommentEditOptions.onError = onError
+
+  // define onChallenge if not defined
+  const originalOnChallenge = publishCommentEditOptions.onChallenge
+  const onChallenge = async (challenge: Challenge, commentEdit: CommentEdit) => {
+    setState('waiting-challenge-verification')
+    // cannot set a function directly with setState
+    setPublishChallengeAnswers(() => commentEdit?.publishChallengeAnswers.bind(commentEdit))
+    setChallenge(challenge)
+    originalOnChallenge?.(challenge)
+  }
+  publishCommentEditOptions.onChallenge = onChallenge
+
+  // define onChallengeVerification if not defined
+  const originalOnChallengeVerification = publishCommentEditOptions.onChallengeVerification
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
+    setState(challengeVerification?.challengeSuccess === true ? 'succeeded' : 'failed')
+    setChallengeVerification(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification)
+  }
+  publishCommentEditOptions.onChallengeVerification = onChallengeVerification
+
+  const publishCommentEdit = async () => {
+    try {
+      await accountsActions.publishCommentEdit(publishCommentEditOptions, accountName)
+      setState('waiting-challenge')
+    } catch (e: any) {
+      setErrors([...errors, e])
+      publishCommentEditOptions.onError?.(e)
+    }
+  }
+
+  return {
+    state: state || initialState,
+    error: errors[errors.length - 1],
+    errors,
+    publishCommentEdit,
     publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
     challenge,
     challengeVerification,

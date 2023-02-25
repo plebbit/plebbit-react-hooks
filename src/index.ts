@@ -20,7 +20,7 @@ import {
   useAccountSubplebbits,
 } from './hooks/accounts'
 
-import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit} from './hooks/actions'
+import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit} from './hooks/actions'
 
 import {useComment, useComments} from './hooks/comments'
 import {useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress} from './hooks/subplebbits'
@@ -60,6 +60,7 @@ export {
   useBlock,
   usePublishComment,
   usePublishVote,
+  usePublishCommentEdit,
   useCreateSubplebbit,
   // utils
   setPlebbitJs,
@@ -98,6 +99,7 @@ const hooks = {
   usePublishComment,
   useCreateSubplebbit,
   usePublishVote,
+  usePublishCommentEdit,
   // utils
   setPlebbitJs,
   restorePlebbitJs,

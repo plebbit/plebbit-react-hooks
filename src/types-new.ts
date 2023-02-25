@@ -252,7 +252,6 @@ export interface UsePublishCommentResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
-// TODO
 // usePublishVote(options): result
 export interface UsePublishVoteOptions extends Options {
   onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
@@ -266,7 +265,6 @@ export interface UsePublishVoteResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
-// TODO
 // usePublishCommentEdit(options): result
 export interface UsePublishCommentEditOptions extends Options {
   onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
