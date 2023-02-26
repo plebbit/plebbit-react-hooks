@@ -26,7 +26,7 @@ import {useComment, useComments} from './hooks/comments'
 import {useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress} from './hooks/subplebbits'
 import {useFeed, useBufferedFeeds} from './hooks/feeds'
 import {useAuthorAvatarImageUrl, useResolvedAuthorAddress} from './hooks/authors'
-import debugUtils from './lib/debug-utils'
+import {deleteDatabases, deleteCaches} from './lib/debug-utils'
 
 export * from './types'
 
@@ -66,7 +66,8 @@ export {
   // utils
   setPlebbitJs,
   restorePlebbitJs,
-  debugUtils,
+  deleteDatabases,
+  deleteCaches,
 }
 
 // IMPORTANT: should be the same as 'export {}'
@@ -98,14 +99,15 @@ const hooks = {
   useSubscribe,
   useBlock,
   usePublishComment,
-  useCreateSubplebbit,
   usePublishVote,
   usePublishCommentEdit,
   usePublishSubplebbitEdit,
+  useCreateSubplebbit,
   // utils
   setPlebbitJs,
   restorePlebbitJs,
-  debugUtils,
+  deleteDatabases,
+  deleteCaches,
 }
 
 export default hooks
