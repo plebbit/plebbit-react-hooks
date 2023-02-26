@@ -1,4 +1,5 @@
 import assert from 'assert'
+import QuickLru from 'quick-lru'
 
 const merge = (...args: any) => {
   // @ts-ignore
@@ -109,15 +110,76 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   return uniqueFlattened
 }
 
-// define for typescript
-const retryInfinityType = (f: any): any => {}
+export const memo = (functionToMemo: Function, memoOptions: any) => {
+  assert(typeof functionToMemo === 'function', `memo first argument must be a function`)
+  const pendingPromises: any = new Map()
+  const cache = new QuickLru(memoOptions)
+
+  // preserve function name
+  const memoedFunctionName = functionToMemo.name || 'memoedFunction'
+  const obj = {
+    [memoedFunctionName]: async (...args: any) => {
+      let cacheKey = args[0]
+      if (args.length > 1) {
+        cacheKey = ''
+        let isFirstArgument = true
+        for (const arg of args) {
+          if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
+            const argumentIndex = args.indexOf(arg)
+            throw Error(
+              `memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`
+            )
+          }
+          cacheKey += arg
+          isFirstArgument = false
+        }
+      }
+
+      // has cached result
+      const cached = cache.get(cacheKey)
+      if (cached) {
+        return cached
+      }
+
+      // don't request the same thing twice if fetching is pending
+      let pendingPromise = pendingPromises.get(cacheKey)
+      if (pendingPromise) {
+        return pendingPromise
+      }
+
+      // create the pending promise
+      let resolve: any, reject: any
+      pendingPromise = new Promise((_resolve, _reject) => {
+        resolve = _resolve
+        reject = _reject
+      })
+      pendingPromises.set(cacheKey, pendingPromise)
+
+      // execute the function
+      let result
+      try {
+        result = await functionToMemo(...args)
+        cache.set(cacheKey, result)
+        pendingPromises.delete(cacheKey)
+        resolve?.(result)
+        return result
+      } catch (error) {
+        pendingPromises.delete(cacheKey)
+        reject?.(error)
+        throw error
+      }
+    },
+  }
+  return obj[memoedFunctionName]
+}
 
 const utils = {
   merge,
   clone,
   flattenCommentsPages,
+  memo,
   // define for typescript
-  retryInfinity: retryInfinityType,
+  retryInfinity: (f: any): any => {},
   // export timeout values to mock them in tests
   retryInfinityMinTimeout: 1000,
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,

@@ -54,4 +54,71 @@ describe('utils', () => {
     const flattedReplies3 = utils.flattenCommentsPages(pagesdotpagesInstance)
     expect(flattedReplies3).toEqual(flattedReplies)
   })
+
+  describe('memo', () => {
+    test('can cache multiple args', async () => {
+      let calledTimes = 0
+      const functionToMemo = (...args: any) => ++calledTimes
+      const memoedFunction = utils.memo(functionToMemo, {maxSize: 100})
+      expect(await memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(await memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(await memoedFunction('2', 2, undefined, null)).toBe(2)
+    })
+
+    test('can lru', async () => {
+      let calledTimes = 0
+      const functionToMemo = (...args: any) => ++calledTimes
+      const memoedFunction = utils.memo(functionToMemo, {maxSize: 1})
+      expect(await memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(await memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(await memoedFunction('2', 2, undefined, null)).toBe(2)
+      expect(await memoedFunction('1', 2, undefined, null)).toBe(3)
+    })
+
+    test('can cache pending', async () => {
+      let delay = 1
+      let calledTimes = 0
+      const functionToMemo = async (arg: any) => {
+        await new Promise((r) => setTimeout(r, delay++ * 10))
+        return ++calledTimes
+      }
+      const memoedFunction = utils.memo(functionToMemo, {maxSize: 100})
+      const arg1 = {}
+      const arg2 = {}
+      const results = await Promise.all([memoedFunction(arg1), memoedFunction(arg1), memoedFunction(arg1), memoedFunction(arg2)])
+      expect(results).toEqual([1, 1, 1, 2])
+    })
+
+    test('can throw pending', async () => {
+      let delay = 1
+      let calledTimes = 0
+      const functionToMemo = async (arg: any) => {
+        await new Promise((r) => setTimeout(r, delay++ * 10))
+        if (calledTimes !== 0) {
+          throw 'failed'
+        }
+        return ++calledTimes
+      }
+      const memoedFunction = utils.memo(functionToMemo, {maxSize: 100})
+      const arg1 = {}
+      const arg2 = {}
+      expect(await memoedFunction(arg1)).toBe(1)
+      expect(await memoedFunction(arg1)).toBe(1)
+      expect(await memoedFunction(arg1)).toBe(1)
+      expect(memoedFunction(arg2)).rejects.toThrow(`failed`)
+    })
+
+    test('wrong args', async () => {
+      let calledTimes = 0
+      const functionToMemo = async (arg: any) => {
+        return ++calledTimes
+      }
+      const memoedFunction = utils.memo(functionToMemo, {maxSize: 100})
+      const arg1 = {}
+      const arg2 = {}
+      expect(memoedFunction(arg1, arg2)).rejects.toThrow()
+      expect(memoedFunction(arg1, 'arg2')).rejects.toThrow()
+      expect(memoedFunction(arg1, undefined)).rejects.toThrow()
+    })
+  })
 })
