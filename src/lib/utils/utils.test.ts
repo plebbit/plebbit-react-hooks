@@ -121,4 +121,67 @@ describe('utils', () => {
       expect(memoedFunction(arg1, undefined)).rejects.toThrow()
     })
   })
+
+  describe('memoSync', () => {
+    test('can cache multiple args', async () => {
+      let calledTimes = 0
+      const functionToMemo = (...args: any) => ++calledTimes
+      const memoedFunction = utils.memoSync(functionToMemo, {maxSize: 100})
+      expect(memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(memoedFunction('2', 2, undefined, null)).toBe(2)
+    })
+
+    test('can lru', async () => {
+      let calledTimes = 0
+      const functionToMemo = (...args: any) => ++calledTimes
+      const memoedFunction = utils.memoSync(functionToMemo, {maxSize: 1})
+      expect(memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(memoedFunction('1', 2, undefined, null)).toBe(1)
+      expect(memoedFunction('2', 2, undefined, null)).toBe(2)
+      expect(memoedFunction('1', 2, undefined, null)).toBe(3)
+    })
+
+    test('can throw', async () => {
+      let delay = 1
+      let calledTimes = 0
+      const functionToMemo = (arg: any) => {
+        if (calledTimes !== 0) {
+          throw 'failed'
+        }
+        return ++calledTimes
+      }
+      const memoedFunction = utils.memoSync(functionToMemo, {maxSize: 100})
+      const arg1 = {}
+      const arg2 = {}
+      expect(memoedFunction(arg1)).toBe(1)
+      expect(memoedFunction(arg1)).toBe(1)
+      expect(memoedFunction(arg1)).toBe(1)
+      expect(() => memoedFunction(arg2)).toThrow(`failed`)
+    })
+
+    test('wrong args', async () => {
+      let calledTimes = 0
+      const functionToMemo = (arg: any) => {
+        return ++calledTimes
+      }
+      const memoedFunction = utils.memoSync(functionToMemo, {maxSize: 100})
+      const arg1 = {}
+      const arg2 = {}
+      expect(() => memoedFunction(arg1, arg2)).toThrow()
+      expect(() => memoedFunction(arg1, 'arg2')).toThrow()
+      expect(() => memoedFunction(arg1, undefined)).toThrow()
+    })
+
+    test('wrong async', async () => {
+      let calledTimes = 0
+      const functionToMemo = async (arg: any) => {
+        return ++calledTimes
+      }
+      const memoedFunction = utils.memoSync(functionToMemo, {maxSize: 100})
+      const arg1 = {}
+      expect(() => memoedFunction(arg1)).toThrow()
+      expect(() => memoedFunction('arg2')).toThrow()
+    })
+  })
 })

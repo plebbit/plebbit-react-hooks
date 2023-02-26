@@ -122,7 +122,6 @@ export const memo = (functionToMemo: Function, memoOptions: any) => {
       let cacheKey = args[0]
       if (args.length > 1) {
         cacheKey = ''
-        let isFirstArgument = true
         for (const arg of args) {
           if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
             const argumentIndex = args.indexOf(arg)
@@ -131,7 +130,6 @@ export const memo = (functionToMemo: Function, memoOptions: any) => {
             )
           }
           cacheKey += arg
-          isFirstArgument = false
         }
       }
 
@@ -173,11 +171,52 @@ export const memo = (functionToMemo: Function, memoOptions: any) => {
   return obj[memoedFunctionName]
 }
 
+export const memoSync = (functionToMemo: Function, memoOptions: any) => {
+  assert(typeof functionToMemo === 'function', `memo first argument must be a function`)
+  const cache = new QuickLru(memoOptions)
+
+  // preserve function name
+  const memoedFunctionName = functionToMemo.name || 'memoedFunction'
+  const obj = {
+    [memoedFunctionName]: (...args: any) => {
+      let cacheKey = args[0]
+      if (args.length > 1) {
+        cacheKey = ''
+        for (const arg of args) {
+          if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
+            const argumentIndex = args.indexOf(arg)
+            throw Error(
+              `memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`
+            )
+          }
+          cacheKey += arg
+        }
+      }
+
+      // has cached result
+      const cached = cache.get(cacheKey)
+      if (cached) {
+        return cached
+      }
+
+      // execute the function
+      const result = functionToMemo(...args)
+      if (typeof result?.then === 'function') {
+        throw Error(`memoed function '${memoedFunctionName}' is an async function, cannot be used with memoSync, use memo instead`)
+      }
+      cache.set(cacheKey, result)
+      return result
+    },
+  }
+  return obj[memoedFunctionName]
+}
+
 const utils = {
   merge,
   clone,
   flattenCommentsPages,
   memo,
+  memoSync,
   // define for typescript
   retryInfinity: (f: any): any => {},
   // export timeout values to mock them in tests
