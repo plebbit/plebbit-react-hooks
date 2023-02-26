@@ -1,7 +1,27 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useSubscribe, usePublishComment, usePublishCommentEdit, usePublishVote, useBlock, useAccount, useCreateSubplebbit, setPlebbitJs} from '../..'
-import PlebbitJsMock, {Plebbit, Comment, CommentEdit, Vote, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
+import {
+  useSubscribe,
+  usePublishComment,
+  usePublishCommentEdit,
+  usePublishSubplebbitEdit,
+  usePublishVote,
+  useBlock,
+  useAccount,
+  useCreateSubplebbit,
+  setPlebbitJs,
+} from '../..'
+import PlebbitJsMock, {
+  Plebbit,
+  Comment,
+  CommentEdit,
+  SubplebbitEdit,
+  Vote,
+  Subplebbit,
+  Pages,
+  resetPlebbitJsMock,
+  debugPlebbitJsMock,
+} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
 describe('actions', () => {
@@ -417,7 +437,7 @@ describe('actions', () => {
     })
 
     test(`can error`, async () => {
-      // mock the commentEdit publish to error out
+      // mock the comment edit publish to error out
       const commentEditPublish = CommentEdit.prototype.publish
       CommentEdit.prototype.publish = async () => {
         throw Error('publish error')
@@ -447,6 +467,87 @@ describe('actions', () => {
 
       // restore mock
       CommentEdit.prototype.publish = commentEditPublish
+    })
+  })
+
+  describe('usePublishSubplebbitEdit', () => {
+    let rendered: any, waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options) => {
+        const result = usePublishSubplebbitEdit(options)
+        return result
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test(`can publish subplebbit edit`, async () => {
+      const publishSubplebbitEditOptions = {
+        subplebbitAddress: 'Qm... acions.test',
+        title: 'new title',
+      }
+      rendered.rerender(publishSubplebbitEditOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishSubplebbitEdit()
+      })
+
+      // wait for challenge
+      await waitFor(() => rendered.result.current.challenge)
+      expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+
+      // publish challenge verification
+      await act(async () => {
+        await rendered.result.current.publishChallengeAnswers(['4'])
+      })
+
+      // wait for challenge verification
+      await waitFor(() => rendered.result.current.challengeVerification)
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
+      expect(rendered.result.current.error).toBe(undefined)
+    })
+
+    test(`can error`, async () => {
+      // mock the subplebbit edit publish to error out
+      const subplebbitEditPublish = SubplebbitEdit.prototype.publish
+      SubplebbitEdit.prototype.publish = async () => {
+        throw Error('publish error')
+      }
+
+      const publishSubplebbitEditOptions = {
+        subplebbitAddress: 'Qm... acions.test',
+        title: 'new title',
+      }
+      rendered.rerender(publishSubplebbitEditOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishSubplebbitEdit()
+      })
+
+      // wait for error
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('publish error')
+      expect(rendered.result.current.errors.length).toBe(1)
+
+      // restore mock
+      SubplebbitEdit.prototype.publish = subplebbitEditPublish
     })
   })
 

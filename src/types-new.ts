@@ -278,7 +278,6 @@ export interface UsePublishCommentEditResult extends Result {
   challengeVerification: ChallengeVerification | undefined
 }
 
-// TODO
 // usePublishSubplebbitEdit(options): result
 export interface UsePublishSubplebbitEditOptions extends Options {
   subplebbitAddress?: string
@@ -404,6 +403,7 @@ export type CreateVoteOptions = {[key: string]: any}
 export type Comment = {[key: string]: any}
 export type Vote = {[key: string]: any}
 export type CommentEdit = {[key: string]: any}
+export type SubplebbitEdit = {[key: string]: any}
 export type Subplebbit = {[key: string]: any}
 export type AccountNotification = {[key: string]: any}
 export type Nft = {[key: string]: any}
