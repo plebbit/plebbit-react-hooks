@@ -190,13 +190,33 @@ describe('subplebbits', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useResolvedSubplebbitAddress', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress(subplebbitAddress))
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
       rendered.rerender('plebbit.eth')
-      await waitFor(() => typeof rendered.result.current === 'string')
-      expect(rendered.result.current).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
+      await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
+      expect(rendered.result.current.resolvedAddress).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
+    })
+
+    test('useResolvedSubplebbitAddress unsupported crypto domain', async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+
+      rendered.rerender('plebbit.com')
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
+    })
+
+    test('useResolvedSubplebbitAddress not a crypto domain', async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+
+      rendered.rerender('abc')
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('not a crypto domain')
     })
   })
 })

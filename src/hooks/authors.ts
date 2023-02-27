@@ -273,24 +273,39 @@ export function useResolvedAuthorAddress(options: UseResolvedAuthorAddressOption
 
   useInterval(
     () => {
-      // only support resolving '.eth' for now
-      if (!author?.address?.endsWith('.eth')) {
-        return
-      }
       if (!account || !author?.address) {
         return
       }
+
+      // address isn't a crypto domain, can't be resolved
+      if (!author?.address.includes('.')) {
+        if (state !== 'failed') {
+          setErrors([Error('not a crypto domain')])
+          setState('failed')
+        }
+        return
+      }
+
+      // only support resolving '.eth' for now
+      if (!author?.address?.endsWith('.eth')) {
+        if (state !== 'failed') {
+          setErrors([Error('crypto domain type unsupported')])
+          setState('failed')
+        }
+        return
+      }
+
       ;(async () => {
         try {
           setState('resolving')
           const res = await resolveAuthorAddress(author?.address, blockchainProviders, cache)
+          setState('succeeded')
 
           // TODO: check if resolved address is the same as author.signer.publicKey
 
           if (res !== resolvedAddress) {
             setResolvedAddress(res)
           }
-          setState('succeeded')
         } catch (error: any) {
           setErrors([...errors, error])
           setState('failed')
@@ -303,7 +318,7 @@ export function useResolvedAuthorAddress(options: UseResolvedAuthorAddressOption
     [author?.address, blockchainProviders]
   )
 
-  log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
+  // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
   return {
     state: state || initialState,
     error: errors[errors.length - 1],

@@ -4,7 +4,7 @@ import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
-import {Subplebbit, BlockchainProviders} from '../types'
+import {Subplebbit, BlockchainProviders, UseResolvedSubplebbitAddressOptions, UseResolvedSubplebbitAddressResult} from '../types-new'
 import useInterval from './utils/use-interval'
 import {resolveEnsTxtRecord} from '../lib/blockchain'
 import useSubplebbitsStore from '../stores/subplebbits'
@@ -135,39 +135,85 @@ export function useListSubplebbits() {
  * the active account.
  */
 // NOTE: useResolvedSubplebbitAddress tests are skipped, if changes are made they must be tested manually
-export function useResolvedSubplebbitAddress(subplebbitAddress?: string, accountName?: string) {
+export function useResolvedSubplebbitAddress(options: UseResolvedSubplebbitAddressOptions): UseResolvedSubplebbitAddressResult {
+  let {subplebbitAddress, accountName, cache} = options || {}
+
+  // cache by default
+  if (cache === undefined) {
+    cache = true
+  }
+
+  // poll every 15 seconds, about the duration of an eth block
+  let interval = 15000
+  // no point in polling often if caching is on
+  if (cache) {
+    interval = 1000 * 60 * 60 * 25
+  }
+
   const account = useAccount(accountName)
   // possible to use account.plebbit instead of account.plebbitOptions
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
-  const [resolvedSubplebbitAddress, setResolvedSubplebbitAddress] = useState<string>()
+  const [resolvedAddress, setResolvedAddress] = useState<string>()
+  const [errors, setErrors] = useState<Error[]>([])
+  const [state, setState] = useState<string>()
+
+  let initialState = 'initializing'
+  // before those defined, nothing can happen
+  if (options && account && subplebbitAddress) {
+    initialState = 'ready'
+  }
 
   useInterval(
     () => {
-      // only support resolving '.eth' for now
-      if (!subplebbitAddress?.endsWith('.eth')) {
-        return
-      }
       if (!account || !subplebbitAddress) {
         return
       }
+
+      // address isn't a crypto domain, can't be resolved
+      if (!subplebbitAddress?.includes('.')) {
+        if (state !== 'failed') {
+          setErrors([Error('not a crypto domain')])
+          setState('failed')
+        }
+        return
+      }
+
+      // only support resolving '.eth' for now
+      if (!subplebbitAddress?.endsWith('.eth')) {
+        if (state !== 'failed') {
+          setErrors([Error('crypto domain type unsupported')])
+          setState('failed')
+        }
+        return
+      }
+
       ;(async () => {
         try {
+          setState('resolving')
           const res = await resolveSubplebbitAddress(subplebbitAddress, blockchainProviders)
-          if (res !== resolvedSubplebbitAddress) {
-            setResolvedSubplebbitAddress(res)
+          setState('succeeded')
+          if (res !== resolvedAddress) {
+            setResolvedAddress(res)
           }
-        } catch (error) {
+        } catch (error: any) {
+          setErrors([...errors, error])
+          setState('failed')
           log.error('useResolvedSubplebbitAddress resolveSubplebbitAddress error', {subplebbitAddress, blockchainProviders, error})
         }
       })()
     },
-    15000,
+    interval,
     true,
     [subplebbitAddress, blockchainProviders]
   )
 
-  // log('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
-  return resolvedSubplebbitAddress
+  // log('useResolvedSubplebbitAddress', {subplebbitAddress, state, errors, resolvedAddress, blockchainProviders})
+  return {
+    state: state || initialState,
+    error: errors[errors.length - 1],
+    errors,
+    resolvedAddress,
+  }
 }
 
 // NOTE: resolveSubplebbitAddress tests are skipped, if changes are made they must be tested manually

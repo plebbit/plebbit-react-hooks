@@ -132,6 +132,26 @@ describe('authors', () => {
       await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
       expect(rendered.result.current.resolvedAddress).toBe('QmX18Ls7iss1BLXYjZqP5faFoXih7YYSUkADdATHxiXmnu')
     })
+
+    test('useResolvedAuthorAddress unsupported crypto domain', async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+
+      rendered.rerender({address: 'plebbit.com'})
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
+    })
+
+    test('useResolvedAuthorAddress not a crypto domain', async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+
+      rendered.rerender({address: 'abc'})
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('not a crypto domain')
+    })
   })
 })
 

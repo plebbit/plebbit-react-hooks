@@ -84,12 +84,12 @@ export interface UseCommentsResult extends Result {
 }
 
 // useCommentThumbnailUrl(options): result
-export interface UseCommentThumbnailUrlOptions extends Options {
-  comment?: Comment
-}
-export interface UseCommentThumbnailUrlResult extends Result {
-  thumnbailUrl: string | undefined
-}
+// export interface UseCommentThumbnailUrlOptions extends Options {
+//   comment?: Comment
+// }
+// export interface UseCommentThumbnailUrlResult extends Result {
+//   thumnbailUrl: string | undefined
+// }
 
 // TODO
 // useSubplebbit(options): result
@@ -114,7 +114,6 @@ export interface UseSubplebbitMetricsOptions extends Options {
 }
 export interface UseSubplebbitsMetricsResult extends Result, SubplebbitMetrics {}
 
-// TODO
 // useResolvedSubplebbitAddress(options): result
 export interface UseResolvedSubplebbitAddressOptions extends Options {
   subplebbitAddress: string | undefined
@@ -164,7 +163,6 @@ export interface UseBufferedFeedsResult extends Result {
 //   loadMore(): Promise<void>
 // }
 
-// TODO
 // useResolvedAuthorAddress(options): result
 export interface UseResolvedAuthorAddressOptions extends Options {
   author?: Author
