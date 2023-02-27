@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import utils from '../utils'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
-const _getNftImageUrl = async (nftUrl: string, ipfsGatewayUrl: string) => {
+const getNftImageUrlNoCache = async (nftUrl: string, ipfsGatewayUrl: string) => {
   assert(nftUrl && typeof nftUrl === 'string', `getNftImageUrl invalid nftUrl '${nftUrl}'`)
   assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `getNftImageUrl invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
 
@@ -27,11 +27,11 @@ const _getNftImageUrl = async (nftUrl: string, ipfsGatewayUrl: string) => {
 
   return nftImageUrl
 }
-export const getNftImageUrl = utils.memo(_getNftImageUrl, {maxSize: 5000})
+export const getNftImageUrl = utils.memo(getNftImageUrlNoCache, {maxSize: 5000})
 
 // NOTE: getNftUrl tests are skipped, if changes are made they must be tested manually
 // don't use objects in arguments for faster caching
-const _getNftUrl = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number, ipfsGatewayUrl: string) => {
+const getNftUrlNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number, ipfsGatewayUrl: string) => {
   assert(nftAddress && typeof nftAddress === 'string', `getNftUrl invalid nftAddress '${nftAddress}'`)
   assert(nftId && typeof nftId === 'string', `getNftUrl invalid nftId '${nftId}'`)
   assert(chainTicker && typeof chainTicker === 'string', `getNftUrl invalid chainTicker '${chainTicker}'`)
@@ -50,10 +50,10 @@ const _getNftUrl = async (nftAddress: string, nftId: string, chainTicker: string
 
   return nftUrl
 }
-export const getNftUrl = utils.memo(_getNftUrl, {maxSize: 5000})
+export const getNftUrl = utils.memo(getNftUrlNoCache, {maxSize: 5000})
 
 // don't use objects in arguments for faster caching
-const _getNftOwner = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number) => {
+export const getNftOwnerNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number) => {
   assert(nftAddress && typeof nftAddress === 'string', `getNftOwner invalid nftAddress '${nftAddress}'`)
   assert(nftId && typeof nftId === 'string', `getNftOwner invalid nftId '${nftId}'`)
   assert(chainTicker && typeof chainTicker === 'string', `getNftOwner invalid chainTicker '${chainTicker}'`)
@@ -64,18 +64,18 @@ const _getNftOwner = async (nftAddress: string, nftId: string, chainTicker: stri
   const currentNftOwnerAddress = await nftContract.ownerOf(nftId)
   return currentNftOwnerAddress
 }
-export const getNftOwner = utils.memo(_getNftOwner, {maxSize: 5000})
+export const getNftOwner = utils.memo(getNftOwnerNoCache, {maxSize: 5000, maxAge: 1000 * 60 * 60 * 24})
 
-const _resolveEnsTxtRecord = async (ensName: string, txtRecordName: string, chainTicker: string, chainProviderUrl: string, chainId: number) => {
+export const resolveEnsTxtRecordNoCache = async (ensName: string, txtRecordName: string, chainTicker: string, chainProviderUrl?: string, chainId?: number) => {
   const chainProvider = getChainProvider(chainTicker, chainProviderUrl, chainId)
   const resolver = await chainProvider.getResolver(ensName)
   const txtRecordResult = await resolver.getText(txtRecordName)
   return txtRecordResult
 }
-export const resolveEnsTxtRecord = utils.memo(_resolveEnsTxtRecord, {maxSize: 10000})
+export const resolveEnsTxtRecord = utils.memo(resolveEnsTxtRecordNoCache, {maxSize: 10000, maxAge: 1000 * 60 * 60 * 24})
 
 // cache the chain providers because only 1 should be running at the same time
-const _getChainProvider = (chainTicker: string, chainProviderUrl: string, chainId: number) => {
+const getChainProviderNoCache = (chainTicker: string, chainProviderUrl?: string, chainId?: number) => {
   if (chainTicker === 'eth') {
     // if using eth, use ethers' default provider unless another provider is specified
     if (!chainProviderUrl || chainProviderUrl.match(/DefaultProvider/i)) {
@@ -90,7 +90,7 @@ const _getChainProvider = (chainTicker: string, chainProviderUrl: string, chainI
   }
   return new ethers.providers.JsonRpcProvider({url: chainProviderUrl}, chainId)
 }
-const getChainProvider = utils.memoSync(_getChainProvider, {maxSize: 1000})
+const getChainProvider = utils.memoSync(getChainProviderNoCache, {maxSize: 1000})
 
 const nftAbi = [
   {

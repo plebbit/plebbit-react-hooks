@@ -5,9 +5,17 @@ import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:authors')
 import assert from 'assert'
-import {Nft, BlockchainProviders, Author, UseAuthorAvatarImageUrlOptions, UseAuthorAvatarImageUrlResult} from '../types-new'
+import {
+  Nft,
+  BlockchainProviders,
+  Author,
+  UseAuthorAvatarImageUrlOptions,
+  UseAuthorAvatarImageUrlResult,
+  UseResolvedAuthorAddressOptions,
+  UseResolvedAuthorAddressResult,
+} from '../types-new'
 import {ethers} from 'ethers'
-import {getNftUrl, getNftImageUrl, getNftOwner, resolveEnsTxtRecord} from '../lib/blockchain'
+import {getNftUrl, getNftImageUrl, getNftOwner, resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../lib/blockchain'
 
 /**
  * @param author - The Author object to resolve the avatar image URL of.
@@ -230,57 +238,86 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
 }
 
 /**
- * @param authorAddress - The author address to resolve to a public key, e.g. 'john.eth' resolves to 'Qm...'.
+ * @param author - The author address to resolve to a public key, e.g. 'john.eth' resolves to 'Qm...'.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
 // NOTE: useResolvedAuthorAddress tests are skipped, if changes are made they must be tested manually
-export function useResolvedAuthorAddress(authorAddress?: string, accountName?: string) {
+export function useResolvedAuthorAddress(options: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult {
+  let {author, accountName, cache} = options || {}
+
+  // cache by default
+  if (cache === undefined) {
+    cache = true
+  }
+
+  // poll every 15 seconds, about the duration of an eth block
+  let interval = 15000
+  // no point in polling often if caching is on
+  if (cache) {
+    interval = 1000 * 60 * 60 * 25
+  }
+
   const account = useAccount(accountName)
   // possible to use account.plebbit instead of account.plebbitOptions
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
-  const [resolvedAuthorAddress, setResolvedAuthorAddress] = useState<string>()
+  const [resolvedAddress, setResolvedAddress] = useState<string>()
+  const [errors, setErrors] = useState<Error[]>([])
+  const [state, setState] = useState<string>()
+
+  let initialState = 'initializing'
+  // before those defined, nothing can happen
+  if (options && account && author?.address) {
+    initialState = 'ready'
+  }
 
   useInterval(
     () => {
       // only support resolving '.eth' for now
-      if (!authorAddress?.endsWith('.eth')) {
+      if (!author?.address?.endsWith('.eth')) {
         return
       }
-      if (!account || !authorAddress) {
+      if (!account || !author?.address) {
         return
       }
       ;(async () => {
         try {
-          const res = await resolveAuthorAddress(authorAddress, blockchainProviders)
-          if (res !== resolvedAuthorAddress) {
-            setResolvedAuthorAddress(res)
+          setState('resolving')
+          const res = await resolveAuthorAddress(author?.address, blockchainProviders, cache)
+
+          // TODO: check if resolved address is the same as author.signer.publicKey
+
+          if (res !== resolvedAddress) {
+            setResolvedAddress(res)
           }
-        } catch (error) {
-          log.error('useResolvedAuthorAddress resolveAuthorAddress error', {authorAddress, blockchainProviders, error})
+          setState('succeeded')
+        } catch (error: any) {
+          setErrors([...errors, error])
+          setState('failed')
+          log.error('useResolvedAuthorAddress resolveAuthorAddress error', {author, blockchainProviders, error})
         }
       })()
     },
-    15000,
+    interval,
     true,
-    [authorAddress, blockchainProviders]
+    [author?.address, blockchainProviders]
   )
 
-  // log('useResolvedAuthorAddress', {authorAddress, resolvedAuthorAddress, blockchainProviders})
-  return resolvedAuthorAddress
+  log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
+  return {
+    state: state || initialState,
+    error: errors[errors.length - 1],
+    errors,
+    resolvedAddress,
+  }
 }
 
 // NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
-export const resolveAuthorAddress = async (authorAddress: string, blockchainProviders: BlockchainProviders) => {
+export const resolveAuthorAddress = async (authorAddress: string, blockchainProviders: BlockchainProviders, cache?: boolean) => {
   let resolvedAuthorAddress
   if (authorAddress.endsWith('.eth')) {
-    resolvedAuthorAddress = await resolveEnsTxtRecord(
-      authorAddress,
-      'plebbit-author-address',
-      'eth',
-      blockchainProviders?.['eth']?.url,
-      blockchainProviders?.['eth']?.chainId
-    )
+    const resolve = cache ? resolveEnsTxtRecord : resolveEnsTxtRecordNoCache
+    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', blockchainProviders?.['eth']?.url, blockchainProviders?.['eth']?.chainId)
   } else {
     throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`)
   }

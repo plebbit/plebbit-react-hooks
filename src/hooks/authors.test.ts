@@ -124,13 +124,13 @@ describe('authors', () => {
 
     // skip because uses internet and not deterministic
     test.skip('useResolvedAuthorAddress', async () => {
-      const rendered = renderHook<any, any>((authorAddress) => useResolvedAuthorAddress(authorAddress))
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-      rendered.rerender('plebbit.eth')
-      await waitFor(() => typeof rendered.result.current === 'string')
-      expect(rendered.result.current).toBe('QmX18Ls7iss1BLXYjZqP5faFoXih7YYSUkADdATHxiXmnu')
+      rendered.rerender({address: 'plebbit.eth'})
+      await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
+      expect(rendered.result.current.resolvedAddress).toBe('QmX18Ls7iss1BLXYjZqP5faFoXih7YYSUkADdATHxiXmnu')
     })
   })
 })

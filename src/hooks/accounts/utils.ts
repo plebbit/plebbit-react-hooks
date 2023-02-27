@@ -70,7 +70,7 @@ export const useCalculatedAccountNotifications = (account?: Account, accountComm
 
 // accountsBlockedAddresses must be cached to prevent rerenders
 // TODO: add accountsBlockedAddresses as an object in the store that can easily be === checked for equality
-const getAccountsBlockedAddresses = (...args: any) => {
+const getAccountsBlockedAddressesNoCache = (...args: any) => {
   const accountsBlockedAddresses: {[accountId: string]: {[address: string]: boolean}} = {}
   const separator = Math.ceil(args.length / 2)
   for (const [i] of args.entries()) {
@@ -83,7 +83,7 @@ const getAccountsBlockedAddresses = (...args: any) => {
   return accountsBlockedAddresses
 }
 // length false because variable arguments legnth
-const getAccountsBlockedAddressesCached = memoize(getAccountsBlockedAddresses, {max: 100, length: false})
+const getAccountsBlockedAddressesCached = memoize(getAccountsBlockedAddressesNoCache, {max: 100, length: false})
 
 export const useCalculatedAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
   // accountsBlockedAddresses must be cached to prevent rerenders
@@ -162,7 +162,7 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
   }, [accounts, accountsComments, accountsCommentsReplies])
 }
 
-const _getAccountCalculatedProperties = (accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
+const getAccountCalculatedPropertiesNoCache = (accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
   const accountCalculatedProperties: any = {}
 
   // add karma
@@ -209,4 +209,4 @@ const _getAccountCalculatedProperties = (accountComments?: AccountComments, acco
 
   return accountCalculatedProperties
 }
-const getAccountCalculatedProperties = memoize(_getAccountCalculatedProperties, {max: 100})
+const getAccountCalculatedProperties = memoize(getAccountCalculatedPropertiesNoCache, {max: 100})

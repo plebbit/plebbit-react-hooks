@@ -118,6 +118,7 @@ export interface UseSubplebbitsMetricsResult extends Result, SubplebbitMetrics {
 // useResolvedSubplebbitAddress(options): result
 export interface UseResolvedSubplebbitAddressOptions extends Options {
   subplebbitAddress: string | undefined
+  cache?: boolean
 }
 export interface UseResolvedSubplebbitAddressResult extends Result {
   resolvedAddress: string | undefined
@@ -167,12 +168,12 @@ export interface UseBufferedFeedsResult extends Result {
 // useResolvedAuthorAddress(options): result
 export interface UseResolvedAuthorAddressOptions extends Options {
   author?: Author
+  cache?: boolean
 }
 export interface UseResolvedAuthorAddressResult extends Result {
   resolvedAddress: string | undefined
 }
 
-// TODO
 // useAuthorAvatarImageUrl(options): result
 export interface UseAuthorAvatarImageUrlOptions extends Options {
   author?: Author
