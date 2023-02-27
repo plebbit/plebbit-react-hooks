@@ -84,12 +84,12 @@ export interface UseCommentsResult extends Result {
 }
 
 // useCommentThumbnailUrl(options): result
-// export interface UseCommentThumbnailUrlOptions extends Options {
-//   comment?: Comment
-// }
-// export interface UseCommentThumbnailUrlResult extends Result {
-//   thumnbailUrl: string | undefined
-// }
+export interface UseCommentThumbnailUrlOptions extends Options {
+  comment?: Comment
+}
+export interface UseCommentThumbnailUrlResult extends Result {
+  thumnbailUrl: string | undefined
+}
 
 // TODO
 // useSubplebbit(options): result

@@ -138,7 +138,8 @@ const initializeStartSubplebbits = async () => {
           startedSubplebbits[subplebbitAddress] = subplebbit
           log('subplebbit started', {subplebbit})
         } catch (error) {
-          log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
+          // don't log start errors, too much spam
+          // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
         }
         pendingStartedSubplebbits[subplebbitAddress] = false
       }

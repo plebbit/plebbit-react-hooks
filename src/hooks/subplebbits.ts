@@ -115,7 +115,7 @@ export function useListSubplebbits() {
         return
       }
       account.plebbit.listSubplebbits().then((_subplebbitAddresses: string[]) => {
-        if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
+        if (_subplebbitAddresses.toString() === subplebbitAddresses.toString()) {
           return
         }
         log('useListSubplebbits', {subplebbitAddresses})
@@ -174,7 +174,13 @@ export function useResolvedSubplebbitAddress(subplebbitAddress?: string, account
 export const resolveSubplebbitAddress = async (subplebbitAddress: string, blockchainProviders: BlockchainProviders) => {
   let resolvedSubplebbitAddress
   if (subplebbitAddress.endsWith('.eth')) {
-    resolvedSubplebbitAddress = await resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', blockchainProviders)
+    resolvedSubplebbitAddress = await resolveEnsTxtRecord(
+      subplebbitAddress,
+      'subplebbit-address',
+      'eth',
+      blockchainProviders?.['eth']?.url,
+      blockchainProviders?.['eth']?.chainId
+    )
   } else {
     throw Error(`resolveSubplebbitAddress invalid subplebbitAddress '${subplebbitAddress}'`)
   }
