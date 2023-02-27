@@ -39,7 +39,7 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
 
   let state = 'initializing'
   if (!author?.avatar) {
-    // do nothng, is initializing
+    // do nothing, is initializing
   } else if (error) {
     state = 'failed'
   } else if (imageUrl !== undefined) {
@@ -52,7 +52,7 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
     state = 'verifying-signature'
   }
 
-  if (author) {
+  if (author?.avatar) {
     log('useAuthorAvatarImageUrl', {author, state, verified, isWhitelisted, nftUrl, imageUrl})
   }
 
@@ -137,7 +137,7 @@ export function useNftImageUrl(nftUrl?: string, accountName?: string) {
     })()
   }, [nftUrl, ipfsGatewayUrl])
 
-  log('useNftImageUrl', {nftUrl, ipfsGatewayUrl, imageUrl})
+  // log('useNftImageUrl', {nftUrl, ipfsGatewayUrl, imageUrl})
   return {imageUrl, error}
 }
 
