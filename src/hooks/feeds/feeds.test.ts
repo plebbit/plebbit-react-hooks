@@ -300,7 +300,10 @@ describe('feeds', () => {
       // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
       rendered = renderHook<any, any>((props: any) => {
         const feed = useFeed(props)
-        const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
+        const {bufferedFeeds} = useBufferedFeeds({
+          feedsOptions: [{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}],
+          accountName: props?.accountName,
+        })
         return {...feed, bufferedFeed: bufferedFeeds[0]}
       })
 
@@ -347,28 +350,35 @@ describe('feeds', () => {
 
     test(`useBufferedFeeds can fetch multiple subs in the background before delivering the first page`, async () => {
       const rendered = renderHook<any, any>(() =>
-        useBufferedFeeds([
-          {
-            subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
-            sortType: 'new',
-          },
-          {
-            subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'],
-            sortType: 'topAll',
-          },
-          {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
-        ])
+        useBufferedFeeds({
+          feedsOptions: [
+            {
+              subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+              sortType: 'new',
+            },
+            {
+              subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'],
+              sortType: 'topAll',
+            },
+            {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
+          ],
+        })
       )
 
       // should get empty arrays after first render
-      expect(rendered.result.current).toEqual([[], [], []])
+      expect(rendered.result.current.bufferedFeeds).toEqual([[], [], []])
 
       // should eventually buffer posts for all feeds
-      await waitFor(() => rendered.result.current[0].length > 299 && rendered.result.current[1].length > 299 && rendered.result.current[2].length > 299)
+      await waitFor(
+        () =>
+          rendered.result.current.bufferedFeeds[0].length > 299 &&
+          rendered.result.current.bufferedFeeds[1].length > 299 &&
+          rendered.result.current.bufferedFeeds[2].length > 299
+      )
 
-      expect(rendered.result.current[0].length).toBeGreaterThan(299)
-      expect(rendered.result.current[1].length).toBeGreaterThan(299)
-      expect(rendered.result.current[2].length).toBeGreaterThan(299)
+      expect(rendered.result.current.bufferedFeeds[0].length).toBeGreaterThan(299)
+      expect(rendered.result.current.bufferedFeeds[1].length).toBeGreaterThan(299)
+      expect(rendered.result.current.bufferedFeeds[2].length).toBeGreaterThan(299)
     })
 
     test('get feed using a different account', async () => {
@@ -406,7 +416,7 @@ describe('feeds', () => {
       rendered = renderHook<any, any>((props: any) => {
         const feed = useFeed(props)
         const account = useAccount()
-        const [bufferedFeed] = useBufferedFeeds(props && [props], newActiveAccountName)
+        const [bufferedFeed] = useBufferedFeeds(props && {feedsOptions: [props], accountName: newActiveAccountName}).bufferedFeeds
         const accountsActions = useAccountsActions()
         return {...feed, ...accountsActions, account, bufferedFeed}
       })
@@ -450,17 +460,19 @@ describe('feeds', () => {
 
       // one of the buffered feed has a sort type that doesn't exist
       const rendered2 = renderHook<any, any>(() =>
-        useBufferedFeeds([
-          {
-            subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
-            sortType: 'new',
-          },
-          {
-            subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'],
-            sortType: `doesnt exist`,
-          },
-          {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
-        ])
+        useBufferedFeeds({
+          feedsOptions: [
+            {
+              subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+              sortType: 'new',
+            },
+            {
+              subplebbitAddresses: ['subplebbit address 4', 'subplebbit address 5', 'subplebbit address 6'],
+              sortType: `doesnt exist`,
+            },
+            {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
+          ],
+        })
       )
 
       await waitFor(() => rendered2.result.error?.message)
@@ -635,7 +647,10 @@ describe('feeds', () => {
 
       rendered = renderHook<any, any>((props: any) => {
         const feed = useFeed(props)
-        const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
+        const {bufferedFeeds} = useBufferedFeeds({
+          feedsOptions: [{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}],
+          accountName: props?.accountName,
+        })
         return {...feed, bufferedFeed: bufferedFeeds[0]}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -729,7 +744,7 @@ describe('feeds', () => {
       }
 
       const rendered = renderHook<any, any>((props: any) => {
-        const [bufferedFeed] = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'}])
+        const [bufferedFeed] = useBufferedFeeds({feedsOptions: [{subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'}]}).bufferedFeeds
         const {blockAddress, unblockAddress} = useAccountsActions()
         const account = useAccount()
         return {bufferedFeed, blockAddress, unblockAddress, account}

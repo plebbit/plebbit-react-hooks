@@ -4,7 +4,7 @@ import validator from '../../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
-import {Feed, Feeds, UseBufferedFeedOptions, UseFeedOptions, UseFeedResult} from '../../types-new'
+import {Feed, Feeds, UseBufferedFeedsOptions, UseBufferedFeedsResult, UseFeedOptions, UseFeedResult} from '../../types-new'
 import useFeedsStore from '../../stores/feeds'
 import shallow from 'zustand/shallow'
 
@@ -77,7 +77,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
       error: undefined,
       errors: [],
     }),
-    [feed]
+    [feed, feedName]
   )
 }
 
@@ -89,7 +89,8 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], accountName?: string) {
+export function useBufferedFeeds(options: UseBufferedFeedsOptions): UseBufferedFeedsResult {
+  const {feedsOptions, accountName} = options || {}
   validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
   const account = useAccount(accountName)
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
@@ -98,7 +99,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
   const {subplebbitAddressesArrays, sortTypes} = useMemo(() => {
     const subplebbitAddressesArrays = []
     const sortTypes = []
-    for (const feedOptions of feedsOptions) {
+    for (const feedOptions of feedsOptions || []) {
       subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses || [])
       sortTypes.push(feedOptions.sortType)
     }
@@ -156,7 +157,18 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
       feedsStore: useFeedsStore.getState(),
     })
   }
-  return bufferedFeedsArray
+
+  const state = 'fetching-ipns'
+
+  return useMemo(
+    () => ({
+      bufferedFeeds: bufferedFeedsArray,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [bufferedFeedsArray, feedsOptions]
+  )
 }
 
 /**

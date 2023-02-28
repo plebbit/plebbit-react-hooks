@@ -117,7 +117,6 @@ export interface UseResolvedSubplebbitAddressResult extends Result {
   resolvedAddress: string | undefined
 }
 
-// TODO
 // useFeed(options): result
 export interface UseFeedOptions extends Options {
   subplebbitAddresses: string[]
@@ -468,14 +467,6 @@ export type UseAccountCommentsFilter = {
 export type UseAccountCommentsOptions = {
   accountName?: string
   filter?: UseAccountCommentsFilter
-}
-
-/**
- * Feeds hooks
- */
-export type UseBufferedFeedOptions = {
-  subplebbitAddresses: string[]
-  sortType?: string
 }
 
 /**
