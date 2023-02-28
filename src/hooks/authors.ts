@@ -34,7 +34,7 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
   const {nftUrl, error: nftUrlError} = useNftUrl(avatar, accountName)
   const {imageUrl, error: nftImageUrlError} = useNftImageUrl(nftUrl, accountName)
 
-  const error = whitelistedError || verifiedError || signatureError || nftUrlError || nftImageUrlError
+  const error = whitelistedError || verifiedError || signatureError || nftUrlError || nftImageUrlError || undefined
   const errors = useMemo(() => (error ? [error] : []), [error])
 
   let state = 'initializing'

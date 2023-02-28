@@ -80,7 +80,7 @@ export interface UseCommentsOptions extends Options {
   commentCids?: string[]
 }
 export interface UseCommentsResult extends Result {
-  comments: Comment[]
+  comments: (Comment | undefined)[]
 }
 
 // useCommentThumbnailUrl(options): result
@@ -91,20 +91,18 @@ export interface UseCommentsResult extends Result {
 //   thumnbailUrl: string | undefined
 // }
 
-// TODO
 // useSubplebbit(options): result
 export interface UseSubplebbitOptions extends Options {
   subplebbitAddress?: string
 }
 export interface UseSubplebbitResult extends Result, Subplebbit {}
 
-// TODO
 // useSubplebbits(options): result
 export interface UseSubplebbitsOptions extends Options {
   subplebbitAddresses?: string[]
 }
 export interface UseSubplebbitsResult extends Result {
-  subplebbits: Subplebbit[]
+  subplebbits: (Subplebbit | undefined)[]
 }
 
 // TODO

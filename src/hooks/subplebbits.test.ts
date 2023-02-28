@@ -24,10 +24,10 @@ describe('subplebbits', () => {
     })
 
     test('get subplebbits one at a time', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress))
+      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
       const waitFor = testUtils.createWaitFor(rendered)
 
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.address).toBe(undefined)
       rendered.rerender('subplebbit address 1')
       await waitFor(() => typeof rendered.result.current.address === 'string')
 
@@ -74,8 +74,8 @@ describe('subplebbits', () => {
       expect(subplebbitStore.getState().subplebbits).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress))
-      expect(rendered2.result.current).toBe(undefined)
+      const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
+      expect(rendered2.result.current.address).toBe(undefined)
       rendered2.rerender('subplebbit address 1')
       // wait to get account loaded
       await waitFor(() => rendered2.result.current.address === 'subplebbit address 1')
@@ -105,32 +105,32 @@ describe('subplebbits', () => {
     })
 
     test('get multiple subplebbits at once', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddresses) => useSubplebbits(subplebbitAddresses))
+      const rendered = renderHook<any, any>((subplebbitAddresses) => useSubplebbits({subplebbitAddresses}))
       const waitFor = testUtils.createWaitFor(rendered)
 
-      expect(rendered.result.current).toEqual([])
+      expect(rendered.result.current.subplebbits).toEqual([])
       rendered.rerender(['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'])
-      expect(rendered.result.current).toEqual([undefined, undefined, undefined])
+      expect(rendered.result.current.subplebbits).toEqual([undefined, undefined, undefined])
 
       await waitFor(
         () =>
-          typeof rendered.result.current[0].address === 'string' &&
-          typeof rendered.result.current[1].address === 'string' &&
-          typeof rendered.result.current[2].address === 'string'
+          typeof rendered.result.current.subplebbits[0].address === 'string' &&
+          typeof rendered.result.current.subplebbits[1].address === 'string' &&
+          typeof rendered.result.current.subplebbits[2].address === 'string'
       )
-      expect(rendered.result.current[0].address).toBe('subplebbit address 1')
-      expect(rendered.result.current[1].address).toBe('subplebbit address 2')
-      expect(rendered.result.current[2].address).toBe('subplebbit address 3')
+      expect(rendered.result.current.subplebbits[0].address).toBe('subplebbit address 1')
+      expect(rendered.result.current.subplebbits[1].address).toBe('subplebbit address 2')
+      expect(rendered.result.current.subplebbits[2].address).toBe('subplebbit address 3')
 
       await waitFor(
         () =>
-          typeof rendered.result.current[0].description === 'string' &&
-          typeof rendered.result.current[1].description === 'string' &&
-          typeof rendered.result.current[2].description === 'string'
+          typeof rendered.result.current.subplebbits[0].description === 'string' &&
+          typeof rendered.result.current.subplebbits[1].description === 'string' &&
+          typeof rendered.result.current.subplebbits[2].description === 'string'
       )
-      expect(rendered.result.current[0].description).toBe('subplebbit address 1 description updated')
-      expect(rendered.result.current[1].description).toBe('subplebbit address 2 description updated')
-      expect(rendered.result.current[2].description).toBe('subplebbit address 3 description updated')
+      expect(rendered.result.current.subplebbits[0].description).toBe('subplebbit address 1 description updated')
+      expect(rendered.result.current.subplebbits[1].description).toBe('subplebbit address 2 description updated')
+      expect(rendered.result.current.subplebbits[2].description).toBe('subplebbit address 3 description updated')
     })
 
     test('get subplebbit, plebbit.getSubplebbit fails 3 times', async () => {
@@ -149,10 +149,10 @@ describe('subplebbits', () => {
         throw Error(`failed to get subplebbit`)
       }
 
-      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit(subplebbitAddress))
+      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
       const waitFor = testUtils.createWaitFor(rendered)
 
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.address).toBe(undefined)
       rendered.rerender('subplebbit address 1')
       await waitFor(() => typeof rendered.result.current?.address === 'string')
 

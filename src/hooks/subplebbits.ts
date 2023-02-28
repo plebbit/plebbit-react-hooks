@@ -1,10 +1,19 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useState, useMemo} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
-import {Subplebbit, BlockchainProviders, UseResolvedSubplebbitAddressOptions, UseResolvedSubplebbitAddressResult} from '../types-new'
+import {
+  Subplebbit,
+  BlockchainProviders,
+  UseResolvedSubplebbitAddressOptions,
+  UseResolvedSubplebbitAddressResult,
+  UseSubplebbitOptions,
+  UseSubplebbitResult,
+  UseSubplebbitsOptions,
+  UseSubplebbitsResult,
+} from '../types-new'
 import useInterval from './utils/use-interval'
 import {resolveEnsTxtRecord} from '../lib/blockchain'
 import useSubplebbitsStore from '../stores/subplebbits'
@@ -15,7 +24,8 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbit(subplebbitAddress?: string, accountName?: string) {
+export function useSubplebbit(options: UseSubplebbitOptions): UseSubplebbitResult {
+  const {subplebbitAddress, accountName} = options || {}
   const account = useAccount(accountName)
   const subplebbit = useSubplebbitsStore((state: any) => state.subplebbits[subplebbitAddress || ''])
   const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
@@ -34,7 +44,18 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
   if (account && subplebbitAddress) {
     log('useSubplebbit', {subplebbitAddress, subplebbit, account})
   }
-  return subplebbit
+
+  const state = subplebbit ? 'succeeded' : 'fetching-ipns'
+
+  return useMemo(
+    () => ({
+      ...subplebbit,
+      error: undefined,
+      errors: [],
+      state,
+    }),
+    [subplebbit, subplebbitAddress]
+  )
 }
 
 /**
@@ -44,7 +65,7 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
  */
 export function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: string) {
   const account = useAccount(accountName)
-  const subplebbit = useSubplebbit(subplebbitAddress)
+  const subplebbit = useSubplebbit({subplebbitAddress})
   const subplebbitMetricsCid = subplebbit?.metricsCid
   const [subplebbitMetrics, setSubplebbitMetrics] = useState()
 
@@ -75,10 +96,11 @@ export function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: s
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbits(subplebbitAddresses: string[] = [], accountName?: string) {
+export function useSubplebbits(options: UseSubplebbitsOptions): UseSubplebbitsResult {
+  const {subplebbitAddresses, accountName} = options || {}
   const account = useAccount(accountName)
-  const subplebbits: Subplebbit[] = useSubplebbitsStore(
-    (state: any) => subplebbitAddresses.map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']),
+  const subplebbits: (Subplebbit | undefined)[] = useSubplebbitsStore(
+    (state: any) => (subplebbitAddresses || []).map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']),
     shallow
   )
   const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
@@ -92,12 +114,24 @@ export function useSubplebbits(subplebbitAddresses: string[] = [], accountName?:
     for (const subplebbitAddress of uniqueSubplebbitAddresses) {
       addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) => log.error('useSubplebbits addSubplebbitToStore error', {subplebbitAddress, error}))
     }
-  }, [subplebbitAddresses.toString(), account?.id])
+  }, [subplebbitAddresses?.toString(), account?.id])
 
   if (account && subplebbitAddresses?.length) {
     log('useSubplebbits', {subplebbitAddresses, subplebbits, account})
   }
-  return subplebbits
+
+  // succeed if no subplebbits are undefined
+  const state = subplebbits.indexOf(undefined) === -1 ? 'succeeded' : 'fetching-ipns'
+
+  return useMemo(
+    () => ({
+      subplebbits,
+      error: undefined,
+      errors: [],
+      state,
+    }),
+    [subplebbits, subplebbitAddresses?.toString()]
+  )
 }
 
 /**

@@ -78,7 +78,7 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
     const subplebbitAddressesArrays = []
     const sortTypes = []
     for (const feedOptions of feedsOptions) {
-      subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses)
+      subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses || [])
       sortTypes.push(feedOptions.sortType)
     }
     return {subplebbitAddressesArrays, sortTypes}

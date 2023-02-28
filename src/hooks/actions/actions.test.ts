@@ -123,7 +123,8 @@ describe('actions', () => {
       // subscribing persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useSubscribe({subplebbitAddress: subplebbitAddress2}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor(() => rendered.result.current.state === 'ready')
+      await waitFor(() => rendered.result.current[1].state === 'ready')
+      expect(rendered.result.current[1].state).toBe('ready')
       expect(rendered.result.current[1].subscribed).toBe(true)
     })
   })
@@ -219,7 +220,8 @@ describe('actions', () => {
       // subscribing persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useBlock({address: address2}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor(() => rendered.result.current.state === 'ready')
+      await waitFor(() => rendered.result.current[1].state === 'ready')
+      expect(rendered.result.current[1].state).toBe('ready')
       expect(rendered.result.current[1].blocked).toBe(true)
     })
   })

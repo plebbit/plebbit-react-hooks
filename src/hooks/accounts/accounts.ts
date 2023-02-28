@@ -95,7 +95,7 @@ export function useAccountSubplebbits(accountName?: string) {
   }, [accountsStoreAccountSubplebbits, ownerSubplebbitAddresses])
 
   // fetch all subplebbit data
-  const subplebbitsArray = useSubplebbits(uniqueSubplebbitAddresses, accountName)
+  const {subplebbits: subplebbitsArray} = useSubplebbits({subplebbitAddresses: uniqueSubplebbitAddresses, accountName})
   const subplebbits: any = useMemo(() => {
     const subplebbits: any = {}
     for (const [i, subplebbit] of subplebbitsArray.entries()) {

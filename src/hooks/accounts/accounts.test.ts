@@ -1026,9 +1026,11 @@ describe('accounts', () => {
         // this test seems to depend on a race condition and must be retried
         // most likely not a bug with the hook
         jest.retryTimes(10)
+        testUtils.silenceWaitForWarning = true
       })
       afterAll(() => {
         jest.retryTimes(0)
+        testUtils.silenceWaitForWarning = false
       })
       test(`cid gets added to account comment after fetched in useComment`, async () => {
         const rendered = renderHook<any, any>((commentCid) => {
@@ -1481,9 +1483,11 @@ describe('accounts', () => {
         // so not possible to make them deterministic, add a retry
         // the hooks don't have the race condition, only the tests do
         jest.retryTimes(20)
+        testUtils.silenceWaitForWarning = true
       })
       afterAll(() => {
         jest.retryTimes(0)
+        testUtils.silenceWaitForWarning = false
       })
       afterEach(async () => {
         await testUtils.resetDatabasesAndStores()
@@ -1555,7 +1559,7 @@ describe('accounts', () => {
         const accountSubplebbits = useAccountSubplebbits()
         const account = useAccount()
         const {setAccount} = useAccountsActions()
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {accountSubplebbits, setAccount, account}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -1591,7 +1595,7 @@ describe('accounts', () => {
         const account = useAccount()
         const accountsActions = useAccountsActions()
         const accountSubplebbits = useAccountSubplebbits()
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {account, subplebbit, accountSubplebbits, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -1650,8 +1654,9 @@ describe('accounts', () => {
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
 
       // useSubplebbit(currentAddress) address is edited
-      rendered.rerender(undefined)
-      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      rendered.rerender(`doesnt exist`)
+      await waitFor(() => rendered.result.current.subplebbit.address === undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
       rendered.rerender(editedAddress)
       await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
       expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
@@ -1678,8 +1683,8 @@ describe('accounts', () => {
       })
 
       // useSubplebbit is edited
-      await waitFor(() => rendered.result.current.subplebbit === undefined)
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      await waitFor(() => rendered.result.current.subplebbit.address === undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
     })
 
     test('create and edit owner subplebbit useSubplebbit persists after reload', async () => {
@@ -1700,15 +1705,15 @@ describe('accounts', () => {
       // render again with new context and store
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const subplebbit = useSubplebbit({subplebbitAddress})
         const accountsActions = useAccountsActions()
         return {subplebbit, ...accountsActions}
       })
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
 
       // can useSubplebbit after reload
       rendered.rerender(createdSubplebbitAddress)
-      await waitFor(() => rendered.result.current.subplebbit)
+      await waitFor(() => rendered.result.current.subplebbit.address)
       expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
       expect(rendered.result.current.subplebbit.title).toBe(createdSubplebbitTitle)
 
@@ -1728,11 +1733,11 @@ describe('accounts', () => {
       // render again with new context and store
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const subplebbit = useSubplebbit({subplebbitAddress})
         const accountsActions = useAccountsActions()
         return {subplebbit, ...accountsActions}
       })
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
 
       // can useSubplebbit after reload
       rendered.rerender(createdSubplebbitAddress)
@@ -1749,11 +1754,11 @@ describe('accounts', () => {
       // render again with new context and store
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const subplebbit = useSubplebbit({subplebbitAddress})
         const accountsActions = useAccountsActions()
         return {subplebbit, ...accountsActions}
       })
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
 
       // useSubplebbit(previousAddress) address is edited
       rendered.rerender(createdSubplebbitAddress)
@@ -1762,8 +1767,10 @@ describe('accounts', () => {
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
 
       // useSubplebbit(currentAddress) address is edited
-      rendered.rerender(undefined)
-      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      rendered.rerender(`doesnt exist`)
+      await waitFor(() => rendered.result.current.subplebbit.address === undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
+
       rendered.rerender(editedAddress)
       await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
       expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
