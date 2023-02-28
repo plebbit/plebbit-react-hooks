@@ -6,6 +6,7 @@ const log = Logger('plebbit-react-hooks:hooks:subplebbits')
 import assert from 'assert'
 import {
   Subplebbit,
+  SubplebbitMetrics,
   BlockchainProviders,
   UseResolvedSubplebbitAddressOptions,
   UseResolvedSubplebbitAddressResult,
@@ -13,6 +14,8 @@ import {
   UseSubplebbitResult,
   UseSubplebbitsOptions,
   UseSubplebbitsResult,
+  UseSubplebbitMetricsOptions,
+  UseSubplebbitMetricsResult,
 } from '../types-new'
 import useInterval from './utils/use-interval'
 import {resolveEnsTxtRecord} from '../lib/blockchain'
@@ -63,11 +66,12 @@ export function useSubplebbit(options: UseSubplebbitOptions): UseSubplebbitResul
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: string) {
+export function useSubplebbitMetrics(options: UseSubplebbitMetricsOptions): UseSubplebbitMetricsResult {
+  const {subplebbitAddress, accountName} = options || {}
   const account = useAccount(accountName)
   const subplebbit = useSubplebbit({subplebbitAddress})
   const subplebbitMetricsCid = subplebbit?.metricsCid
-  const [subplebbitMetrics, setSubplebbitMetrics] = useState()
+  const [subplebbitMetrics, setSubplebbitMetrics] = useState<SubplebbitMetrics>()
 
   useEffect(() => {
     if (!subplebbitMetricsCid || !account) {
@@ -88,7 +92,18 @@ export function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: s
   if (account && subplebbitMetricsCid) {
     log('useSubplebbitMetrics', {subplebbitAddress, subplebbitMetricsCid, subplebbitMetrics, subplebbit, account})
   }
-  return subplebbitMetrics
+
+  const state = subplebbitMetrics ? 'succeeded' : 'fetching-ipfs'
+
+  return useMemo(
+    () => ({
+      ...subplebbitMetrics,
+      error: undefined,
+      errors: [],
+      state,
+    }),
+    [subplebbitMetrics, subplebbitMetricsCid]
+  )
 }
 
 /**

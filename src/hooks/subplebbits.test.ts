@@ -178,10 +178,10 @@ describe('subplebbits', () => {
   })
 
   test('useSubplebbitMetrics', async () => {
-    const rendered = renderHook<any, any>(() => useSubplebbitMetrics('address 1'))
+    const rendered = renderHook<any, any>(() => useSubplebbitMetrics({subplebbitAddress: 'address 1'}))
     const waitFor = testUtils.createWaitFor(rendered)
-    await waitFor(() => rendered.result.current)
-    expect(rendered.result.current).toEqual({hourActiveUserCount: 1})
+    await waitFor(() => rendered.result.current.hourActiveUserCount)
+    expect(rendered.result.current.hourActiveUserCount).toBe(1)
   })
 
   describe('subplebbit address', () => {

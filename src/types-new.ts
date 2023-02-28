@@ -67,14 +67,12 @@ export interface UseAccountSubplebbitsResult extends Result {
   accountSubplebbits: AccountSubplebbit[]
 }
 
-// TODO
 // useComment(options): result
 export interface UseCommentOptions extends Options {
   commentCid?: string
 }
 export interface UseCommentResult extends Result, Comment {}
 
-// TODO
 // useComments(options): result
 export interface UseCommentsOptions extends Options {
   commentCids?: string[]
@@ -105,12 +103,11 @@ export interface UseSubplebbitsResult extends Result {
   subplebbits: (Subplebbit | undefined)[]
 }
 
-// TODO
 // useSubplebbitMetrics(options): result
 export interface UseSubplebbitMetricsOptions extends Options {
   subplebbitAddress?: string
 }
-export interface UseSubplebbitsMetricsResult extends Result, SubplebbitMetrics {}
+export interface UseSubplebbitMetricsResult extends Result, SubplebbitMetrics {}
 
 // useResolvedSubplebbitAddress(options): result
 export interface UseResolvedSubplebbitAddressOptions extends Options {
@@ -402,6 +399,7 @@ export type Vote = {[key: string]: any}
 export type CommentEdit = {[key: string]: any}
 export type SubplebbitEdit = {[key: string]: any}
 export type Subplebbit = {[key: string]: any}
+export type SubplebbitMetrics = {[key: string]: any}
 export type AccountNotification = {[key: string]: any}
 export type Nft = {[key: string]: any}
 export type Author = {[key: string]: any}
