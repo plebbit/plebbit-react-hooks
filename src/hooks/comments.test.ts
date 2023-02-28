@@ -101,30 +101,32 @@ describe('comments', () => {
     })
 
     test('get multiple comments at once', async () => {
-      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids))
+      const rendered = renderHook<any, any>((commentCids) => useComments({commentCids}))
       const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current).toEqual([])
+      expect(rendered.result.current.comments).toEqual([])
 
       rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
-      expect(rendered.result.current).toEqual([undefined, undefined, undefined])
+      expect(rendered.result.current.comments).toEqual([undefined, undefined, undefined])
       await waitFor(
         () =>
-          typeof rendered.result.current[0].cid === 'string' && typeof rendered.result.current[1].cid === 'string' && typeof rendered.result.current[2].cid === 'string'
+          typeof rendered.result.current.comments[0].cid === 'string' &&
+          typeof rendered.result.current.comments[1].cid === 'string' &&
+          typeof rendered.result.current.comments[2].cid === 'string'
       )
-      expect(rendered.result.current[0].cid).toBe('comment cid 1')
-      expect(rendered.result.current[1].cid).toBe('comment cid 2')
-      expect(rendered.result.current[2].cid).toBe('comment cid 3')
+      expect(rendered.result.current.comments[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.comments[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current.comments[2].cid).toBe('comment cid 3')
 
       // wait for comment.on('update') to fetch the ipns
       await waitFor(
         () =>
-          typeof rendered.result.current[0].upvoteCount === 'number' &&
-          typeof rendered.result.current[1].upvoteCount === 'number' &&
-          typeof rendered.result.current[2].upvoteCount === 'number'
+          typeof rendered.result.current.comments[0].upvoteCount === 'number' &&
+          typeof rendered.result.current.comments[1].upvoteCount === 'number' &&
+          typeof rendered.result.current.comments[2].upvoteCount === 'number'
       )
-      expect(rendered.result.current[0].upvoteCount).toBe(3)
-      expect(rendered.result.current[1].upvoteCount).toBe(3)
-      expect(rendered.result.current[2].upvoteCount).toBe(3)
+      expect(rendered.result.current.comments[0].upvoteCount).toBe(3)
+      expect(rendered.result.current.comments[1].upvoteCount).toBe(3)
+      expect(rendered.result.current.comments[2].upvoteCount).toBe(3)
     })
 
     test('get comment, plebbit.getComment fails 3 times', async () => {
@@ -191,30 +193,32 @@ describe('comments', () => {
     })
 
     test('get comments from subplebbit pages', async () => {
-      const rendered = renderHook<any, any>((commentCids) => useComments(commentCids))
+      const rendered = renderHook<any, any>((commentCids) => useComments({commentCids}))
       const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current).toEqual([])
+      expect(rendered.result.current.comments).toEqual([])
 
       rendered.rerender(['comment cid 1', 'comment cid 2', 'comment cid 3'])
-      expect(rendered.result.current).toEqual([undefined, undefined, undefined])
+      expect(rendered.result.current.comments).toEqual([undefined, undefined, undefined])
       await waitFor(
         () =>
-          typeof rendered.result.current[0].cid === 'string' && typeof rendered.result.current[1].cid === 'string' && typeof rendered.result.current[2].cid === 'string'
+          typeof rendered.result.current.comments[0].cid === 'string' &&
+          typeof rendered.result.current.comments[1].cid === 'string' &&
+          typeof rendered.result.current.comments[2].cid === 'string'
       )
-      expect(rendered.result.current[0].cid).toBe('comment cid 1')
-      expect(rendered.result.current[1].cid).toBe('comment cid 2')
-      expect(rendered.result.current[2].cid).toBe('comment cid 3')
-      expect(rendered.result.current[1].replyCount).toBe(undefined)
+      expect(rendered.result.current.comments[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.comments[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current.comments[2].cid).toBe('comment cid 3')
+      expect(rendered.result.current.comments[1].replyCount).toBe(undefined)
 
       // mock getting a subplebbit page with an updated comment
-      const subplebbitsPagesComment = {...rendered.result.current, replyCount: 100, updatedAt: Math.round(Date.now() / 1000) + 60}
+      const subplebbitsPagesComment = {...rendered.result.current.comments[1], replyCount: 100, updatedAt: Math.round(Date.now() / 1000) + 60}
       act(() => {
         subplebbitsPagesStore.setState((state: any) => ({comments: {'comment cid 2': subplebbitsPagesComment}}))
       })
 
       // using the subplebbit page comment
-      await waitFor(() => rendered.result.current[1].replyCount === 100)
-      expect(rendered.result.current[1].replyCount).toBe(100)
+      await waitFor(() => rendered.result.current.comments[1].replyCount === 100)
+      expect(rendered.result.current.comments[1].replyCount).toBe(100)
     })
   })
 })
