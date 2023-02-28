@@ -117,7 +117,7 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
   }
 }
 
-export function usePublishComment(options: UsePublishCommentOptions): UsePublishCommentResult {
+export function usePublishComment(options?: UsePublishCommentOptions): UsePublishCommentResult {
   const {accountName, ...publishCommentOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -186,7 +186,7 @@ export function usePublishComment(options: UsePublishCommentOptions): UsePublish
   }
 }
 
-export function usePublishVote(options: UsePublishVoteOptions): UsePublishVoteResult {
+export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteResult {
   const {accountName, ...publishVoteOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -252,7 +252,7 @@ export function usePublishVote(options: UsePublishVoteOptions): UsePublishVoteRe
   }
 }
 
-export function usePublishCommentEdit(options: UsePublishCommentEditOptions): UsePublishCommentEditResult {
+export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): UsePublishCommentEditResult {
   const {accountName, ...publishCommentEditOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -318,7 +318,7 @@ export function usePublishCommentEdit(options: UsePublishCommentEditOptions): Us
   }
 }
 
-export function usePublishSubplebbitEdit(options: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult {
+export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult {
   const {accountName, subplebbitAddress, ...publishSubplebbitEditOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)

@@ -243,7 +243,7 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
  * the active account.
  */
 // NOTE: useResolvedAuthorAddress tests are skipped, if changes are made they must be tested manually
-export function useResolvedAuthorAddress(options: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult {
+export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult {
   let {author, accountName, cache} = options || {}
 
   // cache by default

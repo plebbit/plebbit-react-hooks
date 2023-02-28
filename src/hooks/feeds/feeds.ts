@@ -14,7 +14,7 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useFeed(options: UseFeedOptions): UseFeedResult {
+export function useFeed(options?: UseFeedOptions): UseFeedResult {
   let {subplebbitAddresses, sortType, accountName} = options || {}
   if (!sortType) {
     sortType = 'hot'
@@ -89,7 +89,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useBufferedFeeds(options: UseBufferedFeedsOptions): UseBufferedFeedsResult {
+export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBufferedFeedsResult {
   const {feedsOptions, accountName} = options || {}
   validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
   const account = useAccount(accountName)

@@ -13,7 +13,9 @@ import type {
   Accounts,
   AccountsComments,
   AccountsCommentsReplies,
-} from '../../types'
+  UseAccountSubplebbitsOptions,
+  UseAccountSubplebbitsResult,
+} from '../../types-new'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedAccountNotifications} from './utils'
 
 /**
@@ -77,7 +79,8 @@ export function useAccountsActions() {
 /**
  * Returns all subplebbits where the account is a creator or moderator
  */
-export function useAccountSubplebbits(accountName?: string) {
+export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): UseAccountSubplebbitsResult {
+  const {accountName} = options || {}
   const accountId = useAccountId(accountName)
   const accountsStoreAccountSubplebbits = useAccountsStore((state) => state.accounts[accountId || '']?.subplebbits)
 
@@ -131,7 +134,18 @@ export function useAccountSubplebbits(accountName?: string) {
   if (accountId) {
     log('useAccountSubplebbits', {accountSubplebbits})
   }
-  return accountSubplebbits
+
+  const state = accountId ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      accountSubplebbits,
+      error: undefined,
+      errors: [],
+      state,
+    }),
+    [accountSubplebbits]
+  )
 }
 
 /**

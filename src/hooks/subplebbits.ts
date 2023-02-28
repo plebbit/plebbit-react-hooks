@@ -27,7 +27,7 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbit(options: UseSubplebbitOptions): UseSubplebbitResult {
+export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResult {
   const {subplebbitAddress, accountName} = options || {}
   const account = useAccount(accountName)
   const subplebbit = useSubplebbitsStore((state: any) => state.subplebbits[subplebbitAddress || ''])
@@ -66,7 +66,7 @@ export function useSubplebbit(options: UseSubplebbitOptions): UseSubplebbitResul
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbitMetrics(options: UseSubplebbitMetricsOptions): UseSubplebbitMetricsResult {
+export function useSubplebbitMetrics(options?: UseSubplebbitMetricsOptions): UseSubplebbitMetricsResult {
   const {subplebbitAddress, accountName} = options || {}
   const account = useAccount(accountName)
   const subplebbit = useSubplebbit({subplebbitAddress})
@@ -111,7 +111,7 @@ export function useSubplebbitMetrics(options: UseSubplebbitMetricsOptions): UseS
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbits(options: UseSubplebbitsOptions): UseSubplebbitsResult {
+export function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsResult {
   const {subplebbitAddresses, accountName} = options || {}
   const account = useAccount(accountName)
   const subplebbits: (Subplebbit | undefined)[] = useSubplebbitsStore(
@@ -184,7 +184,7 @@ export function useListSubplebbits() {
  * the active account.
  */
 // NOTE: useResolvedSubplebbitAddress tests are skipped, if changes are made they must be tested manually
-export function useResolvedSubplebbitAddress(options: UseResolvedSubplebbitAddressOptions): UseResolvedSubplebbitAddressResult {
+export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddressOptions): UseResolvedSubplebbitAddressResult {
   let {subplebbitAddress, accountName, cache} = options || {}
 
   // cache by default

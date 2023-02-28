@@ -60,7 +60,6 @@ export interface UseAccountNotificationsResult extends Result {
   markAsRead(): Promise<void>
 }
 
-// TODO
 // useAccountSubplebbits(options): result
 export interface UseAccountSubplebbitsOptions extends Options {}
 export interface UseAccountSubplebbitsResult extends Result {
@@ -128,7 +127,6 @@ export interface UseFeedResult extends Result {
   loadMore(): Promise<void>
 }
 
-// TODO
 // useBufferedFeeds(options): result
 export interface UseBufferedFeedsOptions extends Options {
   feedsOptions?: UseFeedOptions[]

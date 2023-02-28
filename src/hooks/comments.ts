@@ -14,7 +14,7 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComment(options: UseCommentOptions): UseCommentResult {
+export function useComment(options?: UseCommentOptions): UseCommentResult {
   const {commentCid, accountName} = options || {}
   const account = useAccount(accountName)
   let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
@@ -59,7 +59,7 @@ export function useComment(options: UseCommentOptions): UseCommentResult {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComments(options: UseCommentsOptions): UseCommentsResult {
+export function useComments(options?: UseCommentsOptions): UseCommentsResult {
   const {commentCids, accountName} = options || {}
   const account = useAccount(accountName)
   const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(

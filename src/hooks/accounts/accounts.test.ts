@@ -1498,7 +1498,7 @@ describe('accounts', () => {
 
       beforeEach(async () => {
         rendered = renderHook<any, any>(() => {
-          const accountSubplebbits = useAccountSubplebbits()
+          const {accountSubplebbits} = useAccountSubplebbits()
           const account = useAccount()
           const {setAccount} = useAccountsActions()
           return {accountSubplebbits, setAccount, account}
@@ -1556,7 +1556,7 @@ describe('accounts', () => {
       })
 
       const rendered = renderHook<any, any>((subplebbitAddress) => {
-        const accountSubplebbits = useAccountSubplebbits()
+        const {accountSubplebbits} = useAccountSubplebbits()
         const account = useAccount()
         const {setAccount} = useAccountsActions()
         const subplebbit = useSubplebbit({subplebbitAddress})
@@ -1594,7 +1594,7 @@ describe('accounts', () => {
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const account = useAccount()
         const accountsActions = useAccountsActions()
-        const accountSubplebbits = useAccountSubplebbits()
+        const {accountSubplebbits} = useAccountSubplebbits()
         const subplebbit = useSubplebbit({subplebbitAddress})
         return {account, subplebbit, accountSubplebbits, ...accountsActions}
       })
