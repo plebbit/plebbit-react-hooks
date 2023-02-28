@@ -24,7 +24,7 @@ const privateKey = signers[0].privateKey
 
   const plebbit = await Plebbit(plebbitOptions)
   const plebbit2 = await Plebbit(plebbitOptions)
-  const signer = await plebbit.createSigner({privateKey, type: 'rsa'})
+  const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
 
   const dbConfig = {
     client: 'sqlite3',
