@@ -1106,7 +1106,7 @@ describe('accounts', () => {
       const getPage = Pages.prototype.getPage
 
       const rendered = renderHook<any, any>((props?) => {
-        const {feed} = useFeed(props?.subplebbitAddresses, 'new')
+        const {feed} = useFeed({subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'})
         const accountComments = useAccountComments()
         return {accountComments, feed}
       })

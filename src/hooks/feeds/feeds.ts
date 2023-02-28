@@ -4,7 +4,7 @@ import validator from '../../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
-import {Feed, Feeds, UseBufferedFeedOptions} from '../../types'
+import {Feed, Feeds, UseBufferedFeedOptions, UseFeedOptions, UseFeedResult} from '../../types-new'
 import useFeedsStore from '../../stores/feeds'
 import shallow from 'zustand/shallow'
 
@@ -14,7 +14,11 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accountName?: string) {
+export function useFeed(options: UseFeedOptions): UseFeedResult {
+  let {subplebbitAddresses, sortType, accountName} = options || {}
+  if (!sortType) {
+    sortType = 'hot'
+  }
   validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName)
   const account = useAccount(accountName)
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
@@ -31,24 +35,28 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
     addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => log.error('useFeed addFeedToStore error', {feedName, error}))
   }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/])
 
-  const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
+  const feed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
   let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || ''])
   // if the feed is not yet defined, then it has more
   if (!feedName || typeof hasMore !== 'boolean') {
     hasMore = true
   }
 
-  const loadMore = () => {
-    if (!uniqueSubplebbitAddresses || !account) {
-      throw Error('useFeed cannot load more feed not initalized yet')
+  const loadMore = async () => {
+    try {
+      if (!uniqueSubplebbitAddresses || !account) {
+        throw Error('useFeed cannot load more feed not initalized yet')
+      }
+      incrementFeedPageNumber(feedName)
+    } catch (e) {
+      // wait 100 ms so infinite scroll doesn't spam this function
+      await new Promise((r) => setTimeout(r, 50))
     }
-    incrementFeedPageNumber(feedName)
   }
 
-  const feed = useMemo(() => loadedFeed || [], [loadedFeed])
   if (account && subplebbitAddresses?.length) {
     log('useFeed', {
-      feed: feed.length,
+      feedLength: feed?.length || 0,
       hasMore,
       subplebbitAddresses,
       sortType,
@@ -57,7 +65,20 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
       feedsStore: useFeedsStore.getState(),
     })
   }
-  return {feed, hasMore, loadMore}
+
+  const state = !hasMore ? 'succeeded' : 'fetching-ipns'
+
+  return useMemo(
+    () => ({
+      feed: feed || [],
+      hasMore,
+      loadMore,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [feed]
+  )
 }
 
 /**

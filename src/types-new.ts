@@ -103,7 +103,6 @@ export interface UseSubplebbitsResult extends Result {
   subplebbits: (Subplebbit | undefined)[]
 }
 
-// useSubplebbitMetrics(options): result
 export interface UseSubplebbitMetricsOptions extends Options {
   subplebbitAddress?: string
 }
@@ -126,7 +125,7 @@ export interface UseFeedOptions extends Options {
 }
 export interface UseFeedResult extends Result {
   feed: Comment[]
-  hasMore(): Promise<void>
+  hasMore: boolean
   loadMore(): Promise<void>
 }
 

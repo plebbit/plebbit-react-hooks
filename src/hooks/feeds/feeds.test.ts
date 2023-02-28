@@ -3,6 +3,7 @@ import testUtils from '../../lib/test-utils'
 import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs} from '../..'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
+import feedsStore from '../../stores/feeds'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
@@ -21,8 +22,8 @@ describe('feeds', () => {
 
     const scrollOnePage = async () => {
       const nextFeedLength = (rendered.result.current.feed?.length || 0) + postsPerPage
-      act(() => {
-        rendered.result.current.loadMore()
+      await act(async () => {
+        await rendered.result.current.loadMore()
       })
 
       try {
@@ -34,7 +35,7 @@ describe('feeds', () => {
 
     beforeEach(async () => {
       // @ts-ignore
-      rendered = renderHook<any, any>((props: any) => useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName))
+      rendered = renderHook<any, any>((props: any) => useFeed(props))
       waitFor = testUtils.createWaitFor(rendered)
     })
 
@@ -70,7 +71,7 @@ describe('feeds', () => {
       await testUtils.resetStores()
 
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
-      const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1']))
+      const rendered2 = renderHook<any, any>(() => useFeed({subplebbitAddresses: ['subplebbit address 1']}))
       expect(rendered2.result.current.feed).toEqual([])
 
       // only wait for 1 render because subplebbit is stored in db
@@ -121,8 +122,8 @@ describe('feeds', () => {
       let currentPage = 1
       while (currentPage++ < pages) {
         // load 25 more posts
-        act(() => {
-          rendered.result.current.loadMore()
+        await act(async () => {
+          await rendered.result.current.loadMore()
         })
         await waitFor(() => rendered.result.current.feed?.length >= postsPerPage * currentPage)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * currentPage)
@@ -298,7 +299,7 @@ describe('feeds', () => {
     test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
       // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
       rendered = renderHook<any, any>((props: any) => {
-        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+        const feed = useFeed(props)
         const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
         return {...feed, bufferedFeed: bufferedFeeds[0]}
       })
@@ -372,7 +373,7 @@ describe('feeds', () => {
 
     test('get feed using a different account', async () => {
       rendered = renderHook<any, any>((props: any) => {
-        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+        const feed = useFeed(props)
         const {createAccount} = useAccountsActions()
         return {...feed, createAccount}
       })
@@ -403,7 +404,7 @@ describe('feeds', () => {
     test('get feed and change active account', async () => {
       const newActiveAccountName = 'new active account'
       rendered = renderHook<any, any>((props: any) => {
-        const feed = useFeed(props.subplebbitAddresses, props.sortType)
+        const feed = useFeed(props)
         const account = useAccount()
         const [bufferedFeed] = useBufferedFeeds(props && [props], newActiveAccountName)
         const accountsActions = useAccountsActions()
@@ -577,6 +578,10 @@ describe('feeds', () => {
         rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
         await waitFor(() => rendered.result.current.feed.length > 0)
 
+        // increment page manually because loadMore can't work that fast
+        const {incrementFeedPageNumber, feedsOptions} = feedsStore.getState()
+        const feedName = Object.keys(feedsOptions)[0]
+
         expect(rendered.result.current.feed.length).toBe(postsPerPage)
         expect(typeof rendered.result.current.loadMore).toBe('function')
         await act(async () => {
@@ -586,9 +591,9 @@ describe('feeds', () => {
             let attempts = 10000
             while (attempts--) {
               await simulateLoadingTime()
-              rendered.result.current.loadMore()
-              rendered.result.current.loadMore()
-              rendered.result.current.loadMore()
+              incrementFeedPageNumber(feedName)
+              incrementFeedPageNumber(feedName)
+              incrementFeedPageNumber(feedName)
             }
           }).rejects.toThrow('feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded')
         })
@@ -629,7 +634,7 @@ describe('feeds', () => {
       }
 
       rendered = renderHook<any, any>((props: any) => {
-        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+        const feed = useFeed(props)
         const bufferedFeeds = useBufferedFeeds([{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}], props?.accountName)
         return {...feed, bufferedFeed: bufferedFeeds[0]}
       })
@@ -693,7 +698,7 @@ describe('feeds', () => {
         await testUtils.resetStores()
 
         // render with a fresh empty store to test database persistance
-        const rendered2 = renderHook<any, any>(() => useFeed(['subplebbit address 1'], 'new'))
+        const rendered2 = renderHook<any, any>(() => useFeed({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'}))
         await waitFor(() => rendered2.result.current.feed?.length >= postsPerPage)
         expect(rendered2.result.current.feed?.length).toBe(postsPerPage)
       })
