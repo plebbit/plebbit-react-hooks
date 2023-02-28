@@ -11,10 +11,15 @@ import type {
   AccountNotifications,
   Account,
   Accounts,
+  AccountVote,
   AccountsComments,
   AccountsCommentsReplies,
   UseAccountSubplebbitsOptions,
   UseAccountSubplebbitsResult,
+  UseAccountVoteOptions,
+  UseAccountVoteResult,
+  UseAccountVotesOptions,
+  UseAccountVotesResult,
 } from '../../types-new'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedAccountNotifications} from './utils'
 
@@ -144,7 +149,7 @@ export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): U
       errors: [],
       state,
     }),
-    [accountSubplebbits]
+    [accountSubplebbits, state]
   )
 }
 
@@ -202,35 +207,59 @@ export function useAccountComments(useAccountCommentsOptions?: UseAccountComment
  * Returns the own user's votes stored locally, even those not yet published by the subplebbit owner.
  * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
-export function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions) {
-  const accountId = useAccountId(useAccountVotesOptions?.accountName)
+export function useAccountVotes(options?: UseAccountVotesOptions): UseAccountVotesResult {
+  const {accountName, filter} = options || {}
+  const accountId = useAccountId(accountName)
   const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
 
   const filteredAccountVotesArray = useMemo(() => {
+    let accountVotesArray: AccountVote[] = []
     if (!accountVotes) {
-      return
+      return accountVotesArray
     }
-    let accountVotesArray = []
     for (const i in accountVotes) {
       accountVotesArray.push(accountVotes[i])
     }
-    if (useAccountVotesOptions?.filter) {
-      accountVotesArray = filterPublications(accountVotesArray, useAccountVotesOptions.filter)
+    if (filter) {
+      accountVotesArray = filterPublications(accountVotesArray, filter)
     }
     return accountVotesArray
-  }, [accountVotes, useAccountVotesOptions])
+  }, [accountVotes, filter])
 
-  if (accountVotes && useAccountVotesOptions) {
-    log('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, useAccountVotesOptions})
+  if (accountVotes && filter) {
+    log('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, filter})
   }
-  return filteredAccountVotesArray
+
+  const state = accountId ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      accountVotes: filteredAccountVotesArray,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [filteredAccountVotesArray, state]
+  )
 }
 
 /**
  * Returns an account's single vote on a comment, e.g. to know if you already voted on a comment.
  */
-export function useAccountVote(commentCid?: string, accountName?: string) {
+export function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteResult {
+  const {commentCid, accountName} = options || {}
   const accountId = useAccountId(accountName)
   const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
-  return (commentCid && accountVotes && accountVotes[commentCid]) || 0
+  const accountVote = accountVotes?.[commentCid || '']
+  const state = accountId && commentCid ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      ...accountVote,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [accountVote, state]
+  )
 }

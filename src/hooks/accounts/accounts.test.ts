@@ -902,8 +902,8 @@ describe('accounts', () => {
         const account = useAccount(props?.accountName)
         const accountsActions = useAccountsActions()
         const accountComments = useAccountComments(useAccountCommentsOptions)
-        const accountVotes = useAccountVotes(useAccountCommentsOptions)
-        const accountVote = useAccountVote(props?.commentCid, props?.accountName)
+        const {accountVotes} = useAccountVotes(useAccountCommentsOptions)
+        const accountVote = useAccountVote(props)
         return {account, accountComments, accountVotes, accountVote, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -1228,11 +1228,11 @@ describe('accounts', () => {
       const rendered2 = renderHook<any, any>(() => useAccountVotes())
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
-      await waitFor2(() => rendered2.result.current.length)
-      expect(rendered2.result.current.length).toBe(3)
-      expect(rendered2.result.current[0].commentCid).toBe('comment cid 1')
-      expect(rendered2.result.current[1].commentCid).toBe('comment cid 2')
-      expect(rendered2.result.current[2].commentCid).toBe('comment cid 3')
+      await waitFor2(() => rendered2.result.current.accountVotes.length)
+      expect(rendered2.result.current.accountVotes.length).toBe(3)
+      expect(rendered2.result.current.accountVotes[0].commentCid).toBe('comment cid 1')
+      expect(rendered2.result.current.accountVotes[1].commentCid).toBe('comment cid 2')
+      expect(rendered2.result.current.accountVotes[2].commentCid).toBe('comment cid 3')
     })
 
     test(`get all comments and votes from different account name`, async () => {
@@ -1270,7 +1270,7 @@ describe('accounts', () => {
       // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => {
         const accountComments = useAccountComments({accountName: 'Account 2'})
-        const accountVotes = useAccountVotes({accountName: 'Account 2'})
+        const {accountVotes} = useAccountVotes({accountName: 'Account 2'})
         return {accountComments, accountVotes}
       })
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1324,6 +1324,12 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments.length).toBe(0)
       expect(rendered.result.current.accountVotes.length).toBe(1)
       expect(rendered.result.current.accountVotes[0].commentCid).toBe('comment cid 3')
+      expect(typeof rendered.result.current.accountVotes[0].timestamp).toBe('number')
+
+      // useAccountVote
+      expect(rendered.result.current.accountVote.commentCid).toBe('comment cid 3')
+      expect(rendered.result.current.accountVote.vote).toBe(1)
+      expect(typeof rendered.result.current.accountVote.timestamp).toBe('number')
     })
   })
 

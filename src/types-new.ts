@@ -34,22 +34,21 @@ export interface UseAccountCommentsResult extends Result {
   accountComments: AccountComment[]
 }
 
-// TODO
 // useAccountVotes(options): result
 export interface UseAccountVotesOptions extends Options {
   filter?: AccountPublicationsFilter
 }
 export interface UseAccountVotesResult extends Result {
-  accountVotes: number[]
+  accountVotes: AccountVote[]
 }
 
-// TODO
 // useAccountVote(options): result
 export interface UseAccountVoteOptions extends Options {
   commentCid?: string
 }
-export interface UseAccountVotesResult extends Result {
-  vote: number
+export interface UseAccountVoteResult extends Result, AccountVote {
+  commentCid: string | undefined
+  vote: number | undefined
 }
 
 // TODO
@@ -430,6 +429,14 @@ export type Role = {
 export type AccountSubplebbit = {
   role: Role
   autoStart?: boolean
+}
+export type AccountsVotes = {[accountId: string]: AccountVotes}
+export type AccountVotes = {[commendCid: string]: AccountVote}
+export type AccountVote = {
+  commentCid: string
+  vote: number
+  // has all the publish options like timestamp, etc
+  [publishOption: string]: any
 }
 
 /**

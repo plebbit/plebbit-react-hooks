@@ -426,7 +426,12 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   accountsStore.setState(({accountsVotes}) => ({
     accountsVotes: {
       ...accountsVotes,
-      [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions},
+      [account.id]: {
+        ...accountsVotes[account.id],
+        [createVoteOptions.commentCid]:
+          // remove signer and author because not needed and they expose private key
+          {...createVoteOptions, signer: undefined, author: undefined},
+      },
     },
   }))
 }
