@@ -6,6 +6,7 @@ const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
+const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)
 
 window.fetch = () => {
   throw Error(`electron tests shouldn't use window.fetch`)
@@ -63,7 +64,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')
-        expect(rendered.result.current.account.signer.privateKey).to.match(/^-----BEGIN ENCRYPTED PRIVATE KEY-----/)
+        expect(isBase64(rendered.result.current.account.signer.privateKey)).to.be.true
         expect(rendered.result.current.account.signer.address).to.equal(rendered.result.current.account.author.address)
         expect(rendered.result.current.account.name).to.equal('Account 1')
         expect(typeof rendered.result.current.publishComment).to.equal('function')
