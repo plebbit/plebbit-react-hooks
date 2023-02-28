@@ -25,9 +25,9 @@ describe('comments', () => {
 
     test('get comments one at a time', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
+      const rendered = renderHook<any, any>((commentCid) => useComment({commentCid}))
       const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.cid).toBe(undefined)
 
       rendered.rerender('comment cid 1')
       await waitFor(() => typeof rendered.result.current.cid === 'string')
@@ -74,9 +74,9 @@ describe('comments', () => {
       expect(commentsStore.getState().comments).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered2 = renderHook<any, any>((commentCid) => useComment(commentCid))
+      const rendered2 = renderHook<any, any>((commentCid) => useComment({commentCid}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      expect(rendered2.result.current).toBe(undefined)
+      expect(rendered2.result.current.cid).toBe(undefined)
 
       rendered2.rerender('comment cid 1')
       await waitFor2(() => typeof rendered2.result.current.cid === 'string')
@@ -144,9 +144,9 @@ describe('comments', () => {
       }
 
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
+      const rendered = renderHook<any, any>((commentCid) => useComment({commentCid}))
       const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.cid).toBe(undefined)
 
       rendered.rerender('comment cid 1')
       await waitFor(() => typeof rendered.result.current.cid === 'string')
@@ -166,9 +166,9 @@ describe('comments', () => {
 
     test('get comment from subplebbit pages', async () => {
       // on first render, the account is undefined because it's not yet loaded from database
-      const rendered = renderHook<any, any>((commentCid) => useComment(commentCid))
+      const rendered = renderHook<any, any>((commentCid) => useComment({commentCid}))
       const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current).toBe(undefined)
+      expect(rendered.result.current.cid).toBe(undefined)
 
       rendered.rerender('comment cid 1')
       await waitFor(() => typeof rendered.result.current.cid === 'string')

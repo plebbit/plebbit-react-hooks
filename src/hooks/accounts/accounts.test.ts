@@ -1035,7 +1035,7 @@ describe('accounts', () => {
       test(`cid gets added to account comment after fetched in useComment`, async () => {
         const rendered = renderHook<any, any>((commentCid) => {
           const accountComments = useAccountComments()
-          const comment = useComment(commentCid)
+          const comment = useComment({commentCid})
           return accountComments
         })
         await waitFor(() => rendered.result.current[0].content)

@@ -4,7 +4,7 @@ import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
-import {Comment} from '../types'
+import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types-new'
 import useCommentsStore from '../stores/comments'
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
 import shallow from 'zustand/shallow'
@@ -14,7 +14,8 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComment(commentCid?: string, accountName?: string) {
+export function useComment(options: UseCommentOptions): UseCommentResult {
+  const {commentCid, accountName} = options || {}
   const account = useAccount(accountName)
   let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
@@ -40,7 +41,17 @@ export function useComment(commentCid?: string, accountName?: string) {
     comment = subplebbitsPagesComment
   }
 
-  return comment
+  const state = comment ? 'succeeded' : 'fetching-ipfs'
+
+  return useMemo(
+    () => ({
+      ...comment,
+      error: undefined,
+      errors: [],
+      state,
+    }),
+    [comment, commentCid]
+  )
 }
 
 /**
