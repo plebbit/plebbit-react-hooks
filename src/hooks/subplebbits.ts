@@ -29,7 +29,7 @@ import shallow from 'zustand/shallow'
  */
 export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResult {
   const {subplebbitAddress, accountName} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const subplebbit = useSubplebbitsStore((state: any) => state.subplebbits[subplebbitAddress || ''])
   const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
 
@@ -68,7 +68,7 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
  */
 export function useSubplebbitMetrics(options?: UseSubplebbitMetricsOptions): UseSubplebbitMetricsResult {
   const {subplebbitAddress, accountName} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const subplebbit = useSubplebbit({subplebbitAddress})
   const subplebbitMetricsCid = subplebbit?.metricsCid
   const [subplebbitMetrics, setSubplebbitMetrics] = useState<SubplebbitMetrics>()
@@ -113,7 +113,7 @@ export function useSubplebbitMetrics(options?: UseSubplebbitMetricsOptions): Use
  */
 export function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsResult {
   const {subplebbitAddresses, accountName} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const subplebbits: (Subplebbit | undefined)[] = useSubplebbitsStore(
     (state: any) => (subplebbitAddresses || []).map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']),
     shallow
@@ -199,7 +199,7 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
     interval = 1000 * 60 * 60 * 25
   }
 
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
   const [resolvedAddress, setResolvedAddress] = useState<string>()

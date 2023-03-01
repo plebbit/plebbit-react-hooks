@@ -13,19 +13,16 @@ export interface Result {
   errors: Error[]
 }
 
-// TODO
 // useAccount(options): result
 export interface UseAccountOptions extends Options {}
 export interface UseAccountResult extends Result, Account {}
 
-// TODO
-// useAccounts(options)
+// useAccounts(options): result
 export interface UseAccountsOptions extends Options {}
 export interface UseAccountsResult extends Result {
   accounts: Account[]
 }
 
-// TODO
 // useAccountComments(options): result
 export interface UseAccountCommentsOptions extends Options {
   filter?: AccountPublicationsFilter

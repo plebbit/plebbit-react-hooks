@@ -107,7 +107,7 @@ describe('accounts', () => {
 
     test('create new accounts', async () => {
       const rendered = renderHook<any, any>((accountName) => {
-        const account = useAccount(accountName)
+        const account = useAccount({accountName})
         const {createAccount} = useAccountsActions()
         return {account, createAccount}
       })
@@ -143,7 +143,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if accounts saved to database
-      const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName))
+      const rendered2 = renderHook<any, any>((accountName) => useAccount({accountName}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -171,8 +171,8 @@ describe('accounts', () => {
     beforeEach(async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>((accountName) => {
-        const account = useAccount(accountName)
-        const accounts = useAccounts()
+        const account = useAccount({accountName})
+        const {accounts} = useAccounts()
         const accountsActions = useAccountsActions()
         return {account, accounts, ...accountsActions}
       })
@@ -260,7 +260,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if account change saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'))
+      const rendered2 = renderHook<any, any>(() => useAccount({accountName: 'Account 2'}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -361,7 +361,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // imported account persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name))
+      const rendered2 = renderHook<any, any>(() => useAccount({accountName: exportedAccount.name}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
       expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
@@ -436,12 +436,12 @@ describe('accounts', () => {
       // render second store with empty state to check if saved to database
       const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current[0].name)
+      await waitFor2(() => rendered2.result.current.accounts[0].name)
 
-      expect(rendered2.result.current[0].name).toBe('custom name')
-      expect(rendered2.result.current[1].name).toBe('Account 3')
-      expect(rendered2.result.current[2].name).toBe('Account 2')
-      expect(rendered2.result.current[3].name).toBe('Account 1')
+      expect(rendered2.result.current.accounts[0].name).toBe('custom name')
+      expect(rendered2.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered2.result.current.accounts[2].name).toBe('Account 2')
+      expect(rendered2.result.current.accounts[3].name).toBe('Account 1')
     })
 
     test(`delete account non-active account`, async () => {
@@ -471,11 +471,11 @@ describe('accounts', () => {
       // account deleted persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length > 0)
-      expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
-      expect(rendered2.result.current[0].name).toBe('Account 1')
-      expect(rendered2.result.current[1].name).toBe('Account 3')
-      expect(rendered2.result.current[2].name).toBe('custom name')
+      await waitFor2(() => rendered2.result.current.accounts.length > 0)
+      expect(rendered2.result.current.accounts.length).toBe(accountCountBefore - 1)
+      expect(rendered2.result.current.accounts[0].name).toBe('Account 1')
+      expect(rendered2.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered2.result.current.accounts[2].name).toBe('custom name')
     })
 
     test(`delete active account, active account switches to second account in accountNames`, async () => {
@@ -507,11 +507,11 @@ describe('accounts', () => {
       // account deleted persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length > 0)
-      expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
-      expect(rendered2.result.current[0].name).toBe('Account 2')
-      expect(rendered2.result.current[1].name).toBe('Account 3')
-      expect(rendered2.result.current[2].name).toBe('custom name')
+      await waitFor2(() => rendered2.result.current.accounts.length > 0)
+      expect(rendered2.result.current.accounts.length).toBe(accountCountBefore - 1)
+      expect(rendered2.result.current.accounts[0].name).toBe('Account 2')
+      expect(rendered2.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered2.result.current.accounts[2].name).toBe('custom name')
     })
 
     test(`delete all accounts and create a new one, which becomes active`, async () => {
@@ -654,7 +654,7 @@ describe('accounts', () => {
     const render = async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>((accountName) => {
-        const account = useAccount(accountName)
+        const account = useAccount({accountName})
         const accountsActions = useAccountsActions()
         return {account, ...accountsActions}
       })
@@ -899,7 +899,7 @@ describe('accounts', () => {
             hasParentCid: props?.hasParentCid,
           },
         }
-        const account = useAccount(props?.accountName)
+        const account = useAccount(props)
         const accountsActions = useAccountsActions()
         const {accountComments} = useAccountComments(useAccountCommentsOptions)
         const {accountVotes} = useAccountVotes(useAccountCommentsOptions)
@@ -1346,7 +1346,7 @@ describe('accounts', () => {
       }
 
       rendered = renderHook<any, any>((props?: any) => {
-        const account = useAccount(props?.accountName)
+        const account = useAccount(props)
         const {notifications, markAsRead} = useNotifications(props)
         const {publishComment} = useAccountsActions()
         return {account, notifications, markAsRead, publishComment}

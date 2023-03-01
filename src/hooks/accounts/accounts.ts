@@ -21,6 +21,8 @@ import type {
   UseAccountCommentsResult,
   UseNotificationsOptions,
   UseNotificationsResult,
+  UseAccountOptions,
+  UseAccountResult,
 } from '../../types-new'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications} from './utils'
 
@@ -40,7 +42,8 @@ export function useAccountId(accountName?: string) {
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account.
  */
-export function useAccount(accountName?: string) {
+export function useAccount(options?: UseAccountOptions): UseAccountResult {
+  const {accountName} = options || {}
   // get state
   const accountId = useAccountId(accountName)
   const accountStore = useAccountsStore((state) => state.accounts[accountId || ''])
@@ -71,7 +74,18 @@ export function useAccounts() {
   }, [accounts, accountIds])
 
   log('useAccounts', {accounts, accountIds})
-  return accountsArray
+
+  const state = accountsArray?.length ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      accounts: accountsArray,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [accountsArray, state]
+  )
 }
 
 /**
@@ -146,9 +160,9 @@ export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): U
   return useMemo(
     () => ({
       accountSubplebbits,
+      state,
       error: undefined,
       errors: [],
-      state,
     }),
     [accountSubplebbits, state]
   )

@@ -35,7 +35,7 @@ const publishChallengeAnswersNotReady: PublishChallengeAnswers = async (challeng
 
 export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult {
   const {subplebbitAddress, accountName, onError} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const [errors, setErrors] = useState<Error[]>([])
   let state = 'initializing'
@@ -77,7 +77,7 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
 
 export function useBlock(options?: UseBlockOptions): UseBlockResult {
   const {address, accountName, onError} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const [errors, setErrors] = useState<Error[]>([])
   let state = 'initializing'

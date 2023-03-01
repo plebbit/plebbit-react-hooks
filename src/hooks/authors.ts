@@ -71,7 +71,7 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
  */
 // NOTE: useNftUrl tests are skipped, if changes are made they must be tested manually
 export function useNftUrl(nft?: Nft, accountName?: string) {
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
@@ -115,7 +115,7 @@ export function useNftUrl(nft?: Nft, accountName?: string) {
 // NOTE: useNftImageUrl tests are skipped, if changes are made they must be tested manually
 export function useNftImageUrl(nftUrl?: string, accountName?: string) {
   assert(!nftUrl || typeof nftUrl === 'string', `useNftImageUrl invalid argument nftUrl '${nftUrl}' not a string`)
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
   const [imageUrl, setImageUrl] = useState()
@@ -143,7 +143,7 @@ export function useNftImageUrl(nftUrl?: string, accountName?: string) {
 
 // NOTE: useVerifiedAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
 export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: string) {
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
   const [verified, setVerified] = useState<boolean>()
@@ -258,7 +258,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
     interval = 1000 * 60 * 60 * 25
   }
 
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
   const [resolvedAddress, setResolvedAddress] = useState<string>()

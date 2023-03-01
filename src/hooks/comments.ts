@@ -16,7 +16,7 @@ import shallow from 'zustand/shallow'
  */
 export function useComment(options?: UseCommentOptions): UseCommentResult {
   const {commentCid, accountName} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
@@ -61,7 +61,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
  */
 export function useComments(options?: UseCommentsOptions): UseCommentsResult {
   const {commentCids, accountName} = options || {}
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(
     (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
     shallow

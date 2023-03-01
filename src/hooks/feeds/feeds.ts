@@ -20,7 +20,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
     sortType = 'hot'
   }
   validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName)
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
@@ -93,7 +93,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
 export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBufferedFeedsResult {
   const {feedsOptions, accountName} = options || {}
   validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
 
   // do a bunch of calculations to get feedsOptionsFlattened and feedNames
