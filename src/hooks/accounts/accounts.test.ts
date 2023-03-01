@@ -3,7 +3,6 @@ import testUtils from '../../lib/test-utils'
 import {
   useAccount,
   useAccounts,
-  useAccountsActions,
   useAccountComments,
   useAccountVotes,
   useAccountVote,
@@ -15,6 +14,7 @@ import {
   useSubplebbit,
   setPlebbitJs,
 } from '../..'
+import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
@@ -62,7 +62,7 @@ describe('accounts', () => {
 
       const rendered = renderHook(() => {
         const account = useAccount()
-        const {setAccount} = useAccountsActions()
+        const {setAccount} = accountsActions
         return {account, setAccount}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -108,7 +108,7 @@ describe('accounts', () => {
     test('create new accounts', async () => {
       const rendered = renderHook<any, any>((accountName) => {
         const account = useAccount({accountName})
-        const {createAccount} = useAccountsActions()
+        const {createAccount} = accountsActions
         return {account, createAccount}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -173,7 +173,6 @@ describe('accounts', () => {
       rendered = renderHook<any, any>((accountName) => {
         const account = useAccount({accountName})
         const {accounts} = useAccounts()
-        const accountsActions = useAccountsActions()
         return {account, accounts, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -655,7 +654,6 @@ describe('accounts', () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>((accountName) => {
         const account = useAccount({accountName})
-        const accountsActions = useAccountsActions()
         return {account, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -900,7 +898,6 @@ describe('accounts', () => {
           },
         }
         const account = useAccount(props)
-        const accountsActions = useAccountsActions()
         const {accountComments} = useAccountComments(useAccountCommentsOptions)
         const {accountVotes} = useAccountVotes(useAccountCommentsOptions)
         const accountVote = useAccountVote(props)
@@ -1348,7 +1345,7 @@ describe('accounts', () => {
       rendered = renderHook<any, any>((props?: any) => {
         const account = useAccount(props)
         const {notifications, markAsRead} = useNotifications(props)
-        const {publishComment} = useAccountsActions()
+        const {publishComment} = accountsActions
         return {account, notifications, markAsRead, publishComment}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -1506,7 +1503,7 @@ describe('accounts', () => {
         rendered = renderHook<any, any>(() => {
           const {accountSubplebbits} = useAccountSubplebbits()
           const account = useAccount()
-          const {setAccount} = useAccountsActions()
+          const {setAccount} = accountsActions
           return {accountSubplebbits, setAccount, account}
         })
         waitFor = testUtils.createWaitFor(rendered)
@@ -1564,7 +1561,7 @@ describe('accounts', () => {
       const rendered = renderHook<any, any>((subplebbitAddress) => {
         const {accountSubplebbits} = useAccountSubplebbits()
         const account = useAccount()
-        const {setAccount} = useAccountsActions()
+        const {setAccount} = accountsActions
         const subplebbit = useSubplebbit({subplebbitAddress})
         return {accountSubplebbits, setAccount, account}
       })
@@ -1599,7 +1596,6 @@ describe('accounts', () => {
     beforeEach(async () => {
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const account = useAccount()
-        const accountsActions = useAccountsActions()
         const {accountSubplebbits} = useAccountSubplebbits()
         const subplebbit = useSubplebbit({subplebbitAddress})
         return {account, subplebbit, accountSubplebbits, ...accountsActions}
@@ -1712,7 +1708,6 @@ describe('accounts', () => {
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const subplebbit = useSubplebbit({subplebbitAddress})
-        const accountsActions = useAccountsActions()
         return {subplebbit, ...accountsActions}
       })
       expect(rendered.result.current.subplebbit.address).toBe(undefined)
@@ -1740,7 +1735,6 @@ describe('accounts', () => {
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const subplebbit = useSubplebbit({subplebbitAddress})
-        const accountsActions = useAccountsActions()
         return {subplebbit, ...accountsActions}
       })
       expect(rendered.result.current.subplebbit.address).toBe(undefined)
@@ -1761,7 +1755,6 @@ describe('accounts', () => {
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const subplebbit = useSubplebbit({subplebbitAddress})
-        const accountsActions = useAccountsActions()
         return {subplebbit, ...accountsActions}
       })
       expect(rendered.result.current.subplebbit.address).toBe(undefined)

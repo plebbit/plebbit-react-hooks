@@ -89,14 +89,6 @@ export function useAccounts() {
 }
 
 /**
- * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
- */
-export function useAccountsActions() {
-  const accountsActions = useAccountsStore((state) => state.accountsActions)
-  return accountsActions
-}
-
-/**
  * Returns all subplebbits where the account is a creator or moderator
  */
 export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): UseAccountSubplebbitsResult {

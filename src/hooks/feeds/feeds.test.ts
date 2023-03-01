@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useFeed, useBufferedFeeds, useAccountsActions, useAccount, setPlebbitJs} from '../..'
+import {useFeed, useBufferedFeeds, useAccount, setPlebbitJs} from '../..'
+import * as accountsActions from '../../stores/accounts/accounts-actions'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 import feedsStore from '../../stores/feeds'
@@ -384,7 +385,7 @@ describe('feeds', () => {
     test('get feed using a different account', async () => {
       rendered = renderHook<any, any>((props: any) => {
         const feed = useFeed(props)
-        const {createAccount} = useAccountsActions()
+        const {createAccount} = accountsActions
         return {...feed, createAccount}
       })
 
@@ -417,7 +418,6 @@ describe('feeds', () => {
         const feed = useFeed(props)
         const account = useAccount()
         const [bufferedFeed] = useBufferedFeeds(props && {feedsOptions: [props], accountName: newActiveAccountName}).bufferedFeeds
-        const accountsActions = useAccountsActions()
         return {...feed, ...accountsActions, account, bufferedFeed}
       })
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
@@ -745,7 +745,7 @@ describe('feeds', () => {
 
       const rendered = renderHook<any, any>((props: any) => {
         const [bufferedFeed] = useBufferedFeeds({feedsOptions: [{subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'}]}).bufferedFeeds
-        const {blockAddress, unblockAddress} = useAccountsActions()
+        const {blockAddress, unblockAddress} = accountsActions
         const account = useAccount()
         return {bufferedFeed, blockAddress, unblockAddress, account}
       })
