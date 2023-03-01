@@ -39,7 +39,7 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const [errors, setErrors] = useState<Error[]>([])
   let state = 'initializing'
-  let subscribed = undefined
+  let subscribed: boolean | undefined
 
   // before the account and subplebbitAddress is defined, nothing can happen
   if (account && subplebbitAddress) {
@@ -65,14 +65,17 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
     }
   }
 
-  return {
-    state,
-    error: errors[errors.length - 1],
-    errors,
-    subscribed,
-    subscribe,
-    unsubscribe,
-  }
+  return useMemo(
+    () => ({
+      subscribed,
+      subscribe,
+      unsubscribe,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, subscribed, errors, subplebbitAddress, accountName]
+  )
 }
 
 export function useBlock(options?: UseBlockOptions): UseBlockResult {
@@ -81,7 +84,7 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const [errors, setErrors] = useState<Error[]>([])
   let state = 'initializing'
-  let blocked = undefined
+  let blocked: boolean | undefined
 
   // before the account and address is defined, nothing can happen
   if (account && address) {
@@ -107,14 +110,17 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
     }
   }
 
-  return {
-    state,
-    error: errors[errors.length - 1],
-    errors,
-    blocked,
-    block,
-    unblock,
-  }
+  return useMemo(
+    () => ({
+      blocked,
+      block,
+      unblock,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, blocked, errors, address, accountName]
+  )
 }
 
 export function usePublishComment(options?: UsePublishCommentOptions): UsePublishCommentResult {
@@ -174,16 +180,19 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
     }
   }
 
-  return {
-    state: state || initialState,
-    error: errors[errors.length - 1],
-    errors,
-    publishComment,
-    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-    index,
-    challenge,
-    challengeVerification,
-  }
+  return useMemo(
+    () => ({
+      index,
+      challenge,
+      challengeVerification,
+      publishComment,
+      publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+      state: state || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+  )
 }
 
 export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteResult {
@@ -241,15 +250,18 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
     }
   }
 
-  return {
-    state: state || initialState,
-    error: errors[errors.length - 1],
-    errors,
-    publishVote,
-    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-    challenge,
-    challengeVerification,
-  }
+  return useMemo(
+    () => ({
+      challenge,
+      challengeVerification,
+      publishVote,
+      publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+      state: state || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+  )
 }
 
 export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): UsePublishCommentEditResult {
@@ -307,15 +319,18 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
     }
   }
 
-  return {
-    state: state || initialState,
-    error: errors[errors.length - 1],
-    errors,
-    publishCommentEdit,
-    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-    challenge,
-    challengeVerification,
-  }
+  return useMemo(
+    () => ({
+      challenge,
+      challengeVerification,
+      publishCommentEdit,
+      publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+      state: state || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+  )
 }
 
 export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult {
@@ -373,15 +388,18 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
     }
   }
 
-  return {
-    state: state || initialState,
-    error: errors[errors.length - 1],
-    errors,
-    publishSubplebbitEdit,
-    publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-    challenge,
-    challengeVerification,
-  }
+  return useMemo(
+    () => ({
+      challenge,
+      challengeVerification,
+      publishSubplebbitEdit,
+      publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+      state: state || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+  )
 }
 
 export function useCreateSubplebbit(options?: UseCreateSubplebbitOptions): UseCreateSubplebbitResult {
@@ -411,11 +429,14 @@ export function useCreateSubplebbit(options?: UseCreateSubplebbitOptions): UseCr
     }
   }
 
-  return {
-    state: state || initialState,
-    error: errors[errors.length - 1],
-    errors,
-    createSubplebbit,
-    createdSubplebbit,
-  }
+  return useMemo(
+    () => ({
+      createdSubplebbit,
+      createSubplebbit,
+      state: state || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [state, errors, createdSubplebbit, options, accountName]
+  )
 }

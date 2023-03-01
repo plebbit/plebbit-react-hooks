@@ -56,12 +56,15 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
     log('useAuthorAvatarImageUrl', {author, state, verified, isWhitelisted, nftUrl, imageUrl})
   }
 
-  return {
-    state,
-    error,
-    errors,
-    imageUrl,
-  }
+  return useMemo(
+    () => ({
+      imageUrl,
+      state,
+      error,
+      errors,
+    }),
+    [imageUrl, state, error]
+  )
 }
 
 /**
@@ -88,10 +91,14 @@ export function useNftUrl(nft?: Nft, accountName?: string) {
   ]
 
   useEffect(() => {
+    // reset
     setError(undefined)
+    setNftUrl(undefined)
+
     if (!account || !nft) {
       return
     }
+
     ;(async () => {
       try {
         const url = await getNftUrl(...getNftUrlArgs)
@@ -122,10 +129,14 @@ export function useNftImageUrl(nftUrl?: string, accountName?: string) {
   const [error, setError] = useState<Error | undefined>()
 
   useEffect(() => {
+    // reset
     setError(undefined)
+    setImageUrl(undefined)
+
     if (!account || !nftUrl) {
       return
     }
+
     ;(async () => {
       try {
         const url = await getNftImageUrl(nftUrl, ipfsGatewayUrl)
@@ -150,10 +161,14 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
   const [error, setError] = useState<Error | undefined>()
 
   useEffect(() => {
+    // reset
     setError(undefined)
+    setVerified(undefined)
+
     if (!account || !author?.avatar) {
       return
     }
+
     ;(async () => {
       try {
         const res = await verifyAuthorAvatarSignature(author.avatar, author.address, blockchainProviders)
@@ -273,7 +288,17 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
 
   useInterval(
     () => {
+      // no options, do nothing or reset
       if (!account || !author?.address) {
+        if (resolvedAddress !== undefined) {
+          setResolvedAddress(undefined)
+        }
+        if (state !== undefined) {
+          setState(undefined)
+        }
+        if (errors.length) {
+          setErrors([])
+        }
         return
       }
 
@@ -282,6 +307,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
         if (state !== 'failed') {
           setErrors([Error('not a crypto domain')])
           setState('failed')
+          setResolvedAddress(undefined)
         }
         return
       }
@@ -291,6 +317,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
         if (state !== 'failed') {
           setErrors([Error('crypto domain type unsupported')])
           setState('failed')
+          setResolvedAddress(undefined)
         }
         return
       }
@@ -309,6 +336,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
         } catch (error: any) {
           setErrors([...errors, error])
           setState('failed')
+          setResolvedAddress(undefined)
           log.error('useResolvedAuthorAddress resolveAuthorAddress error', {author, blockchainProviders, error})
         }
       })()
@@ -319,12 +347,16 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
   )
 
   // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
-  return {
-    state: state || initialState,
-    error: errors[errors.length - 1],
-    errors,
-    resolvedAddress,
-  }
+
+  return useMemo(
+    () => ({
+      resolvedAddress,
+      state: state || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [resolvedAddress, state, errors]
+  )
 }
 
 // NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
@@ -338,20 +370,3 @@ export const resolveAuthorAddress = async (authorAddress: string, blockchainProv
   }
   return resolvedAuthorAddress
 }
-
-const nftAbi = [
-  {
-    inputs: [{internalType: 'uint256', name: 'tokenId', type: 'uint256'}],
-    name: 'tokenURI',
-    outputs: [{internalType: 'string', name: '', type: 'string'}],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{internalType: 'uint256', name: 'tokenId', type: 'uint256'}],
-    name: 'ownerOf',
-    outputs: [{internalType: 'address', name: '', type: 'address'}],
-    stateMutability: 'view',
-    type: 'function',
-  },
-]

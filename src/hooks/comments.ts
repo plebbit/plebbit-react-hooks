@@ -46,9 +46,9 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   return useMemo(
     () => ({
       ...comment,
+      state,
       error: undefined,
       errors: [],
-      state,
     }),
     [comment, commentCid]
   )
@@ -105,9 +105,9 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
   return useMemo(
     () => ({
       comments,
+      state,
       error: undefined,
       errors: [],
-      state,
     }),
     [comments, commentCids?.toString()]
   )

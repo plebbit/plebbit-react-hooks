@@ -53,9 +53,9 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
   return useMemo(
     () => ({
       ...subplebbit,
+      state,
       error: undefined,
       errors: [],
-      state,
     }),
     [subplebbit, subplebbitAddress]
   )
@@ -98,9 +98,9 @@ export function useSubplebbitMetrics(options?: UseSubplebbitMetricsOptions): Use
   return useMemo(
     () => ({
       ...subplebbitMetrics,
+      state,
       error: undefined,
       errors: [],
-      state,
     }),
     [subplebbitMetrics, subplebbitMetricsCid]
   )
@@ -141,9 +141,9 @@ export function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsR
   return useMemo(
     () => ({
       subplebbits,
+      state,
       error: undefined,
       errors: [],
-      state,
     }),
     [subplebbits, subplebbitAddresses?.toString()]
   )
@@ -214,7 +214,17 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
 
   useInterval(
     () => {
+      // no options, do nothing or reset
       if (!account || !subplebbitAddress) {
+        if (resolvedAddress !== undefined) {
+          setResolvedAddress(undefined)
+        }
+        if (state !== undefined) {
+          setState(undefined)
+        }
+        if (errors.length) {
+          setErrors([])
+        }
         return
       }
 
@@ -223,6 +233,7 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
         if (state !== 'failed') {
           setErrors([Error('not a crypto domain')])
           setState('failed')
+          setResolvedAddress(undefined)
         }
         return
       }
@@ -232,6 +243,7 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
         if (state !== 'failed') {
           setErrors([Error('crypto domain type unsupported')])
           setState('failed')
+          setResolvedAddress(undefined)
         }
         return
       }
@@ -247,6 +259,7 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
         } catch (error: any) {
           setErrors([...errors, error])
           setState('failed')
+          setResolvedAddress(undefined)
           log.error('useResolvedSubplebbitAddress resolveSubplebbitAddress error', {subplebbitAddress, blockchainProviders, error})
         }
       })()
@@ -258,10 +271,10 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
 
   // log('useResolvedSubplebbitAddress', {subplebbitAddress, state, errors, resolvedAddress, blockchainProviders})
   return {
+    resolvedAddress,
     state: state || initialState,
     error: errors[errors.length - 1],
     errors,
-    resolvedAddress,
   }
 }
 
