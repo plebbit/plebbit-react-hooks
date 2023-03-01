@@ -296,7 +296,7 @@ export function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteR
   const {commentCid, accountName} = options || {}
   const accountId = useAccountId(accountName)
   const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
-  const accountVote = accountVotes?.[commentCid || '']
+  const accountVote: any = accountVotes?.[commentCid || '']
   const state = accountId && commentCid ? 'succeeded' : 'initializing'
 
   return useMemo(

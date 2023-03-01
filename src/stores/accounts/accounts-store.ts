@@ -3,7 +3,18 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:stores:accounts')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
-import {Subplebbit, AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, AccountComment, AccountsComments, AccountsCommentsReplies} from '../../types'
+import {
+  Subplebbit,
+  AccountNamesToAccountIds,
+  Account,
+  Accounts,
+  AccountsActions,
+  Comment,
+  AccountsVotes,
+  AccountComment,
+  AccountsComments,
+  AccountsCommentsReplies,
+} from '../../types'
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'
@@ -20,7 +31,7 @@ type AccountsState = {
   accountsComments: AccountsComments
   accountsCommentsUpdating: {[commendCid: string]: boolean}
   accountsCommentsReplies: AccountsCommentsReplies
-  accountsVotes: any
+  accountsVotes: AccountsVotes
   accountsActions: {[key: string]: Function}
   accountsActionsInternal: {[key: string]: Function}
 }
