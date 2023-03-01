@@ -14,7 +14,7 @@ export type CreateSubplebbitOptions = {[key: string]: any}
 export type CreateVoteOptions = {[key: string]: any}
 export type Comment = {[key: string]: any}
 export type Subplebbit = {[key: string]: any}
-export type AccountNotification = {[key: string]: any}
+export type Notification = {[key: string]: any}
 export type Nft = {[key: string]: any}
 export type Author = {[key: string]: any}
 
@@ -40,8 +40,7 @@ export interface AccountCommentReply extends Comment {
 }
 export type AccountCommentsReplies = {[replyCid: string]: AccountCommentReply}
 export type AccountsCommentsReplies = {[accountId: string]: AccountCommentsReplies}
-export type AccountNotifications = AccountNotification[]
-export type AccountsNotifications = {[accountId: string]: AccountNotifications}
+export type AccountsNotifications = {[accountId: string]: Notification[]}
 export type Role = {
   role: 'owner' | 'admin' | 'moderator'
 }

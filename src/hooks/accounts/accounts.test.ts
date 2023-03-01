@@ -10,7 +10,7 @@ import {
   useAccountSubplebbits,
   UseAccountCommentsOptions,
   useComment,
-  useAccountNotifications,
+  useNotifications,
   useFeed,
   useSubplebbit,
   setPlebbitJs,
@@ -1347,7 +1347,7 @@ describe('accounts', () => {
 
       rendered = renderHook<any, any>((props?: any) => {
         const account = useAccount(props?.accountName)
-        const {notifications, markAsRead} = useAccountNotifications(props?.accountName)
+        const {notifications, markAsRead} = useNotifications(props)
         const {publishComment} = useAccountsActions()
         return {account, notifications, markAsRead, publishComment}
       })
@@ -1466,7 +1466,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // check to see if in database after refreshing with a new store
-      const rendered2 = renderHook<any, any>(() => useAccountNotifications())
+      const rendered2 = renderHook<any, any>(() => useNotifications())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.notifications.length >= 4)
 

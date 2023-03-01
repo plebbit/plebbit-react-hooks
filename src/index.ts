@@ -9,16 +9,7 @@ try {
 } catch (e) {}
 
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
-import {
-  useAccount,
-  useAccounts,
-  useAccountsActions,
-  useAccountComments,
-  useAccountVotes,
-  useAccountVote,
-  useAccountNotifications,
-  useAccountSubplebbits,
-} from './hooks/accounts'
+import {useAccount, useAccounts, useAccountsActions, useAccountComments, useAccountVotes, useAccountVote, useNotifications, useAccountSubplebbits} from './hooks/accounts'
 
 import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
 
@@ -40,7 +31,7 @@ export {
   useAccountVotes,
   useAccountVote,
   useAccountSubplebbits,
-  useAccountNotifications,
+  useNotifications,
   // comments
   useComment,
   useComments,
@@ -80,7 +71,7 @@ const hooks = {
   useAccountVotes,
   useAccountVote,
   useAccountSubplebbits,
-  useAccountNotifications,
+  useNotifications,
   // comments
   useComment,
   useComments,

@@ -184,9 +184,9 @@ const getAccountsCommentsWithoutCids = () => {
 }
 
 // internal accounts action: mark an account's notifications as read
-export const markAccountNotificationsAsRead = async (account: Account) => {
+export const markNotificationsAsRead = async (account: Account) => {
   const {accountsCommentsReplies} = accountsStore.getState()
-  assert(typeof account?.id === 'string', `accountsStore.markAccountNotificationsAsRead invalid account argument '${account}'`)
+  assert(typeof account?.id === 'string', `accountsStore.markNotificationsAsRead invalid account argument '${account}'`)
 
   // find all unread replies
   const repliesToMarkAsRead: AccountCommentsReplies = {}
@@ -204,7 +204,7 @@ export const markAccountNotificationsAsRead = async (account: Account) => {
   await Promise.all(promises)
 
   // add all to react store
-  log('accountsActions.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
+  log('accountsActions.markNotificationsAsRead', {account, repliesToMarkAsRead})
   accountsStore.setState(({accountsCommentsReplies}) => {
     const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
     return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}

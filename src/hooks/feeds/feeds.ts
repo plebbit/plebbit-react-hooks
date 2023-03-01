@@ -23,9 +23,9 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   const account = useAccount(accountName)
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
-
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
   const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses)
+  const [errors, setErrors] = useState<Error[]>([])
 
   // add feed to store
   useEffect(() => {
@@ -48,9 +48,10 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
         throw Error('useFeed cannot load more feed not initalized yet')
       }
       incrementFeedPageNumber(feedName)
-    } catch (e) {
+    } catch (e: any) {
       // wait 100 ms so infinite scroll doesn't spam this function
       await new Promise((r) => setTimeout(r, 50))
+      setErrors([...errors, e])
     }
   }
 
@@ -74,10 +75,10 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       hasMore,
       loadMore,
       state,
-      error: undefined,
-      errors: [],
+      error: errors[errors.length - 1],
+      errors,
     }),
-    [feed, feedName]
+    [feed, feedName, errors]
   )
 }
 

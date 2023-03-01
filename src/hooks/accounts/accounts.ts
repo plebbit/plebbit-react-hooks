@@ -8,7 +8,6 @@ import type {
   UseAccountCommentsFilter,
   UseAccountCommentsOptions,
   AccountComments,
-  AccountNotifications,
   Account,
   Accounts,
   AccountVote,
@@ -20,8 +19,10 @@ import type {
   UseAccountVoteResult,
   UseAccountVotesOptions,
   UseAccountVotesResult,
+  UseNotificationsOptions,
+  UseNotificationsResult,
 } from '../../types-new'
-import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedAccountNotifications} from './utils'
+import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications} from './utils'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -159,24 +160,43 @@ export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): U
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account's notifications.
  */
-export function useAccountNotifications(accountName?: string) {
+export function useNotifications(options?: UseNotificationsOptions): UseNotificationsResult {
+  const {accountName} = options || {}
   // get state
   const accountId = useAccountId(accountName)
   const account = useAccountsStore((state) => state.accounts[accountId || ''])
   const accountCommentsReplies = useAccountsStore((state) => state.accountsCommentsReplies[accountId || ''])
   const accountsActionsInternal = useAccountsStore((state) => state.accountsActionsInternal)
-  const notifications = useCalculatedAccountNotifications(account, accountCommentsReplies)
+  const notifications = useCalculatedNotifications(account, accountCommentsReplies)
+  const [errors, setErrors] = useState<Error[]>([])
 
-  const markAsRead = () => {
-    if (!account) {
-      throw Error('useAccountNotifications cannot mark as read accounts not initalized yet')
+  const markAsRead = async () => {
+    try {
+      if (!account) {
+        throw Error('useNotifications cannot mark as read accounts not initalized yet')
+      }
+      accountsActionsInternal.markNotificationsAsRead(account)
+    } catch (e: any) {
+      setErrors([...errors, e])
     }
-    accountsActionsInternal.markAccountNotificationsAsRead(account)
   }
+
   if (account) {
-    log('useAccountNotifications', {notifications})
+    log('useNotifications', {notifications})
   }
-  return {notifications, markAsRead}
+
+  const state = accountId ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      notifications,
+      markAsRead,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [notifications, errors]
+  )
 }
 
 /**

@@ -8,7 +8,7 @@ import type {
   AccountComments,
   Accounts,
   AccountsNotifications,
-  AccountNotifications,
+  Notification,
   AccountCommentReply,
 } from '../../types'
 import {useMemo} from 'react'
@@ -57,7 +57,7 @@ export const filterPublications = (publications: any, filter: UseAccountComments
   return filteredPublications
 }
 
-export const useCalculatedAccountNotifications = (account?: Account, accountCommentsReplies?: AccountCommentsReplies) => {
+export const useCalculatedNotifications = (account?: Account, accountCommentsReplies?: AccountCommentsReplies) => {
   return useMemo(() => {
     if (!account || !accountCommentsReplies) {
       return []
@@ -125,9 +125,9 @@ const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies:
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
 const useAccountCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
-  const accountNotifications = useCalculatedAccountNotifications(account, accountCommentsReplies)
+  const notifications = useCalculatedNotifications(account, accountCommentsReplies)
   return useMemo(() => {
-    return getAccountCalculatedProperties(accountComments, accountNotifications)
+    return getAccountCalculatedProperties(accountComments, notifications)
   }, [accountComments, accountCommentsReplies])
 }
 
@@ -162,7 +162,7 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
   }, [accounts, accountsComments, accountsCommentsReplies])
 }
 
-const getAccountCalculatedPropertiesNoCache = (accountComments?: AccountComments, accountNotifications?: AccountNotifications) => {
+const getAccountCalculatedPropertiesNoCache = (accountComments?: AccountComments, notifications?: Notification[]) => {
   const accountCalculatedProperties: any = {}
 
   // add karma
@@ -200,7 +200,7 @@ const getAccountCalculatedPropertiesNoCache = (accountComments?: AccountComments
 
   // add unreadNotificationCount
   let unreadNotificationCount = 0
-  for (const notification of accountNotifications || []) {
+  for (const notification of notifications || []) {
     if (!notification.markedAsRead) {
       unreadNotificationCount++
     }

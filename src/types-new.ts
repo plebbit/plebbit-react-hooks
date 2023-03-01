@@ -52,9 +52,9 @@ export interface UseAccountVoteResult extends Result, AccountVote {
 }
 
 // TODO
-// useAccountNotifications(options): result
-export interface UseAccountNotificationsOptions extends Options {}
-export interface UseAccountNotificationsResult extends Result {
+// useNotifications(options): result
+export interface UseNotificationsOptions extends Options {}
+export interface UseNotificationsResult extends Result {
   notifications: Notification[]
   markAsRead(): Promise<void>
 }
@@ -395,7 +395,7 @@ export type CommentEdit = {[key: string]: any}
 export type SubplebbitEdit = {[key: string]: any}
 export type Subplebbit = {[key: string]: any}
 export type SubplebbitMetrics = {[key: string]: any}
-export type AccountNotification = {[key: string]: any}
+export type Notification = {[key: string]: any}
 export type Nft = {[key: string]: any}
 export type Author = {[key: string]: any}
 
@@ -421,8 +421,7 @@ export interface AccountCommentReply extends Comment {
 }
 export type AccountCommentsReplies = {[replyCid: string]: AccountCommentReply}
 export type AccountsCommentsReplies = {[accountId: string]: AccountCommentsReplies}
-export type AccountNotifications = AccountNotification[]
-export type AccountsNotifications = {[accountId: string]: AccountNotifications}
+export type AccountsNotifications = {[accountId: string]: Notification[]}
 export type Role = {
   role: 'owner' | 'admin' | 'moderator'
 }
