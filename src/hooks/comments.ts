@@ -4,7 +4,7 @@ import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
-import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types-new'
+import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types'
 import useCommentsStore from '../stores/comments'
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
 import shallow from 'zustand/shallow'

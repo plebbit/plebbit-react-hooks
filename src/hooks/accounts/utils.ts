@@ -1,7 +1,7 @@
 import assert from 'assert'
 import type {
   Account,
-  UseAccountCommentsFilter,
+  AccountPublicationsFilter,
   AccountsCommentsReplies,
   AccountCommentsReplies,
   AccountsComments,
@@ -17,9 +17,9 @@ import memoize from 'memoizee'
 
 /**
  * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
- * Check UseAccountCommentsFilter type in types.tsx for more information, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
+ * Check AccountPublicationsFilter type in types.tsx for more information, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
-export const filterPublications = (publications: any, filter: UseAccountCommentsFilter) => {
+export const filterPublications = (publications: any, filter: AccountPublicationsFilter) => {
   for (const postCid of filter.postCids || []) {
     assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`)
   }

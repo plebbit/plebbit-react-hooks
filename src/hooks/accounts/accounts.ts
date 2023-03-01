@@ -23,7 +23,7 @@ import type {
   UseNotificationsResult,
   UseAccountOptions,
   UseAccountResult,
-} from '../../types-new'
+} from '../../types'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications} from './utils'
 
 /**

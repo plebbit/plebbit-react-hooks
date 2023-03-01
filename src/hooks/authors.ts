@@ -13,7 +13,7 @@ import {
   UseAuthorAvatarImageUrlResult,
   UseResolvedAuthorAddressOptions,
   UseResolvedAuthorAddressResult,
-} from '../types-new'
+} from '../types'
 import {ethers} from 'ethers'
 import {getNftUrl, getNftImageUrl, getNftOwner, resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../lib/blockchain'
 

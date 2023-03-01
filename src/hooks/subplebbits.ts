@@ -16,7 +16,7 @@ import {
   UseSubplebbitsResult,
   UseSubplebbitMetricsOptions,
   UseSubplebbitMetricsResult,
-} from '../types-new'
+} from '../types'
 import useInterval from './utils/use-interval'
 import {resolveEnsTxtRecord} from '../lib/blockchain'
 import useSubplebbitsStore from '../stores/subplebbits'

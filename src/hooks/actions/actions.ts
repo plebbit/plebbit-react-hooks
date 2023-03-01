@@ -26,7 +26,7 @@ import type {
   SubplebbitEdit,
   Vote,
   Subplebbit,
-} from '../../types-new'
+} from '../../types'
 
 type PublishChallengeAnswers = (challengeAnswers: string[]) => Promise<void>
 const publishChallengeAnswersNotReady: PublishChallengeAnswers = async (challengeAnswers) => {

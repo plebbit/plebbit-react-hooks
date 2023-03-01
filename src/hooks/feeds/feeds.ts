@@ -4,7 +4,7 @@ import validator from '../../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:feeds')
 import assert from 'assert'
-import {Feed, Feeds, UseBufferedFeedsOptions, UseBufferedFeedsResult, UseFeedOptions, UseFeedResult} from '../../types-new'
+import {Feed, Feeds, UseBufferedFeedsOptions, UseBufferedFeedsResult, UseFeedOptions, UseFeedResult} from '../../types'
 import useFeedsStore from '../../stores/feeds'
 import shallow from 'zustand/shallow'
 
