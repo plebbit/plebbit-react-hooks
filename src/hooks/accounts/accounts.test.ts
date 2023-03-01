@@ -901,7 +901,7 @@ describe('accounts', () => {
         }
         const account = useAccount(props?.accountName)
         const accountsActions = useAccountsActions()
-        const accountComments = useAccountComments(useAccountCommentsOptions)
+        const {accountComments} = useAccountComments(useAccountCommentsOptions)
         const {accountVotes} = useAccountVotes(useAccountCommentsOptions)
         const accountVote = useAccountVote(props)
         return {account, accountComments, accountVotes, accountVote, ...accountsActions}
@@ -1009,16 +1009,16 @@ describe('accounts', () => {
       await testUtils.resetStores()
       const rendered2 = renderHook<any, any>(() => useAccountComments())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length)
+      await waitFor2(() => rendered2.result.current.accountComments.length)
 
-      expect(rendered2.result.current.length).toBe(3)
-      expect(rendered2.result.current[0].content).toBe('content 1')
-      expect(rendered2.result.current[1].content).toBe('content 2')
-      expect(rendered2.result.current[2].content).toBe('content 3')
-      expect(rendered2.result.current[0].cid).toBe('content 1 cid')
-      expect(rendered2.result.current[1].cid).toBe('content 2 cid')
-      expect(rendered2.result.current[2].cid).toBe(undefined)
-      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current, activeAccountId)
+      expect(rendered2.result.current.accountComments.length).toBe(3)
+      expect(rendered2.result.current.accountComments[0].content).toBe('content 1')
+      expect(rendered2.result.current.accountComments[1].content).toBe('content 2')
+      expect(rendered2.result.current.accountComments[2].content).toBe('content 3')
+      expect(rendered2.result.current.accountComments[0].cid).toBe('content 1 cid')
+      expect(rendered2.result.current.accountComments[1].cid).toBe('content 2 cid')
+      expect(rendered2.result.current.accountComments[2].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments, activeAccountId)
     })
 
     describe('retry on fail', () => {
@@ -1034,7 +1034,7 @@ describe('accounts', () => {
       })
       test(`cid gets added to account comment after fetched in useComment`, async () => {
         const rendered = renderHook<any, any>((commentCid) => {
-          const accountComments = useAccountComments()
+          const {accountComments} = useAccountComments()
           const comment = useComment({commentCid})
           return accountComments
         })
@@ -1095,10 +1095,10 @@ describe('accounts', () => {
         const waitFor2 = testUtils.createWaitFor(rendered2)
         await waitFor2(() => rendered2.result.current[0].cid)
 
-        expect(rendered2.result.current[0].cid).toBe('content 1 cid')
-        expect(rendered2.result.current[1].cid).toBe('content 2 cid')
-        expect(rendered2.result.current[2].cid).toBe(undefined)
-        expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+        expect(rendered2.result.current.accountComments[0].cid).toBe('content 1 cid')
+        expect(rendered2.result.current.accountComments[1].cid).toBe('content 2 cid')
+        expect(rendered2.result.current.accountComments[2].cid).toBe(undefined)
+        expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments)
       })
     })
 
@@ -1107,7 +1107,7 @@ describe('accounts', () => {
 
       const rendered = renderHook<any, any>((props?) => {
         const {feed} = useFeed({subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'})
-        const accountComments = useAccountComments()
+        const {accountComments} = useAccountComments()
         return {accountComments, feed}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -1150,13 +1150,13 @@ describe('accounts', () => {
       // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountComments())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length)
+      await waitFor2(() => rendered2.result.current.accountComments.length)
 
-      expect(rendered2.result.current.length).toBe(3)
-      expect(rendered2.result.current[0].content).toBe('content 1')
-      expect(rendered2.result.current[1].content).toBe('content 2')
-      expect(rendered2.result.current[2].content).toBe('content 3')
-      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+      expect(rendered2.result.current.accountComments.length).toBe(3)
+      expect(rendered2.result.current.accountComments[0].content).toBe('content 1')
+      expect(rendered2.result.current.accountComments[1].content).toBe('content 2')
+      expect(rendered2.result.current.accountComments[2].content).toBe('content 3')
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments)
     })
 
     test(`account has no karma before comments are published`, async () => {
@@ -1196,7 +1196,7 @@ describe('accounts', () => {
       // get the karma from database by creating new store
       const rendered2 = renderHook<any, any>(() => {
         const account = useAccount()
-        const accountComments = useAccountComments()
+        const {accountComments} = useAccountComments()
         return {account, accountComments}
       })
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1269,7 +1269,7 @@ describe('accounts', () => {
 
       // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => {
-        const accountComments = useAccountComments({accountName: 'Account 2'})
+        const {accountComments} = useAccountComments({accountName: 'Account 2'})
         const {accountVotes} = useAccountVotes({accountName: 'Account 2'})
         return {accountComments, accountVotes}
       })

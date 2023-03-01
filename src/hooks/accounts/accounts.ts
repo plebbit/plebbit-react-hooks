@@ -5,8 +5,6 @@ const log = Logger('plebbit-react-hooks:hooks:accounts')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
 import type {
-  UseAccountCommentsFilter,
-  UseAccountCommentsOptions,
   AccountComments,
   Account,
   Accounts,
@@ -19,6 +17,8 @@ import type {
   UseAccountVoteResult,
   UseAccountVotesOptions,
   UseAccountVotesResult,
+  UseAccountCommentsOptions,
+  UseAccountCommentsResult,
   UseNotificationsOptions,
   UseNotificationsResult,
 } from '../../types-new'
@@ -203,24 +203,36 @@ export function useNotifications(options?: UseNotificationsOptions): UseNotifica
  * Returns the own user's comments stored locally, even those not yet published by the subplebbit owner.
  * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
-export function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions) {
-  const accountId = useAccountId(useAccountCommentsOptions?.accountName)
+export function useAccountComments(options?: UseAccountCommentsOptions): UseAccountCommentsResult {
+  const {accountName, filter} = options || {}
+  const accountId = useAccountId(accountName)
   const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''])
 
   const filteredAccountComments = useMemo(() => {
     if (!accountComments) {
-      return
+      return []
     }
-    if (useAccountCommentsOptions?.filter) {
-      return filterPublications(accountComments, useAccountCommentsOptions.filter)
+    if (filter) {
+      return filterPublications(accountComments, filter)
     }
     return accountComments
-  }, [accountComments, useAccountCommentsOptions])
+  }, [accountComments, filter])
 
-  if (accountComments && useAccountCommentsOptions) {
-    log('useAccountComments', {accountId, filteredAccountComments, accountComments, useAccountCommentsOptions})
+  if (accountComments && options) {
+    log('useAccountComments', {accountId, filteredAccountComments, accountComments, filter})
   }
-  return filteredAccountComments
+
+  const state = accountId ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      accountComments: filteredAccountComments,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [filteredAccountComments, state]
+  )
 }
 
 /**

@@ -26,11 +26,20 @@ export interface UseAccountsResult extends Result {
 }
 
 // TODO
-// useAccountComments(): result
+// useAccountComments(options): result
 export interface UseAccountCommentsOptions extends Options {
   filter?: AccountPublicationsFilter
 }
 export interface UseAccountCommentsResult extends Result {
+  accountComments: AccountComment[]
+}
+
+// TODO
+// useAccountComment(options): result
+export interface UseAccountCommentOptions extends Options {
+  commentCid?: string
+}
+export interface UseAccountCommentResult extends Result {
   accountComments: AccountComment[]
 }
 
@@ -51,7 +60,6 @@ export interface UseAccountVoteResult extends Result, AccountVote {
   vote: number | undefined
 }
 
-// TODO
 // useNotifications(options): result
 export interface UseNotificationsOptions extends Options {}
 export interface UseNotificationsResult extends Result {
@@ -101,6 +109,7 @@ export interface UseSubplebbitsResult extends Result {
   subplebbits: (Subplebbit | undefined)[]
 }
 
+// useSubplebbitMetrics(options): result
 export interface UseSubplebbitMetricsOptions extends Options {
   subplebbitAddress?: string
 }
@@ -461,16 +470,12 @@ export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
 /**
  * Accounts hooks
  */
-export type UseAccountCommentsFilter = {
+export type AccountPublicationsFilter = {
   subplebbitAddresses?: string[]
   postCids?: string[]
   commentCids?: string[]
   parentCids?: string[]
   hasParentCid?: boolean
-}
-export type UseAccountCommentsOptions = {
-  accountName?: string
-  filter?: UseAccountCommentsFilter
 }
 
 /**
