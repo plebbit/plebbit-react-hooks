@@ -89,6 +89,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       // reset
       rendered.rerender({subplebbitAddresses: []})
       await waitFor(() => rendered.result.current.feed.length === 0)
+      expect(rendered.result.current.feed.length).to.equal(0)
       console.log('after second render')
 
       // change sort type

@@ -33,7 +33,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
     const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
     assert(
       subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string',
-      `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts?.pageCids?.['${sortType}'] '${subplebbit.posts?.pageCids?.[sortType]}' invalid`
+      `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit?.address}' sortType '${sortType}' subplebbitFirstPageCid '${subplebbitFirstPageCid}' invalid`
     )
 
     // all subplebbits pages in store
@@ -119,7 +119,9 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
     return cachedSubplebbitPage
   }
   const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
-  const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid))
+  const onError = (error: any) =>
+    log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}': ${error.message}`)
+  const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), {onError})
   await subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage)
   return fetchedSubplebbitPage
 }

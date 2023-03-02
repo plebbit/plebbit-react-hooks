@@ -109,21 +109,18 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   return uniqueFlattened
 }
 
-// define for typescript
-const retryInfinityType = (f: any): any => {}
-
 const utils = {
   merge,
   clone,
   flattenCommentsPages,
   // define for typescript
-  retryInfinity: retryInfinityType,
+  retryInfinity: (f: any, o?: any): any => {},
   // export timeout values to mock them in tests
   retryInfinityMinTimeout: 1000,
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
 }
 
-export const retryInfinity = async (functionToRetry: any) => {
+export const retryInfinity = async (functionToRetry: any, options?: any) => {
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
   let attempt = 0
   while (true) {
@@ -131,6 +128,7 @@ export const retryInfinity = async (functionToRetry: any) => {
       const res = await functionToRetry()
       return res
     } catch (e) {
+      options?.onError(e || Error(`retryInfinity failed attempt ${attempt}`))
       const factor = 2
       let timeout = Math.round(utils.retryInfinityMinTimeout * Math.pow(factor, attempt++))
       timeout = Math.min(timeout, utils.retryInfinityMaxTimeout)
