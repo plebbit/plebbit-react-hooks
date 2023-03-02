@@ -1436,9 +1436,9 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(false)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(3)
 
-      act(() => {
+      await act(async () => {
         // mark the notifications as read
-        rendered.result.current.markAsRead()
+        await rendered.result.current.markAsRead()
       })
 
       // should be marked as read
