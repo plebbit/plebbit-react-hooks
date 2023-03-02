@@ -62,7 +62,7 @@ deleteAccount(accountName: string)
 setAccount(account: Account)
 setActiveAccount(accountName: string)
 setAccountsOrder(accountNames: string[])
-importAccount(serializedAccount: string | buffer)
+importAccount(serializedAccount: string)
 exportAccount(accountName: string): string // don't allow undefined to prevent catastrophic bugs
 ```
 #### Util functions
