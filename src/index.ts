@@ -11,12 +11,6 @@ try {
 // accounts
 import {useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useNotifications, useAccountSubplebbits} from './hooks/accounts'
 
-// actions
-import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
-
-// actions that don't have their own hooks yet
-import {createAccount, deleteAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit} from './stores/accounts/accounts-actions'
-
 // comments
 import {useComment, useComments} from './hooks/comments'
 
@@ -28,6 +22,12 @@ import {useFeed, useBufferedFeeds} from './hooks/feeds'
 
 // authors
 import {useAuthorAvatarImageUrl, useResolvedAuthorAddress} from './hooks/authors'
+
+// actions
+import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
+
+// actions that don't have their own hooks yet
+import {createAccount, deleteAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit} from './stores/accounts/accounts-actions'
 
 // utils
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'

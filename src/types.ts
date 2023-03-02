@@ -1,3 +1,5 @@
+// Note: the commented out types are TODO functionalities to implement
+
 /**
  * Public interface
  */
@@ -31,7 +33,6 @@ export interface UseAccountCommentsResult extends Result {
   accountComments: AccountComment[]
 }
 
-// TODO
 // useAccountComment(options): result
 export interface UseAccountCommentOptions extends Options {
   commentIndex?: number
@@ -177,15 +178,15 @@ export interface UseAuthorAvatarImageUrlResult extends Result {
 // useCreateAccount(options): result
 // export interface UseCreateAccountOptions extends Options {}
 // export interface UseCreateAccountResult extends Result {
-//   createAccount(): Promise<void>
 //   createdAccount: Account | undefined
+//   createAccount(): Promise<void>
 // }
 
 // useDeleteAccount(options): result
 // export interface UseDeleteAccountOptions extends Options {}
 // export interface UseDeleteAccountResult extends Result {
-//   deleteAccount(): Promise<void>
 //   deletedAccount: Account | undefined
+//   deleteAccount(): Promise<void>
 // }
 
 // useSetAccount(options): result
@@ -193,8 +194,8 @@ export interface UseAuthorAvatarImageUrlResult extends Result {
 //   account?: Account
 // }
 // export interface UseSetAccountResult extends Result {
-//   setAccount(): Promise<void>
 //   account: Account | undefined
+//   setAccount(): Promise<void>
 // }
 
 // useSetActiveAccount(options): result
@@ -202,8 +203,8 @@ export interface UseAuthorAvatarImageUrlResult extends Result {
 //   activeAccount?: string
 // }
 // export interface UseSetActiveAccountResult extends Result {
-//   setActiveAccount(): Promise<void>
 //   activeAccount: string | undefined
+//   setActiveAccount(): Promise<void>
 // }
 
 // useSetAccountsOrder(options): result
@@ -211,8 +212,8 @@ export interface UseAuthorAvatarImageUrlResult extends Result {
 //   accountsOrder?: string[]
 // }
 // export interface UseSetAccountsOrderResult extends Result {
-//   setAccountsOrder(): Promise<void>
 //   accountsOrder: string[]
+//   setAccountsOrder(): Promise<void>
 // }
 
 // useImportAccount(options): result
@@ -220,15 +221,15 @@ export interface UseAuthorAvatarImageUrlResult extends Result {
 //   account?: string
 // }
 // export interface UseImportAccountResult extends Result {
-//   importAccount(): Promise<void>
 //   importedAccount: Account | undefined
+//   importAccount(): Promise<void>
 // }
 
 // useExportAccount(options): result
 // export interface UseExportAccountOptions extends Options {}
 // export interface UseExportAccountResult extends Result {
-//   exportAccount(): Promise<void>
 //   exportedAccount: string | undefined
+//   exportAccount(): Promise<void>
 // }
 
 // usePublishComment(options): result
@@ -238,11 +239,11 @@ export interface UsePublishCommentOptions extends Options {
   [publishOption: string]: any
 }
 export interface UsePublishCommentResult extends Result {
-  publishComment(): Promise<void>
-  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   index: number | undefined
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
+  publishComment(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
 }
 
 // usePublishVote(options): result
@@ -252,10 +253,10 @@ export interface UsePublishVoteOptions extends Options {
   [publishOption: string]: any
 }
 export interface UsePublishVoteResult extends Result {
-  publishVote(): Promise<void>
-  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
+  publishVote(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
 }
 
 // usePublishCommentEdit(options): result
@@ -265,10 +266,10 @@ export interface UsePublishCommentEditOptions extends Options {
   [publishOption: string]: any
 }
 export interface UsePublishCommentEditResult extends Result {
-  publishCommentEdit(): Promise<void>
-  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
+  publishCommentEdit(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
 }
 
 // usePublishSubplebbitEdit(options): result
@@ -279,10 +280,10 @@ export interface UsePublishSubplebbitEditOptions extends Options {
   [publishOption: string]: any
 }
 export interface UsePublishSubplebbitEditResult extends Result {
-  publishSubplebbitEdit(): Promise<void>
-  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
   challenge: Challenge | undefined
   challengeVerification: ChallengeVerification | undefined
+  publishSubplebbitEdit(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
 }
 
 // useCreateSubplebbit(options): result
@@ -290,8 +291,8 @@ export interface UseCreateSubplebbitOptions extends Options {
   [createSubplebbitOption: string]: any
 }
 export interface UseCreateSubplebbitResult extends Result {
-  createSubplebbit(): Promise<void>
   createdSubplebbit: Subplebbit | undefined
+  createSubplebbit(): Promise<void>
 }
 
 // useDeleteSubplebbit(options): result
@@ -299,8 +300,8 @@ export interface UseCreateSubplebbitResult extends Result {
 //   subplebbitAddress?: string
 // }
 // export interface UseDeleteSubplebbitResult extends Result {
-//   deleteSubplebbit(): Promise<void>
 //   deletedSubplebbit: Subplebbit | undefined
+//   deleteSubplebbit(): Promise<void>
 // }
 
 // useSubscribe(options): result
@@ -310,9 +311,9 @@ export interface UseSubscribeOptions extends Options {
   authorAddress?: string
 }
 export interface UseSubscribeResult extends Result {
+  subscribed: boolean | undefined
   subscribe(): Promise<void>
   unsubscribe(): Promise<void>
-  subscribed: boolean | undefined
 }
 
 // useBlock(options): result
@@ -320,9 +321,9 @@ export interface UseBlockOptions extends Options {
   address?: string
 }
 export interface UseBlockResult extends Result {
+  blocked: boolean | undefined
   block(): Promise<void>
   unblock(): Promise<void>
-  blocked: boolean | undefined
 }
 
 // useNotify(options): result
@@ -333,9 +334,9 @@ export interface UseBlockResult extends Result {
 //   commentCid?: string
 // }
 // export interface UseNotifySubplebbitResult extends Result {
+//   notifying: boolean | undefined
 //   notify(): Promise<void>
 //   unnotify(): Promise<void>
-//   notifying: boolean | undefined
 // }
 
 // useLimitAddress(options): result
@@ -343,9 +344,9 @@ export interface UseBlockResult extends Result {
 //   address?: string
 // }
 // export interface UseLimitResult extends Result {
+//   limited: number | undefined
 //   limit(): Promise<void>
 //   unlimit(): Promise<void>
-//   limited: number | undefined
 // }
 
 // useHide(options): result
@@ -353,9 +354,9 @@ export interface UseBlockResult extends Result {
 //   commentCid?: string
 // }
 // export interface UseHideResult extends Result {
+//   hidden: boolean | undefined
 //   hide(): Promise<void>
 //   unhide(): Promise<void>
-//   hidden: boolean | undefined
 // }
 
 // useSave(options): result
@@ -363,9 +364,9 @@ export interface UseBlockResult extends Result {
 //   commentCid?: string
 // }
 // export interface UseSaveResult extends Result {
+//   saved: boolean | undefined
 //   save(): Promise<void>
 //   unsave(): Promise<void>
-//   saved: boolean | undefined
 // }
 
 // useDeleteComment(options): result
@@ -374,13 +375,15 @@ export interface UseBlockResult extends Result {
 //   accountCommentIndex?: number
 // }
 // export interface UseDeleteCommentResult extends Result {
+//   deletedComment: Comment | undefined
 //   deleteComment(): Promise<void>
 //   undeleteComment(): Promise<void>
-//   deletedComment: Comment | undefined
 // }
 
 /**
- * TODO: define these types more in depth
+ * TODO: define these types more in depth, most are already defined in:
+ * https://github.com/plebbit/plebbit-js or
+ * https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/schema.md
  */
 export type Account = {[key: string]: any}
 export type AccountsActions = {[key: string]: any}

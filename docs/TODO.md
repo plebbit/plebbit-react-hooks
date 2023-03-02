@@ -1,7 +1,5 @@
 - e2e test to publish to an electron sub
-- useSubplebbitMetrics(subplebbit)
 - async useAuthorAddress hook (because resolving ETH address synchronously is too slow)
 - implement sort by active
-- accountsActions.hide(cid)
-- accountsActions.unhide(cid)
-- accountsActions.deleteSubplebbit(subplebbitAddress)
+- useHide
+- implement showing your own pending replies in a comment (when reloading) and your own pending posts in a sub (when reloading)

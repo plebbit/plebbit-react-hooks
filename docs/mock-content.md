@@ -41,6 +41,6 @@ import {deleteCaches, deleteDatabases} from '@plebbit/plebbit-react-hooks'
 // delete all databases, including all caches and accounts data
 await deleteDatabases()
 
-// delete the cached comments, subplebbits and pages only
+// delete the cached comments, cached subplebbits and cached pages only, no accounts data
 await deleteCaches()
 ```
