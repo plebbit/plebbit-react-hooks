@@ -2,9 +2,11 @@
 
 ### Docs:
 
-- Algorithms: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/algorithms.md
-- Mock content (for UI development): https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/mock-content.md
+- [Hooks API](#hooks)
+- [Getting started](#gettingstarted)
 - Install, testing and building: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/testing.md
+- Mock content (for UI development): https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/mock-content.md
+- Algorithms: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/algorithms.md
 - Schema (Types, IndexedDb and state management): https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/schema.md
 - Types: https://github.com/plebbit/plebbit-react-hooks/blob/master/src/types.ts
 
