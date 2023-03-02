@@ -3,7 +3,7 @@
 ### Docs:
 
 - [Hooks API](#hooks)
-- [Getting started](#gettingstarted)
+- [Getting started](#getting-started)
 - Install, testing and building: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/testing.md
 - Mock content (for UI development): https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/mock-content.md
 - Algorithms: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/algorithms.md
