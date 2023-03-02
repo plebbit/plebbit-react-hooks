@@ -19,6 +19,8 @@ import type {
   UseAccountVotesResult,
   UseAccountCommentsOptions,
   UseAccountCommentsResult,
+  UseAccountCommentOptions,
+  UseAccountCommentResult,
   UseNotificationsOptions,
   UseNotificationsResult,
   UseAccountOptions,
@@ -205,10 +207,6 @@ export function useNotifications(options?: UseNotificationsOptions): UseNotifica
   )
 }
 
-/**
- * Returns the own user's comments stored locally, even those not yet published by the subplebbit owner.
- * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
- */
 export function useAccountComments(options?: UseAccountCommentsOptions): UseAccountCommentsResult {
   const {accountName, filter} = options || {}
   const accountId = useAccountId(accountName)
@@ -238,6 +236,26 @@ export function useAccountComments(options?: UseAccountCommentsOptions): UseAcco
       errors: [],
     }),
     [filteredAccountComments, state]
+  )
+}
+
+/**
+ * Returns an account's single comment, e.g. a pending comment they published.
+ */
+export function useAccountComment(options?: UseAccountCommentOptions): UseAccountCommentResult {
+  const {commentIndex, accountName} = options || {}
+  const {accountComments} = useAccountComments({accountName})
+  const accountComment = useMemo(() => accountComments?.[Number(commentIndex)] || {}, [accountComments, commentIndex])
+  const state = accountComments && commentIndex !== undefined ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      ...accountComment,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [accountComment, state]
   )
 }
 

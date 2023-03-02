@@ -3,6 +3,7 @@ import testUtils from '../../lib/test-utils'
 import {
   useAccount,
   useAccounts,
+  useAccountComment,
   useAccountComments,
   useAccountVotes,
   useAccountVote,
@@ -966,6 +967,29 @@ describe('accounts', () => {
         }
       }
     }
+
+    test(`useAccountComment single comment`, async () => {
+      const rendered2 = renderHook<any, any>((props) => useAccountComment(props))
+      rendered2.rerender({commentIndex: 0})
+      await waitFor(() => rendered2.result.current.content === 'content 1')
+      expect(rendered2.result.current.content).toBe('content 1')
+      expect(rendered2.result.current.index).toBe(0)
+
+      rendered2.rerender({commentIndex: 10})
+      await waitFor(() => rendered2.result.current.content === undefined)
+      expect(rendered2.result.current.content).toBe(undefined)
+      expect(rendered2.result.current.index).toBe(undefined)
+
+      rendered2.rerender({commentIndex: 2})
+      await waitFor(() => rendered2.result.current.content === 'content 3')
+      expect(rendered2.result.current.content).toBe('content 3')
+      expect(rendered2.result.current.index).toBe(2)
+
+      rendered2.rerender({})
+      await waitFor(() => rendered2.result.current.content === undefined)
+      expect(rendered2.result.current.content).toBe(undefined)
+      expect(rendered2.result.current.index).toBe(undefined)
+    })
 
     test(`get all account comments`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)

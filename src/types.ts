@@ -34,11 +34,9 @@ export interface UseAccountCommentsResult extends Result {
 // TODO
 // useAccountComment(options): result
 export interface UseAccountCommentOptions extends Options {
-  commentCid?: string
+  commentIndex?: number
 }
-export interface UseAccountCommentResult extends Result {
-  accountComments: AccountComment[]
-}
+export interface UseAccountCommentResult extends Result, AccountComment {}
 
 // useAccountVotes(options): result
 export interface UseAccountVotesOptions extends Options {
