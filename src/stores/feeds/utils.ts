@@ -22,7 +22,7 @@ import {postsPerPage} from './feeds-store'
  */
 export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   // contruct a list of posts already loaded to remove them from buffered feeds
-  const loadedFeedsPosts: {[key: string]: Set<string>} = {}
+  const loadedFeedsPosts: {[feedName: string]: Set<string>} = {}
   for (const feedName in loadedFeeds) {
     loadedFeedsPosts[feedName] = new Set()
     for (const post of loadedFeeds[feedName]) {
