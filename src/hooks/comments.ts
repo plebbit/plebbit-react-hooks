@@ -1,5 +1,5 @@
 import {useEffect, useState, useMemo} from 'react'
-import {useAccount, useAccountComment} from './accounts'
+import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:comments')
@@ -47,6 +47,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   }
 
   // if comment is still not defined, but account comment is, use account comment
+  // check `comment.timestamp` instead of `comment` in case comment exists but in a loading state
   if (commentCid && !comment?.timestamp && accountComment) {
     comment = accountComment
   }
