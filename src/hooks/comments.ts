@@ -1,11 +1,12 @@
 import {useEffect, useState, useMemo} from 'react'
-import {useAccount} from './accounts'
+import {useAccount, useAccountComment} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:comments')
 import assert from 'assert'
 import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types'
 import useCommentsStore from '../stores/comments'
+import useAccountsStore from '../stores/accounts'
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
 import shallow from 'zustand/shallow'
 
@@ -20,6 +21,10 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
+
+  // get account comment of the cid if any
+  const accountCommentInfo = useAccountsStore((state: any) => state.commentCidsToAccountsComments[commentCid || ''])
+  const accountComment = useAccountsStore((state: any) => state.accountsComments[accountCommentInfo?.accountId || '']?.[Number(accountCommentInfo?.accountCommentIndex)])
 
   useEffect(() => {
     if (!commentCid || !account) {
@@ -39,6 +44,11 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   // if comment from subplebbit pages is more recent, use it instead
   if (commentCid && (subplebbitsPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
     comment = subplebbitsPagesComment
+  }
+
+  // if comment is still not defined, but account comment is, use account comment
+  if (commentCid && !comment?.timestamp && accountComment) {
+    comment = accountComment
   }
 
   const state = comment ? 'succeeded' : 'fetching-ipfs'

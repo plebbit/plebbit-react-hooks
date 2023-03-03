@@ -14,11 +14,13 @@ import {
   AccountComment,
   AccountsComments,
   AccountsCommentsReplies,
+  CommentCidsToAccountsComments,
 } from '../../types'
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'
 import localForage from 'localforage'
+import {getCommentCidsToAccountsComments} from './utils'
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -29,7 +31,8 @@ type AccountsState = {
   activeAccountId: string | undefined
   accountNamesToAccountIds: AccountNamesToAccountIds
   accountsComments: AccountsComments
-  accountsCommentsUpdating: {[commendCid: string]: boolean}
+  commentCidsToAccountsComments: CommentCidsToAccountsComments
+  accountsCommentsUpdating: {[commentCid: string]: boolean}
   accountsCommentsReplies: AccountsCommentsReplies
   accountsVotes: AccountsVotes
   accountsActions: {[key: string]: Function}
@@ -42,6 +45,7 @@ const accountsStore = createStore<AccountsState>((setState: Function, getState: 
   activeAccountId: undefined,
   accountNamesToAccountIds: {},
   accountsComments: {},
+  commentCidsToAccountsComments: {},
   accountsCommentsUpdating: {},
   accountsCommentsReplies: {},
   accountsVotes: {},
@@ -86,7 +90,17 @@ const initializeAccountsStore = async () => {
     accountsDatabase.getAccountsVotes(accountIds),
     accountsDatabase.getAccountsCommentsReplies(accountIds),
   ])
-  accountsStore.setState((state) => ({accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies}))
+  const commentCidsToAccountsComments = getCommentCidsToAccountsComments(accountsComments)
+  accountsStore.setState((state) => ({
+    accounts,
+    accountIds,
+    activeAccountId,
+    accountNamesToAccountIds,
+    accountsComments,
+    commentCidsToAccountsComments,
+    accountsVotes,
+    accountsCommentsReplies,
+  }))
 
   // start looking for updates for all accounts comments in database
   for (const accountId in accountsComments) {

@@ -328,11 +328,14 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         if (challengeVerification?.publication?.cid) {
           const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
           await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
-          accountsStore.setState(({accountsComments}) => {
+          accountsStore.setState(({accountsComments, commentCidsToAccountsComments}) => {
             const updatedAccountComments = [...accountsComments[account.id]]
             const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
             updatedAccountComments[accountCommentIndex] = updatedAccountComment
-            return {accountsComments: {...accountsComments, [account.id]: updatedAccountComments}}
+            return {
+              accountsComments: {...accountsComments, [account.id]: updatedAccountComments},
+              commentCidsToAccountsComments: {...commentCidsToAccountsComments, [challengeVerification?.publication?.cid]: {accountId: account.id, accountCommentIndex}},
+            }
           })
 
           accountsActionsInternal

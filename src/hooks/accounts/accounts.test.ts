@@ -717,6 +717,43 @@ describe('accounts', () => {
         const commentVerified = onChallengeVerification.mock.calls[0][1]
         expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
         expect(commentVerified.constructor.name).toBe('Comment')
+
+        // commentCidsToAccountsComments is set after challenge verification
+        const {commentCidsToAccountsComments} = accountsStore.getState()
+        expect(commentCidsToAccountsComments['some content cid'].accountId).toBe(rendered.result.current.account.id)
+        expect(commentCidsToAccountsComments['some content cid'].accountCommentIndex).toBe(0)
+      })
+
+      test('useComment can use the published account comment', async () => {
+        // make sure we use the account comment and not get comment
+        const getComment = Plebbit.prototype.getComment
+        Plebbit.prototype.getComment = async () => {
+          throw Error('failed getting comment')
+        }
+
+        const rendered2 = renderHook<any, any>((commentCid) => useComment({commentCid}))
+        rendered2.rerender('some content cid')
+        await waitFor(() => rendered2.result.current.content === 'some content')
+        expect(rendered2.result.current.content).toBe('some content')
+        // account comment should already have cid
+        expect(rendered2.result.current.cid).toBe('some content cid')
+        // account comment should have index
+        expect(rendered2.result.current.index).toBe(0)
+
+        // retry with reset store to see if can use account comment from db
+        await testUtils.resetStores()
+
+        const rendered3 = renderHook<any, any>((commentCid) => useComment({commentCid}))
+        rendered3.rerender('some content cid')
+        await waitFor(() => rendered3.result.current.content === 'some content')
+        expect(rendered3.result.current.content).toBe('some content')
+        // account comment should already have cid
+        expect(rendered3.result.current.cid).toBe('some content cid')
+        // account comment should have index
+        expect(rendered3.result.current.index).toBe(0)
+
+        // restore mock
+        Plebbit.prototype.getComment = getComment
       })
     })
 

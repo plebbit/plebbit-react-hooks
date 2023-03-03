@@ -410,7 +410,7 @@ export type Author = {[key: string]: any}
  * Subplebbits and comments store
  */
 export type Subplebbits = {[subplebbitAddress: string]: Subplebbit}
-export type Comments = {[commendCid: string]: Comment}
+export type Comments = {[commentCid: string]: Comment}
 
 /**
  * Accounts store
@@ -437,10 +437,13 @@ export type AccountSubplebbit = {
   autoStart?: boolean
 }
 export type AccountsVotes = {[accountId: string]: AccountVotes}
-export type AccountVotes = {[commendCid: string]: AccountVote}
+export type AccountVotes = {[commentCid: string]: AccountVote}
 export type AccountVote = {
   // has all the publish options like commentCid, vote, timestamp, etc
   [publishOption: string]: any
+}
+export type CommentCidsToAccountsComments = {
+  [commentCid: string]: {accountId: string; accountCommentIndex: number}
 }
 
 /**
