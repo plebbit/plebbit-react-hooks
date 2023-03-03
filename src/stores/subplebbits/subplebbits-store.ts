@@ -55,7 +55,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     // subplebbit not in database, try to fetch from plebbit-js
     if (!subplebbit) {
       try {
-        const onError = (error: any) => log.error(`subplebbitsStore.addSubplebbitToStore failed plebbit.getSubplebbit address '${subplebbitAddress}': ${error.message}`)
+        const onError = (error: any) => log.error(`subplebbitsStore.addSubplebbitToStore failed plebbit.getSubplebbit address '${subplebbitAddress}':`, error)
         subplebbit = await utils.retryInfinity(() => account.plebbit.getSubplebbit(subplebbitAddress), {onError})
         log.trace('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', {subplebbitAddress, subplebbit, account})
 
