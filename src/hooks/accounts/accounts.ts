@@ -23,6 +23,10 @@ import type {
   UseAccountCommentResult,
   UseNotificationsOptions,
   UseNotificationsResult,
+  UseAccountEditsOptions,
+  UseAccountEditsResult,
+  UseEditedCommentOptions,
+  UseEditedCommentResult,
   UseAccountOptions,
   UseAccountResult,
 } from '../../types'
@@ -317,5 +321,78 @@ export function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteR
       errors: [],
     }),
     [accountVote, state]
+  )
+}
+
+/**
+ * Returns all the comment and subplebbit edits published by an account.
+ */
+export function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEditsResult {
+  const {filter, accountName} = options || {}
+  const accountId = useAccountId(accountName)
+  const accountEdits = useAccountsStore((state) => state.accountsEdits[accountId || ''])
+
+  const accountEditsArray = useMemo(() => {
+    const accountEditsArray = []
+    for (const i in accountEdits) {
+      accountEditsArray.push(...accountEdits[i])
+    }
+    // sort by oldest first
+    return accountEditsArray.sort((a, b) => a.timestamp - b.timestamp)
+  }, [accountEdits])
+
+  const filteredAccountEditsArray = useMemo(() => {
+    if (!filter) {
+      return accountEditsArray
+    }
+    return filterPublications(accountEditsArray, filter)
+  }, [accountEditsArray, filter])
+
+  const state = accountId ? 'succeeded' : 'initializing'
+
+  return useMemo(
+    () => ({
+      accountEdits: filteredAccountEditsArray,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [accountEditsArray, filter, state]
+  )
+}
+
+/**
+ * Returns the comment edited (if has any edits), as well as the pending, succeeded or failed state of the edit.
+ */
+export function useEditedComment(options?: UseEditedCommentOptions): UseEditedCommentResult {
+  const {comment, accountName} = options || {}
+  const accountId = useAccountId(accountName)
+  const commentEdits = useAccountsStore((state) => state.accountsEdits[accountId || '']?.[comment?.cid || ''])
+
+  let state = 'initializing'
+  if (accountId && comment?.cid) {
+    state = 'unedited'
+  }
+
+  const {editedComment, succeededEdits, pendingEdits, failedEdits} = useMemo(() => {
+    // if comment has edits
+    // define edited comments
+    const succeededEdits = {}
+    const pendingEdits = {}
+    const failedEdits = {}
+    return {editedComment: undefined, succeededEdits, pendingEdits, failedEdits}
+  }, [comment, commentEdits])
+
+  return useMemo(
+    () => ({
+      editedComment,
+      succeededEdits,
+      pendingEdits,
+      failedEdits,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [editedComment, succeededEdits, pendingEdits, failedEdits, state]
   )
 }

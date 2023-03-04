@@ -11,6 +11,7 @@ import {
   AccountsActions,
   Comment,
   AccountsVotes,
+  AccountsEdits,
   AccountComment,
   AccountsComments,
   AccountsCommentsReplies,
@@ -35,8 +36,9 @@ type AccountsState = {
   accountsCommentsUpdating: {[commentCid: string]: boolean}
   accountsCommentsReplies: AccountsCommentsReplies
   accountsVotes: AccountsVotes
-  accountsActions: {[key: string]: Function}
-  accountsActionsInternal: {[key: string]: Function}
+  accountsEdits: AccountsEdits
+  accountsActions: {[functionName: string]: Function}
+  accountsActionsInternal: {[functionName: string]: Function}
 }
 
 const accountsStore = createStore<AccountsState>((setState: Function, getState: Function) => ({
@@ -49,6 +51,7 @@ const accountsStore = createStore<AccountsState>((setState: Function, getState: 
   accountsCommentsUpdating: {},
   accountsCommentsReplies: {},
   accountsVotes: {},
+  accountsEdits: {},
   accountsActions,
   accountsActionsInternal,
 }))
@@ -85,10 +88,11 @@ const initializeAccountsStore = async () => {
       )}'`
     )
   }
-  const [accountsComments, accountsVotes, accountsCommentsReplies] = await Promise.all<any>([
+  const [accountsComments, accountsVotes, accountsCommentsReplies, accountsEdits] = await Promise.all<any>([
     accountsDatabase.getAccountsComments(accountIds),
     accountsDatabase.getAccountsVotes(accountIds),
     accountsDatabase.getAccountsCommentsReplies(accountIds),
+    accountsDatabase.getAccountsEdits(accountIds),
   ])
   const commentCidsToAccountsComments = getCommentCidsToAccountsComments(accountsComments)
   accountsStore.setState((state) => ({
@@ -100,6 +104,7 @@ const initializeAccountsStore = async () => {
     commentCidsToAccountsComments,
     accountsVotes,
     accountsCommentsReplies,
+    accountsEdits,
   }))
 
   // start looking for updates for all accounts comments in database

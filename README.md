@@ -525,3 +525,66 @@ await setActiveAccount('Account 1 2')
 // reorder the accounts list
 await setAccountsOrder(['Account 1 2', 'Account 1'])
 ```
+
+#### View the status of a comment edit
+
+```js
+let comment = useComment({commentCid})
+const {state: editedCommentState, editedComment} = useEditedComment({comment})
+
+// if the comment has a succeeded, failed or pending edit, use the edited comment
+if (editedComment) {
+  comment = editedComment
+}
+
+let editLabel
+if (editedCommentState === 'succeeded') {
+  editLabel = {text: 'EDITED', color: 'green'}
+}
+if (editedCommentState === 'pending') {
+  editLabel = {text: 'PENDING EDIT', color: 'orange'}
+}
+if (editedCommentState === 'failed') {
+  editLabel = {text: 'FAILED EDIT', color: 'red'}
+}
+```
+
+### View the status of a specific comment edit property
+
+```js
+const comment = useComment({commentCid})
+const editedComment = useEditedComment({comment})
+if (editedComment.failedEdits.removed !== undefined) {
+  console.log('failed editing comment.removed property')
+}
+if (editedComment.succeededEdits.removed !== undefined) {
+  console.log('succeeded editing comment.removed property')
+}
+if (editedCommentResult.pendingEdits.removed !== undefined) {
+  console.log('pending editing comment.removed property')
+}
+
+// view the full comment with all edited properties (both succeeded and pending)
+console.log(editedComment.editedComment)
+
+// view the state of all edits of the comment
+console.log(editedComment.state) // 'unedited' | 'succeeded' | 'pending' | 'failed'
+```
+
+#### List all comment and subplebbit edits the account has performed
+
+```js
+const {accountEdits} = useAccountEdits()
+for (const accountEdit of accountEdits) {
+  console.log(accountEdit)
+}
+console.log(`there's ${accountEdits.length} account edits`)
+
+// get only the account edits of a specific comment
+const filter = {commentCids: ['Qm...']}
+const {accountEdits} = useAccountEdits({filter})
+
+// only get account edits in a specific subplebbit
+const filter = {subplebbitAddresses: ['news.eth']}
+const {accountEdits} = useAccountEdits({filter})
+```

@@ -56,6 +56,14 @@ export interface UseAccountVoteResult extends Result, AccountVote {
   vote: number | undefined
 }
 
+// useAccountEdits(options): result
+export interface UseAccountEditsOptions extends Options {
+  filter?: AccountPublicationsFilter
+}
+export interface UseAccountEditsResult extends Result {
+  accountEdits: AccountEdit[]
+}
+
 // useNotifications(options): result
 export interface UseNotificationsOptions extends Options {}
 export interface UseNotificationsResult extends Result {
@@ -81,6 +89,19 @@ export interface UseCommentsOptions extends Options {
 }
 export interface UseCommentsResult extends Result {
   comments: (Comment | undefined)[]
+}
+
+// useEditedComment(options): result
+export interface UseEditedCommentOptions extends Options {
+  comment?: Comment
+}
+export interface UseEditedCommentResult extends Result {
+  // editedComment only contains the succeeded and pending props, failed props aren't added
+  editedComment: Comment | undefined
+  succeededEdits: {[succeededEditPropertyName: string]: any}
+  pendingEdits: {[pendingEditPropertyName: string]: any}
+  failedEdits: {[failedEditPropertyName: string]: any}
+  // state: 'initializing' | 'unedited' | 'succeeded' | 'pending' | 'failed'
 }
 
 // useCommentThumbnailUrl(options): result
@@ -423,6 +444,9 @@ export interface AccountComment extends Comment {
 }
 export type AccountComments = AccountComment[]
 export type AccountsComments = {[accountId: string]: AccountComments}
+export type CommentCidsToAccountsComments = {
+  [commentCid: string]: {accountId: string; accountCommentIndex: number}
+}
 export interface AccountCommentReply extends Comment {
   markedAsRead: boolean
 }
@@ -442,8 +466,11 @@ export type AccountVote = {
   // has all the publish options like commentCid, vote, timestamp, etc
   [publishOption: string]: any
 }
-export type CommentCidsToAccountsComments = {
-  [commentCid: string]: {accountId: string; accountCommentIndex: number}
+export type AccountsEdits = {[accountId: string]: AccountEdits}
+export type AccountEdits = {[commentCidOrSubplebbitAddress: string]: AccountEdit[]}
+export type AccountEdit = {
+  // has all the publish options like commentCid, vote, timestamp, etc (both comment edits and subplebbit edits)
+  [publishOption: string]: any
 }
 
 /**

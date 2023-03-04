@@ -484,9 +484,21 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   }
 
   publishAndRetryFailedChallengeVerification()
-  log('accountsActions.publishCommentEdit', {createCommentEditOptions})
 
-  // TODO: show pending edits somewhere
+  await accountsDatabase.addAccountEdit(account.id, createCommentEditOptions)
+  log('accountsActions.publishCommentEdit', {createCommentEditOptions})
+  accountsStore.setState(({accountsEdits}) => {
+    // remove signer and author because not needed and they expose private key
+    const commentEdit = {...createCommentEditOptions, signer: undefined, author: undefined}
+    let commentEdits = accountsEdits[account.id][createCommentEditOptions.commentCid] || []
+    commentEdits = [...commentEdits, commentEdit]
+    return {
+      accountsEdits: {
+        ...accountsEdits,
+        [account.id]: {...accountsEdits[account.id], [createCommentEditOptions.commentCid]: commentEdits},
+      },
+    }
+  })
 }
 
 export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string) => {

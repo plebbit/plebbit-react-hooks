@@ -9,7 +9,17 @@ try {
 } catch (e) {}
 
 // accounts
-import {useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useNotifications, useAccountSubplebbits} from './hooks/accounts'
+import {
+  useAccount,
+  useAccounts,
+  useAccountComment,
+  useAccountComments,
+  useAccountVotes,
+  useAccountVote,
+  useAccountEdits,
+  useNotifications,
+  useAccountSubplebbits,
+} from './hooks/accounts'
 
 // comments
 import {useComment, useComments} from './hooks/comments'
@@ -45,6 +55,7 @@ export {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountEdits,
   useAccountSubplebbits,
   useNotifications,
   // comments
@@ -93,6 +104,7 @@ const hooks = {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountEdits,
   useAccountSubplebbits,
   useNotifications,
   // comments

@@ -293,6 +293,79 @@ const getAccountsCommentsReplies = async (accountIds: string[]) => {
   return accountsCommentsReplies
 }
 
+const accountsEditsDatabases: any = {}
+const getAccountEditsDatabase = (accountId: string) => {
+  assert(accountId && typeof accountId === 'string', `getAccountEditsDatabase '${accountId}' not a string`)
+  if (!accountsEditsDatabases[accountId]) {
+    accountsEditsDatabases[accountId] = localForage.createInstance({name: `accountEdits-${accountId}`})
+  }
+  return accountsEditsDatabases[accountId]
+}
+
+const addAccountEdit = async (accountId: string, createEditOptions: CreateCommentOptions) => {
+  assert(
+    createEditOptions?.commentCid && typeof createEditOptions?.commentCid === 'string',
+    `addAccountEdit createEditOptions.commentCid '${createEditOptions?.commentCid}' not a string`
+  )
+  const accountEditsDatabase = getAccountEditsDatabase(accountId)
+  const length = (await accountEditsDatabase.getItem('length')) || 0
+  const edit = {...createEditOptions}
+  delete edit.signer
+  delete edit.author
+  // delete all functions because they can't be added to indexeddb
+  for (const i in edit) {
+    if (typeof edit[i] === 'function') {
+      delete edit[i]
+    }
+  }
+
+  // edits are an array because you can edit the same comment multiple times
+  const edits = (await accountEditsDatabase.getItem(edit.commentCid)) || []
+  edits.push(edit)
+
+  await Promise.all([
+    accountEditsDatabase.setItem(edit.commentCid, edits),
+    accountEditsDatabase.setItem(String(length), edit),
+    accountEditsDatabase.setItem('length', length + 1),
+  ])
+}
+
+const getAccountEdits = async (accountId: string) => {
+  const accountEditsDatabase = getAccountEditsDatabase(accountId)
+  const length = (await accountEditsDatabase.getItem('length')) || 0
+  const edits: any = {}
+  if (length === 0) {
+    return edits
+  }
+  let promises = []
+  let i = 0
+  while (i < length) {
+    promises.push(accountEditsDatabase.getItem(String(i++)))
+  }
+  const editsArray = await Promise.all(promises)
+  for (const edit of editsArray) {
+    // TODO: must change this logic for subplebbit edits
+    if (!edits[edit?.commentCid]) {
+      edits[edit?.commentCid] = []
+    }
+    edits[edit?.commentCid].push(edit)
+  }
+  return edits
+}
+
+const getAccountsEdits = async (accountIds: string[]) => {
+  const promises = []
+  for (const accountId of accountIds) {
+    promises.push(getAccountEdits(accountId))
+  }
+  const accountsEditsArray = await Promise.all(promises)
+  const accountsEdits: any = {}
+  for (const [i, accountId] of accountIds.entries()) {
+    accountsEdits[accountId] = accountsEditsArray[i]
+  }
+  return accountsEdits
+}
+
 const database = {
   accountsDatabase,
   accountsMetadataDatabase,
@@ -310,6 +383,9 @@ const database = {
   addAccountCommentReply,
   getAccountCommentsReplies,
   getAccountsCommentsReplies,
+  getAccountsEdits,
+  getAccountEdits,
+  addAccountEdit,
 }
 
 export default database

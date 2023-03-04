@@ -7,6 +7,7 @@ import {
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountEdits,
   useAccountSubplebbits,
   UseAccountCommentsOptions,
   useComment,
@@ -655,7 +656,8 @@ describe('accounts', () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>((accountName) => {
         const account = useAccount({accountName})
-        return {account, ...accountsActions}
+        const {accountEdits} = useAccountEdits({accountName})
+        return {account, accountEdits, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
 
@@ -858,6 +860,21 @@ describe('accounts', () => {
         const commentEditVerified = onChallengeVerification.mock.calls[0][1]
         expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
         expect(commentEditVerified.constructor.name).toBe('CommentEdit')
+      })
+
+      test('account edits has comment edit', async () => {
+        await waitFor(() => rendered.result.current.accountEdits.length === 1)
+        expect(rendered.result.current.accountEdits.length).toBe(1)
+        expect(rendered.result.current.accountEdits[0].locked).toBe(true)
+        expect(typeof rendered.result.current.accountEdits[0].timestamp).toBe('number')
+
+        // reset stores to force using the db
+        await testUtils.resetStores()
+        const rendered2 = renderHook<any, any>(() => useAccountEdits())
+        await waitFor(() => rendered2.result.current.accountEdits.length === 1)
+        expect(rendered2.result.current.accountEdits.length).toBe(1)
+        expect(rendered2.result.current.accountEdits[0].locked).toBe(true)
+        expect(typeof rendered2.result.current.accountEdits[0].timestamp).toBe('number')
       })
     })
 
