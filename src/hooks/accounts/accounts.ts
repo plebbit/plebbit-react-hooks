@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react'
+import isEqual from 'lodash.isequal'
 import useAccountsStore from '../../stores/accounts'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:hooks:accounts')
@@ -369,30 +370,153 @@ export function useEditedComment(options?: UseEditedCommentOptions): UseEditedCo
   const accountId = useAccountId(accountName)
   const commentEdits = useAccountsStore((state) => state.accountsEdits[accountId || '']?.[comment?.cid || ''])
 
-  let state = 'initializing'
+  let initialState = 'initializing'
   if (accountId && comment?.cid) {
-    state = 'unedited'
+    initialState = 'unedited'
   }
 
-  const {editedComment, succeededEdits, pendingEdits, failedEdits} = useMemo(() => {
-    // if comment has edits
-    // define edited comments
-    const succeededEdits = {}
-    const pendingEdits = {}
-    const failedEdits = {}
-    return {editedComment: undefined, succeededEdits, pendingEdits, failedEdits}
+  const editedResult = useMemo(() => {
+    const editedResult: any = {
+      editedComment: undefined,
+      succeededEdits: {},
+      pendingEdits: {},
+      failedEdits: {},
+      state: undefined,
+    }
+
+    // there are no edits
+    if (!commentEdits?.length) {
+      return editedResult
+    }
+
+    // don't include these props as they are not edit props, they are publication props
+    const nonEditPropertyNames = new Set(['author, signer', 'commentCid', 'subplebbitAddress', 'timestamp'])
+
+    // iterate over commentEdits and consolidate them into 1 propertyNameEdits object
+    const propertyNameEdits: any = {}
+    for (const commentEdit of commentEdits) {
+      for (const propertyName in commentEdit) {
+        // not valid edited properties
+        if (commentEdit[propertyName] === undefined || nonEditPropertyNames.has(propertyName)) {
+          continue
+        }
+        const previousTimestamp = propertyNameEdits[propertyName]?.timestamp || 0
+        // only use the latest propertyNameEdit timestamp
+        if (commentEdit.timestamp > previousTimestamp) {
+          propertyNameEdits[propertyName] = {
+            timestamp: commentEdit.timestamp,
+            value: commentEdit[propertyName],
+            // NOTE: don't use comment edit challengeVerification.challengeSuccess
+            // to know if an edit has failed or succeeded, since another mod can also edit
+            // if another mod overrides an edit, consider the edit failed
+          }
+        }
+      }
+    }
+
+    const now = Math.round(Date.now() / 1000)
+    // no longer consider an edit pending ater an expiry time of 20 minutes
+    const expiryTime = 60 * 20
+
+    // iterate over propertyNameEdits and find if succeeded, pending or failed
+    for (const propertyName in propertyNameEdits) {
+      const propertyNameEdit = propertyNameEdits[propertyName]
+
+      const setPropertyNameEditState = (state: 'succeeded' | 'pending' | 'failed') => {
+        // set propertyNameEdit e.g. editedResult.succeededEdits.removed = true
+        editedResult[`${state}Edits`][propertyName] = propertyNameEdit.value
+
+        // if any propertyNameEdit failed, consider the commentEdit failed
+        if (state === 'failed') {
+          editedResult.state = 'failed'
+        }
+        // if all propertyNameEdit succeeded, consider the commentEdit succeeded
+        if (state === 'succeeded' && !editedResult.state) {
+          editedResult.state = 'succeeded'
+        }
+        // if any propertyNameEdit are pending, and none have failed, consider the commentEdit pending
+        if (state === 'pending' && editedResult.state !== 'failed') {
+          editedResult.state = 'pending'
+        }
+        if (!editedResult.state) {
+          throw Error(`didn't define editedResult.state`)
+        }
+      }
+
+      // comment update hasn't been received, impossible to evaluate the status of a comment edit
+      // better to show pending than unedited, otherwise the editor might try to edit again
+      if (!comment?.updatedAt) {
+        setPropertyNameEditState('pending')
+        continue
+      }
+
+      // comment.updatedAt is older than propertyNameEdit, propertyNameEdit is pending
+      // because we haven't received the update yet and can't evaluate
+      if (comment.updatedAt < propertyNameEdit.timestamp) {
+        setPropertyNameEditState('pending')
+        continue
+      }
+
+      // comment.updatedAt is newer than propertyNameEdit, a comment update
+      // has been received after the edit was published so we can evaluate
+      else {
+        // comment has propertyNameEdit, propertyNameEdit succeeded
+        if (isEqual(comment[propertyName], propertyNameEdit.value)) {
+          setPropertyNameEditState('succeeded')
+          continue
+        }
+
+        // comment does not have propertyNameEdit
+        else {
+          // propertyNameEdit is newer than 20min, it is too recent to evaluate
+          // so we should assume pending
+          if (propertyNameEdit.timestamp > now - expiryTime) {
+            setPropertyNameEditState('pending')
+            continue
+          }
+
+          // propertyNameEdit is older than 20min, we can evaluate it
+          else {
+            // comment update was received too shortly after propertyNameEdit was
+            // published, assume pending until a more recent comment update is received
+            const timeSinceUpdate = comment.updatedAt - propertyNameEdit.timestamp
+            if (timeSinceUpdate < expiryTime) {
+              setPropertyNameEditState('pending')
+              continue
+            }
+
+            // comment update time is sufficiently distanced from propertyNameEdit
+            // and comment doesn't have propertyNameEdit, assume failed
+            else {
+              setPropertyNameEditState('failed')
+              continue
+            }
+          }
+        }
+      }
+    }
+
+    // define editedComment
+    editedResult.editedComment = {...comment}
+    // add pending and succeeded props so the editor can see his changes right away
+    // don't add failed edits to reflect the current state of the edited comment
+    for (const propertyName in editedResult.pendingEdits) {
+      editedResult.editedComment[propertyName] = editedResult.pendingEdits[propertyName]
+    }
+    for (const propertyName in editedResult.succeededEdits) {
+      editedResult.editedComment[propertyName] = editedResult.pendingEdits[propertyName]
+    }
+
+    return editedResult
   }, [comment, commentEdits])
 
   return useMemo(
     () => ({
-      editedComment,
-      succeededEdits,
-      pendingEdits,
-      failedEdits,
-      state,
+      ...editedResult,
+      state: editedResult.state || initialState,
       error: undefined,
       errors: [],
     }),
-    [editedComment, succeededEdits, pendingEdits, failedEdits, state]
+    [editedResult, initialState]
   )
 }

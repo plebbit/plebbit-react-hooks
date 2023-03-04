@@ -8,6 +8,7 @@ import {
   useAccountVotes,
   useAccountVote,
   useAccountEdits,
+  useEditedComment,
   useAccountSubplebbits,
   UseAccountCommentsOptions,
   useComment,
@@ -875,6 +876,18 @@ describe('accounts', () => {
         expect(rendered2.result.current.accountEdits.length).toBe(1)
         expect(rendered2.result.current.accountEdits[0].locked).toBe(true)
         expect(typeof rendered2.result.current.accountEdits[0].timestamp).toBe('number')
+      })
+
+      test('useEditedComment has edited comment', async () => {
+        const rendered2 = renderHook<any, any>(() => {
+          const comment = useComment({commentCid: 'Qm...'})
+          const editedComment = useEditedComment({comment})
+          return editedComment
+        })
+        await waitFor(() => rendered2.result.current.editedComment)
+        expect(rendered2.result.current.editedComment).not.toBe(undefined)
+        expect(rendered2.result.current.pendingEdits.locked || rendered2.result.current.succeededEdits.locked).toBe(true)
+        expect(rendered2.result.current.state).toMatch(/pending|succeeded/)
       })
     })
 

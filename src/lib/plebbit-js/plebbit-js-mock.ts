@@ -150,6 +150,7 @@ export class Subplebbit extends EventEmitter {
   description: string | undefined
   posts: Pages
   metricsCid: string
+  updatedAt: number | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -190,6 +191,7 @@ export class Subplebbit extends EventEmitter {
 
   simulateUpdateEvent() {
     this.description = this.address + ' description updated'
+    this.updatedAt = Math.floor(Date.now() / 1000)
     this.emit('update', this)
   }
 
@@ -326,6 +328,7 @@ export class Comment extends Publication {
   content: string | undefined
   parentCid: string | undefined
   replies: any
+  updatedAt: number | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -365,6 +368,7 @@ export class Comment extends Publication {
     // simulate finding vote counts on an IPNS record
     this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+    this.updatedAt = Math.floor(Date.now() / 1000)
     this.emit('update', this)
   }
 }
