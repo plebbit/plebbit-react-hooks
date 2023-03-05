@@ -2,7 +2,7 @@ import validator from '../../lib/validator'
 import localForageLru from '../../lib/localforage-lru'
 const commentsDatabase = localForageLru.createInstance({name: 'comments', size: 5000})
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:stores:comments')
+const log = Logger('plebbit-react-hooks:comments:stores')
 import {Comment, Comments, Account} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'

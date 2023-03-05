@@ -7,7 +7,7 @@ import accountGenerator from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 import validator from '../../lib/validator'
 import assert from 'assert'
-const log = Logger('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:accounts:stores')
 import {
   Account,
   Accounts,

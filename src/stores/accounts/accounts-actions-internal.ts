@@ -4,7 +4,7 @@ import accountsStore, {listeners} from './accounts-store'
 import accountsDatabase from './accounts-database'
 import Logger from '@plebbit/plebbit-logger'
 import assert from 'assert'
-const log = Logger('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:accounts:stores')
 import {Account, PublishCommentOptions, AccountCommentReply, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
 import utils from '../../lib/utils'
 

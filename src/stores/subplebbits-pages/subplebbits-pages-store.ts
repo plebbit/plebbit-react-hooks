@@ -1,7 +1,7 @@
 import utils from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 // include subplebbits pages store with feeds for debugging
-const log = Logger('plebbit-react-hooks:stores:feeds')
+const log = Logger('plebbit-react-hooks:feeds:stores')
 import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
 import localForageLru from '../../lib/localforage-lru'

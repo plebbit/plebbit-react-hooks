@@ -1,7 +1,7 @@
 import {useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:accounts')
+const log = Logger('plebbit-react-hooks:accounts:hooks')
 import assert from 'assert'
 import {useAccount, useAccountId} from '../accounts'
 import type {

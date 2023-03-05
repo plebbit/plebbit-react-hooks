@@ -17,6 +17,7 @@ import {
   useSubplebbit,
   setPlebbitJs,
 } from '../..'
+import commentsStore from '../../stores/comments'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
@@ -1866,5 +1867,100 @@ describe('accounts', () => {
       expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
     })
+  })
+
+  describe('useEditedComment', () => {
+    let rendered: any, waitFor: any
+    const publishedComments: any = []
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((commentCid?: any) => {
+        const account = useAccount()
+        const {accountComments} = useAccountComments()
+        const comment = useComment({commentCid})
+        const editedComment = useEditedComment({comment})
+        const {accountEdits} = useAccountEdits()
+        return {comment, editedComment, accountComments, account, accountEdits}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+
+      let challengeVerificationCount = 0
+      const getPublishCommentOptions = (number: number) => ({
+        title: 'title ' + String(number),
+        content: 'content ' + String(number),
+        parentCid: 'parent comment cid ' + String(number),
+        subplebbitAddress: 'subplebbit address',
+        // @ts-ignore
+        onChallenge: (challenge, comment) => {
+          publishedComments.push(comment)
+          comment.publishChallengeAnswers()
+        },
+        onChallengeVerification: () => challengeVerificationCount++,
+      })
+
+      // publish 3 comments in the same sub
+      await waitFor(() => rendered.result.current.account)
+      await act(async () => {
+        let amount = 3,
+          number = 0
+        while (number++ < amount) {
+          await accountsActions.publishComment(getPublishCommentOptions(number))
+        }
+      })
+      await waitFor(() => challengeVerificationCount === 3)
+      expect(challengeVerificationCount).toBe(3)
+    })
+
+    test('useComment adds comment to comments store even if the comment is an account comment', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      // trigger useComment to add comment to store
+      rendered.rerender(commentCid)
+      // wait for comment to be added to store
+      await waitFor(() => commentsStore.getState().comments[commentCid])
+      expect(commentsStore.getState().comments[commentCid]).not.toBe(undefined)
+      expect(commentsStore.getState().comments[commentCid].cid).toBe(commentCid)
+    })
+
+    // test('edited comment succeeded', async () => {
+    //   const commentCid = rendered.result.current.accountComments[0].cid
+    //   const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+    //   rendered.rerender(commentCid)
+
+    //   let challengeVerificationCount = 0
+    //   const publishCommentEditOptions = {
+    //     commentCid,
+    //     subplebbitAddress,
+    //     locked: true,
+    //     onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+    //     onChallengeVerification: () => challengeVerificationCount++,
+    //   }
+
+    //   // comment not yet edited
+    //   expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+    //   expect(rendered.result.current.editedComment.state).toBe('unedited')
+    //   await act(async () => {
+    //     await accountsActions.publishCommentEdit(publishCommentEditOptions)
+    //   })
+
+    //   await waitFor(() => rendered.result.current.editedComment.editedComment)
+
+    //   // edit is pending
+    //   expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+    //   expect(rendered.result.current.editedComment.state).toBe('pending')
+    //   expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+    //   expect(rendered.result.current.editedComment.pendingEdits.locked).toBe(true)
+    //   // there are no unecessary keys in editedCommentResult.pendingEdits
+    //   expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+
+    //   // update comment with edited prop
+    //   publishedComments[0].locked = true
+    //   publishedComments[0].updatedAt += 1
+    //   publishedComments[0].emit('update', publishedComments[0])
+    //   await waitFor(() => rendered.result.current.comment.locked === true && rendered.result.current.index === undefined)
+
+    //   // console.log(rendered.result.current.accountEdits)
+    //   // console.log(rendered.result.current.editedComment)
+    //   // console.log(rendered.result.current.comment)
+    // })
   })
 })

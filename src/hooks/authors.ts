@@ -3,7 +3,7 @@ import {useInterval} from './utils/use-interval'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:authors')
+const log = Logger('plebbit-react-hooks:authors:hooks')
 import assert from 'assert'
 import {
   Nft,

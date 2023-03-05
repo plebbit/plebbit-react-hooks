@@ -1,6 +1,6 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:accounts:stores')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import {

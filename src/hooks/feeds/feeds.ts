@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from 'react'
 import {useAccount} from '../accounts'
 import validator from '../../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:feeds')
+const log = Logger('plebbit-react-hooks:feeds:hooks')
 import assert from 'assert'
 import {Feed, Feeds, UseBufferedFeedsOptions, UseBufferedFeedsResult, UseFeedOptions, UseFeedResult} from '../../types'
 import useFeedsStore from '../../stores/feeds'

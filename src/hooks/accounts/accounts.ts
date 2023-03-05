@@ -2,7 +2,7 @@ import {useMemo, useState} from 'react'
 import isEqual from 'lodash.isequal'
 import useAccountsStore from '../../stores/accounts'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:accounts')
+const log = Logger('plebbit-react-hooks:accounts:hooks')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
 import type {

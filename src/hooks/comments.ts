@@ -2,7 +2,7 @@ import {useEffect, useState, useMemo} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:comments')
+const log = Logger('plebbit-react-hooks:comments:hooks')
 import assert from 'assert'
 import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types'
 import useCommentsStore from '../stores/comments'
@@ -18,7 +18,7 @@ import shallow from 'zustand/shallow'
 export function useComment(options?: UseCommentOptions): UseCommentResult {
   const {commentCid, accountName} = options || {}
   const account = useAccount({accountName})
-  let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
+  const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
 
@@ -31,15 +31,17 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       return
     }
     validator.validateUseCommentArguments(commentCid, account)
-    if (!comment) {
+    if (!commentFromStore) {
       // if comment isn't already in store, add it
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComment addCommentToStore error', {commentCid, error}))
     }
   }, [commentCid, account?.id])
 
   if (account && commentCid) {
-    log('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
+    log('useComment', {commentCid, commentFromStore, subplebbitsPagesComment, accountComment, commentsStore: useCommentsStore.getState().comments, account})
   }
+
+  let comment = commentFromStore
 
   // if comment from subplebbit pages is more recent, use it instead
   if (commentCid && (subplebbitsPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {

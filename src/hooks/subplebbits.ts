@@ -2,7 +2,7 @@ import {useEffect, useState, useMemo} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:subplebbits')
+const log = Logger('plebbit-react-hooks:subplebbits:hooks')
 import assert from 'assert'
 import {
   Subplebbit,
