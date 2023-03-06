@@ -50,7 +50,8 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
 
   // if comment is still not defined, but account comment is, use account comment
   // check `comment.timestamp` instead of `comment` in case comment exists but in a loading state
-  if (commentCid && !comment?.timestamp && accountComment) {
+  const commentFromStoreNotLoaded = !comment?.timestamp
+  if (commentCid && commentFromStoreNotLoaded && accountComment) {
     comment = accountComment
   }
 

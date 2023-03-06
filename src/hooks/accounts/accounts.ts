@@ -504,7 +504,7 @@ export function useEditedComment(options?: UseEditedCommentOptions): UseEditedCo
       editedResult.editedComment[propertyName] = editedResult.pendingEdits[propertyName]
     }
     for (const propertyName in editedResult.succeededEdits) {
-      editedResult.editedComment[propertyName] = editedResult.pendingEdits[propertyName]
+      editedResult.editedComment[propertyName] = editedResult.succeededEdits[propertyName]
     }
 
     return editedResult

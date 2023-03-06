@@ -90,6 +90,8 @@ export class Plebbit extends EventEmitter {
     const createCommentOptions = {
       cid: commentCid,
       ipnsName: commentCid + ' ipns name',
+      // useComment() requires timestamp or will use account comment instead of comment from store
+      timestamp: 1670000000,
       ...this.commentToGet(),
     }
     return new Comment(createCommentOptions)
