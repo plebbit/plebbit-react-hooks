@@ -3,3 +3,6 @@
 - implement sort by active
 - useHide
 - implement showing your own pending replies in a comment (when reloading) and your own pending posts in a sub (when reloading)
+- useResolvedAuthorAddress check if public key matches resolved address
+- useAuthorAvatar check if ENS has an avatar set up
+- implement something like useCommentLinkTagName(commentLink?: string): 'a' | 'img' | 'video' | 'audio' to indicate how to display links (only do it after special embeds like twitter, youtube, etc are implemented)

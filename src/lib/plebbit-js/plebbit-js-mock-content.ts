@@ -768,7 +768,7 @@ class Publication extends EventEmitter {
   }
 
   simulateChallengeEvent() {
-    const challenge = {type: 'image', challenge: captchaImageBase64}
+    const challenge = {type: 'image/png', challenge: captchaImageBase64}
     const challengeMessage = {
       type: 'CHALLENGE',
       // @ts-ignore
