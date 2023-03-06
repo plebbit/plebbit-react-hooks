@@ -1998,5 +1998,53 @@ describe('accounts', () => {
       expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
       expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
     })
+
+    test('edited comment failed', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      expect(subplebbitAddress).not.toBe(undefined)
+
+      rendered.rerender(commentCid)
+
+      // wait for useComment to load comment from store
+      await waitFor(() => rendered.result.current.comment?.cid && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // publish edit options
+      let challengeVerificationCount = 0
+      const commentEditTimestamp = Math.ceil(Date.now() / 1000) - 60 * 60 // 1 hour ago to make the edit not pending
+      const publishCommentEditOptions = {
+        timestamp: commentEditTimestamp,
+        commentCid,
+        subplebbitAddress,
+        locked: true,
+        onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+        onChallengeVerification: () => challengeVerificationCount++,
+      }
+
+      // publish edit
+      expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('unedited')
+      await act(async () => {
+        await accountsActions.publishCommentEdit(publishCommentEditOptions)
+      })
+
+      // edit failed (not pending) because is already 1 hour old
+      await waitFor(() => rendered.result.current.editedComment.editedComment)
+      expect(rendered.result.current.comment.locked).toBe(undefined)
+      // updatedAt is required to evaluate the status of a CommentEdit
+      expect(rendered.result.current.comment.updatedAt).toBeGreaterThan(commentEditTimestamp)
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('failed')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(undefined)
+      expect(rendered.result.current.editedComment.failedEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(1)
+    })
   })
 })
