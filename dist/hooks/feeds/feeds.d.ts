@@ -1,15 +1,11 @@
-import { Feed, UseBufferedFeedOptions } from '../../types';
+import { UseBufferedFeedsOptions, UseBufferedFeedsResult, UseFeedOptions, UseFeedResult } from '../../types';
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param sortType - The sorting algo for the feed: 'hot' | 'new' | 'active' | 'topHour' | 'topDay' | 'topWeek' | 'topMonth' | 'topYear' | 'topAll' | 'controversialHour' | 'controversialDay' | 'controversialWeek' | 'controversialMonth' | 'controversialYear' | 'controversialAll'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useFeed(subplebbitAddresses?: string[], sortType?: string, accountName?: string): {
-    feed: Feed;
-    hasMore: boolean;
-    loadMore: () => void;
-};
+export declare function useFeed(options?: UseFeedOptions): UseFeedResult;
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when
  * they are called by useFeed later, they are already preloaded.
@@ -18,4 +14,4 @@ export declare function useFeed(subplebbitAddresses?: string[], sortType?: strin
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useBufferedFeeds(feedsOptions?: UseBufferedFeedOptions[], accountName?: string): Feed[];
+export declare function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBufferedFeedsResult;

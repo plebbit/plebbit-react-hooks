@@ -1,4 +1,4 @@
-import { AccountNamesToAccountIds, Accounts, AccountsComments, AccountsCommentsReplies } from '../../types';
+import { AccountNamesToAccountIds, Accounts, AccountsVotes, AccountsEdits, AccountsComments, AccountsCommentsReplies, CommentCidsToAccountsComments } from '../../types';
 export declare const listeners: any;
 declare type AccountsState = {
     accounts: Accounts;
@@ -6,16 +6,18 @@ declare type AccountsState = {
     activeAccountId: string | undefined;
     accountNamesToAccountIds: AccountNamesToAccountIds;
     accountsComments: AccountsComments;
+    commentCidsToAccountsComments: CommentCidsToAccountsComments;
     accountsCommentsUpdating: {
-        [commendCid: string]: boolean;
+        [commentCid: string]: boolean;
     };
     accountsCommentsReplies: AccountsCommentsReplies;
-    accountsVotes: any;
+    accountsVotes: AccountsVotes;
+    accountsEdits: AccountsEdits;
     accountsActions: {
-        [key: string]: Function;
+        [functionName: string]: Function;
     };
     accountsActionsInternal: {
-        [key: string]: Function;
+        [functionName: string]: Function;
     };
 };
 declare const accountsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<AccountsState>>;

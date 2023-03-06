@@ -271,6 +271,70 @@ const getAccountsCommentsReplies = (accountIds) => __awaiter(void 0, void 0, voi
     }
     return accountsCommentsReplies;
 });
+const accountsEditsDatabases = {};
+const getAccountEditsDatabase = (accountId) => {
+    assert(accountId && typeof accountId === 'string', `getAccountEditsDatabase '${accountId}' not a string`);
+    if (!accountsEditsDatabases[accountId]) {
+        accountsEditsDatabases[accountId] = localForage.createInstance({ name: `accountEdits-${accountId}` });
+    }
+    return accountsEditsDatabases[accountId];
+};
+const addAccountEdit = (accountId, createEditOptions) => __awaiter(void 0, void 0, void 0, function* () {
+    assert((createEditOptions === null || createEditOptions === void 0 ? void 0 : createEditOptions.commentCid) && typeof (createEditOptions === null || createEditOptions === void 0 ? void 0 : createEditOptions.commentCid) === 'string', `addAccountEdit createEditOptions.commentCid '${createEditOptions === null || createEditOptions === void 0 ? void 0 : createEditOptions.commentCid}' not a string`);
+    const accountEditsDatabase = getAccountEditsDatabase(accountId);
+    const length = (yield accountEditsDatabase.getItem('length')) || 0;
+    const edit = Object.assign({}, createEditOptions);
+    delete edit.signer;
+    delete edit.author;
+    // delete all functions because they can't be added to indexeddb
+    for (const i in edit) {
+        if (typeof edit[i] === 'function') {
+            delete edit[i];
+        }
+    }
+    // edits are an array because you can edit the same comment multiple times
+    const edits = (yield accountEditsDatabase.getItem(edit.commentCid)) || [];
+    edits.push(edit);
+    yield Promise.all([
+        accountEditsDatabase.setItem(edit.commentCid, edits),
+        accountEditsDatabase.setItem(String(length), edit),
+        accountEditsDatabase.setItem('length', length + 1),
+    ]);
+});
+const getAccountEdits = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
+    const accountEditsDatabase = getAccountEditsDatabase(accountId);
+    const length = (yield accountEditsDatabase.getItem('length')) || 0;
+    const edits = {};
+    if (length === 0) {
+        return edits;
+    }
+    let promises = [];
+    let i = 0;
+    while (i < length) {
+        promises.push(accountEditsDatabase.getItem(String(i++)));
+    }
+    const editsArray = yield Promise.all(promises);
+    for (const edit of editsArray) {
+        // TODO: must change this logic for subplebbit edits
+        if (!edits[edit === null || edit === void 0 ? void 0 : edit.commentCid]) {
+            edits[edit === null || edit === void 0 ? void 0 : edit.commentCid] = [];
+        }
+        edits[edit === null || edit === void 0 ? void 0 : edit.commentCid].push(edit);
+    }
+    return edits;
+});
+const getAccountsEdits = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
+    const promises = [];
+    for (const accountId of accountIds) {
+        promises.push(getAccountEdits(accountId));
+    }
+    const accountsEditsArray = yield Promise.all(promises);
+    const accountsEdits = {};
+    for (const [i, accountId] of accountIds.entries()) {
+        accountsEdits[accountId] = accountsEditsArray[i];
+    }
+    return accountsEdits;
+});
 const database = {
     accountsDatabase,
     accountsMetadataDatabase,
@@ -288,5 +352,8 @@ const database = {
     addAccountCommentReply,
     getAccountCommentsReplies,
     getAccountsCommentsReplies,
+    getAccountsEdits,
+    getAccountEdits,
+    addAccountEdit,
 };
 export default database;

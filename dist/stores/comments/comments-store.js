@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import localForageLru from '../../lib/localforage-lru';
 const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 });
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:stores:comments');
+const log = Logger('plebbit-react-hooks:comments:stores');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
@@ -47,14 +47,14 @@ const commentsStore = createStore((setState, getState) => ({
                 plebbitGetCommentPending[commentId + account.id] = false;
             }
             // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
-            comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
+            comment === null || comment === void 0 ? void 0 : comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
                 updatedComment = utils.clone(updatedComment);
                 yield commentsDatabase.setItem(commentId, updatedComment);
                 log('commentsStore comment update', { commentId, updatedComment, account });
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: updatedComment }) }));
             }));
             listeners.push(comment);
-            comment.update().catch((error) => log.trace('comment.update error', { comment, error }));
+            comment === null || comment === void 0 ? void 0 : comment.update().catch((error) => log.trace('comment.update error', { comment, error }));
             // when publishing a comment, you don't yet know its CID
             // so when a new comment is fetched, check to see if it's your own
             // comment, and if yes, add the CID to your account comments database

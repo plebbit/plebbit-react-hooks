@@ -9,13 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import assert from 'assert';
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:stores:accounts');
+const log = Logger('plebbit-react-hooks:accounts:stores');
 import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
 import createStore from 'zustand';
 import * as accountsActions from './accounts-actions';
 import * as accountsActionsInternal from './accounts-actions-internal';
 import localForage from 'localforage';
+import { getCommentCidsToAccountsComments } from './utils';
 // reset all event listeners in between tests
 export const listeners = [];
 const accountsStore = createStore((setState, getState) => ({
@@ -24,9 +25,11 @@ const accountsStore = createStore((setState, getState) => ({
     activeAccountId: undefined,
     accountNamesToAccountIds: {},
     accountsComments: {},
+    commentCidsToAccountsComments: {},
     accountsCommentsUpdating: {},
     accountsCommentsReplies: {},
     accountsVotes: {},
+    accountsEdits: {},
     accountsActions,
     accountsActionsInternal,
 }));
@@ -58,12 +61,24 @@ const initializeAccountsStore = () => __awaiter(void 0, void 0, void 0, function
         ]);
         assert(accountIds && activeAccountId && accountNamesToAccountIds, `accountsStore error creating a default account during initialization accountsMetadataDatabase.accountIds '${accountIds}' accountsMetadataDatabase.activeAccountId '${activeAccountId}' accountsMetadataDatabase.accountNamesToAccountIds '${JSON.stringify(accountNamesToAccountIds)}'`);
     }
-    const [accountsComments, accountsVotes, accountsCommentsReplies] = yield Promise.all([
+    const [accountsComments, accountsVotes, accountsCommentsReplies, accountsEdits] = yield Promise.all([
         accountsDatabase.getAccountsComments(accountIds),
         accountsDatabase.getAccountsVotes(accountIds),
         accountsDatabase.getAccountsCommentsReplies(accountIds),
+        accountsDatabase.getAccountsEdits(accountIds),
     ]);
-    accountsStore.setState((state) => ({ accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies }));
+    const commentCidsToAccountsComments = getCommentCidsToAccountsComments(accountsComments);
+    accountsStore.setState((state) => ({
+        accounts,
+        accountIds,
+        activeAccountId,
+        accountNamesToAccountIds,
+        accountsComments,
+        commentCidsToAccountsComments,
+        accountsVotes,
+        accountsCommentsReplies,
+        accountsEdits,
+    }));
     // start looking for updates for all accounts comments in database
     for (const accountId in accountsComments) {
         for (const accountComment of accountsComments[accountId]) {
@@ -104,7 +119,7 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
     const startSubplebbitsPollTime = 10000;
     startSubplebbitsInterval = setInterval(() => {
         const { accounts, activeAccountId } = accountsStore.getState();
-        const account = activeAccountId && (accounts === null || accounts === void 0 ? void 0 : accounts[activeAccountId]);
+        const account = accounts === null || accounts === void 0 ? void 0 : accounts[activeAccountId || ''];
         if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
             return;
         }
@@ -121,7 +136,8 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
                     log('subplebbit started', { subplebbit });
                 }
                 catch (error) {
-                    log.error('accountsStore subplebbit.start error', { subplebbitAddress, error });
+                    // don't log start errors, too much spam
+                    // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
                 }
                 pendingStartedSubplebbits[subplebbitAddress] = false;
             }
@@ -130,6 +146,13 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
 });
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING;
+const waitForInitialized = () => __awaiter(void 0, void 0, void 0, function* () {
+    while (isInitializing()) {
+        // uncomment to debug accounts init
+        // console.warn(`can't reset accounts store while initializing, waiting 100ms`)
+        yield new Promise((r) => setTimeout(r, 100));
+    }
+});
 (() => __awaiter(void 0, void 0, void 0, function* () {
     // don't initialize on load multiple times when loading the file multiple times during karma tests
     // @ts-ignore
@@ -160,10 +183,7 @@ const originalState = accountsStore.getState();
 // async function because some stores have async init
 export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, function* () {
     // don't reset while initializing, it could happen during quick successive tests
-    while (isInitializing()) {
-        console.warn(`can't reset accounts store while initializing, waiting 100ms`);
-        yield new Promise((r) => setTimeout(r, 100));
-    }
+    yield waitForInitialized();
     log('accounts store reset started');
     // remove all event listeners
     listeners.forEach((listener) => listener.removeAllListeners());
@@ -180,10 +200,7 @@ export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, functi
 // reset database and store in between tests
 export const resetAccountsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
     // don't reset while initializing, it could happen during quick successive tests
-    while (isInitializing()) {
-        console.warn(`can't reset accounts database while initializing, waiting 100ms`);
-        yield new Promise((r) => setTimeout(r, 100));
-    }
+    yield waitForInitialized();
     yield Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()]);
     yield resetAccountsStore();
 });

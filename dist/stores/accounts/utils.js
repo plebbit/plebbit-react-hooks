@@ -22,7 +22,19 @@ export const getAccountSubplebbits = (account, subplebbits) => {
     }
     return accountSubplebbits;
 };
+export const getCommentCidsToAccountsComments = (accountsComments) => {
+    const commentCidsToAccountsComments = {};
+    for (const accountId in accountsComments) {
+        for (const accountComment of accountsComments[accountId]) {
+            if (accountComment.cid) {
+                commentCidsToAccountsComments[accountComment.cid] = { accountId, accountCommentIndex: accountComment.index };
+            }
+        }
+    }
+    return commentCidsToAccountsComments;
+};
 const utils = {
     getAccountSubplebbits,
+    getCommentCidsToAccountsComments,
 };
 export default utils;

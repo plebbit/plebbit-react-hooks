@@ -15,7 +15,7 @@ import accountGenerator from './account-generator';
 import Logger from '@plebbit/plebbit-logger';
 import validator from '../../lib/validator';
 import assert from 'assert';
-const log = Logger('plebbit-react-hooks:stores:accounts');
+const log = Logger('plebbit-react-hooks:accounts:stores');
 import * as accountsActionsInternal from './accounts-actions-internal';
 import { getAccountSubplebbits } from './utils';
 const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(void 0, void 0, void 0, function* () {
@@ -290,11 +290,15 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 if ((_b = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _b === void 0 ? void 0 : _b.cid) {
                     const commentWithCid = Object.assign(Object.assign({}, createCommentOptions), { cid: challengeVerification.publication.cid });
                     yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
-                    accountsStore.setState(({ accountsComments }) => {
+                    accountsStore.setState(({ accountsComments, commentCidsToAccountsComments }) => {
+                        var _a;
                         const updatedAccountComments = [...accountsComments[account.id]];
                         const updatedAccountComment = Object.assign(Object.assign({}, commentWithCid), { index: accountCommentIndex, accountId: account.id });
                         updatedAccountComments[accountCommentIndex] = updatedAccountComment;
-                        return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: updatedAccountComments }) };
+                        return {
+                            accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: updatedAccountComments }),
+                            commentCidsToAccountsComments: Object.assign(Object.assign({}, commentCidsToAccountsComments), { [(_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid]: { accountId: account.id, accountCommentIndex } }),
+                        };
                     });
                     accountsActionsInternal
                         .startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
@@ -371,7 +375,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     yield accountsDatabase.addAccountVote(account.id, createVoteOptions);
     log('accountsActions.publishVote', { createVoteOptions });
     accountsStore.setState(({ accountsVotes }) => ({
-        accountsVotes: Object.assign(Object.assign({}, accountsVotes), { [account.id]: Object.assign(Object.assign({}, accountsVotes[account.id]), { [createVoteOptions.commentCid]: createVoteOptions }) }),
+        accountsVotes: Object.assign(Object.assign({}, accountsVotes), { [account.id]: Object.assign(Object.assign({}, accountsVotes[account.id]), { [createVoteOptions.commentCid]: Object.assign(Object.assign({}, createVoteOptions), { signer: undefined, author: undefined }) }) }),
     }));
 });
 export const publishCommentEdit = (publishCommentEditOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -413,8 +417,17 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
         }
     });
     publishAndRetryFailedChallengeVerification();
+    yield accountsDatabase.addAccountEdit(account.id, createCommentEditOptions);
     log('accountsActions.publishCommentEdit', { createCommentEditOptions });
-    // TODO: show pending edits somewhere
+    accountsStore.setState(({ accountsEdits }) => {
+        // remove signer and author because not needed and they expose private key
+        const commentEdit = Object.assign(Object.assign({}, createCommentEditOptions), { signer: undefined, author: undefined });
+        let commentEdits = accountsEdits[account.id][createCommentEditOptions.commentCid] || [];
+        commentEdits = [...commentEdits, commentEdit];
+        return {
+            accountsEdits: Object.assign(Object.assign({}, accountsEdits), { [account.id]: Object.assign(Object.assign({}, accountsEdits[account.id]), { [createCommentEditOptions.commentCid]: commentEdits }) }),
+        };
+    });
 });
 export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();

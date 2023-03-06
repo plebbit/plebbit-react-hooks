@@ -11,7 +11,7 @@ import assert from 'assert';
 import localForageLru from '../../lib/localforage-lru';
 const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 });
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:stores:subplebbits');
+const log = Logger('plebbit-react-hooks:subplebbits:stores');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';

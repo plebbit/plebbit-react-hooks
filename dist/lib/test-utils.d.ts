@@ -12,8 +12,9 @@ declare const testUtils: {
     silenceUpdateUnmountedComponentWarning: () => () => void;
     silenceReactWarnings: () => void;
     restoreAll: () => void;
-    createWaitFor: (rendered: any, waitForOptions?: WaitForOptions | undefined) => (waitForFunction: Function) => Promise<void>;
     resetStores: () => Promise<void>;
     resetDatabasesAndStores: () => Promise<void>;
+    createWaitFor: (rendered: any, waitForOptions?: WaitForOptions | undefined) => (waitForFunction: Function) => Promise<void>;
+    silenceWaitForWarning: boolean;
 };
 export default testUtils;

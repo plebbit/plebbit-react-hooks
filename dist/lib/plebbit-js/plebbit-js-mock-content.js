@@ -39,6 +39,15 @@ const commentLinks = [
     'https://fortune.com/2022/03/16/bitcoin-200k-price-prediction-crypto-outlook/',
     'https://finance.yahoo.com/news/c2x-announces-25-million-funding-120000728.html',
     'https://finance.yahoo.com/news/adopting-crypto-legal-tender-signify-101309571.html',
+    'https://twitter.com/getplebbit/status/1632113706015309825',
+    'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+];
+const mediaLinks = [
+    'https://upload.wikimedia.org/wikipedia/en/transcoded/b/bd/Exorcist_angiogram_scene.webm/Exorcist_angiogram_scene.webm.480p.vp9.webm',
+    'https://upload.wikimedia.org/wikipedia/en/f/fa/2001_space_travel.ogv',
+    'https://upload.wikimedia.org/wikipedia/en/e/e1/Don%27t_Look_Now_love_scene_.ogg',
+    'https://upload.wikimedia.org/wikipedia/en/8/8a/Ellen_comes_out_airport.mp3',
+    'https://upload.wikimedia.org/wikipedia/en/b/bf/Dave_Niehaus_Winning_Call_1995_AL_Division_Series.ogg',
 ];
 const subplebbitTitles = ['The Ethereum investment community', 'Cryptography news and discussions', 'Memes', '🤡'];
 const subplebbitDescriptions = [
@@ -250,6 +259,11 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
         const linkIsImage = yield getArrayItem([true, false], seed + 'linkisimage');
         if (linkIsImage) {
             postContent.link = yield getImageUrl(seed + 'linkimage');
+            // add video and audio
+            const imageIsMedia = yield getArrayItem([true, false, false, false], seed + 'imageismedia');
+            if (imageIsMedia) {
+                postContent.link = yield getArrayItem(mediaLinks, seed + 'medialink');
+            }
         }
         const hasThumbnail = yield getArrayItem([true, true, true, false], seed + 'hasthumbnail');
         if (!linkIsImage && hasThumbnail) {
