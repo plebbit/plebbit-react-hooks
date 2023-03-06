@@ -2045,6 +2045,40 @@ describe('accounts', () => {
       expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
       expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
       expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(1)
+
+      // edit becomes pending if comment.updatedAt is too old
+      let updatedComment = {...commentsStore.getState().comments[commentCid]}
+      // make updatedAt 1 hour ago but still newer than edit time
+      updatedComment.updatedAt = commentEditTimestamp + 1
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // edit is pending because the comment from store updatedAt is too old
+      await waitFor(() => rendered.result.current.editedComment?.state === 'pending')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('pending')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+      expect(rendered.result.current.editedComment.pendingEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+
+      // add locked: true to comment
+      updatedComment = {...commentsStore.getState().comments[commentCid]}
+      // make updatedAt 1 hour ago but still newer than edit time
+      updatedComment.locked = true
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // edit is succeeded even if updatedAt is old because is newer than the edit
+      await waitFor(() => rendered.result.current.editedComment?.state === 'succeeded')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('succeeded')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+      expect(rendered.result.current.editedComment.succeededEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
     })
   })
 })
