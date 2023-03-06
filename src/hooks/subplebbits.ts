@@ -269,9 +269,13 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
     [subplebbitAddress, blockchainProviders]
   )
 
+  // only support ENS at the moment
+  const chainProvider = blockchainProviders?.['eth']
+
   // log('useResolvedSubplebbitAddress', {subplebbitAddress, state, errors, resolvedAddress, blockchainProviders})
   return {
     resolvedAddress,
+    chainProvider,
     state: state || initialState,
     error: errors[errors.length - 1],
     errors,

@@ -139,6 +139,7 @@ export interface UseResolvedSubplebbitAddressOptions extends Options {
 }
 export interface UseResolvedSubplebbitAddressResult extends Result {
   resolvedAddress: string | undefined
+  chainProvider: BlockchainProvider | undefined
 }
 
 // useFeed(options): result
@@ -186,14 +187,17 @@ export interface UseResolvedAuthorAddressOptions extends Options {
 }
 export interface UseResolvedAuthorAddressResult extends Result {
   resolvedAddress: string | undefined
+  chainProvider: BlockchainProvider | undefined
 }
 
-// useAuthorAvatarImageUrl(options): result
-export interface UseAuthorAvatarImageUrlOptions extends Options {
+// useAuthorAvatar(options): result
+export interface UseAuthorAvatarOptions extends Options {
   author?: Author
 }
-export interface UseAuthorAvatarImageUrlResult extends Result {
+export interface UseAuthorAvatarResult extends Result {
   imageUrl: string | undefined
+  metadataUrl: string | undefined
+  chainProvider: BlockchainProvider | undefined
 }
 
 // useCreateAccount(options): result

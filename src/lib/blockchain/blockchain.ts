@@ -5,14 +5,14 @@ import fetch from 'node-fetch'
 import utils from '../utils'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
-const getNftImageUrlNoCache = async (nftUrl: string, ipfsGatewayUrl: string) => {
-  assert(nftUrl && typeof nftUrl === 'string', `getNftImageUrl invalid nftUrl '${nftUrl}'`)
+const getNftImageUrlNoCache = async (nftMetadataUrl: string, ipfsGatewayUrl: string) => {
+  assert(nftMetadataUrl && typeof nftMetadataUrl === 'string', `getNftImageUrl invalid nftMetadataUrl '${nftMetadataUrl}'`)
   assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `getNftImageUrl invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
 
   let nftImageUrl
 
   // if the ipfs file is json, it probably has an 'image' property
-  const text = await fetch(nftUrl).then((resp) => resp.text())
+  const text = await fetch(nftMetadataUrl).then((resp) => resp.text())
   try {
     nftImageUrl = JSON.parse(text).image
   } catch (e) {
@@ -29,28 +29,28 @@ const getNftImageUrlNoCache = async (nftUrl: string, ipfsGatewayUrl: string) => 
 }
 export const getNftImageUrl = utils.memo(getNftImageUrlNoCache, {maxSize: 5000})
 
-// NOTE: getNftUrl tests are skipped, if changes are made they must be tested manually
+// NOTE: getNftMetadataUrl tests are skipped, if changes are made they must be tested manually
 // don't use objects in arguments for faster caching
-const getNftUrlNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number, ipfsGatewayUrl: string) => {
-  assert(nftAddress && typeof nftAddress === 'string', `getNftUrl invalid nftAddress '${nftAddress}'`)
-  assert(nftId && typeof nftId === 'string', `getNftUrl invalid nftId '${nftId}'`)
-  assert(chainTicker && typeof chainTicker === 'string', `getNftUrl invalid chainTicker '${chainTicker}'`)
-  assert(chainProviderUrl && typeof chainProviderUrl === 'string', `getNftUrl invalid chainProviderUrl '${chainProviderUrl}'`)
-  assert(typeof chainId === 'number', `getNftUrl invalid chainId '${chainId}' not a number`)
-  assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `getNftUrl invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
+const getNftMetadataUrlNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number, ipfsGatewayUrl: string) => {
+  assert(nftAddress && typeof nftAddress === 'string', `getNftMetadataUrl invalid nftAddress '${nftAddress}'`)
+  assert(nftId && typeof nftId === 'string', `getNftMetadataUrl invalid nftId '${nftId}'`)
+  assert(chainTicker && typeof chainTicker === 'string', `getNftMetadataUrl invalid chainTicker '${chainTicker}'`)
+  assert(chainProviderUrl && typeof chainProviderUrl === 'string', `getNftMetadataUrl invalid chainProviderUrl '${chainProviderUrl}'`)
+  assert(typeof chainId === 'number', `getNftMetadataUrl invalid chainId '${chainId}' not a number`)
+  assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `getNftMetadataUrl invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
 
   const chainProvider = getChainProvider(chainTicker, chainProviderUrl, chainId)
   const nftContract = new ethers.Contract(nftAddress, nftAbi, chainProvider)
-  let nftUrl = await nftContract.tokenURI(nftId)
+  let nftMetadataUrl = await nftContract.tokenURI(nftId)
 
   // if the image property is an ipfs url, get the image url using the ipfs gateway in account settings
-  if (nftUrl.startsWith('ipfs://')) {
-    nftUrl = `${ipfsGatewayUrl}/${nftUrl.replace('://', '/')}`
+  if (nftMetadataUrl.startsWith('ipfs://')) {
+    nftMetadataUrl = `${ipfsGatewayUrl}/${nftMetadataUrl.replace('://', '/')}`
   }
 
-  return nftUrl
+  return nftMetadataUrl
 }
-export const getNftUrl = utils.memo(getNftUrlNoCache, {maxSize: 5000})
+export const getNftMetadataUrl = utils.memo(getNftMetadataUrlNoCache, {maxSize: 5000})
 
 // don't use objects in arguments for faster caching
 export const getNftOwnerNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number) => {
@@ -111,7 +111,7 @@ const nftAbi = [
 
 export default {
   getNftOwner,
-  getNftUrl,
+  getNftMetadataUrl,
   getNftImageUrl,
   resolveEnsTxtRecord,
 }

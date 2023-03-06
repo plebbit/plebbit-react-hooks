@@ -5,36 +5,33 @@ import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:authors:hooks')
 import assert from 'assert'
-import {
-  Nft,
-  BlockchainProviders,
-  Author,
-  UseAuthorAvatarImageUrlOptions,
-  UseAuthorAvatarImageUrlResult,
-  UseResolvedAuthorAddressOptions,
-  UseResolvedAuthorAddressResult,
-} from '../types'
+import {Nft, BlockchainProviders, Author, UseAuthorAvatarOptions, UseAuthorAvatarResult, UseResolvedAuthorAddressOptions, UseResolvedAuthorAddressResult} from '../types'
 import {ethers} from 'ethers'
-import {getNftUrl, getNftImageUrl, getNftOwner, resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../lib/blockchain'
+import {getNftMetadataUrl, getNftImageUrl, getNftOwner, resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../lib/blockchain'
 
 /**
  * @param author - The Author object to resolve the avatar image URL of.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-// NOTE: useAuthorAvatarImageUrl tests are skipped, if changes are made they must be tested manually
-export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions): UseAuthorAvatarImageUrlResult {
+// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
+export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvatarResult {
   const {author, accountName} = options || {}
+  const account = useAccount({accountName})
+
+  // TODO: resolve crypto domain and check if one of the record is a profile pic
+
   const {verified, error: signatureError} = useVerifiedAuthorAvatarSignature(author, accountName)
   const verifiedError = verified === false && Error(`nft ownership signature proof invalid`)
   const isWhitelisted = useAuthorAvatarIsWhitelisted(author?.avatar)
   const whitelistedError = isWhitelisted === false && Error(`nft collection '${author?.avatar?.address}' not whitelisted`)
   // don't try to get avatar image url at all if signature isn't verified and whitelisted
   const avatar = verified && isWhitelisted ? author?.avatar : undefined
-  const {nftUrl, error: nftUrlError} = useNftUrl(avatar, accountName)
-  const {imageUrl, error: nftImageUrlError} = useNftImageUrl(nftUrl, accountName)
+  const {metadataUrl, error: nftMetadataError} = useNftMetadataUrl(avatar, accountName)
+  const {imageUrl, error: nftImageUrlError} = useNftImageUrl(metadataUrl, accountName)
+  const chainProvider = account?.plebbitOptions?.blockchainProviders?.[avatar?.chainTicker]
 
-  const error = whitelistedError || verifiedError || signatureError || nftUrlError || nftImageUrlError || undefined
+  const error = whitelistedError || verifiedError || signatureError || nftMetadataError || nftImageUrlError || undefined
   const errors = useMemo(() => (error ? [error] : []), [error])
 
   let state = 'initializing'
@@ -44,26 +41,28 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
     state = 'failed'
   } else if (imageUrl !== undefined) {
     state = 'succeeded'
-  } else if (nftUrl !== undefined) {
-    state = 'fetching-ipfs'
+  } else if (metadataUrl !== undefined) {
+    state = 'fetching-metadata'
   } else if (verified !== undefined) {
-    state = 'fetching-blockchain'
+    state = 'fetching-uri'
   } else if (author?.avatar) {
-    state = 'verifying-signature'
+    state = 'fetching-owner'
   }
 
   if (author?.avatar) {
-    log('useAuthorAvatarImageUrl', {author, state, verified, isWhitelisted, nftUrl, imageUrl})
+    log('useAuthorAvatar', {author, state, verified, isWhitelisted, metadataUrl, imageUrl})
   }
 
   return useMemo(
     () => ({
       imageUrl,
+      metadataUrl,
+      chainProvider,
       state,
       error,
       errors,
     }),
-    [imageUrl, state, error]
+    [imageUrl, metadataUrl, chainProvider, state, error]
   )
 }
 
@@ -72,16 +71,16 @@ export function useAuthorAvatarImageUrl(options?: UseAuthorAvatarImageUrlOptions
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-// NOTE: useNftUrl tests are skipped, if changes are made they must be tested manually
-export function useNftUrl(nft?: Nft, accountName?: string) {
+// NOTE: useNftMetadataUrl tests are skipped, if changes are made they must be tested manually
+export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
   const blockchainProviders = account?.plebbitOptions?.blockchainProviders
-  const [nftUrl, setNftUrl] = useState()
+  const [nftMetadataUrl, setNftMetadataUrl] = useState()
   const [error, setError] = useState<Error | undefined>()
 
-  const getNftUrlArgs = [
+  const getNftMetadataUrlArgs = [
     nft?.address,
     nft?.id,
     nft?.chainTicker,
@@ -93,7 +92,7 @@ export function useNftUrl(nft?: Nft, accountName?: string) {
   useEffect(() => {
     // reset
     setError(undefined)
-    setNftUrl(undefined)
+    setNftMetadataUrl(undefined)
 
     if (!account || !nft) {
       return
@@ -101,27 +100,27 @@ export function useNftUrl(nft?: Nft, accountName?: string) {
 
     ;(async () => {
       try {
-        const url = await getNftUrl(...getNftUrlArgs)
-        setNftUrl(url)
+        const url = await getNftMetadataUrl(...getNftMetadataUrlArgs)
+        setNftMetadataUrl(url)
       } catch (error: any) {
         setError(error)
-        log.error('useNftUrl getNftUrl error', {nft, ipfsGatewayUrl, blockchainProviders, error})
+        log.error('useNftMetadataUrl getNftMetadataUrl error', {nft, ipfsGatewayUrl, blockchainProviders, error})
       }
     })()
-  }, getNftUrlArgs)
+  }, getNftMetadataUrlArgs)
 
-  log('useNftUrl', {nft, ipfsGatewayUrl, nftUrl, blockchainProviders})
-  return {nftUrl, error}
+  log('useNftMetadataUrl', {nft, ipfsGatewayUrl, nftMetadataUrl, blockchainProviders})
+  return {metadataUrl: nftMetadataUrl, error}
 }
 
 /**
- * @param nftUrl - The NFT URL to resolve the image URL of.
+ * @param nftMetadataUrl - The NFT URL to resolve the image URL of.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
 // NOTE: useNftImageUrl tests are skipped, if changes are made they must be tested manually
-export function useNftImageUrl(nftUrl?: string, accountName?: string) {
-  assert(!nftUrl || typeof nftUrl === 'string', `useNftImageUrl invalid argument nftUrl '${nftUrl}' not a string`)
+export function useNftImageUrl(nftMetadataUrl?: string, accountName?: string) {
+  assert(!nftMetadataUrl || typeof nftMetadataUrl === 'string', `useNftImageUrl invalid argument nftMetadataUrl '${nftMetadataUrl}' not a string`)
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
@@ -133,22 +132,22 @@ export function useNftImageUrl(nftUrl?: string, accountName?: string) {
     setError(undefined)
     setImageUrl(undefined)
 
-    if (!account || !nftUrl) {
+    if (!account || !nftMetadataUrl) {
       return
     }
 
     ;(async () => {
       try {
-        const url = await getNftImageUrl(nftUrl, ipfsGatewayUrl)
+        const url = await getNftImageUrl(nftMetadataUrl, ipfsGatewayUrl)
         setImageUrl(url)
       } catch (error: any) {
         setError(error)
-        log.error('useNftImageUrl getNftImageUrl error', {nftUrl, ipfsGatewayUrl, error})
+        log.error('useNftImageUrl getNftImageUrl error', {nftMetadataUrl, ipfsGatewayUrl, error})
       }
     })()
-  }, [nftUrl, ipfsGatewayUrl])
+  }, [nftMetadataUrl, ipfsGatewayUrl])
 
-  // log('useNftImageUrl', {nftUrl, ipfsGatewayUrl, imageUrl})
+  // log('useNftImageUrl', {nftMetadataUrl, ipfsGatewayUrl, imageUrl})
   return {imageUrl, error}
 }
 
@@ -348,14 +347,18 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
 
   // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
 
+  // only support ENS at the moment
+  const chainProvider = blockchainProviders?.['eth']
+
   return useMemo(
     () => ({
       resolvedAddress,
+      chainProvider,
       state: state || initialState,
       error: errors[errors.length - 1],
       errors,
     }),
-    [resolvedAddress, state, errors]
+    [resolvedAddress, chainProvider, state, errors]
   )
 }
 

@@ -43,7 +43,7 @@ useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in
 #### Authors Hooks
 ```
 useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
-useAuthorAvatarImageUrl({author?: Author}): {imageUrl: string | undefined}
+useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
 ```
 #### Actions Hooks
 ```
@@ -124,8 +124,39 @@ const post = useComment({commentCid})
 const comment = useComment({commentCid})
 const {comments} = useComments({commentCids: [commentCid1, commentCid2, commentCid3]})
 
+// content
+console.log(comment.content || comment.link || comment.title)
+
+// author address
+console.log(comment.author.address)
+```
+
+#### Get author avatar
+
+```js
+const comment = useComment({commentCid})
+
 // get the nft avatar image url of the comment author
-const {imageUrl} = useAuthorAvatarImageUrl({author: comment.author})
+const {imageUrl, state, error, chainProvider, metadataUrl} = useAuthorAvatar({author: comment.author})
+
+// result
+if (state === 'succeeded') {
+  console.log('Succeeded getting avatar image URL', imageUrl)
+}
+if (state === 'failed') {
+  console.log('Failed getting avatar image URL', error.message)
+}
+
+// pending
+if (state === 'fetching-owner') {
+  console.log('Fetching NFT owner address from chain provider', chainProvider.url)
+}
+if (state === 'fetching-uri') {
+  console.log('Fetching NFT URI from chain provider URL', chainProvider.url)
+}
+if (state === 'fetching-metadata') {
+  console.log('Fetching NFT URI from', metadataUrl)
+}
 ```
 
 #### Get a subplebbit
@@ -345,8 +376,21 @@ await setAccount(editedAccount)
 
 // check if the user has set his ENS name properly, use {cache: false} or it won't update
 const author = {...account.author, address: 'username.eth'}
-const {state, error, resolvedAddress} = useResolvedAuthorAddress({author, cache: false})
 // authorAddress should equal to account.signer.address
+const {resolvedAddress, state, error, chainProvider} = useResolvedAuthorAddress({author, cache: false}) 
+
+// result
+if (state === 'succeeded') {
+  console.log('Succeeded resolving address', resolvedAddress)
+}
+if (state === 'failed') {
+  console.log('Failed resolving address', error.message)
+}
+
+// pending
+if (state === 'resolving') {
+  console.log('Resolving address from chain provider URL', chainProvider.url)
+}
 ```
 
 #### Delete account
@@ -499,7 +543,20 @@ await publishSubplebbitEdit()
 
 // verify if ENS was set correctly, use {cache: false} or it won't update
 const {resolvedAddress} = useResolvedSubplebbitAddress({subplebbitAddress: 'your-subplebbit-address.eth', cache: false})
-console.log('ENS set correctly', address === subplebbit.signer.address)
+
+// result
+if (state === 'succeeded') {
+  console.log('Succeeded resolving address', resolvedAddress)
+  console.log('ENS set correctly', resolvedAddress === subplebbit.signer.address)
+}
+if (state === 'failed') {
+  console.log('Failed resolving address', error.message)
+}
+
+// pending
+if (state === 'resolving') {
+  console.log('Resolving address from chain provider URL', chainProvider.url)
+}
 ```
 
 #### Export and import account

@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useAuthorAvatarImageUrl, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '..'
-import {useNftUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
+import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '..'
+import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
 import localForageLru from '../lib/localforage-lru'
 import PlebbitJsMock from '../lib/plebbit-js/plebbit-js-mock'
 import {ethers} from 'ethers'
@@ -49,8 +49,8 @@ describe('authors', () => {
     // skip because uses internet and not deterministic
     test.skip('useNftImageUrl', async () => {
       const rendered = renderHook<any, any>((nft) => {
-        const {nftUrl} = useNftUrl(nft)
-        return useNftImageUrl(nftUrl)
+        const {metadataUrl} = useNftMetadataUrl(nft)
+        return useNftImageUrl(metadataUrl)
       })
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current).toEqual({error: undefined, imageUrl: undefined})
@@ -79,8 +79,8 @@ describe('authors', () => {
     })
 
     // skip because uses internet and not deterministic
-    test.skip('useAuthorAvatarImageUrl', async () => {
-      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl({author}))
+    test.skip('useAuthorAvatar', async () => {
+      const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current.imageUrl).toBe(undefined)
 
@@ -93,7 +93,7 @@ describe('authors', () => {
     })
 
     // skip because uses internet and not deterministic
-    test.skip('useAuthorAvatarImageUrl with ENS', async () => {
+    test.skip('useAuthorAvatar with ENS', async () => {
       const author = {
         displayName: 'Esteban Abaroa',
         address: 'estebanabaroa.eth',
@@ -108,7 +108,7 @@ describe('authors', () => {
           },
         },
       }
-      const rendered = renderHook<any, any>((author) => useAuthorAvatarImageUrl({author}))
+      const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
       expect(rendered.result.current.imageUrl).toBe(undefined)
 

@@ -2036,6 +2036,7 @@ describe('accounts', () => {
       await waitFor(() => rendered.result.current.editedComment.editedComment)
       expect(rendered.result.current.comment.locked).toBe(undefined)
       // updatedAt is required to evaluate the status of a CommentEdit
+      await waitFor(() => rendered.result.current.comment.updatedAt)
       expect(rendered.result.current.comment.updatedAt).toBeGreaterThan(commentEditTimestamp)
       expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
       expect(rendered.result.current.editedComment.state).toBe('failed')
