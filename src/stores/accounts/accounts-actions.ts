@@ -21,23 +21,28 @@ import {
   Subplebbits,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
-import {getAccountSubplebbits} from './utils'
+import {getAccountSubplebbits, getCommentCidsToAccountsComments} from './utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
-  const {accounts, accountsComments, accountsVotes} = accountsStore.getState()
+  // add to database first to init the account
   await accountsDatabase.addAccount(newAccount)
-  const newAccounts = {...accounts, [newAccount.id]: newAccount}
+  // use database data for these because it's easier
   const [newAccountIds, newAccountNamesToAccountIds] = await Promise.all<any>([
     accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
     accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
   ])
 
+  // set the new state
+  const {accounts, accountsComments, accountsVotes, accountsEdits, accountsCommentsReplies} = accountsStore.getState()
+  const newAccounts = {...accounts, [newAccount.id]: newAccount}
   const newState: any = {
     accounts: newAccounts,
     accountIds: newAccountIds,
     accountNamesToAccountIds: newAccountNamesToAccountIds,
     accountsComments: {...accountsComments, [newAccount.id]: []},
     accountsVotes: {...accountsVotes, [newAccount.id]: {}},
+    accountsEdits: {...accountsEdits, [newAccount.id]: {}},
+    accountsCommentsReplies: {...accountsCommentsReplies, [newAccount.id]: {}},
   }
   // if there is only 1 account, make it active
   // otherwise stay on the same active account
@@ -144,29 +149,84 @@ export const setAccountsOrder = async (newOrderedAccountNames: string[]) => {
 export const importAccount = async (serializedAccount: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
-  let account
+  let imported
   try {
-    account = JSON.parse(serializedAccount)
+    imported = JSON.parse(serializedAccount)
   } catch (e) {}
-  assert(account && account?.id && account?.name, `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`)
+  assert(
+    imported?.account && imported?.account?.id && imported?.account?.name,
+    `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`
+  )
 
   // add subplebbit roles already in subplebbits store to imported account
   // TODO: add test to check if roles get added
-  const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits)
+  const subplebbits = getAccountSubplebbits(imported.account, subplebbitsStore.getState().subplebbits)
 
-  // if account.name already exists, add ' 2', don't overwrite
-  if (accountNamesToAccountIds[account.name]) {
-    account.name += ' 2'
+  // if imported.account.name already exists, add ' 2', don't overwrite
+  if (accountNamesToAccountIds[imported.account.name]) {
+    imported.account.name += ' 2'
   }
 
+  // generate new account
   const generatedAccount = await accountGenerator.generateDefaultAccount()
   // use generatedAccount to init properties like .plebbit and .id on a new account
   // overwrite account.id to avoid duplicate ids
-  const newAccount = {...generatedAccount, ...account, subplebbits, id: generatedAccount.id}
-  await addNewAccountToDatabaseAndState(newAccount)
-  log('accountsActions.importAccount', {account: newAccount})
+  const newAccount = {...generatedAccount, ...imported.account, subplebbits, id: generatedAccount.id}
 
-  // TODO: the 'account' should contain AccountComments and AccountVotes
+  // add account to database
+  await accountsDatabase.addAccount(newAccount)
+
+  // add account comments, votes, edits to database
+  for (const accountComment of imported.accountComments || []) {
+    await accountsDatabase.addAccountComment(newAccount.id, accountComment)
+  }
+  for (const accountVote of imported.accountVotes || []) {
+    await accountsDatabase.addAccountVote(newAccount.id, accountVote)
+  }
+  for (const accountEdit of imported.accountEdits || []) {
+    await accountsDatabase.addAccountEdit(newAccount.id, accountEdit)
+  }
+
+  // set new state
+
+  // get new state data from database because it's easier
+  const [accountComments, accountVotes, accountEdits, accountIds, newAccountNamesToAccountIds] = await Promise.all<any>([
+    accountsDatabase.getAccountComments(newAccount.id),
+    accountsDatabase.getAccountVotes(newAccount.id),
+    accountsDatabase.getAccountEdits(newAccount.id),
+    accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
+    accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+  ])
+
+  accountsStore.setState((state) => ({
+    accounts: {...state.accounts, [newAccount.id]: newAccount},
+    accountIds,
+    accountNamesToAccountIds: newAccountNamesToAccountIds,
+    accountsComments: {...state.accountsComments, [newAccount.id]: accountComments},
+    commentCidsToAccountsComments: getCommentCidsToAccountsComments({...state.accountsComments, [newAccount.id]: accountComments}),
+    accountsVotes: {...state.accountsVotes, [newAccount.id]: accountVotes},
+    accountsEdits: {...state.accountsEdits, [newAccount.id]: accountEdits},
+    // don't import/export replies to own comments, those are just cached and can be refetched
+    accountsCommentsReplies: {...state.accountsCommentsReplies, [newAccount.id]: {}},
+  }))
+
+  log('accountsActions.importAccount', {account: newAccount, accountComments, accountVotes, accountEdits})
+
+  // start looking for updates for all accounts comments in database
+  for (const accountComment of accountComments) {
+    accountsStore
+      .getState()
+      .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, newAccount, accountComment.index)
+      .catch((error: unknown) =>
+        log.error('accountsActions.importAccount startUpdatingAccountCommentOnCommentUpdateEvents error', {
+          accountComment,
+          accountCommentIndex: accountComment.index,
+          importedAccount: newAccount,
+          error,
+        })
+      )
+  }
+
   // TODO: add options to only import private key, account settings, or include all account comments/votes history
 }
 
@@ -179,12 +239,9 @@ export const exportAccount = async (accountName?: string) => {
     account = accounts[accountId]
   }
   assert(account?.id, `accountsActions.exportAccount account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
-  const accountJson = await accountsDatabase.getAccountJson(account.id)
-  log('accountsActions.exportAccount', {accountJson})
-  return accountJson
-
-  // TODO: the 'account' should contain AccountComments and AccountVotes
-  // TODO: add options to only export private key, account settings, or include all account comments/votes history
+  const exportedAccountJson = await accountsDatabase.getExportedAccountJson(account.id)
+  log('accountsActions.exportAccount', {exportedAccountJson})
+  return exportedAccountJson
 }
 
 export const subscribe = async (subplebbitAddress: string, accountName?: string) => {

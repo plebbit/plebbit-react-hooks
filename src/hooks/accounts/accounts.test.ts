@@ -177,7 +177,10 @@ describe('accounts', () => {
       rendered = renderHook<any, any>((accountName) => {
         const account = useAccount({accountName})
         const {accounts} = useAccounts()
-        return {account, accounts, ...accountsActions}
+        const {accountComments} = useAccountComments()
+        const {accountVotes} = useAccountVotes()
+        const {accountEdits} = useAccountEdits()
+        return {account, accounts, accountComments, accountVotes, accountEdits, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
 
@@ -314,109 +317,189 @@ describe('accounts', () => {
 
     test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
 
-    test('export account', async () => {
-      let exportedAccountJson: any, exportedAccount: any
-      await act(async () => {
-        exportedAccountJson = await rendered.result.current.exportAccount()
-      })
-      try {
-        exportedAccount = JSON.parse(exportedAccountJson)
-      } catch (e) {
-        console.error(e)
-      }
-      expect(typeof exportedAccountJson).toBe('string')
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
-      // account.plebbit has been removed
-      expect(exportedAccount.plebbit).toBe(undefined)
-    })
+    describe('account comments, account votes, account edits in database', () => {
+      const subplebbitAddress = 'subplebbit address'
 
-    test('import account', async () => {
-      let exportedAccount: any
-      await act(async () => {
+      beforeEach(async () => {
+        let challengeVerificationCount = 0
+        const publishCommentEditOptions = {
+          subplebbitAddress,
+          locked: true,
+          onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => challengeVerificationCount++,
+        }
+        const publishCommentOptions = {
+          subplebbitAddress,
+          onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => challengeVerificationCount++,
+        }
+        const publishVoteOptions = {
+          subplebbitAddress,
+          vote: 1,
+          onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => challengeVerificationCount++,
+        }
+        await act(async () => {
+          await accountsActions.publishComment({...publishCommentOptions, content: 'content 1'})
+          await accountsActions.publishComment({...publishCommentOptions, content: 'content 2'})
+          await accountsActions.publishVote({...publishVoteOptions, commentCid: 'comment cid 1'})
+          await accountsActions.publishVote({...publishVoteOptions, commentCid: 'comment cid 2'})
+          await accountsActions.publishCommentEdit({...publishCommentEditOptions, commentCid: 'comment cid 1'})
+          await accountsActions.publishCommentEdit({...publishCommentEditOptions, commentCid: 'comment cid 2'})
+        })
+        await waitFor(() => challengeVerificationCount === 6)
+        expect(challengeVerificationCount).toBe(6)
+      })
+
+      afterEach(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
+      test('export account', async () => {
+        let exportedJson: any, exported: any
+        await act(async () => {
+          exportedJson = await rendered.result.current.exportAccount()
+        })
         try {
-          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
-        } catch (e) {}
+          exported = JSON.parse(exportedJson)
+        } catch (e) {
+          console.error(e)
+        }
+        expect(typeof exportedJson).toBe('string')
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
+
+        // account.plebbit has been removed
+        expect(exported?.account.plebbit).toBe(undefined)
+
+        // exported account comments
+        expect(exported?.accountComments?.[0]?.content).toBe('content 1')
+        expect(exported?.accountComments?.[1]?.content).toBe('content 2')
+
+        // exported account votes
+        expect(exported?.accountVotes?.[0]?.commentCid).toBe('comment cid 1')
+        expect(exported?.accountVotes?.[1]?.commentCid).toBe('comment cid 2')
+
+        // exported account edits
+        expect(exported?.accountEdits?.[0]?.commentCid).toBe('comment cid 1')
+        expect(exported?.accountEdits?.[1]?.commentCid).toBe('comment cid 2')
       })
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
-      // account.plebbit has been removed
-      expect(exportedAccount.plebbit).toBe(undefined)
 
-      exportedAccount.author.name = 'imported author name'
-      exportedAccount.name = 'imported account name'
-      exportedAccount.id = 'imported account id' // this should get reset
-      await act(async () => {
-        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      test('import account', async () => {
+        let exported: any
+        await act(async () => {
+          try {
+            exported = JSON.parse(await rendered.result.current.exportAccount())
+          } catch (e) {}
+        })
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
+        // account.plebbit has been removed
+        expect(exported?.account.plebbit).toBe(undefined)
+
+        exported.account.author.name = 'imported author name'
+        exported.account.name = 'imported account name'
+        exported.account.id = 'imported account id' // this should get reset
+        await act(async () => {
+          await rendered.result.current.importAccount(JSON.stringify(exported))
+        })
+        rendered.rerender(exported?.account.name)
+
+        await waitFor(() => rendered.result.current.account.author.name === exported?.account.author.name)
+        expect(rendered.result.current.account?.author?.name).toBe(exported?.account.author.name)
+        expect(rendered.result.current.account?.name).toBe(exported?.account.name)
+        // account.id has been reset
+        expect(typeof rendered.result.current.account?.id).toBe('string')
+        expect(rendered.result.current.account?.id).not.toBe(exported?.account.id)
+        // account.plebbit has been initialized
+        expect(typeof rendered.result.current.account?.plebbit?.getSubplebbit).toBe('function')
+
+        // has account comments, votes, edits
+        await waitFor(() => rendered.result.current.accountComments?.[0]?.content === 'content 1')
+        expect(rendered.result.current.accountComments?.[0]?.content).toBe('content 1')
+        expect(rendered.result.current.accountComments?.[1]?.content).toBe('content 2')
+        await waitFor(() => rendered.result.current.accountVotes?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered.result.current.accountVotes?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered.result.current.accountVotes?.[1]?.commentCid).toBe('comment cid 2')
+        await waitFor(() => rendered.result.current.accountEdits?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered.result.current.accountEdits?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered.result.current.accountEdits?.[1]?.commentCid).toBe('comment cid 2')
+
+        // reset stores to force using the db
+        await testUtils.resetStores()
+
+        // imported account persists in database after store reset
+        const rendered2 = renderHook<any, any>(() => {
+          const account = useAccount({accountName: exported?.account.name})
+          const {accountComments} = useAccountComments({accountName: exported?.account.name})
+          const {accountVotes} = useAccountVotes({accountName: exported?.account.name})
+          const {accountEdits} = useAccountEdits({accountName: exported?.account.name})
+          return {account, accountComments, accountVotes, accountEdits}
+        })
+        const waitFor2 = testUtils.createWaitFor(rendered2)
+        await waitFor2(() => (rendered2.result.current.account.name = exported?.account.name))
+        expect(rendered2.result.current.account.author?.name).toBe(exported?.account.author.name)
+        expect(rendered2.result.current.account.name).toBe(exported?.account.name)
+        // account.id has been reset
+        expect(typeof rendered2.result.current.account.id).toBe('string')
+        expect(rendered2.result.current.account.id).not.toBe(exported?.account.id)
+        // account.plebbit has been initialized
+        expect(typeof rendered2.result.current.account.plebbit?.getSubplebbit).toBe('function')
+
+        // has account comments, votes, edits
+        await waitFor2(() => rendered2.result.current.accountComments?.[0]?.content === 'content 1')
+        expect(rendered2.result.current.accountComments?.[0]?.content).toBe('content 1')
+        expect(rendered2.result.current.accountComments?.[1]?.content).toBe('content 2')
+        await waitFor2(() => rendered2.result.current.accountVotes?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered2.result.current.accountVotes?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered2.result.current.accountVotes?.[1]?.commentCid).toBe('comment cid 2')
+        await waitFor2(() => rendered2.result.current.accountEdits?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered2.result.current.accountEdits?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered2.result.current.accountEdits?.[1]?.commentCid).toBe('comment cid 2')
       })
-      rendered.rerender(exportedAccount.name)
 
-      await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
-      expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
-      expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
-      // account.id has been reset
-      expect(typeof rendered.result.current.account?.id).toBe('string')
-      expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
-      // account.plebbit has been initialized
-      expect(typeof rendered.result.current.account?.plebbit?.getSubplebbit).toBe('function')
+      test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
+        let exported: any
+        await act(async () => {
+          try {
+            exported = JSON.parse(await rendered.result.current.exportAccount())
+          } catch (e) {}
+        })
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
 
-      // reset stores to force using the db
-      await testUtils.resetStores()
+        exported.account.author.name = 'imported author name'
+        exported.account.id = 'imported account id' // this should get reset
+        await act(async () => {
+          await rendered.result.current.importAccount(JSON.stringify(exported))
+        })
+        // if the imported account name already exists, ' 2' get added to the name
+        rendered.rerender(exported?.account.name + ' 2')
 
-      // imported account persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccount({accountName: exportedAccount.name}))
-      const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
-      expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
-      expect(rendered2.result.current.name).toBe(exportedAccount.name)
-      // account.id has been reset
-      expect(typeof rendered2.result.current.id).toBe('string')
-      expect(rendered2.result.current.id).not.toBe(exportedAccount.id)
-      // account.plebbit has been initialized
-      expect(typeof rendered2.result.current.plebbit?.getSubplebbit).toBe('function')
-    })
-
-    test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
-      let exportedAccount: any
-      await act(async () => {
-        try {
-          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
-        } catch (e) {}
+        await waitFor(() => rendered.result.current.account.author.name === exported?.account.author.name)
+        expect(rendered.result.current.account?.author?.name).toBe(exported?.account.author.name)
       })
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
 
-      exportedAccount.author.name = 'imported author name'
-      exportedAccount.id = 'imported account id' // this should get reset
-      await act(async () => {
-        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
+        let exported: any
+        await act(async () => {
+          try {
+            exported = JSON.parse(await rendered.result.current.exportAccount())
+          } catch (e) {}
+        })
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
+
+        exported.account.name = 'imported account name'
+        await act(async () => {
+          await rendered.result.current.importAccount(JSON.stringify(exported))
+        })
+        rendered.rerender(exported?.account.name)
+
+        await waitFor(() => rendered.result.current.account.id)
+        expect(rendered.result.current.account?.name).toBe(exported?.account.name)
+        expect(rendered.result.current.account?.id).not.toBe(exported?.account.id)
       })
-      // if the imported account name already exists, ' 2' get added to the name
-      rendered.rerender(exportedAccount.name + ' 2')
-
-      await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
-      expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
-    })
-
-    test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
-      let exportedAccount: any
-      await act(async () => {
-        try {
-          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
-        } catch (e) {}
-      })
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
-
-      exportedAccount.name = 'imported account name'
-      await act(async () => {
-        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
-      })
-      rendered.rerender(exportedAccount.name)
-
-      await waitFor(() => rendered.result.current.account.id)
-      expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
-      expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
     })
 
     test(`change account order`, async () => {

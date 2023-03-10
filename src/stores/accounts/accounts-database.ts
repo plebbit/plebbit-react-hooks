@@ -34,14 +34,35 @@ const getAccount = async (accountId: string) => {
   return accounts[accountId]
 }
 
-const getAccountJson = async (accountId: string) => {
+const getExportedAccountJson = async (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`)
   // do not serialize or instantiate anything (unlike getAccount)
   const account = await accountsDatabase.getItem(accountId)
   if (!account) {
     throw Error(`getAccountJson no account in database with accountId '${accountId}'`)
   }
-  return JSON.stringify(account)
+  const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
+  const accountVotesDatabase = getAccountVotesDatabase(accountId)
+  const accountEditsDatabase = getAccountEditsDatabase(accountId)
+  const [accountComments, accountVotes, accountEdits] = await Promise.all([
+    getDatabaseAsArray(accountCommentsDatabase),
+    getDatabaseAsArray(accountVotesDatabase),
+    getDatabaseAsArray(accountEditsDatabase),
+  ])
+  return JSON.stringify({account, accountComments, accountVotes, accountEdits})
+}
+
+// accountVotes, accountComments and accountEdits are indexeddb
+// databases formed like an array (keys are numbers)
+const getDatabaseAsArray = async (database: any) => {
+  const length = (await database.getItem('length')) || 0
+  let promises = []
+  let i = 0
+  while (i < length) {
+    promises.push(database.getItem(String(i++)))
+  }
+  const items = await Promise.all(promises)
+  return items
 }
 
 const addAccount = async (account: Account) => {
@@ -171,6 +192,7 @@ const getAccountComments = async (accountId: string) => {
 }
 
 const getAccountsComments = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsComments invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountComments(accountId))
@@ -235,6 +257,7 @@ const getAccountVotes = async (accountId: string) => {
 }
 
 const getAccountsVotes = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsVotes invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountVotes(accountId))
@@ -281,6 +304,7 @@ const getAccountCommentsReplies = async (accountId: string) => {
 }
 
 const getAccountsCommentsReplies = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsCommentsReplies invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountCommentsReplies(accountId))
@@ -354,6 +378,7 @@ const getAccountEdits = async (accountId: string) => {
 }
 
 const getAccountsEdits = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsEdits invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountEdits(accountId))
@@ -377,7 +402,7 @@ const database = {
   addAccountComment,
   addAccount,
   removeAccount,
-  getAccountJson,
+  getExportedAccountJson,
   getAccounts,
   getAccount,
   addAccountCommentReply,
