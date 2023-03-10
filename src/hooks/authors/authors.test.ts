@@ -1,11 +1,12 @@
 import {act, renderHook} from '@testing-library/react-hooks'
-import testUtils from '../lib/test-utils'
-import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '..'
-import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, resolveAuthorAddress} from './authors'
-import localForageLru from '../lib/localforage-lru'
-import PlebbitJsMock from '../lib/plebbit-js/plebbit-js-mock'
+import testUtils from '../../lib/test-utils'
+import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
+import {resolveAuthorAddress} from './authors'
+import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
+import localForageLru from '../../lib/localforage-lru'
+import PlebbitJsMock from '../../lib/plebbit-js/plebbit-js-mock'
 import {ethers} from 'ethers'
-import {Nft, Author} from '../types'
+import {Nft, Author} from '../../types'
 setPlebbitJs(PlebbitJsMock)
 
 const avatarNft1 = {

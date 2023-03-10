@@ -91,6 +91,25 @@ export interface UseCommentsResult extends Result {
   comments: (Comment | undefined)[]
 }
 
+// useCommentThumbnailUrl(options): result
+// export interface UseCommentThumbnailUrlOptions extends Options {
+//   comment?: Comment
+// }
+// export interface UseCommentThumbnailUrlResult extends Result {
+//   thumnbailUrl: string | undefined
+// }
+
+// useReplies(options): result
+// export interface UseRepliesOptions extends Options {
+//   commentCid?: string
+//   nested?: boolean
+// }
+// export interface UseRepliesResult extends Result {
+//   replies: Comment[]
+//   hasMore(): Promise<void>
+//   loadMore(): Promise<void>
+// }
+
 // useEditedComment(options): result
 export interface UseEditedCommentOptions extends Options {
   comment?: Comment
@@ -103,14 +122,6 @@ export interface UseEditedCommentResult extends Result {
   failedEdits: {[failedEditPropertyName: string]: any}
   // state: 'initializing' | 'unedited' | 'succeeded' | 'pending' | 'failed'
 }
-
-// useCommentThumbnailUrl(options): result
-// export interface UseCommentThumbnailUrlOptions extends Options {
-//   comment?: Comment
-// }
-// export interface UseCommentThumbnailUrlResult extends Result {
-//   thumnbailUrl: string | undefined
-// }
 
 // useSubplebbit(options): result
 export interface UseSubplebbitOptions extends Options {
@@ -161,25 +172,6 @@ export interface UseBufferedFeedsResult extends Result {
   bufferedFeeds: Comment[][]
 }
 
-// useAuthorComments(options): result
-// export interface UseAuthorCommentsOptions extends Options {
-//   authorAddress?: string
-// }
-// export interface UseAuthorCommentsResult extends Result {
-//   authorComments: Comment[]
-// }
-
-// useReplies(options): result
-// export interface UseRepliesOptions extends Options {
-//   commentCid?: string
-//   nested?: boolean
-// }
-// export interface UseRepliesResult extends Result {
-//   replies: Comment[]
-//   hasMore(): Promise<void>
-//   loadMore(): Promise<void>
-// }
-
 // useResolvedAuthorAddress(options): result
 export interface UseResolvedAuthorAddressOptions extends Options {
   author?: Author
@@ -198,6 +190,29 @@ export interface UseAuthorAvatarResult extends Result {
   imageUrl: string | undefined
   metadataUrl: string | undefined
   chainProvider: BlockchainProvider | undefined
+}
+
+// useAuthor(options): result
+export interface UseAuthorCommentsOptions extends Options {
+  authorAddress?: string
+  // the last known comment cid of this author (required, can't fetch author from author address alone)
+  commentCid?: string
+}
+export interface UseAuthorCommentsResult extends Result {
+  author: Author
+}
+
+// useAuthorComments(options): result
+export interface UseAuthorCommentsOptions extends Options {
+  authorAddress?: string
+  // the last known comment cid of this author (required, can't fetch author comment from author address alone)
+  commentCid?: string
+}
+export interface UseAuthorCommentsResult extends Result {
+  authorComments: Comment[]
+  lastCommentCid: string | undefined
+  hasMore(): Promise<void>
+  loadMore(): Promise<void>
 }
 
 // useCreateAccount(options): result
@@ -364,7 +379,7 @@ export interface UseBlockResult extends Result {
 //   unnotify(): Promise<void>
 // }
 
-// useLimitAddress(options): result
+// useLimit(options): result
 // export interface UseLimitOptions extends Options {
 //   address?: string
 // }

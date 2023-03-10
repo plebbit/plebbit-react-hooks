@@ -1,70 +1,11 @@
 import {useEffect, useState, useMemo} from 'react'
-import {useInterval} from './utils/use-interval'
-import {useAccount} from './accounts'
-import validator from '../lib/validator'
+import {useAccount} from '../accounts'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:authors:hooks')
 import assert from 'assert'
-import {Nft, BlockchainProviders, Author, UseAuthorAvatarOptions, UseAuthorAvatarResult, UseResolvedAuthorAddressOptions, UseResolvedAuthorAddressResult} from '../types'
+import {Nft, BlockchainProviders, Author} from '../../types'
 import {ethers} from 'ethers'
-import {getNftMetadataUrl, getNftImageUrl, getNftOwner, resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../lib/blockchain'
-
-/**
- * @param author - The Author object to resolve the avatar image URL of.
- * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
- * the active account.
- */
-// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
-export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvatarResult {
-  const {author, accountName} = options || {}
-  const account = useAccount({accountName})
-
-  // TODO: resolve crypto domain and check if one of the record is a profile pic
-
-  const {verified, error: signatureError} = useVerifiedAuthorAvatarSignature(author, accountName)
-  const verifiedError = verified === false && Error(`nft ownership signature proof invalid`)
-  const isWhitelisted = useAuthorAvatarIsWhitelisted(author?.avatar)
-  const whitelistedError = isWhitelisted === false && Error(`nft collection '${author?.avatar?.address}' not whitelisted`)
-  // don't try to get avatar image url at all if signature isn't verified and whitelisted
-  const avatar = verified && isWhitelisted ? author?.avatar : undefined
-  const {metadataUrl, error: nftMetadataError} = useNftMetadataUrl(avatar, accountName)
-  const {imageUrl, error: nftImageUrlError} = useNftImageUrl(metadataUrl, accountName)
-  const chainProvider = account?.plebbitOptions?.blockchainProviders?.[avatar?.chainTicker]
-
-  const error = whitelistedError || verifiedError || signatureError || nftMetadataError || nftImageUrlError || undefined
-  const errors = useMemo(() => (error ? [error] : []), [error])
-
-  let state = 'initializing'
-  if (!author?.avatar) {
-    // do nothing, is initializing
-  } else if (error) {
-    state = 'failed'
-  } else if (imageUrl !== undefined) {
-    state = 'succeeded'
-  } else if (metadataUrl !== undefined) {
-    state = 'fetching-metadata'
-  } else if (verified !== undefined) {
-    state = 'fetching-uri'
-  } else if (author?.avatar) {
-    state = 'fetching-owner'
-  }
-
-  if (author?.avatar) {
-    log('useAuthorAvatar', {author, state, verified, isWhitelisted, metadataUrl, imageUrl})
-  }
-
-  return useMemo(
-    () => ({
-      imageUrl,
-      metadataUrl,
-      chainProvider,
-      state,
-      error,
-      errors,
-    }),
-    [imageUrl, metadataUrl, chainProvider, state, error]
-  )
-}
+import {getNftMetadataUrl, getNftImageUrl, getNftOwner} from '../../lib/blockchain'
 
 /**
  * @param nft - The NFT object to resolve the URL of.
@@ -205,7 +146,7 @@ for (const i in whitelistedTokenAddresses) {
   whitelistedTokenAddresses[i.toLowerCase()] = whitelistedTokenAddresses[i]
 }
 
-function useAuthorAvatarIsWhitelisted(nft?: Nft) {
+export function useAuthorAvatarIsWhitelisted(nft?: Nft) {
   // TODO: make a list that a dao can vote it, get the list from plebbit.getDefaults()
   // TODO: make subplebbit owners able to whitelist their own nfts in their subplebbits
   // TODO: make each user able to whitelist/blacklist any nft they want for their own client
@@ -249,127 +190,4 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
     verified = false
   }
   return verified
-}
-
-/**
- * @param author - The author address to resolve to a public key, e.g. 'john.eth' resolves to 'Qm...'.
- * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
- * the active account.
- */
-// NOTE: useResolvedAuthorAddress tests are skipped, if changes are made they must be tested manually
-export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult {
-  let {author, accountName, cache} = options || {}
-
-  // cache by default
-  if (cache === undefined) {
-    cache = true
-  }
-
-  // poll every 15 seconds, about the duration of an eth block
-  let interval = 15000
-  // no point in polling often if caching is on
-  if (cache) {
-    interval = 1000 * 60 * 60 * 25
-  }
-
-  const account = useAccount({accountName})
-  // possible to use account.plebbit instead of account.plebbitOptions
-  const blockchainProviders = account?.plebbitOptions?.blockchainProviders
-  const [resolvedAddress, setResolvedAddress] = useState<string>()
-  const [errors, setErrors] = useState<Error[]>([])
-  const [state, setState] = useState<string>()
-
-  let initialState = 'initializing'
-  // before those defined, nothing can happen
-  if (options && account && author?.address) {
-    initialState = 'ready'
-  }
-
-  useInterval(
-    () => {
-      // no options, do nothing or reset
-      if (!account || !author?.address) {
-        if (resolvedAddress !== undefined) {
-          setResolvedAddress(undefined)
-        }
-        if (state !== undefined) {
-          setState(undefined)
-        }
-        if (errors.length) {
-          setErrors([])
-        }
-        return
-      }
-
-      // address isn't a crypto domain, can't be resolved
-      if (!author?.address.includes('.')) {
-        if (state !== 'failed') {
-          setErrors([Error('not a crypto domain')])
-          setState('failed')
-          setResolvedAddress(undefined)
-        }
-        return
-      }
-
-      // only support resolving '.eth' for now
-      if (!author?.address?.endsWith('.eth')) {
-        if (state !== 'failed') {
-          setErrors([Error('crypto domain type unsupported')])
-          setState('failed')
-          setResolvedAddress(undefined)
-        }
-        return
-      }
-
-      ;(async () => {
-        try {
-          setState('resolving')
-          const res = await resolveAuthorAddress(author?.address, blockchainProviders, cache)
-          setState('succeeded')
-
-          // TODO: check if resolved address is the same as author.signer.publicKey
-
-          if (res !== resolvedAddress) {
-            setResolvedAddress(res)
-          }
-        } catch (error: any) {
-          setErrors([...errors, error])
-          setState('failed')
-          setResolvedAddress(undefined)
-          log.error('useResolvedAuthorAddress resolveAuthorAddress error', {author, blockchainProviders, error})
-        }
-      })()
-    },
-    interval,
-    true,
-    [author?.address, blockchainProviders]
-  )
-
-  // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
-
-  // only support ENS at the moment
-  const chainProvider = blockchainProviders?.['eth']
-
-  return useMemo(
-    () => ({
-      resolvedAddress,
-      chainProvider,
-      state: state || initialState,
-      error: errors[errors.length - 1],
-      errors,
-    }),
-    [resolvedAddress, chainProvider, state, errors]
-  )
-}
-
-// NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
-export const resolveAuthorAddress = async (authorAddress: string, blockchainProviders: BlockchainProviders, cache?: boolean) => {
-  let resolvedAuthorAddress
-  if (authorAddress.endsWith('.eth')) {
-    const resolve = cache ? resolveEnsTxtRecord : resolveEnsTxtRecordNoCache
-    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', blockchainProviders?.['eth']?.url, blockchainProviders?.['eth']?.chainId)
-  } else {
-    throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`)
-  }
-  return resolvedAuthorAddress
 }
