@@ -1,12 +1,12 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
-import {resolveAuthorAddress} from './authors'
+import {resolveAuthorAddress, useAuthor} from './authors'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
-import PlebbitJsMock from '../../lib/plebbit-js/plebbit-js-mock'
 import {ethers} from 'ethers'
 import {Nft, Author} from '../../types'
+import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
 const avatarNft1 = {
@@ -27,7 +27,7 @@ describe('authors', () => {
   let author: Author
 
   beforeAll(async () => {
-    testUtils.silenceUpdateUnmountedComponentWarning()
+    testUtils.silenceReactWarnings()
     author = {
       address: authorAddress,
       avatar: {
@@ -43,9 +43,97 @@ describe('authors', () => {
     testUtils.restoreAll()
   })
 
+  describe('useAuthor', () => {
+    let rendered: any, waitFor: any
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options: any) => {
+        const useAuthorResult = useAuthor(options)
+        return useAuthorResult
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('no comment cid', async () => {
+      rendered.rerender({authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message).toBe('missing UseAuthorOptions.commentCid')
+    })
+
+    test('no author address', async () => {
+      rendered.rerender({commentCid: 'comment cid'})
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message).toBe('missing UseAuthorOptions.authorAddress')
+    })
+
+    test('comment cid from different author', async () => {
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'different-author.eth'})
+
+      // expect to fail because plebbit-js mock content doesnt have author address 'different-author.eth'
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message).toBe('commentCid author.address is different from authorAddress')
+    })
+
+    test('succeeded', async () => {
+      // mock the correct author address on the comment
+      const commentToGet = Plebbit.prototype.commentToGet
+      Plebbit.prototype.commentToGet = () => ({
+        author: {
+          address: 'author.eth',
+          displayName: 'display name',
+        },
+      })
+
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.author?.address).toBe('author.eth')
+      expect(rendered.result.current.author?.displayName).toBe('display name')
+
+      // can reset
+      rendered.rerender({})
+      await waitFor(() => rendered.result.current.author === undefined)
+      expect(rendered.result.current.author).toBe(undefined)
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
+    })
+  })
+
   describe('author avatar', () => {
     const timeout = 30000
     jest.setTimeout(timeout)
+
+    test('useAuthorAvatar avatar has no signature', async () => {
+      const author = {
+        address: authorAddress,
+        avatar: {
+          ...avatarNft1,
+          signature: undefined,
+        },
+      }
+      const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current.imageUrl).toBe(undefined)
+
+      rendered.rerender(author)
+      // NOTE: waitFor expected to fail because our test signer doesn't own the nft
+      // manually check the logs to see if it actually works on not
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message.includes('invalid nft.signature')).toBe(true)
+    })
 
     // skip because uses internet and not deterministic
     test.skip('useNftImageUrl', async () => {
@@ -164,9 +252,10 @@ const createAuthorAvatarSignature = async (nft: Nft, authorAddress: string) => {
   // the property names must be in this order for the signature to match
   // insert props one at a time otherwise babel/webpack will reorder
   messageToSign.domainSeparator = 'plebbit-author-avatar'
+  messageToSign.authorAddress = authorAddress
+  messageToSign.timestamp = Math.ceil(Date.now() / 1000)
   messageToSign.tokenAddress = nft.address
   messageToSign.tokenId = nft.id
-  messageToSign.authorAddress = authorAddress
   // use plain JSON so the user can read what he's signing
   messageToSign = JSON.stringify(messageToSign)
 

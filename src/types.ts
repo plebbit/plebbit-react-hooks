@@ -172,6 +172,29 @@ export interface UseBufferedFeedsResult extends Result {
   bufferedFeeds: Comment[][]
 }
 
+// useAuthor(options): result
+export interface UseAuthorOptions extends Options {
+  authorAddress?: string
+  // the last known comment cid of this author (required, can't fetch author from author address alone)
+  commentCid?: string
+}
+export interface UseAuthorResult extends Result {
+  author: Author | undefined
+}
+
+// useAuthorComments(options): result
+export interface UseAuthorCommentsOptions extends Options {
+  authorAddress?: string
+  // the last known comment cid of this author (required, can't fetch author comment from author address alone)
+  commentCid?: string
+}
+export interface UseAuthorCommentsResult extends Result {
+  authorComments: Comment[]
+  lastCommentCid: string | undefined
+  hasMore(): Promise<void>
+  loadMore(): Promise<void>
+}
+
 // useResolvedAuthorAddress(options): result
 export interface UseResolvedAuthorAddressOptions extends Options {
   author?: Author
@@ -190,29 +213,6 @@ export interface UseAuthorAvatarResult extends Result {
   imageUrl: string | undefined
   metadataUrl: string | undefined
   chainProvider: BlockchainProvider | undefined
-}
-
-// useAuthor(options): result
-export interface UseAuthorCommentsOptions extends Options {
-  authorAddress?: string
-  // the last known comment cid of this author (required, can't fetch author from author address alone)
-  commentCid?: string
-}
-export interface UseAuthorCommentsResult extends Result {
-  author: Author
-}
-
-// useAuthorComments(options): result
-export interface UseAuthorCommentsOptions extends Options {
-  authorAddress?: string
-  // the last known comment cid of this author (required, can't fetch author comment from author address alone)
-  commentCid?: string
-}
-export interface UseAuthorCommentsResult extends Result {
-  authorComments: Comment[]
-  lastCommentCid: string | undefined
-  hasMore(): Promise<void>
-  loadMore(): Promise<void>
 }
 
 // useCreateAccount(options): result
