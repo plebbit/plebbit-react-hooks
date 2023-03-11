@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
-import {resolveAuthorAddress, useAuthor, useAuthorComments} from './authors'
+import {resolveAuthorAddress, useAuthor, useAuthorComments, authorCommentsPerPage, authorCommentsBuffer} from './authors'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
 import {ethers} from 'ethers'
@@ -51,7 +51,8 @@ describe('authors', () => {
         const useAuthorCommentsResult = useAuthorComments(options)
         return useAuthorCommentsResult
       })
-      waitFor = testUtils.createWaitFor(rendered)
+      // fetching multiple pages is slow, needs high timeout
+      waitFor = testUtils.createWaitFor(rendered, {timeout: 5000})
     })
 
     afterEach(async () => {
@@ -79,6 +80,59 @@ describe('authors', () => {
       await waitFor(() => rendered.result.current.state === 'failed')
       expect(rendered.result.current.state).toBe('failed')
       expect(rendered.result.current.error.message).toBe('commentCid author.address is different from authorAddress')
+    })
+
+    test.only('get multiple pages', async () => {
+      // mock the correct author address on the comment
+      const commentToGet = Plebbit.prototype.commentToGet
+      let commentToGetCalledCount = 0
+      Plebbit.prototype.commentToGet = () => ({
+        author: {
+          address: 'author.eth',
+          previousCommentCid: `previous comment cid ${++commentToGetCalledCount}`,
+        },
+      })
+
+      // get first page
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage)
+      expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // wait for buffered author comments to fill
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length === authorCommentsPerPage + authorCommentsBuffer)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(authorCommentsPerPage + authorCommentsBuffer)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // get second page
+
+      // get more pages until buffered feeds are increased
+
+      // get more pages until buffered feeds can longer increase
+
+      // get more pages until hasMore is false
+
+      // handle finding an comment with comment.author.subplebbit and finding more recent comments
+
+      // handle changing the cid while scrolling with the lastCommentCid
+
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
+    })
+
+    test('has no previous comment cid, get only comment cid provided', async () => {
+      // mock the correct author address on the comment
+      const commentToGet = Plebbit.prototype.commentToGet
+      Plebbit.prototype.commentToGet = () => ({author: {address: 'author.eth', previousCommentCid: undefined}})
+
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.authorComments.length === 1)
+      expect(rendered.result.current.authorComments.length).toBe(1)
+      expect(rendered.result.current.lastCommentCid).toBe(undefined)
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
     })
   })
 

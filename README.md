@@ -159,6 +159,50 @@ if (state === 'fetching-metadata') {
 }
 ```
 
+#### Get author profile page
+
+```js
+// NOTE: you must have a comment cid from the author to load his profile page
+// e.g. the page url would be /#/u/<authorAddress>/c/<commentCid>
+const authorResult = useAuthor({commentCid, authorAddress})
+const {imageUrl} = useAuthorAvatar({author: authorResult.author})
+const {authorComments, lastCommentCid, hasMore, loadMore} = useAuthorComments({commentCid, authorAddress})
+
+// result
+if (authorResult.state === 'succeeded') {
+  console.log('Succeeded getting author', authorResult.author)
+}
+if (state === 'failed') {
+  console.log('Failed getting author', authorResult.error.message)
+}
+
+// listing the author comments with infinite scroll
+import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
+
+const comments = authorComments.map(comment => <Comment comment={comment} />)
+
+<InfiniteScroll
+  pageStart={0}
+  loadMore={loadMore}
+  hasMore={hasMore}
+  loader={<div>Loading...</div>}
+>
+  {comments}
+</InfiniteScroll>
+
+// it is recommended to always redirect the user to the last known comment cid
+// in case they want to share the url with someone, the author's comments
+// will load faster
+import {useParams} from 'react-router-dom'
+const params = useParams()
+
+useEffect(() => {
+  if (lastCommentCid && params.comentCid !== lastCommentCid) {
+    history.push(`/u/${params.authorAddress}/c/${lastCommentCid}`);
+  }
+}, [lastCommentCid])
+```
+
 #### Get a subplebbit
 
 ```js
