@@ -22,9 +22,15 @@ const commentTitles = [
 ]
 
 const commentContents = [
-  `First of all, the sentiment in this sub concerning moons seems very polarized. Some people think they are a genius idea and others think they are making this sub this sub worse because of “moon farming.” which camp are you in? Second, how/where can you sell them. And third, how many upvotes=one moon, some people have so many when I’m sitting here at 17.
+  `First of all, the sentiment in this sub concerning moons seems very __polarized__. Some people think they are a genius idea and others think they are making this sub this sub worse because of “moon farming.” which camp are you in? 
 
-**Personally** I think Reddit is ahead of the curve, in a couple years I could easily see every social media platform incorporating their own coin into their interface. Think about it; it costs the company next to nothing, encourages users to spend more time and be more active on the platform, and capitalizes on their existing user base, skipping any need for marketing. From the companies point of view it seems like a no brainer.
+Second, how/where can you sell them. And third, how many upvotes=one moon, some people have so many when I’m sitting here at 17.
+
+**Personally** I think Reddit is ahead of the _curve_, in a couple years I could easily see every social media platform incorporating their own coin into their interface. 
+
+Think about it; it costs the company next to nothing, encourages users to spend more time and be more active on the platform, and capitalizes on their existing user base, skipping any need for marketing. 
+
+From the companies point of view it seems like a no brainer.
 
 Can people think of issues with this approach? For either the company or the consumer, because besides increased levels of spamming I don’t see much downside.`,
   'What kind of messes up world is this. *Even* if they stop you, they would need some sort of seed phrase or private key to your account in order to get the funds.',
@@ -302,6 +308,17 @@ const getPostContent = async (seed: string) => {
   // else is text post
   else {
     postContent.content = await getArrayItem(commentContents, seed + 'content')
+    const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+    if (hasQuote) {
+      const lines = postContent.content.split('\n')
+      for (const i in lines) {
+        const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+        if (lineIsQuote) {
+          lines[i] = '>' + lines[i]
+        }
+      }
+      postContent.content = lines.join('\n')
+    }
   }
   return postContent
 }
@@ -309,7 +326,18 @@ const getPostContent = async (seed: string) => {
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
   const {depth, parentCid, postCid} = getReplyContentOptions
   const author = await getAuthor(seed + 'author')
-  const content = await getArrayItem(commentContents, seed + 'replycontent')
+  let content = await getArrayItem(commentContents, seed + 'replycontent')
+  const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+  if (hasQuote) {
+    const lines = content.split('\n')
+    for (const i in lines) {
+      const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+      if (lineIsQuote) {
+        lines[i] = '>' + lines[i]
+      }
+    }
+    content = lines.join('\n')
+  }
   return {content, author, depth, parentCid, postCid}
 }
 
