@@ -71,6 +71,15 @@ describe('authors', () => {
       expect(rendered.result.current.state).toBe('failed')
       expect(rendered.result.current.error.message).toBe('missing UseAuthorOptions.authorAddress')
     })
+
+    test('comment cid from different author', async () => {
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'different-author.eth'})
+
+      // expect to fail because plebbit-js mock content doesnt have author address 'different-author.eth'
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message).toBe('commentCid author.address is different from authorAddress')
+    })
   })
 
   describe('useAuthor', () => {
