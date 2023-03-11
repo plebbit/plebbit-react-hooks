@@ -8,6 +8,8 @@ import {
   Author,
   UseAuthorOptions,
   UseAuthorResult,
+  UseAuthorCommentsOptions,
+  UseAuthorCommentsResult,
   UseAuthorAvatarOptions,
   UseAuthorAvatarResult,
   UseResolvedAuthorAddressOptions,
@@ -15,7 +17,7 @@ import {
 } from '../../types'
 import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/blockchain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
-import {useComment} from '../comments'
+import {useComment, useComments} from '../comments'
 
 /**
  * @param authorAddress - The address of the author
@@ -23,7 +25,6 @@ import {useComment} from '../comments'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
 export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
   const {authorAddress, commentCid, accountName} = options || {}
   const comment = useComment({commentCid, accountName})
@@ -57,7 +58,10 @@ export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
   }, [comment.errors, useAuthorError])
 
   // if has author error, state failed
-  const state = useAuthorError ? 'failed' : comment?.state || 'initializing'
+  let state = author ? 'succeeded' : comment?.state || 'initializing'
+  if (useAuthorError) {
+    state = 'failed'
+  }
 
   if (comment?.timestamp) {
     log('useAuthor', {authorAddress, commentCid, accountName, author, comment, useAuthorError, state})
@@ -71,6 +75,70 @@ export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
       errors,
     }),
     [author, errors, state]
+  )
+}
+
+// reddit loads approximately 25 posts per page while infinite scrolling
+const authorCommentsPerPage = 25
+// keep large buffer because fetching cids is slow
+const authorCommentsBuffer = 50
+
+/**
+ * @param authorAddress - The address of the author
+ * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthorCommentsResult {
+  const {authorAddress, commentCid, accountName} = options || {}
+  const [authorCommentCids, setAuthorCommentCids] = useState<string[]>([])
+  const pageNumber = 1
+
+  const authorResult = useAuthor({commentCid, authorAddress, accountName})
+  const commentsResult = useComments({commentCids: authorCommentCids, accountName})
+
+  useEffect(() => {
+    if (!commentCid || !authorAddress) {
+      return
+    }
+
+    // when author has loaded for the first time, set his last author comment cid to fetch
+    if (authorResult?.author && authorCommentCids.length === 0) {
+      // set the original comment used in the argument
+      const cids = [commentCid]
+      // if has previous comment, set it
+      if (authorResult.author.previousCommentCid) {
+        cids.push(authorResult.author.previousCommentCid)
+      }
+      setAuthorCommentCids(cids)
+      return
+    }
+
+    // if last comment has a previous comment, add it
+    const previousCommentCid = commentsResult.comments[commentsResult.comments.length - 1]?.author?.previousCommentCid
+    if (previousCommentCid && !authorCommentCids.includes(previousCommentCid)) {
+      setAuthorCommentCids([...authorCommentCids, previousCommentCid])
+    }
+  }, [authorResult?.author?.previousCommentCid, commentsResult.comments])
+
+  const hasMore = true
+  const loadMore = async () => {}
+
+  // if useAuthor() failed, use state and errors from useAuthor, otherwise use from useComments
+  const state = authorResult.state === 'failed' ? 'failed' : commentsResult.state
+  const errors = authorResult.state === 'failed' ? authorResult.errors : commentsResult.errors
+
+  return useMemo(
+    () => ({
+      authorComments: commentsResult.comments,
+      lastCommentCid: undefined,
+      hasMore,
+      loadMore,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [commentsResult.comments, hasMore, errors, state]
   )
 }
 

@@ -88,6 +88,7 @@ export interface UseCommentsOptions extends Options {
   commentCids?: string[]
 }
 export interface UseCommentsResult extends Result {
+  // TODO: remove | undefined, that shouldn't happen when comments have comment.state
   comments: (Comment | undefined)[]
 }
 
@@ -106,7 +107,7 @@ export interface UseCommentsResult extends Result {
 // }
 // export interface UseRepliesResult extends Result {
 //   replies: Comment[]
-//   hasMore(): Promise<void>
+//   hasMore: boolean
 //   loadMore(): Promise<void>
 // }
 
@@ -189,9 +190,10 @@ export interface UseAuthorCommentsOptions extends Options {
   commentCid?: string
 }
 export interface UseAuthorCommentsResult extends Result {
-  authorComments: Comment[]
+  // TODO: remove | undefined, that shouldn't happen when comments have comment.state
+  authorComments: (Comment | undefined)[]
   lastCommentCid: string | undefined
-  hasMore(): Promise<void>
+  hasMore: boolean
   loadMore(): Promise<void>
 }
 

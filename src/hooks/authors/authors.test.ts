@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
-import {resolveAuthorAddress, useAuthor} from './authors'
+import {resolveAuthorAddress, useAuthor, useAuthorComments} from './authors'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
 import {ethers} from 'ethers'
@@ -41,6 +41,36 @@ describe('authors', () => {
 
   afterAll(() => {
     testUtils.restoreAll()
+  })
+
+  describe.only('useAuthorComments', () => {
+    let rendered: any, waitFor: any
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options: any) => {
+        const useAuthorCommentsResult = useAuthorComments(options)
+        return useAuthorCommentsResult
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('no comment cid', async () => {
+      rendered.rerender({authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message).toBe('missing UseAuthorOptions.commentCid')
+    })
+
+    test('no author address', async () => {
+      rendered.rerender({commentCid: 'comment cid'})
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message).toBe('missing UseAuthorOptions.authorAddress')
+    })
   })
 
   describe('useAuthor', () => {
