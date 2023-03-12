@@ -91,16 +91,19 @@ export const authorCommentsBuffer = 50
  */
 export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthorCommentsResult {
   const {authorAddress, commentCid, accountName} = options || {}
-  const [authorCommentCids, setAuthorCommentCids] = useState<string[]>([])
   const [pageNumber, setPageNumber] = useState<number>(1)
+  const [authorCommentCids, setAuthorCommentCids] = useState<string[]>([])
   // only fetch comments up to the page number
+  // NOTE: authorCommentCidsToFetch is same as authorCommentCids until the page number limit is reached
   const authorCommentCidsToFetch = useMemo(() => authorCommentCids.slice(0, pageNumber * authorCommentsPerPage + authorCommentsBuffer), [authorCommentCids, pageNumber])
 
-  // hooks to fetch data
+  // fetch author when commentCid or authorAddress change
   const authorResult = useAuthor({commentCid, authorAddress, accountName})
+  // fetch comments when authorCommentCidsToFetch change
   const commentsResult = useComments({commentCids: authorCommentCidsToFetch, accountName})
 
-  // set new author comment cids to fetch when receive them
+  // set new authorCommentCids to fetch when receiving either the initial
+  // commentCid or a new comment.author.previousCommentCid
   useEffect(() => {
     if (!commentCid || !authorAddress) {
       return
@@ -125,16 +128,25 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
     }
   }, [commentCid, authorAddress, authorResult?.author, commentsResult.comments])
 
-  // only deliver comments equal to the page
+  // only deliver comment amount equal to the comments per page amount
   const authorComments = useMemo(() => commentsResult.comments.slice(0, pageNumber * authorCommentsPerPage), [pageNumber, commentsResult.comments])
 
-  let hasMore = true
-  // initial comment has no previous comment cids
-  if (authorResult.author && !authorResult.author.previousCommentCid) {
-    hasMore = false
-  }
+  // if the last item in authorComments could have an author.previousCommentCid after loading, hasMore is true
+  const authorCommentsLast = authorComments[authorComments.length - 1]
+  const authorCommentsLastMightHaveAuthorPreviousCommentCid = !authorCommentsLast?.timestamp ? true : Boolean(authorCommentsLast?.author?.previousCommentCid)
+  const hasMore = authorCommentsLastMightHaveAuthorPreviousCommentCid
 
-  const loadMore = async () => {}
+  // increment the page number
+  const loadMore = async () => {
+    // only increment page if page is loaded fully
+    if (authorComments.length === pageNumber * authorCommentsPerPage) {
+      setPageNumber((pageNumber) => pageNumber + 1)
+    }
+    // if not wait 100ms to prevent spamming this function
+    else {
+      await new Promise((r) => setTimeout(r, 100))
+    }
+  }
 
   // if useAuthor() failed, use state and errors from useAuthor, otherwise use from useComments
   const state = authorResult.state === 'failed' ? 'failed' : commentsResult.state

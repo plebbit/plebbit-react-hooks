@@ -192,7 +192,7 @@ const comments = authorComments.map(comment => <Comment comment={comment} />)
 
 // it is recommended to always redirect the user to the last known comment cid
 // in case they want to share the url with someone, the author's comments
-// will load faster
+// will load faster when using the last comment cid
 import {useParams} from 'react-router-dom'
 const params = useParams()
 

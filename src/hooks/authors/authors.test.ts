@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
-import {resolveAuthorAddress, useAuthor, useAuthorComments, authorCommentsPerPage, authorCommentsBuffer} from './authors'
+import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
+import {resolveAuthorAddress, authorCommentsPerPage, authorCommentsBuffer} from './authors'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
 import {ethers} from 'ethers'
@@ -43,7 +43,7 @@ describe('authors', () => {
     testUtils.restoreAll()
   })
 
-  describe.only('useAuthorComments', () => {
+  describe('useAuthorComments', () => {
     let rendered: any, waitFor: any
 
     beforeEach(async () => {
@@ -82,18 +82,25 @@ describe('authors', () => {
       expect(rendered.result.current.error.message).toBe('commentCid author.address is different from authorAddress')
     })
 
-    test.only('get multiple pages', async () => {
+    test('get multiple pages', async () => {
       // mock the correct author address on the comment
       const commentToGet = Plebbit.prototype.commentToGet
-      let commentToGetCalledCount = 0
+      // the author only has 110 comments
+      const authorCommentsCount = 110
+      let previousCommentCount = 0
+      const getAuthorPreviousCommentCid = () => {
+        if (previousCommentCount < authorCommentsCount - 1) {
+          return `previous comment cid ${++previousCommentCount}`
+        }
+      }
       Plebbit.prototype.commentToGet = () => ({
         author: {
           address: 'author.eth',
-          previousCommentCid: `previous comment cid ${++commentToGetCalledCount}`,
+          previousCommentCid: getAuthorPreviousCommentCid(),
         },
       })
 
-      // get first page
+      // get 1st page (25 comments, 75 buffered)
       rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
       await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage)
       expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage)
@@ -103,13 +110,49 @@ describe('authors', () => {
       expect(rendered.result.current.bufferedAuthorComments.length).toBe(authorCommentsPerPage + authorCommentsBuffer)
       expect(rendered.result.current.hasMore).toBe(true)
 
-      // get second page
+      // get 2nd page (50 comments, 100 buffered)
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage * 2)
+      expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage * 2)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // wait for buffered author comments to fill
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length === authorCommentsPerPage * 2 + authorCommentsBuffer)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(authorCommentsPerPage * 2 + authorCommentsBuffer)
+      expect(rendered.result.current.hasMore).toBe(true)
 
-      // get more pages until buffered feeds are increased
+      // get 3rd page (75 comments, 110 buffered (author only has 110 comments))
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage * 3)
+      expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage * 3)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // wait for buffered author comments to fill
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length === 110)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(110)
+      expect(rendered.result.current.hasMore).toBe(true)
 
-      // get more pages until buffered feeds can longer increase
+      // get 4th page (100 comments, 110 buffered (author only has 110 comments))
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage * 4)
+      expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage * 4)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // wait for buffered author comments to fill
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length === 110)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(110)
+      expect(rendered.result.current.hasMore).toBe(true)
 
-      // get more pages until hasMore is false
+      // get 5th (last) page (110 comments, 110 buffered (author only has 110 comments))
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.authorComments.length === 110 && rendered.result.current.hasMore === false)
+      expect(rendered.result.current.authorComments.length).toBe(110)
+      expect(rendered.result.current.hasMore).toBe(false)
 
       // handle finding an comment with comment.author.subplebbit and finding more recent comments
 
@@ -118,6 +161,14 @@ describe('authors', () => {
       // restore mock
       Plebbit.prototype.commentToGet = commentToGet
     })
+
+    // test('some author comments have wrong author', () => {
+
+    // })
+
+    // test('cannot spam load more', () => {
+
+    // })
 
     test('has no previous comment cid, get only comment cid provided', async () => {
       // mock the correct author address on the comment
