@@ -129,17 +129,30 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
   }, [commentCid, authorAddress, authorResult?.author, commentsResult.comments])
 
   // only deliver comment amount equal to the comments per page amount
-  const authorComments = useMemo(() => commentsResult.comments.slice(0, pageNumber * authorCommentsPerPage), [pageNumber, commentsResult.comments])
+  const {authorComments, wrongAuthorError} = useMemo(() => {
+    const authorComments = commentsResult.comments.slice(0, pageNumber * authorCommentsPerPage)
+    let wrongAuthorError
+    for (const [i, authorComment] of authorComments.entries()) {
+      if (authorComment?.author?.address !== authorAddress) {
+        wrongAuthorError = Error(`comment.author.previousCommentCid comment has different author address from authorAddress`)
+        // trim author comments to remove any comments after the invalid authorAddress
+        authorComments.length = i
+        break
+      }
+    }
+    return {authorComments, wrongAuthorError}
+  }, [pageNumber, commentsResult.comments])
 
   // if the last item in authorComments could have an author.previousCommentCid after loading, hasMore is true
   const authorCommentsLast = authorComments[authorComments.length - 1]
   const authorCommentsLastMightHaveAuthorPreviousCommentCid = !authorCommentsLast?.timestamp ? true : Boolean(authorCommentsLast?.author?.previousCommentCid)
-  const hasMore = authorCommentsLastMightHaveAuthorPreviousCommentCid
+  // if has wrongAuthorError, hasMore is false
+  const hasMore = authorCommentsLastMightHaveAuthorPreviousCommentCid && !wrongAuthorError
 
   // increment the page number
   const loadMore = async () => {
-    // only increment page if page is loaded fully
-    if (authorComments.length === pageNumber * authorCommentsPerPage) {
+    // only increment page if page is loaded fully and wrongAuthorError is false
+    if (authorComments.length === pageNumber * authorCommentsPerPage && !wrongAuthorError) {
       setPageNumber((pageNumber) => pageNumber + 1)
     }
     // if not wait 100ms to prevent spamming this function
@@ -150,7 +163,19 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
 
   // if useAuthor() failed, use state and errors from useAuthor, otherwise use from useComments
   const state = authorResult.state === 'failed' ? 'failed' : commentsResult.state
-  const errors = authorResult.state === 'failed' ? authorResult.errors : commentsResult.errors
+  const errors = useMemo(() => {
+    let errors
+    if (authorResult.state === 'failed') {
+      errors = authorResult.errors
+    } else {
+      errors = commentsResult.errors
+      // if wrongAuthorError, append the error
+      if (wrongAuthorError) {
+        errors = [...errors, wrongAuthorError]
+      }
+    }
+    return errors
+  }, [authorResult.state, authorResult.errors, commentsResult.errors, wrongAuthorError])
 
   if (authorResult.author) {
     log('useAuthorComments', {

@@ -43,7 +43,7 @@ describe('authors', () => {
     testUtils.restoreAll()
   })
 
-  describe.only('useAuthorComments', () => {
+  describe('useAuthorComments', () => {
     let rendered: any, waitFor: any
 
     beforeEach(async () => {
@@ -162,9 +162,45 @@ describe('authors', () => {
       Plebbit.prototype.commentToGet = commentToGet
     })
 
-    // test('some author comments have wrong author', () => {
+    test('some author comments have wrong author', async () => {
+      // mock the correct author address on the comment
+      const commentToGet = Plebbit.prototype.commentToGet
+      // start giving a wrong author after this amount
+      const wrongAuthorAfter = 30
+      let previousCommentCount = 0
+      const getAuthorPreviousCommentCid = () => {
+        return `previous comment cid ${++previousCommentCount}`
+      }
+      Plebbit.prototype.commentToGet = () => ({
+        author: {
+          address: previousCommentCount < wrongAuthorAfter ? 'author.eth' : 'wrong-author.eth',
+          previousCommentCid: getAuthorPreviousCommentCid(),
+        },
+      })
 
-    // })
+      // get 1st page
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage)
+      expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // get 2nd page
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.authorComments.length === wrongAuthorAfter)
+      expect(rendered.result.current.authorComments.length).toBe(wrongAuthorAfter)
+      expect(rendered.result.current.hasMore).toBe(false)
+      expect(rendered.result.current.error.message).toBe('comment.author.previousCommentCid comment has different author address from authorAddress')
+      // wait for buffered author comments to fill
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length === authorCommentsPerPage * 2 + authorCommentsBuffer)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(authorCommentsPerPage * 2 + authorCommentsBuffer)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
+    })
 
     test('cannot spam load more', async () => {
       // mock the correct author address on the comment
