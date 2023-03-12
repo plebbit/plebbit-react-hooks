@@ -43,7 +43,7 @@ describe('authors', () => {
     testUtils.restoreAll()
   })
 
-  describe('useAuthorComments', () => {
+  describe.only('useAuthorComments', () => {
     let rendered: any, waitFor: any
 
     beforeEach(async () => {
@@ -166,9 +166,42 @@ describe('authors', () => {
 
     // })
 
-    // test('cannot spam load more', () => {
+    test('cannot spam load more', async () => {
+      // mock the correct author address on the comment
+      const commentToGet = Plebbit.prototype.commentToGet
+      let previousCommentCount = 0
+      const getAuthorPreviousCommentCid = () => {
+        return `previous comment cid ${++previousCommentCount}`
+      }
+      Plebbit.prototype.commentToGet = () => ({
+        author: {
+          address: 'author.eth',
+          previousCommentCid: getAuthorPreviousCommentCid(),
+        },
+      })
 
-    // })
+      // wait for first page to load
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+
+      // spam loadMore, never get more than just the second page
+      await act(async () => {
+        rendered.result.current.loadMore()
+        rendered.result.current.loadMore()
+        rendered.result.current.loadMore()
+        rendered.result.current.loadMore()
+        rendered.result.current.loadMore()
+      })
+
+      // wait for buffered author comments page 2 to fill to make sure it waited long enough
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length >= 75)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(75)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // page 2, spamming loadMore should not load more than page 2
+      expect(rendered.result.current.authorComments.length).toBe(25)
+
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
+    })
 
     test('has no previous comment cid, get only comment cid provided', async () => {
       // mock the correct author address on the comment
