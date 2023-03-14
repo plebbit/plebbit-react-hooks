@@ -792,11 +792,15 @@ class Publication extends EventEmitter {
 
   async publish() {
     await simulateLoadingTime()
-    this.simulateChallengeEvent()
+    await this.simulateChallengeEvent()
   }
 
-  simulateChallengeEvent() {
-    const challenge = {type: 'image/png', challenge: captchaImageBase64}
+  async simulateChallengeEvent() {
+    const challenges = []
+    const challengeCount = await getNumberBetween(1, 3, this.challengeRequestId)
+    while (challenges.length < challengeCount) {
+      challenges.push({type: 'image/png', challenge: captchaImageBase64})
+    }
     const challengeMessage = {
       type: 'CHALLENGE',
       // @ts-ignore
