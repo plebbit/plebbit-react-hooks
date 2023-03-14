@@ -3,6 +3,7 @@ import {resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore} from '../stores
 import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accounts'
 import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
 import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../stores/subplebbits-pages'
+import {resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore} from '../stores/authors-comments'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -89,6 +90,7 @@ export const resetStores = async () => {
   await resetFeedsStore()
   await resetSubplebbitsStore()
   await resetCommentsStore()
+  await resetAuthorsCommentsStore()
   // always accounts last because it has async initialization
   await resetAccountsStore()
 }
@@ -98,6 +100,7 @@ export const resetDatabasesAndStores = async () => {
   await resetFeedsDatabaseAndStore()
   await resetSubplebbitsDatabaseAndStore()
   await resetCommentsDatabaseAndStore()
+  await resetAuthorsCommentsDatabaseAndStore()
   // always accounts last because it has async initialization
   await resetAccountsDatabaseAndStore()
 }

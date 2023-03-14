@@ -82,7 +82,7 @@ describe('authors', () => {
       expect(rendered.result.current.error.message).toBe('commentCid author.address is different from authorAddress')
     })
 
-    test('get multiple pages', async () => {
+    test('get multiple pages until no more previous comment', async () => {
       // mock the correct author address on the comment
       const commentToGet = Plebbit.prototype.commentToGet
       // the author only has 110 comments
@@ -154,13 +154,55 @@ describe('authors', () => {
       expect(rendered.result.current.authorComments.length).toBe(110)
       expect(rendered.result.current.hasMore).toBe(false)
 
-      // handle finding an comment with comment.author.subplebbit and finding more recent comments
+      // restore mock
+      Plebbit.prototype.commentToGet = commentToGet
+    })
 
-      // handle changing the cid while scrolling with the lastCommentCid
+    test('find more recent lastCommentCid while scrolling', async () => {
+      // mock the correct author address on the comment
+      const commentToGet = Plebbit.prototype.commentToGet
+      let previousCommentCount = 0
+      const getAuthorPreviousCommentCid = () => `previous comment cid ${++previousCommentCount}`
+      const getTimestamp = (commentCid?: string) => {
+        // last comment must be newer than all other comments
+        // to be added to lastCommentCid
+        if (commentCid === 'last comment cid') {
+          return 1000
+        }
+        return 1000 - (previousCommentCount + 1)
+      }
+      Plebbit.prototype.commentToGet = (commentCid?: string) => ({
+        timestamp: getTimestamp(commentCid),
+        author: {
+          address: 'author.eth',
+          previousCommentCid: getAuthorPreviousCommentCid(),
+          subplebbit: {
+            lastCommentCid: 'last comment cid',
+          },
+        },
+      })
+
+      // get 1st page
+      rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
+      await waitFor(() => rendered.result.current.authorComments.length === authorCommentsPerPage)
+      expect(rendered.result.current.authorComments.length).toBe(authorCommentsPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // wait for buffered author comments to fill
+      await waitFor(() => rendered.result.current.bufferedAuthorComments.length === authorCommentsPerPage + authorCommentsBuffer)
+      expect(rendered.result.current.bufferedAuthorComments.length).toBe(authorCommentsPerPage + authorCommentsBuffer)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // has lastCommentCid
+      await waitFor(() => rendered.result.current.lastCommentCid === 'last comment cid')
+      expect(rendered.result.current.lastCommentCid).toBe('last comment cid')
 
       // restore mock
       Plebbit.prototype.commentToGet = commentToGet
     })
+
+    // test('change commentCid argument to lastCommentCid while scrolling', async () => {
+
+    // })
 
     test('some author comments have wrong author', async () => {
       // mock the correct author address on the comment
@@ -168,9 +210,7 @@ describe('authors', () => {
       // start giving a wrong author after this amount
       const wrongAuthorAfter = 30
       let previousCommentCount = 0
-      const getAuthorPreviousCommentCid = () => {
-        return `previous comment cid ${++previousCommentCount}`
-      }
+      const getAuthorPreviousCommentCid = () => `previous comment cid ${++previousCommentCount}`
       Plebbit.prototype.commentToGet = () => ({
         author: {
           address: previousCommentCount < wrongAuthorAfter ? 'author.eth' : 'wrong-author.eth',
@@ -206,9 +246,7 @@ describe('authors', () => {
       // mock the correct author address on the comment
       const commentToGet = Plebbit.prototype.commentToGet
       let previousCommentCount = 0
-      const getAuthorPreviousCommentCid = () => {
-        return `previous comment cid ${++previousCommentCount}`
-      }
+      const getAuthorPreviousCommentCid = () => `previous comment cid ${++previousCommentCount}`
       Plebbit.prototype.commentToGet = () => ({
         author: {
           address: 'author.eth',

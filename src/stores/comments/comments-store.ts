@@ -13,7 +13,7 @@ let plebbitGetCommentPending: {[key: string]: boolean} = {}
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type CommentsState = {
+export type CommentsState = {
   comments: Comments
   addCommentToStore: Function
 }

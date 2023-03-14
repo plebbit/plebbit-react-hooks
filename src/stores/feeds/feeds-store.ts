@@ -32,7 +32,7 @@ export const subplebbitPostsLeftBeforeNextPage = 50
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type FeedsState = {
+export type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
   loadedFeeds: Feeds

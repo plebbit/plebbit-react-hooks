@@ -13,7 +13,7 @@ const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbi
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type SubplebbitsPagesState = {
+export type SubplebbitsPagesState = {
   subplebbitsPages: SubplebbitsPages
   comments: Comments
   addNextSubplebbitPageToStore: Function

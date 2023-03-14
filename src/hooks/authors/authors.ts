@@ -18,6 +18,7 @@ import {
 import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/blockchain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
+import {useAuthorLastCommentCid} from './utils'
 
 /**
  * @param authorAddress - The address of the author
@@ -90,17 +91,21 @@ export const authorCommentsBuffer = 50
  * the active account.
  */
 export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthorCommentsResult {
-  const {authorAddress, commentCid, accountName} = options || {}
+  const {authorAddress, commentCid, accountName, filter} = options || {}
   const [pageNumber, setPageNumber] = useState<number>(1)
   const [authorCommentCids, setAuthorCommentCids] = useState<string[]>([])
   // only fetch comments up to the page number
   // NOTE: authorCommentCidsToFetch is same as authorCommentCids until the page number limit is reached
-  const authorCommentCidsToFetch = useMemo(() => authorCommentCids.slice(0, pageNumber * authorCommentsPerPage + authorCommentsBuffer), [authorCommentCids, pageNumber])
+  const authorCommentCidsToFetch = useMemo(
+    () => (authorCommentCids || []).slice(0, pageNumber * authorCommentsPerPage + authorCommentsBuffer),
+    [authorCommentCids, pageNumber]
+  )
 
   // fetch author when commentCid or authorAddress change
   const authorResult = useAuthor({commentCid, authorAddress, accountName})
   // fetch comments when authorCommentCidsToFetch change
   const commentsResult = useComments({commentCids: authorCommentCidsToFetch, accountName})
+  const lastCommentCid = useAuthorLastCommentCid(authorAddress, commentsResult.comments)
 
   // set new authorCommentCids to fetch when receiving either the initial
   // commentCid or a new comment.author.previousCommentCid
@@ -110,7 +115,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
     }
 
     // when author has loaded for the first time, set his last author comment cid to fetch
-    if (authorResult?.author && authorCommentCids.length === 0) {
+    if (authorResult?.author && !authorCommentCids?.length) {
       // set the original comment used in the argument
       const cids = [commentCid]
       // if has previous comment, set it
@@ -182,6 +187,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
       authorAddress,
       commentCid,
       authorComments,
+      lastCommentCid,
       hasMore,
       state,
       errors,
@@ -198,7 +204,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
     () => ({
       authorComments,
       bufferedAuthorComments: commentsResult.comments,
-      lastCommentCid: undefined,
+      lastCommentCid,
       hasMore,
       loadMore,
       state,

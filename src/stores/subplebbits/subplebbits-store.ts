@@ -13,7 +13,7 @@ let plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type SubplebbitsState = {
+export type SubplebbitsState = {
   subplebbits: Subplebbits
   addSubplebbitToStore: Function
   editSubplebbit: Function

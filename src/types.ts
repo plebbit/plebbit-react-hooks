@@ -188,6 +188,8 @@ export interface UseAuthorCommentsOptions extends Options {
   authorAddress?: string
   // the last known comment cid of this author (required, can't fetch author comment from author address alone)
   commentCid?: string
+  // TODO: add filter
+  filter?: AccountPublicationsFilter
 }
 export interface UseAuthorCommentsResult extends Result {
   // TODO: remove | undefined, that shouldn't happen when comments have comment.state
@@ -514,6 +516,22 @@ export type SubplebbitPage = {
   comments: Comment[]
 }
 export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
+
+/**
+ * Authors comments store
+ */
+export type AuthorsComments = {[authorCommentsOptionsName: string]: Comment[]}
+export type AuthorCommentsOptions = {
+  authorAddress: string
+  pageNumber: number
+  filter?: AuthorCommentsFilter
+  accountId: string
+}
+export type AuthorsCommentsOptions = {[authorCommentsOptionsName: string]: FeedOptions}
+export type AuthorCommentsFilter = {
+  subplebbitAddresses?: string[]
+  hasParentCid?: boolean
+}
 
 /**
  * Accounts hooks

@@ -92,13 +92,13 @@ export class Plebbit extends EventEmitter {
       ipnsName: commentCid + ' ipns name',
       // useComment() requires timestamp or will use account comment instead of comment from store
       timestamp: 1670000000,
-      ...this.commentToGet(),
+      ...this.commentToGet(commentCid),
     }
     return new Comment(createCommentOptions)
   }
 
   // mock this method to get a comment with different content, timestamp, address, etc
-  commentToGet() {
+  commentToGet(commentCid?: string) {
     return {
       // content: 'mock some content'
       // author: {address: 'mock some address'},

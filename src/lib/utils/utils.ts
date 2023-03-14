@@ -211,12 +211,16 @@ export const memoSync = (functionToMemo: Function, memoOptions: any) => {
   return obj[memoedFunctionName]
 }
 
+// cache JSON.stringify for single objects
+export const jsonStringifyMemo = memoSync(JSON.stringify, {maxSize: 5000})
+
 const utils = {
   merge,
   clone,
   flattenCommentsPages,
   memo,
   memoSync,
+  jsonStringifyMemo,
   // define for typescript
   retryInfinity: (f: any): any => {},
   // export timeout values to mock them in tests
