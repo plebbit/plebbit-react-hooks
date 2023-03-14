@@ -805,7 +805,7 @@ class Publication extends EventEmitter {
       type: 'CHALLENGE',
       // @ts-ignore
       challengeRequestId: this.challengeRequestId,
-      challenges: [challenge],
+      challenges,
     }
     this.emit('challenge', challengeMessage, this)
   }
