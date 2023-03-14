@@ -1,6 +1,9 @@
 import markdownExample from './fixtures/markdown-example'
 import EventEmitter from 'events'
 import assert from 'assert'
+import {sha256} from 'multiformats/hashes/sha2'
+import {fromString} from 'uint8arrays/from-string'
+import {toString} from 'uint8arrays/to-string'
 
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100)
@@ -188,16 +191,9 @@ const reasons = [
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
-
-  // use native crypto module in jsdom
-  // @ts-ignore
-  // const crypto = require('crypto')
-  // return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
-
-  // @ts-ignore
-  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(string))
-  // @ts-ignore
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuffer))).replace(/[^a-zA-Z0-9]/g, '')
+  const hash = await sha256.digest(fromString(string))
+  const base58Hash = toString(hash.digest, 'base58btc')
+  return base58Hash
 }
 
 const getNumberBetween = async (min: number, max: number, seed: string) => {
