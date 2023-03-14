@@ -796,7 +796,8 @@ class Publication extends EventEmitter {
   }
 
   async simulateChallengeEvent() {
-    const challenges = []
+    const challenges: any = []
+    // @ts-ignore
     const challengeCount = await getNumberBetween(1, 3, this.challengeRequestId)
     while (challenges.length < challengeCount) {
       challenges.push({type: 'image/png', challenge: captchaImageBase64})
