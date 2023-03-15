@@ -1,6 +1,7 @@
 import {useEffect, useState, useMemo} from 'react'
 import {Comment} from '../../types'
 import {useComments} from '../comments'
+import utils from '../../lib/utils'
 
 export const useAuthorLastCommentCid = (authorAddress?: string, comments?: (Comment | undefined)[], accountName?: string) => {
   // get all unique subplebbit.lastCommentCid from comments
@@ -81,4 +82,15 @@ export const useAuthorLastCommentCid = (authorAddress?: string, comments?: (Comm
   }, [authorAddress, lastSubplebbitComments.comments])
 
   return lastComment?.cid
+}
+
+// cache JSON.stringify for filter because it's used a lot
+const stringifyFilter = utils.memoSync(JSON.stringify, {maxSize: 100})
+
+export const getAuthorCommentsOptionsName = (authorAddress: string, filter: AuthorCommentsFilter | undefined, accountId: string) => {
+  // if filter is an object, stringify it (cached with memo)
+  if (filter) {
+    filter = stringifyFilter(filter)
+  }
+  return authorAddress + '-' + filter + '-' + accountId
 }
