@@ -57,13 +57,14 @@ describe('authors comments store', () => {
     expect(rendered.result.current.options).toEqual({})
     expect(rendered.result.current.loadedComments).toEqual({})
     expect(rendered.result.current.bufferedComments).toEqual({})
-    expect(rendered.result.current.lastCommentCids).toEqual({})
     expect(rendered.result.current.nextCommentCidsToFetch).toEqual({})
     expect(rendered.result.current.shouldFetchNextComment).toEqual({})
+    expect(rendered.result.current.lastCommentCids).toEqual({})
     expect(typeof rendered.result.current.addAuthorCommentsToStore).toBe('function')
     expect(typeof rendered.result.current.incrementPageNumber).toBe('function')
     expect(typeof rendered.result.current.setNextCommentCidsToFetch).toBe('function')
     expect(typeof rendered.result.current.updateLoadedAndBufferedComments).toBe('function')
+    expect(typeof rendered.result.current.setLastCommentCid).toBe('function')
   })
 
   test('get multiple pages', async () => {

@@ -520,14 +520,15 @@ export type SubplebbitsPages = {[pageCid: string]: SubplebbitPage}
 /**
  * Authors comments store
  */
-export type AuthorsComments = {[authorCommentsOptionsName: string]: Comment[]}
+// authorCommentsName is a string used a key to represent authorAddress + filter + accountId
+export type AuthorsComments = {[authorCommentsName: string]: Comment[]}
 export type AuthorCommentsOptions = {
   authorAddress: string
   pageNumber: number
   filter?: AuthorCommentsFilter
   accountId: string
 }
-export type AuthorsCommentsOptions = {[authorCommentsOptionsName: string]: FeedOptions}
+export type AuthorsCommentsOptions = {[authorCommentsName: string]: FeedOptions}
 export type AuthorCommentsFilter = {
   subplebbitAddresses?: string[]
   hasParentCid?: boolean

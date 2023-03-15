@@ -87,7 +87,7 @@ export const useAuthorLastCommentCid = (authorAddress?: string, comments?: (Comm
 // cache JSON.stringify for filter because it's used a lot
 const stringifyFilter = utils.memoSync(JSON.stringify, {maxSize: 100})
 
-export const getAuthorCommentsOptionsName = (authorAddress: string, filter: AuthorCommentsFilter | undefined, accountId: string) => {
+export const getAuthorCommentsName = (authorAddress: string, filter: AuthorCommentsFilter | undefined, accountId: string) => {
   // if filter is an object, stringify it (cached with memo)
   if (filter) {
     filter = stringifyFilter(filter)
