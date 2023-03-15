@@ -19,7 +19,7 @@ mockAccount.plebbit.commentToGet = (commentCid: string) => {
   const authorCommentIndex = totalAuthorCommentCount - currentAuthorCommentCount
   return {
     cid: commentCid,
-    timestamp: authorCommentIndex,
+    timestamp: 1000 + authorCommentIndex,
     author: {
       address: authorAddress,
       // no previous cid if no more comments
@@ -69,48 +69,48 @@ describe('authors comments store', () => {
 
   test('get multiple pages', async () => {
     const commentCid = 'comment cid'
-    const optionsName = authorAddress + '-options-name'
+    const authorCommentsName = authorAddress + '-comments-name'
     act(() => {
-      rendered.result.current.addAuthorCommentsToStore(optionsName, authorAddress, commentCid, undefined, mockAccount)
+      rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, undefined, mockAccount)
     })
 
     // wait for 1st page
-    await waitFor(() => rendered.result.current.loadedComments[optionsName].length === commentsPerPage)
-    expect(rendered.result.current.loadedComments[optionsName].length).toBe(commentsPerPage)
-    expect(hasDuplicateComments(rendered.result.current.loadedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === commentsPerPage)
+    expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(commentsPerPage)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // wait for buffered comments to stop loading
     await waitFor(() => rendered.result.current.shouldFetchNextComment[authorAddress] === false)
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(false)
-    expect(rendered.result.current.bufferedComments[optionsName].length).toBe(commentsPerPage + commentBufferSize)
-    expect(hasDuplicateComments(rendered.result.current.bufferedComments[optionsName])).toBe(false)
+    expect(rendered.result.current.bufferedComments[authorCommentsName].length).toBe(commentsPerPage + commentBufferSize)
+    expect(hasDuplicateComments(rendered.result.current.bufferedComments[authorCommentsName])).toBe(false)
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).not.toBe(undefined)
 
     // wait for 2nd page
     act(() => {
-      rendered.result.current.incrementPageNumber(optionsName)
+      rendered.result.current.incrementPageNumber(authorCommentsName)
     })
-    await waitFor(() => rendered.result.current.loadedComments[optionsName].length === 2 * commentsPerPage)
-    expect(rendered.result.current.loadedComments[optionsName].length).toBe(2 * commentsPerPage)
-    expect(hasDuplicateComments(rendered.result.current.loadedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === 2 * commentsPerPage)
+    expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(2 * commentsPerPage)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
     // wait for buffered comments to stop loading
-    await waitFor(() => rendered.result.current.bufferedComments[optionsName].length === 2 * commentsPerPage + commentBufferSize)
-    expect(rendered.result.current.bufferedComments[optionsName].length).toBe(2 * commentsPerPage + commentBufferSize)
-    expect(hasDuplicateComments(rendered.result.current.bufferedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.bufferedComments[authorCommentsName].length === 2 * commentsPerPage + commentBufferSize)
+    expect(rendered.result.current.bufferedComments[authorCommentsName].length).toBe(2 * commentsPerPage + commentBufferSize)
+    expect(hasDuplicateComments(rendered.result.current.bufferedComments[authorCommentsName])).toBe(false)
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(false)
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).not.toBe(undefined)
 
     // wait for 3rd page, fetched all author comments, reach max buffered comments
     act(() => {
-      rendered.result.current.incrementPageNumber(optionsName)
+      rendered.result.current.incrementPageNumber(authorCommentsName)
     })
-    await waitFor(() => rendered.result.current.loadedComments[optionsName].length === 3 * commentsPerPage)
-    expect(rendered.result.current.loadedComments[optionsName].length).toBe(3 * commentsPerPage)
-    expect(hasDuplicateComments(rendered.result.current.loadedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === 3 * commentsPerPage)
+    expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(3 * commentsPerPage)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
     // wait for buffered comments to stop loading
-    await waitFor(() => rendered.result.current.bufferedComments[optionsName].length === totalAuthorCommentCount)
-    expect(rendered.result.current.bufferedComments[optionsName].length).toBe(totalAuthorCommentCount)
-    expect(hasDuplicateComments(rendered.result.current.bufferedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.bufferedComments[authorCommentsName].length === totalAuthorCommentCount)
+    expect(rendered.result.current.bufferedComments[authorCommentsName].length).toBe(totalAuthorCommentCount)
+    expect(hasDuplicateComments(rendered.result.current.bufferedComments[authorCommentsName])).toBe(false)
     // should fetch comment because buffer is not full, but author has no more comments
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // fetched all author comments, no next comment to fetch
@@ -118,15 +118,15 @@ describe('authors comments store', () => {
 
     // wait for 4th page, fetched all author comments, reach max buffered comments
     act(() => {
-      rendered.result.current.incrementPageNumber(optionsName)
+      rendered.result.current.incrementPageNumber(authorCommentsName)
     })
-    await waitFor(() => rendered.result.current.loadedComments[optionsName].length === 4 * commentsPerPage)
-    expect(rendered.result.current.loadedComments[optionsName].length).toBe(4 * commentsPerPage)
-    expect(hasDuplicateComments(rendered.result.current.loadedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === 4 * commentsPerPage)
+    expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(4 * commentsPerPage)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
     // wait for buffered comments to stop loading
-    await waitFor(() => rendered.result.current.bufferedComments[optionsName].length === totalAuthorCommentCount)
-    expect(rendered.result.current.bufferedComments[optionsName].length).toBe(totalAuthorCommentCount)
-    expect(hasDuplicateComments(rendered.result.current.bufferedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.bufferedComments[authorCommentsName].length === totalAuthorCommentCount)
+    expect(rendered.result.current.bufferedComments[authorCommentsName].length).toBe(totalAuthorCommentCount)
+    expect(hasDuplicateComments(rendered.result.current.bufferedComments[authorCommentsName])).toBe(false)
     // should fetch comment because buffer is not full, but author has no more comments
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // fetched all author comments, no next comment to fetch
@@ -134,15 +134,15 @@ describe('authors comments store', () => {
 
     // wait for 5th page, fetched all author comments, reach max loaded and buffered comments
     act(() => {
-      rendered.result.current.incrementPageNumber(optionsName)
+      rendered.result.current.incrementPageNumber(authorCommentsName)
     })
-    await waitFor(() => rendered.result.current.loadedComments[optionsName].length === totalAuthorCommentCount)
-    expect(rendered.result.current.loadedComments[optionsName].length).toBe(totalAuthorCommentCount)
-    expect(hasDuplicateComments(rendered.result.current.loadedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === totalAuthorCommentCount)
+    expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(totalAuthorCommentCount)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
     // wait for buffered comments to stop loading
-    await waitFor(() => rendered.result.current.bufferedComments[optionsName].length === totalAuthorCommentCount)
-    expect(rendered.result.current.bufferedComments[optionsName].length).toBe(totalAuthorCommentCount)
-    expect(hasDuplicateComments(rendered.result.current.bufferedComments[optionsName])).toBe(false)
+    await waitFor(() => rendered.result.current.bufferedComments[authorCommentsName].length === totalAuthorCommentCount)
+    expect(rendered.result.current.bufferedComments[authorCommentsName].length).toBe(totalAuthorCommentCount)
+    expect(hasDuplicateComments(rendered.result.current.bufferedComments[authorCommentsName])).toBe(false)
     // should fetch comment because buffer is not full, but author has no more comments
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // fetched all author comments, no next comment to fetch

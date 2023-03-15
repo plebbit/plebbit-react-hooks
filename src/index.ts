@@ -6,6 +6,9 @@ try {
   if (process.env.DEBUG_DEPTH) {
     require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
   }
+  if (process.env.DEBUG_ARRAY) {
+    require('util').inspect.defaultOptions.maxArrayLength = null
+  }
 } catch (e) {}
 
 // accounts

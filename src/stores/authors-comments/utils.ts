@@ -1,6 +1,7 @@
 import {AccountPublicationsFilter, Comment, Comments, AuthorCommentsFilter} from '../../types'
 import {commentsPerPage} from './authors-comments-store'
 import assert from 'assert'
+import commentsStore from '../comments'
 
 export const getUpdatedLoadedAndBufferedComments = (
   loadedComments: Comment[],
@@ -114,6 +115,19 @@ export const getSubplebbitLastCommentCids = (authorAddress: string, comments: Co
     subplebbitLastCommentCidsSet.add(lastCommentCid)
   }
   return [...subplebbitLastCommentCidsSet]
+}
+
+export const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string | undefined) => {
+  const {comments} = commentsStore.getState()
+  // scroll through comments until the comment doesn't exist, which means hasn't been fetched yet
+  while (nextCommentCidToFetch && comments[nextCommentCidToFetch]) {
+    if (!comments[nextCommentCidToFetch]) {
+      break
+    } else {
+      nextCommentCidToFetch = comments[nextCommentCidToFetch]?.author?.previousCommentCid
+    }
+  }
+  return nextCommentCidToFetch
 }
 
 // export const getAuthorLastComment = (authorAddress: string, lastSubplebbitComments: Comment[], bufferedComments: Comment[]) => {

@@ -5,7 +5,7 @@ import assert from 'assert'
 import {AuthorCommentsFilter, AuthorCommentsOptions, AuthorsComments, Account, Comment} from '../../types'
 import commentsStore, {CommentsState} from '../comments'
 import QuickLru from 'quick-lru'
-import {getUpdatedLoadedAndBufferedComments, getSubplebbitLastCommentCids} from './utils'
+import {getUpdatedLoadedAndBufferedComments, getSubplebbitLastCommentCids, getNextCommentCidToFetchNotFetched} from './utils'
 import accountsStore from '../accounts'
 
 // reddit loads approximately 25 posts per page while infinite scrolling
@@ -180,7 +180,6 @@ const fetchCommentOnShouldFetchOrNextCidChange = (options: AuthorCommentsOptions
   // if comment already exist, find the actual nextCidToFetch
   // can happen if a more recent lastCommentCid becomes nextCommentCidToFetch
   nextCommentCidToFetch = getNextCommentCidToFetchNotFetched(nextCommentCidToFetch)
-
   if (!nextCommentCidToFetch) {
     return
   }
@@ -191,31 +190,18 @@ const fetchCommentOnShouldFetchOrNextCidChange = (options: AuthorCommentsOptions
     return
   }
 
+  // when comment has fetched, update loadedComments, bufferedComments and shouldFetchNextComment
+  if (!authorCommentCidsFetching[nextCommentCidToFetch]) {
+    authorCommentCidsFetching[nextCommentCidToFetch] = true
+    commentsStore.subscribe(updateCommentsOnCommentsChange(options, nextCommentCidToFetch))
+  }
+
   // start fetching comment
   const account = accountsStore.getState().accounts[options.accountId]
   const addCommentToStore = commentsStore.getState().addCommentToStore
   addCommentToStore(nextCommentCidToFetch, account).catch((error: unknown) =>
     log.error('authorsCommentsStore fetchCommentOnShouldFetchOrNextCidChange addCommentToStore error', {nextCommentCidToFetch, account})
   )
-
-  // when comment has fetched, update loadedComments, bufferedComments and shouldFetchNextComment
-  if (!authorCommentCidsFetching[nextCommentCidToFetch]) {
-    commentsStore.subscribe(updateCommentsOnCommentsChange(options, nextCommentCidToFetch))
-    authorCommentCidsFetching[nextCommentCidToFetch] = true
-  }
-}
-
-const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string | undefined) => {
-  const {comments} = commentsStore.getState()
-  // scroll through comments until the comment doesn't exist, which means hasn't been fetched yet
-  while (nextCommentCidToFetch && comments[nextCommentCidToFetch]) {
-    if (!comments[nextCommentCidToFetch]) {
-      break
-    } else {
-      nextCommentCidToFetch = comments[nextCommentCidToFetch]?.author?.previousCommentCid
-    }
-  }
-  return nextCommentCidToFetch
 }
 
 // if commentStore changed, update loadedComments, bufferedComments, shouldFetchNextComment and nextCommentCidsToFetch
@@ -269,15 +255,16 @@ const fetchLastCommentCidOnBufferedCommentsChange = (authorCommentsName: string,
   const addCommentToStore = commentsStore.getState().addCommentToStore
 
   for (const subplebbitLastCommentCid of subplebbitLastCommentCids) {
+    // when comment has fetched, update loadedComments, bufferedComments and shouldFetchNextComment
+    if (!subplebbitLastCommentCidsFetching[subplebbitLastCommentCid]) {
+      subplebbitLastCommentCidsFetching[subplebbitLastCommentCid] = true
+      commentsStore.subscribe(updateLastCommentCidOnCommentsChange(authorCommentsName, options, subplebbitLastCommentCid))
+    }
+
+    // start fetching subplebbitLastCommentCid
     addCommentToStore(subplebbitLastCommentCid, account).catch((error: unknown) =>
       log.error('authorsCommentsStore fetchLastCommentCidOnBufferedCommentsChange addCommentToStore error', {subplebbitLastCommentCid, account})
     )
-
-    // when comment has fetched, update loadedComments, bufferedComments and shouldFetchNextComment
-    if (!subplebbitLastCommentCidsFetching[subplebbitLastCommentCid]) {
-      commentsStore.subscribe(updateLastCommentCidOnCommentsChange(authorCommentsName, options, subplebbitLastCommentCid))
-      subplebbitLastCommentCidsFetching[subplebbitLastCommentCid] = true
-    }
   }
 }
 
