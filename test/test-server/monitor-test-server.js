@@ -49,9 +49,9 @@ const startMonitoring = () => {
 
 // make sure only one instance is running in karma
 try {
-  if (!window.PLEBBIT_PROTOCOL_TEST_MONITOR_TEST_SERVER_STARTED) {
+  if (!window.PLEBBIT_REACT_HOOKS_MONITOR_TEST_SERVER_STARTED) {
     startMonitoring()
   }
-  window.PLEBBIT_PROTOCOL_TEST_MONITOR_TEST_SERVER_STARTED = true
+  window.PLEBBIT_REACT_HOOKS_MONITOR_TEST_SERVER_STARTED = true
 } catch (e) {}
 startMonitoring()
