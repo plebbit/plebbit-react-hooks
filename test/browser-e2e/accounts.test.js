@@ -1,4 +1,4 @@
-require('../test-server/monitor-test-server')
+const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {useAccount, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
@@ -39,6 +39,13 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     after(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
+    })
+
+    beforeEach(async () => {
+      await assertTestServerDidntCrash()
+    })
+    afterEach(async () => {
+      await assertTestServerDidntCrash()
     })
 
     describe(`no accounts in database (${plebbitOptionsType})`, () => {

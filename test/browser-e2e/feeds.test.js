@@ -1,4 +1,4 @@
-require('../test-server/monitor-test-server')
+const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {useFeed, useBufferedFeeds, useAccount, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
@@ -38,11 +38,13 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     after(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
-    })
+    })    
 
     let rendered, waitFor
 
     beforeEach(async () => {
+      await assertTestServerDidntCrash()
+
       rendered = renderHook((props) => {
         const account = useAccount()
         const accountsActions = useAccountsActions()
@@ -70,6 +72,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     })
 
     afterEach(async () => {
+      await assertTestServerDidntCrash()
+
       await testUtils.resetDatabasesAndStores()
     })
 
