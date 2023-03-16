@@ -43,7 +43,7 @@ const startMonitoring = () => {
     if (text && text.startsWith('Hello and Welcome to IPFS')) {
       return
     }
-    console.error(`test server crashed pubsub ipfs daemon http://localhost:${offlineIpfs.gatewayPort}`)
+    console.error(`test server crashed pubsub ipfs daemon http://localhost:${pubsubIpfs.gatewayPort}`)
   }, 200).unref?.()
 }
 
