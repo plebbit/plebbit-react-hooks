@@ -1,3 +1,4 @@
+require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitMetrics, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const Plebbit = require('@plebbit/plebbit-js')

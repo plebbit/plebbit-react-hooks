@@ -1,3 +1,4 @@
+require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const testUtils = require('../../dist/lib/test-utils').default
