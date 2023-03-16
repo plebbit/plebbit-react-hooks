@@ -1,6 +1,7 @@
 // the test server can crash without logs, this script adds logs when this happens
 // you should also import assertTestServerDidntCrash and run it beforeEach and afterEach
 
+const fetch = require('node-fetch')
 const {offlineIpfs, pubsubIpfs} = require('./ipfs-config')
 
 // make sure only one instance is running in node
@@ -34,7 +35,7 @@ const logTestServerCrashed = async () => {
   }
 }
 
-const assertTestServerDidntCrash = async () => {
+export const assertTestServerDidntCrash = async () => {
   const testServerText = await fetchText('http://localhost:59281')
   if (testServerText !== 'test server ready') {
     throw Error('test server crashed http://localhost:59281')
@@ -56,5 +57,3 @@ const fetchText = async (url) => {
   } catch (e) {}
   return text
 }
-
-module.exports = {assertTestServerDidntCrash}
