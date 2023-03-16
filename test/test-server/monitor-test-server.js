@@ -1,6 +1,7 @@
 // the test server can crash without logs, this script adds logs when this happens
 // you should also import assertTestServerDidntCrash and run it beforeEach and afterEach
 
+const nodeFetch = require('node-fetch')
 const {offlineIpfs, pubsubIpfs} = require('./ipfs-config')
 
 // make sure only one instance is running in node
@@ -61,20 +62,23 @@ const fetchText = async (url) => {
 
 // use XMLHttpRequest because fetch is forbidden in electron tests
 const fetch = (url, options) => {
-  if (!window.navigator.userAgent.match(/electron/i)) {
-    return require('node-fetch')(url, options)
+  if (window.navigator.userAgent.match(/electron/i)) {
+    return xmlHttpFetch(url)
   }
-  return new Promise((resolve, reject) => {
+  return nodeFetch(url, options)
+}
+
+const xmlHttpFetch = (url) =>
+  new Promise((resolve, reject) => {
     let xhr = new XMLHttpRequest()
     xhr.open('GET', url)
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve({text: async () => xhr.response})
       } else {
-        reject(Error(`http status '${xhr.status}' status text '${xhr.statusText}'`))
+        reject(Error(`status code '${xhr.status}' text '${xhr.statusText}'`))
       }
     }
-    xhr.onerror = () => reject(Error(`http status '${xhr.status}' status text '${xhr.statusText}'`))
+    xhr.onerror = () => reject(Error(`status code '${xhr.status}' text '${xhr.statusText}'`))
     xhr.send()
   })
-}
