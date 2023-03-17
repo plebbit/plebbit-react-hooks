@@ -149,7 +149,7 @@ describe('authors comments store', () => {
     account.plebbit.commentToGet = commentToGet
   })
 
-  test('discover new lastCommentCid while scrolling', async () => {
+  test.only('discover new lastCommentCid while scrolling', async () => {
     // mock plebbit.getComment() result
     const commentToGet = account.plebbit.commentToGet
     const firstTimestamp = 1000
@@ -249,6 +249,14 @@ describe('authors comments store', () => {
     expect(bufferedComments[2 * commentsPerPage].cid).toBe('subplebbit last comment cid')
     expect(bufferedComments[2 * commentsPerPage + 1].cid).toBe('previous from last comment cid 39')
 
+    // discover older lastCommentCid, should do nothing because not new
+    commentsStore.setState((state: any) => {
+      const commentCid = 'previous comment cid 100'
+      const comment = {...state.comments[commentCid]}
+      comment.author.subplebbit = {lastCommentCid: 'previous comment cid 3'}
+      return {comments: {...state.comments, [commentCid]: comment}}
+    })
+
     // wait for 3rd page, still has more comments to buffer because of new comments from lastCommentCid
     act(() => {
       rendered.result.current.incrementPageNumber(authorCommentsName)
@@ -288,7 +296,21 @@ describe('authors comments store', () => {
     // fetched all author comments, no next comment to fetch
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe(undefined)
 
-    // logBufferedComments(rendered, authorAddress)
+    // no more comments from 'subplebbit last comment cid'
+    bufferedComments = getBufferedComments(rendered, authorCommentsName, authorAddress)
+    expect(bufferedComments[4 * commentsPerPage - 1].cid).toBe('previous comment cid 46')
+    expect(rendered.result.current.loadedComments[authorCommentsName][4 * commentsPerPage - 1].cid).toBe('previous comment cid 46')
+    expect(bufferedComments[4 * commentsPerPage].cid).toBe('previous comment cid 45')
+    expect(bufferedComments[4 * commentsPerPage + 1].cid).toBe('previous comment cid 44')
+
+    // logBufferedComments(rendered, authorCommentsName, authorAddress)
+
+    // discover a second lastCommentCid
+
+    // commentsStore.setState((state: any) => {
+    //   const comment = {...state.comments[commentCid]}
+    //   comment.author.subplebbit = {lastCommentCid: 'subplebbit last comment cid'}
+    // })
 
     // restore mock
     account.plebbit.commentToGet = commentToGet

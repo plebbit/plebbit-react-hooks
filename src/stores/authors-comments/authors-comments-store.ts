@@ -239,7 +239,6 @@ const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentC
   previousComments.set(commentCid, comment)
 
   const {addBufferedCommentCid, bufferedCommentCids, updateLoadedComments, setNextCommentCidsToFetch, nextCommentCidsToFetch} = authorsCommentsStore.getState()
-  const nextCidToFetch = nextCommentCidsToFetch[options.authorAddress]
 
   // the comment is a new comment, add it to buffered comment cids
   if (!bufferedCommentCids[options.authorAddress].has(commentCid)) {
@@ -247,6 +246,7 @@ const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentC
   }
 
   // the comment was the last cid to fetch, set the next cid to fetch as the author previous cid
+  const nextCidToFetch = nextCommentCidsToFetch[options.authorAddress]
   if (commentCid === nextCidToFetch) {
     setNextCommentCidsToFetch(options.authorAddress, getNextCommentCidToFetchNotFetched(comment?.author?.previousCommentCid))
   }
@@ -260,7 +260,7 @@ const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentC
     // when last comment has fetched, update lastCommentCid
     if (!subplebbitLastCommentCidsFetching[subplebbitLastCommentCid]) {
       subplebbitLastCommentCidsFetching[subplebbitLastCommentCid] = true
-      commentsStore.subscribe(updateLastCommentCidOnCommentsChange(options, subplebbitLastCommentCid))
+      commentsStore.subscribe(setLastCommentCidOnCommentsChange(options, subplebbitLastCommentCid))
     }
 
     // start fetching lastCommentCid
@@ -271,7 +271,8 @@ const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentC
   }
 }
 
-const updateLastCommentCidOnCommentsChange = (options: AuthorCommentsOptions, commentCid: string) => (state: CommentsState) => {
+let previousLastComments = new QuickLru({maxSize: 10000})
+const setLastCommentCidOnCommentsChange = (options: AuthorCommentsOptions, commentCid: string) => (state: CommentsState) => {
   // not a last cid candidate, do nothing
   if (!subplebbitLastCommentCidsFetching[commentCid]) {
     return
@@ -280,23 +281,30 @@ const updateLastCommentCidOnCommentsChange = (options: AuthorCommentsOptions, co
 
   const comment = comments[commentCid]
   // comment hasn't changed, do nothing
-  if (!comment?.timestamp || comment === previousComments.get(commentCid)) {
+  if (!comment?.timestamp || comment === previousLastComments.get(commentCid)) {
     return
   }
-  previousComments.set(commentCid, comment)
+  previousLastComments.set(commentCid, comment)
 
   const {addBufferedCommentCid, lastCommentCids, bufferedCommentCids, setLastCommentCid, setNextCommentCidsToFetch, updateLoadedComments} =
     authorsCommentsStore.getState()
+
+  // if the comment is a new comment, add it to buffered comment cids
+  if (!bufferedCommentCids[options.authorAddress].has(commentCid)) {
+    addBufferedCommentCid(options.authorAddress, commentCid)
+  }
+
   // already last comment cid, no need to set it
   if (commentCid === lastCommentCids[options.authorAddress]) {
     return
   }
 
   // if comment is newer than current lastCommentCid and all bufferedComments, is lastCommentCid
-  const currentLastCommentCid = lastCommentCids[commentCid]
+  const currentLastCommentCid = lastCommentCids[options.authorAddress]
   const currentLastComment = comments[currentLastCommentCid || '']
   // comment is older or equal to current lastCommentCid, do nothing
   if (comment.timestamp <= (currentLastComment?.timestamp || 0)) {
+    log.trace(`authorsCommentsStore setLastCommentCidOnCommentsChange don't set lastCommentCid older than current lastCommentCid`, {comment, currentLastComment})
     return
   }
 
@@ -304,14 +312,18 @@ const updateLastCommentCidOnCommentsChange = (options: AuthorCommentsOptions, co
   const bufferedComments: Comment[] = [...bufferedCommentCids[options.authorAddress]].map((commentCid: string) => comments[commentCid])
   for (const bufferedComment of bufferedComments) {
     if ((bufferedComment?.timestamp || 0) > comment.timestamp) {
+      log.trace(`authorsCommentsStore setLastCommentCidOnCommentsChange don't set lastCommentCid older than buffered comments`, {
+        comment,
+        currentLastComment,
+        bufferedComments,
+      })
       return
     }
   }
 
   // is last comment cid, set it
+  log(`authorsCommentsStore setLastCommentCidOnCommentsChange`, {lastCommentCid: comment.cid, lastComment: comment, currentLastComment, bufferedComments})
   setLastCommentCid(options.authorAddress, commentCid)
-  // add the last comment found to buffered comment cids
-  addBufferedCommentCid(options.authorAddress, commentCid)
   // add the last comment to loadedComments
   updateLoadedComments()
   // start a new linked list of comments to fetch using the lastComment.author.previousCommentCid
@@ -327,6 +339,7 @@ export const resetAuthorsCommentsStore = async () => {
   subplebbitLastCommentCidsFetching = {}
   previousComments = new QuickLru({maxSize: 10000})
   authorCommentCidsFetching = {}
+  previousLastComments = new QuickLru({maxSize: 10000})
 
   // destroy all component subscriptions to the store
   authorsCommentsStore.destroy()
