@@ -1,5 +1,5 @@
 - e2e test to publish to an electron sub
-- useSubplebbitMetrics(subplebbit)
+- useSubplebbitStats(subplebbit)
 - async useAuthorAddress hook (because resolving ETH address synchronously is too slow)
 - implement sort by active
 - accountsActions.hide(cid)

@@ -42,32 +42,32 @@ export function useSubplebbit(subplebbitAddress?: string, accountName?: string) 
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: string) {
+export function useSubplebbitStats(subplebbitAddress?: string, accountName?: string) {
   const account = useAccount(accountName)
   const subplebbit = useSubplebbit(subplebbitAddress)
-  const subplebbitMetricsCid = subplebbit?.metricsCid
-  const [subplebbitMetrics, setSubplebbitMetrics] = useState()
+  const subplebbitStatsCid = subplebbit?.statsCid
+  const [subplebbitStats, setSubplebbitStats] = useState()
 
   useEffect(() => {
-    if (!subplebbitMetricsCid || !account) {
+    if (!subplebbitStatsCid || !account) {
       return
     }
     ;(async () => {
       let fetchedCid
       try {
-        fetchedCid = await account.plebbit.fetchCid(subplebbitMetricsCid)
+        fetchedCid = await account.plebbit.fetchCid(subplebbitStatsCid)
         fetchedCid = JSON.parse(fetchedCid)
-        setSubplebbitMetrics(fetchedCid)
+        setSubplebbitStats(fetchedCid)
       } catch (error) {
-        log.error('useSubplebbitMetrics plebbit.fetchCid error', {subplebbitAddress, subplebbitMetricsCid, subplebbit, fetchedCid, error})
+        log.error('useSubplebbitStats plebbit.fetchCid error', {subplebbitAddress, subplebbitStatsCid, subplebbit, fetchedCid, error})
       }
     })()
-  }, [subplebbitMetricsCid, account?.id])
+  }, [subplebbitStatsCid, account?.id])
 
-  if (account && subplebbitMetricsCid) {
-    log('useSubplebbitMetrics', {subplebbitAddress, subplebbitMetricsCid, subplebbitMetrics, subplebbit, account})
+  if (account && subplebbitStatsCid) {
+    log('useSubplebbitStats', {subplebbitAddress, subplebbitStatsCid, subplebbitStats, subplebbit, account})
   }
-  return subplebbitMetrics
+  return subplebbitStats
 }
 
 /**

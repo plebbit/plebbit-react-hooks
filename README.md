@@ -90,7 +90,7 @@ useComments(commentCid[], accountName?: string): Comment[]
 ```
 useSubplebbit(subplebbitAddress: string, accountName?: string): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
 useSubplebbits(subplebbitAddress[]: string[], accountName?: string): Subplebbits[]
-useSubplebbitMetrics(subplebbitAddress: string, accountName?: string): SubplebbitMetrics | undefined
+useSubplebbitStats(subplebbitAddress: string, accountName?: string): SubplebbitStats | undefined
 useResolvedSubplebbitAddress(subplebbitAddress: string, accountName?: string): string | undefined
 ```
 #### Feeds Hooks
@@ -268,7 +268,7 @@ const authorAvatarImageUrl = useAuthorAvatarImageUrl(comment.author)
 
 ```js
 const subplebbit = useSubplebbit(subplebbitAddress)
-const subplebbitMetrics = useSubplebbitMetrics(subplebbitAddress)
+const subplebbitStats = useSubplebbitStats(subplebbitAddress)
 const subplebbits = useSubplebbits([subplebbitAddress, subplebbitAddress2, subplebbitAddress3])
 ```
 

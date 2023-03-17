@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useSubplebbit, useSubplebbitMetrics, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
+import {useSubplebbit, useSubplebbitStats, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
 import subplebbitStore from '../stores/subplebbits'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
@@ -177,8 +177,8 @@ describe('subplebbits', () => {
     expect(rendered.result.current).toEqual(['list subplebbit address 1', 'list subplebbit address 2'])
   })
 
-  test('useSubplebbitMetrics', async () => {
-    const rendered = renderHook<any, any>(() => useSubplebbitMetrics('address 1'))
+  test('useSubplebbitStats', async () => {
+    const rendered = renderHook<any, any>(() => useSubplebbitStats('address 1'))
     const waitFor = testUtils.createWaitFor(rendered)
     await waitFor(() => rendered.result.current)
     expect(rendered.result.current).toEqual({hourActiveUserCount: 1})

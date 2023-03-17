@@ -1,6 +1,6 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitMetrics, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const Plebbit = require('@plebbit/plebbit-js')
 Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
@@ -61,11 +61,11 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
             const account = useAccount()
             const accountsActions = useAccountsActions()
             const subplebbit = useSubplebbit(subplebbitAddress)
-            const subplebbitMetrics = useSubplebbitMetrics(subplebbitAddress)
+            const subplebbitStats = useSubplebbitStats(subplebbitAddress)
             const accountVotes = useAccountVotes()
             const comment = useComment(commentCid)
 
-            return {account, subplebbit, subplebbitMetrics, comment, accountVotes, ...accountsActions}
+            return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
           },
           {wrapper: PlebbitProvider}
         )
@@ -100,10 +100,10 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         commentCid = rendered.result.current.subplebbit.posts.pages.hot.comments[0].cid
         console.log('comment cid', commentCid)
 
-        console.log('before subplebbit metrics')
-        await waitFor(() => typeof rendered.result.current.subplebbitMetrics.hourPostCount === 'number')
-        expect(typeof rendered.result.current.subplebbitMetrics.hourPostCount).to.equal('number')
-        console.log('after subplebbit metrics')
+        console.log('before subplebbit stats')
+        await waitFor(() => typeof rendered.result.current.subplebbitStats.hourPostCount === 'number')
+        expect(typeof rendered.result.current.subplebbitStats.hourPostCount).to.equal('number')
+        console.log('after subplebbit stats')
       })
 
       let onChallengeCalled = 0
