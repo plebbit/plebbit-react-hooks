@@ -6,15 +6,12 @@ import {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 import {commentsPerPage, commentBufferSize} from './authors-comments-store'
 import commentsStore from '../comments'
 import {getUpdatedBufferedComments} from './utils'
-import {AuthorCommentsFilter, Comment} from '../../types'
-
-const mockAccount: any = {
-  id: 'mock account id',
-  plebbit: new Plebbit(),
-}
+import {AuthorCommentsFilter, Comment, Account} from '../../types'
+import {useAccount} from '../..'
 
 const authorAddress = 'author.eth'
 
+// tests take longer than default jest 5 seconds
 jest.setTimeout(10000)
 
 describe('authors comments store', () => {
@@ -25,19 +22,22 @@ describe('authors comments store', () => {
     testUtils.restoreAll()
   })
 
-  let rendered: any, waitFor: any, accountId
+  let rendered: any, waitFor: any, account: Account
   beforeEach(async () => {
-    rendered = renderHook<any, any>(() => useAuthorsCommentsStore())
+    rendered = renderHook<any, any>(() => {
+      const account = useAccount()
+      return useAuthorsCommentsStore()
+    })
     // large timeout because it takes a while to fetch all comments
     waitFor = testUtils.createWaitFor(rendered, {timeout: 5000})
 
-    // set account in accounts store
-    const accountsState: any = {accounts: {[mockAccount.id]: mockAccount}}
-    accountsStore.setState(() => accountsState)
+    await waitFor(() => Object.values(accountsStore.getState().accounts).length > 0)
+    account = Object.values(accountsStore.getState().accounts)[0]
+    console.log(accountsStore.getState(), {account})
   })
 
   afterEach(async () => {
-    await resetAuthorsCommentsDatabaseAndStore()
+    await testUtils.resetDatabasesAndStores()
   })
 
   test('initial store', async () => {
@@ -57,10 +57,10 @@ describe('authors comments store', () => {
 
   test('get multiple pages', async () => {
     // mock plebbit.getComment() result
-    const commentToGet = mockAccount.plebbit.commentToGet
+    const commentToGet = account.plebbit.commentToGet
     const totalAuthorCommentCount = 110
     let currentAuthorCommentCount = 0
-    mockAccount.plebbit.commentToGet = (commentCid: string) => {
+    account.plebbit.commentToGet = (commentCid: string) => {
       currentAuthorCommentCount++
       const authorCommentIndex = totalAuthorCommentCount - currentAuthorCommentCount
       return {
@@ -77,7 +77,7 @@ describe('authors comments store', () => {
     const commentCid = 'comment cid'
     const authorCommentsName = authorAddress + '-comments-name'
     act(() => {
-      rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, undefined, mockAccount)
+      rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, undefined, account)
     })
 
     // wait for 1st page
@@ -150,16 +150,16 @@ describe('authors comments store', () => {
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe(undefined)
 
     // restore mock
-    mockAccount.plebbit.commentToGet = commentToGet
+    account.plebbit.commentToGet = commentToGet
   })
 
-  test.only('discover new lastCommentCid while scrolling', async () => {
+  test('discover new lastCommentCid while scrolling', async () => {
     // mock plebbit.getComment() result
-    const commentToGet = mockAccount.plebbit.commentToGet
+    const commentToGet = account.plebbit.commentToGet
     const firstTimestamp = 1000
     const totalAuthorCommentCount = 105
     const totalAuthorCommentCountFromLastCommentCid = 40
-    mockAccount.plebbit.commentToGet = (commentCid: string) => {
+    account.plebbit.commentToGet = (commentCid: string) => {
       let authorCommentIndex = Number(commentCid.match(/\d+/)?.[0])
       if (commentCid === 'comment cid') {
         authorCommentIndex = totalAuthorCommentCount
@@ -210,7 +210,7 @@ describe('authors comments store', () => {
     const commentCid = 'comment cid'
     const authorCommentsName = authorAddress + '-comments-name'
     act(() => {
-      rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, undefined, mockAccount)
+      rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, undefined, account)
     })
 
     // wait for 1st page
@@ -295,7 +295,7 @@ describe('authors comments store', () => {
     // logBufferedComments(rendered, authorAddress)
 
     // restore mock
-    mockAccount.plebbit.commentToGet = commentToGet
+    account.plebbit.commentToGet = commentToGet
   })
 
   // test('comments are already in store before add authors comments to store', () => {
