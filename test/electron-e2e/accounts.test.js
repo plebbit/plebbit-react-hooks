@@ -1,3 +1,4 @@
+const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils, useAccountSubplebbits} = require('../../dist')
 const Plebbit = require('@plebbit/plebbit-js')
@@ -41,6 +42,13 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     after(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
+    })
+
+    beforeEach(async () => {
+      await assertTestServerDidntCrash()
+    })
+    afterEach(async () => {
+      await assertTestServerDidntCrash()
     })
 
     describe(`no accounts in database (${plebbitOptionsType})`, () => {

@@ -23,7 +23,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
       return
     }
     const onError = (error: any) =>
-      log.error(`startUpdatingAccountCommentOnCommentUpdateEvents failed plebbit.getComment cid '${comment?.cid}' index '${accountCommentIndex}': ${error.message}`)
+      log.error(`startUpdatingAccountCommentOnCommentUpdateEvents failed plebbit.getComment cid '${comment?.cid}' index '${accountCommentIndex}':`, error)
     comment = await utils.retryInfinity(() => account.plebbit.getComment(comment.cid, {onError}))
   }
   // account comment already updating

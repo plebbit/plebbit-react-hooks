@@ -37,7 +37,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // comment not in database, fetch from plebbit-js
     try {
       if (!comment) {
-        const onError = (error: any) => log.error(`commentsStore.addCommentToStore failed plebbit.getComment cid '${commentId}': ${error.message}`)
+        const onError = (error: any) => log.error(`commentsStore.addCommentToStore failed plebbit.getComment cid '${commentId}':`, error)
         comment = await utils.retryInfinity(() => account.plebbit.getComment(commentId), {onError})
         log.trace('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
         await commentsDatabase.setItem(commentId, utils.clone(comment))
