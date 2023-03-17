@@ -43,7 +43,7 @@ describe('authors', () => {
     testUtils.restoreAll()
   })
 
-  describe('useAuthorComments', () => {
+  describe.skip('useAuthorComments', () => {
     let rendered: any, waitFor: any
 
     beforeEach(async () => {

@@ -1,20 +1,20 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import useAuthorsCommentsStore, {resetAuthorsCommentsDatabaseAndStore} from './authors-comments-store'
+import useAuthorsCommentsStore, {resetAuthorsCommentsDatabaseAndStore, commentsPerPage, commentBufferSize} from './authors-comments-store'
 import accountsStore from '../accounts'
-import {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
-import {commentsPerPage, commentBufferSize} from './authors-comments-store'
 import commentsStore from '../comments'
 import {getUpdatedBufferedComments} from './utils'
 import {AuthorCommentsFilter, Comment, Account} from '../../types'
-import {useAccount} from '../..'
+import {setPlebbitJs} from '../..'
+import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
+setPlebbitJs(PlebbitJsMock)
 
 const authorAddress = 'author.eth'
 
-// tests take longer than default jest 5 seconds
-jest.setTimeout(10000)
-
 describe('authors comments store', () => {
+  // tests take longer than default jest 5 seconds
+  jest.setTimeout(10000)
+
   beforeAll(() => {
     testUtils.silenceReactWarnings()
   })
@@ -24,16 +24,12 @@ describe('authors comments store', () => {
 
   let rendered: any, waitFor: any, account: Account
   beforeEach(async () => {
-    rendered = renderHook<any, any>(() => {
-      const account = useAccount()
-      return useAuthorsCommentsStore()
-    })
+    rendered = renderHook<any, any>(() => useAuthorsCommentsStore())
     // large timeout because it takes a while to fetch all comments
     waitFor = testUtils.createWaitFor(rendered, {timeout: 5000})
 
     await waitFor(() => Object.values(accountsStore.getState().accounts).length > 0)
     account = Object.values(accountsStore.getState().accounts)[0]
-    console.log(accountsStore.getState(), {account})
   })
 
   afterEach(async () => {
@@ -351,7 +347,7 @@ const logBufferedComments = (rendered: any, authorCommentsName: string, authorAd
   const bufferedComments = getBufferedComments(rendered, authorCommentsName, authorAddress)
   for (const [i, comment] of bufferedComments.sort((a: any, b: any) => a.timestamp - b.timestamp).entries()) {
     // console.log(i+1, {timestamp: comment.timestamp, cid: comment.cid, previousCommentCid: comment.author.previousCommentCid})
-    console.debug(i + 1, comment.timestamp, comment.cid)
+    console.log(i + 1, comment.timestamp, comment.cid)
   }
   console.log('from last comment cid', bufferedComments.filter((comment: any) => comment.cid.includes('last comment cid')).length)
   console.log('from comment cid', bufferedComments.filter((comment: any) => !comment.cid.includes('last comment cid')).length)
