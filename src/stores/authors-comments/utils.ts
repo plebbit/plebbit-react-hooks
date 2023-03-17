@@ -3,13 +3,28 @@ import {commentsPerPage} from './authors-comments-store'
 import assert from 'assert'
 import commentsStore from '../comments'
 
-export const getUpdatedLoadedAndBufferedComments = (
+export const getUpdatedLoadedComments = (
   loadedComments: Comment[],
   bufferedComments: Comment[],
   pageNumber: number,
-  filter: AccountPublicationsFilter,
+  filter: AccountPublicationsFilter | undefined,
   comments: Comments
 ) => {
+  const newBufferedComments = getUpdatedBufferedComments(loadedComments, bufferedComments, filter, comments)
+
+  // create new loaded comments using the page number and buffered comments
+  let newLoadedComments = newBufferedComments.slice(0, pageNumber * commentsPerPage)
+
+  // check if loadedComments have changed
+  // don't return a new object if there's no change, to avoid rerender
+  if (!commentsHaveChanged(loadedComments, newLoadedComments)) {
+    newLoadedComments = loadedComments
+  }
+
+  return newLoadedComments
+}
+
+export const getUpdatedBufferedComments = (loadedComments: Comment[], bufferedComments: Comment[], filter: AccountPublicationsFilter | undefined, comments: Comments) => {
   // get previous loaded comment cids
   const previousLoadedCommentCids: {[commentCid: string]: boolean} = {}
   for (const comment of loadedComments) {
@@ -31,19 +46,10 @@ export const getUpdatedLoadedAndBufferedComments = (
     newBufferedComments.unshift(updatedComment)
   }
 
-  // create new loaded comments using the page number and buffered comments
-  let newLoadedComments = newBufferedComments.slice(0, pageNumber * commentsPerPage)
+  // no need to check if comments have changed because getUpdatedBufferedComments
+  // is not used anywhere outside of tests
 
-  // check if loadedComments and buffered comments have changed
-  // don't return a new object if there's no change, to avoid rerender
-  if (!commentsHaveChanged(loadedComments, newLoadedComments)) {
-    newLoadedComments = loadedComments
-  }
-  if (!commentsHaveChanged(bufferedComments, newBufferedComments)) {
-    newBufferedComments = bufferedComments
-  }
-
-  return {loadedComments: newLoadedComments, bufferedComments: newBufferedComments}
+  return newBufferedComments
 }
 
 const commentsHaveChanged = (comments1: Comment[], comments2: Comment[]) => {
@@ -117,17 +123,20 @@ export const getSubplebbitLastCommentCids = (authorAddress: string, comments: Co
   return [...subplebbitLastCommentCidsSet]
 }
 
+// if comment already exist, find the actual nextCidToFetch
+// can happen if a more recent lastCommentCid becomes nextCommentCidToFetch
 export const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string | undefined) => {
   const {comments} = commentsStore.getState()
+  let nextCommentCidToFetchNotFetched = nextCommentCidToFetch
   // scroll through comments until the comment doesn't exist, which means hasn't been fetched yet
-  while (nextCommentCidToFetch && comments[nextCommentCidToFetch]) {
-    if (!comments[nextCommentCidToFetch]) {
+  while (true) {
+    const comment = comments[nextCommentCidToFetchNotFetched || '']
+    if (!comment) {
       break
-    } else {
-      nextCommentCidToFetch = comments[nextCommentCidToFetch]?.author?.previousCommentCid
     }
+    nextCommentCidToFetchNotFetched = comment.author?.previousCommentCid
   }
-  return nextCommentCidToFetch
+  return nextCommentCidToFetchNotFetched
 }
 
 // export const getAuthorLastComment = (authorAddress: string, lastSubplebbitComments: Comment[], bufferedComments: Comment[]) => {
@@ -167,3 +176,12 @@ export const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string
 
 //   return lastComment
 // }
+
+// util for debugging sizes of object of arrays/sets
+export const toSizes = (obj: {[key: string]: any}) => {
+  const newObj: {[key: string]: number} = {}
+  for (const i in obj) {
+    newObj[i] = obj[i].length || obj[i].size
+  }
+  return newObj
+}

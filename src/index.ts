@@ -41,7 +41,16 @@ import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress}
 import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
 
 // actions that don't have their own hooks yet
-import {createAccount, deleteAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit} from './stores/accounts/accounts-actions'
+import {
+  createAccount,
+  deleteAccount,
+  setAccount,
+  setActiveAccount,
+  setAccountsOrder,
+  importAccount,
+  exportAccount,
+  deleteSubplebbit,
+} from './stores/accounts/accounts-actions'
 
 // utils
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
@@ -90,6 +99,7 @@ export {
   // actions that don't have their own hooks yet
   createAccount,
   deleteAccount,
+  setAccount,
   setActiveAccount,
   setAccountsOrder,
   importAccount,
@@ -142,6 +152,7 @@ const hooks = {
   // actions that don't have their own hooks yet
   createAccount,
   deleteAccount,
+  setAccount,
   setActiveAccount,
   setAccountsOrder,
   importAccount,

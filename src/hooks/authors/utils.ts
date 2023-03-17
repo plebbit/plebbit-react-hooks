@@ -1,5 +1,5 @@
 import {useEffect, useState, useMemo} from 'react'
-import {Comment} from '../../types'
+import {Comment, AuthorCommentsFilter} from '../../types'
 import {useComments} from '../comments'
 import utils from '../../lib/utils'
 

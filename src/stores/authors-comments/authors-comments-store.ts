@@ -5,7 +5,7 @@ import assert from 'assert'
 import {AuthorCommentsFilter, AuthorCommentsOptions, AuthorsComments, Account, Comment} from '../../types'
 import commentsStore, {CommentsState} from '../comments'
 import QuickLru from 'quick-lru'
-import {getUpdatedLoadedAndBufferedComments, getSubplebbitLastCommentCids, getNextCommentCidToFetchNotFetched} from './utils'
+import {toSizes, getUpdatedLoadedComments, getSubplebbitLastCommentCids, getNextCommentCidToFetchNotFetched} from './utils'
 import accountsStore from '../accounts'
 
 // reddit loads approximately 25 posts per page while infinite scrolling
@@ -17,21 +17,22 @@ export type AuthorsCommentsState = {
   // authorCommentsName is a string used a key to represent authorAddress + filter + accountId
   options: {[authorCommentsName: string]: AuthorCommentsOptions}
   loadedComments: {[authorCommentsName: string]: Comment[]}
-  bufferedComments: {[authorCommentsName: string]: Comment[]}
+  bufferedCommentCids: {[authorAddress: string]: Set<string>}
   nextCommentCidsToFetch: {[authorAddress: string]: string | undefined}
   shouldFetchNextComment: {[authorAddress: string]: boolean}
   lastCommentCids: {[authorAddress: string]: string | undefined}
   addAuthorCommentsToStore: Function
   setNextCommentCidsToFetch: Function
   incrementPageNumber: Function
-  updateLoadedAndBufferedComments: Function
+  addBufferedCommentCid: Function
+  updateLoadedComments: Function
   setLastCommentCid: Function
 }
 
 const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Function, getState: Function) => ({
   options: {},
   loadedComments: {},
-  bufferedComments: {},
+  bufferedCommentCids: {},
   lastCommentCids: {},
   nextCommentCidsToFetch: {},
   shouldFetchNextComment: {},
@@ -56,17 +57,14 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     // subscribe to nextCommentCidsToFetch and shouldFetchNextComment to fetch the comments
     authorsCommentsStore.subscribe(fetchCommentOnShouldFetchOrNextCidChange(authorCommentsOptions))
 
-    // subscribe to bufferedComments to fetch subplebbit lastCommentCids of updated comments
-    authorsCommentsStore.subscribe(fetchLastCommentCidOnBufferedCommentsChange(authorCommentsName, authorCommentsOptions))
-
-    log('authorsCommentsActions.addAuthorCommentsToStore', {authorCommentsOptions, commentCid})
+    log('authorsCommentsActions.addAuthorCommentsToStore', {authorCommentsName, authorCommentsOptions, commentCid})
     setState((state: AuthorsCommentsState) => ({
       options: {...state.options, [authorCommentsName]: authorCommentsOptions},
       loadedComments: {...state.loadedComments, [authorCommentsName]: []},
-      bufferedComments: {...state.bufferedComments, [authorCommentsName]: []},
-      lastCommentCids: {...state.lastCommentCids, [authorAddress]: undefined},
-      nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: commentCid},
-      shouldFetchNextComment: {...state.shouldFetchNextComment, [authorAddress]: true},
+      bufferedCommentCids: {...state.bufferedCommentCids, [authorAddress]: state.bufferedCommentCids[authorAddress] || new Set()},
+      lastCommentCids: {...state.lastCommentCids, [authorAddress]: state.lastCommentCids[authorAddress] || undefined},
+      nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: state.nextCommentCidsToFetch[authorAddress] || commentCid},
+      shouldFetchNextComment: {...state.shouldFetchNextComment, [authorAddress]: state.shouldFetchNextComment[authorAddress] || true},
     }))
   },
 
@@ -76,7 +74,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       !nextCommentCidToFetch || typeof nextCommentCidToFetch === 'string',
       `authorsCommentsActions.setNextCommentCidsToFetch invalid argument nextCommentCidToFetch '${nextCommentCidToFetch}'`
     )
-    const {nextCommentCidsToFetch, shouldFetchNextComment} = getState()
+    const {nextCommentCidsToFetch, shouldFetchNextComment, lastCommentCids} = getState()
     if (typeof shouldFetchNextComment[authorAddress] !== 'boolean') {
       throw Error(`authorsCommentsActions.setNextCommentCidsToFetch can't set nextCommentCidToFetch '${authorAddress}' not in store`)
     }
@@ -84,7 +82,13 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       throw Error(`authorsCommentsActions.setNextCommentCidsToFetch can't set nextCommentCidToFetch '${authorAddress}' to '${nextCommentCidToFetch}' same value`)
     }
 
-    log('authorsCommentsActions.setNextCommentCidsToFetch', {authorAddress, nextCommentCidToFetch})
+    log.trace('authorsCommentsActions.setNextCommentCidsToFetch', {
+      authorAddress,
+      previousCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
+      nextCommentCidToFetch,
+      lastCommentCid: lastCommentCids[authorAddress],
+      shouldFetchNextComment: shouldFetchNextComment[authorAddress],
+    })
     setState((state: AuthorsCommentsState) => ({
       nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: nextCommentCidToFetch},
     }))
@@ -95,7 +99,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       authorCommentsName && typeof authorCommentsName === 'string',
       `authorsCommentsActions.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`
     )
-    const {options} = getState()
+    const {options, updateLoadedComments} = getState()
     if (!options[authorCommentsName]) {
       throw Error(`authorsCommentsActions.incrementPageNumber can't increment page number of options '${authorCommentsName}' not in store`)
     }
@@ -108,31 +112,41 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     })
 
     // must update loadedComments to reflect the new added page
-    getState().updateLoadedAndBufferedComments()
+    updateLoadedComments()
   },
 
-  updateLoadedAndBufferedComments(newComment?: Comment) {
-    assert(!newComment || typeof newComment === 'object', `authorsCommentsActions.updateLoadedAndBufferedComments invalid argument newComment '${newComment}'`)
+  addBufferedCommentCid: (authorAddress: string, commentCid: string) => {
+    assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsActions.addBufferedCommentCid invalid argument authorAddress '${authorAddress}'`)
+    assert(commentCid && typeof commentCid === 'string', `authorsCommentsActions.addBufferedCommentCid invalid argument commentCid '${commentCid}'`)
+
+    const {bufferedCommentCids} = getState()
+    if (!bufferedCommentCids[authorAddress]) {
+      throw Error(`authorsCommentsActions.addBufferedCommentCid can't add commentCid '${authorAddress}' not in store`)
+    }
+    if (bufferedCommentCids[authorAddress].has(commentCid)) {
+      throw Error(`authorsCommentsActions.addBufferedCommentCid can't add commentCid '${authorAddress}' '${commentCid}' already added`)
+    }
+
+    log.trace('authorsCommentsActions.addBufferedCommentCid', {authorAddress, commentCid, previousBufferedCommentCidsSize: bufferedCommentCids[authorAddress].size})
+    setState((state: AuthorsCommentsState) => ({
+      bufferedCommentCids: {...state.bufferedCommentCids, [authorAddress]: new Set([...bufferedCommentCids[authorAddress], commentCid])},
+    }))
+  },
+
+  updateLoadedComments() {
     const {comments} = commentsStore.getState()
-    let {loadedComments: authorsLoadedComments, bufferedComments: authorsBufferedComments, options, nextCommentCidsToFetch} = getState()
+    let {loadedComments: previousAuthorsLoadedComments, bufferedCommentCids, options, nextCommentCidsToFetch, lastCommentCids} = getState()
 
     const newAuthorsLoadedComments: AuthorsComments = {}
-    const newAuthorsBufferedComments: AuthorsComments = {}
     const newShouldFetchNextComment: {[authorAddress: string]: boolean} = {}
     const authorCommentsNames = Object.keys(options)
     for (const name of authorCommentsNames) {
-      const previousLoadedComments = authorsLoadedComments[name]
-      let previousBufferedComments = authorsBufferedComments[name]
       const {authorAddress, pageNumber, filter} = options[name]
+      const previousLoadedComments = previousAuthorsLoadedComments[name]
+      const bufferedComments: Comment[] = [...bufferedCommentCids[authorAddress]].map((commentCid: string) => comments[commentCid])
 
-      // if the update was triggered by a new comment, add it to bufferedComments
-      if (newComment?.author?.address === authorAddress) {
-        previousBufferedComments = [...previousBufferedComments, newComment]
-      }
-
-      const {loadedComments, bufferedComments} = getUpdatedLoadedAndBufferedComments(previousLoadedComments, previousBufferedComments, pageNumber, filter, comments)
+      const loadedComments = getUpdatedLoadedComments(previousLoadedComments, bufferedComments, pageNumber, filter, comments)
       newAuthorsLoadedComments[name] = loadedComments
-      newAuthorsBufferedComments[name] = bufferedComments
 
       // if another authorCommentOptions should fetch, don't change it
       if (newShouldFetchNextComment[authorAddress] !== true) {
@@ -141,17 +155,18 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       }
     }
 
-    log('authorsCommentsActions.updateLoadedAndBufferedComments', {
-      newComment,
-      authorsLoadedComments,
-      newAuthorsLoadedComments,
-      authorsBufferedComments,
-      newAuthorsBufferedComments,
-      newShouldFetchNextComment,
-    })
-    setState(({loadedComments, bufferedComments}: AuthorsCommentsState) => ({
+    // log.trace('authorsCommentsActions.updateLoadedComments', {
+    //   bufferedCommentCids,
+    //   bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
+    //   previousAuthorsLoadedComments,
+    //   newAuthorsLoadedComments,
+    //   previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
+    //   newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
+    //   newShouldFetchNextComment,
+    //   lastCommentCids
+    // })
+    setState(() => ({
       loadedComments: newAuthorsLoadedComments,
-      bufferedComments: newAuthorsBufferedComments,
       shouldFetchNextComment: newShouldFetchNextComment,
     }))
   },
@@ -159,7 +174,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
   setLastCommentCid: (authorAddress: string, lastCommentCid: string) => {
     assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsActions.setLastCommentCid invalid argument authorAddress '${authorAddress}'`)
     assert(lastCommentCid && typeof lastCommentCid === 'string', `authorsCommentsActions.setLastCommentCid invalid argument lastCommentCid '${lastCommentCid}'`)
-    const {lastCommentCids, shouldFetchNextComment} = getState()
+    const {lastCommentCids, shouldFetchNextComment, nextCommentCidsToFetch} = getState()
     if (typeof shouldFetchNextComment[authorAddress] !== 'boolean') {
       throw Error(`authorsCommentsActions.setLastCommentCid can't set lastCommentCid '${authorAddress}' not in store`)
     }
@@ -167,7 +182,13 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       throw Error(`authorsCommentsActions.setLastCommentCid can't set setLastCommentCid '${authorAddress}' to '${lastCommentCid}' same value`)
     }
 
-    log('authorsCommentsActions.setLastCommentCid', {authorAddress, lastCommentCid})
+    log('authorsCommentsActions.setLastCommentCid', {
+      authorAddress,
+      lastCommentCid,
+      previousLastCommentCid: lastCommentCids[authorAddress],
+      shouldFetchNextComment: shouldFetchNextComment[authorAddress],
+      nextCommentCidsToFetch: nextCommentCidsToFetch[authorAddress],
+    })
     setState((state: AuthorsCommentsState) => ({
       lastCommentCids: {...state.lastCommentCids, [authorAddress]: lastCommentCid},
     }))
@@ -176,10 +197,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
 
 // if nextCommentCidsToFetch or shouldFetchNextComment changed, fetch the next comment
 const fetchCommentOnShouldFetchOrNextCidChange = (options: AuthorCommentsOptions) => (state: AuthorsCommentsState) => {
-  let nextCommentCidToFetch = state.nextCommentCidsToFetch[options.authorAddress]
-  // if comment already exist, find the actual nextCidToFetch
-  // can happen if a more recent lastCommentCid becomes nextCommentCidToFetch
-  nextCommentCidToFetch = getNextCommentCidToFetchNotFetched(nextCommentCidToFetch)
+  const nextCommentCidToFetch = state.nextCommentCidsToFetch[options.authorAddress]
   if (!nextCommentCidToFetch) {
     return
   }
@@ -200,13 +218,14 @@ const fetchCommentOnShouldFetchOrNextCidChange = (options: AuthorCommentsOptions
   const account = accountsStore.getState().accounts[options.accountId]
   const addCommentToStore = commentsStore.getState().addCommentToStore
   addCommentToStore(nextCommentCidToFetch, account).catch((error: unknown) =>
-    log.error('authorsCommentsStore fetchCommentOnShouldFetchOrNextCidChange addCommentToStore error', {nextCommentCidToFetch, account})
+    log.error('authorsCommentsStore fetchCommentOnShouldFetchOrNextCidChange addCommentToStore error', {error, nextCommentCidToFetch, account})
   )
 }
 
-// if commentStore changed, update loadedComments, bufferedComments, shouldFetchNextComment and nextCommentCidsToFetch
+// if commentStore changed, update loadedComments, bufferedCommentCids, shouldFetchNextComment and nextCommentCidsToFetch
 let previousComments = new QuickLru({maxSize: 10000})
 let authorCommentCidsFetching: {[commentCid: string]: boolean} = {}
+let subplebbitLastCommentCidsFetching: {[commentCid: string]: boolean} = {}
 const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentCid: string) => (state: CommentsState) => {
   // not a next cid, do nothing
   if (!authorCommentCidsFetching[commentCid]) {
@@ -219,57 +238,41 @@ const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentC
   }
   previousComments.set(commentCid, comment)
 
-  const {updateLoadedAndBufferedComments, setNextCommentCidsToFetch, nextCommentCidsToFetch} = authorsCommentsStore.getState()
+  const {addBufferedCommentCid, bufferedCommentCids, updateLoadedComments, setNextCommentCidsToFetch, nextCommentCidsToFetch} = authorsCommentsStore.getState()
   const nextCidToFetch = nextCommentCidsToFetch[options.authorAddress]
 
-  // the comment was the last cid to fetch, which means it's a new comment not yet added
-  // to buffered and loaded comments
+  // the comment is a new comment, add it to buffered comment cids
+  if (!bufferedCommentCids[options.authorAddress].has(commentCid)) {
+    addBufferedCommentCid(options.authorAddress, commentCid)
+  }
+
+  // the comment was the last cid to fetch, set the next cid to fetch as the author previous cid
   if (commentCid === nextCidToFetch) {
-    // the comment is a new comment, update loaded and buffered comments with the new comment
-    updateLoadedAndBufferedComments(comment)
-
-    // the next cid to fetch is the author previous cid of the new comment
-    setNextCommentCidsToFetch(options.authorAddress, comment?.author?.previousCommentCid)
-  } else {
-    // the comment isn't a new comment, but it might have updated one of the loaded or
-    // buffered comment anyway, so update them just in case, but without a new comment
-    updateLoadedAndBufferedComments()
+    setNextCommentCidsToFetch(options.authorAddress, getNextCommentCidToFetchNotFetched(comment?.author?.previousCommentCid))
   }
-}
 
-// if buffered comments have changed, try fetching the subplebbit.lastCommentCid of each updated comment
-let previousBufferedComments: AuthorsComments = {}
-let subplebbitLastCommentCidsFetching: {[commentCid: string]: boolean} = {}
-const fetchLastCommentCidOnBufferedCommentsChange = (authorCommentsName: string, options: AuthorCommentsOptions) => (state: AuthorsCommentsState) => {
-  const bufferedComments = state.bufferedComments[authorCommentsName]
-  // bufferedComments haven't changed, do nothing
-  if (previousBufferedComments[authorCommentsName] === bufferedComments) {
-    return
-  }
-  previousBufferedComments[authorCommentsName] = bufferedComments
+  // one of the comment changed, must update loaded comments
+  updateLoadedComments()
 
-  const subplebbitLastCommentCids = getSubplebbitLastCommentCids(options.authorAddress, bufferedComments)
-
-  // start fetching author subplebbit last comments
-  const account = accountsStore.getState().accounts[options.accountId]
-  const addCommentToStore = commentsStore.getState().addCommentToStore
-
-  for (const subplebbitLastCommentCid of subplebbitLastCommentCids) {
-    // when comment has fetched, update loadedComments, bufferedComments and shouldFetchNextComment
+  // the changed comment might have a new author.subplebbit.lastCommentCid, try to fetch it
+  const subplebbitLastCommentCid = comment.author?.subplebbit?.lastCommentCid
+  if (subplebbitLastCommentCid) {
+    // when last comment has fetched, update lastCommentCid
     if (!subplebbitLastCommentCidsFetching[subplebbitLastCommentCid]) {
       subplebbitLastCommentCidsFetching[subplebbitLastCommentCid] = true
-      commentsStore.subscribe(updateLastCommentCidOnCommentsChange(authorCommentsName, options, subplebbitLastCommentCid))
+      commentsStore.subscribe(updateLastCommentCidOnCommentsChange(options, subplebbitLastCommentCid))
     }
 
-    // start fetching subplebbitLastCommentCid
-    addCommentToStore(subplebbitLastCommentCid, account).catch((error: unknown) =>
-      log.error('authorsCommentsStore fetchLastCommentCidOnBufferedCommentsChange addCommentToStore error', {subplebbitLastCommentCid, account})
-    )
+    // start fetching lastCommentCid
+    const account = accountsStore.getState().accounts[options.accountId]
+    state
+      .addCommentToStore(subplebbitLastCommentCid, account)
+      .catch((error: unknown) => log.error('authorsCommentsStore updateCommentsOnCommentsChange addCommentToStore error', {error, subplebbitLastCommentCid, account}))
   }
 }
 
-const updateLastCommentCidOnCommentsChange = (authorCommentsName: string, options: AuthorCommentsOptions, commentCid: string) => (state: CommentsState) => {
-  // not a last cid, do nothing
+const updateLastCommentCidOnCommentsChange = (options: AuthorCommentsOptions, commentCid: string) => (state: CommentsState) => {
+  // not a last cid candidate, do nothing
   if (!subplebbitLastCommentCidsFetching[commentCid]) {
     return
   }
@@ -282,7 +285,12 @@ const updateLastCommentCidOnCommentsChange = (authorCommentsName: string, option
   }
   previousComments.set(commentCid, comment)
 
-  const {lastCommentCids, bufferedComments} = authorsCommentsStore.getState()
+  const {addBufferedCommentCid, lastCommentCids, bufferedCommentCids, setLastCommentCid, setNextCommentCidsToFetch, updateLoadedComments} =
+    authorsCommentsStore.getState()
+  // already last comment cid, no need to set it
+  if (commentCid === lastCommentCids[options.authorAddress]) {
+    return
+  }
 
   // if comment is newer than current lastCommentCid and all bufferedComments, is lastCommentCid
   const currentLastCommentCid = lastCommentCids[commentCid]
@@ -293,20 +301,22 @@ const updateLastCommentCidOnCommentsChange = (authorCommentsName: string, option
   }
 
   // make sure lastComment is newer than all comments already in bufferedComments
-  for (const bufferedComment of bufferedComments[authorCommentsName]) {
+  const bufferedComments: Comment[] = [...bufferedCommentCids[options.authorAddress]].map((commentCid: string) => comments[commentCid])
+  for (const bufferedComment of bufferedComments) {
     if ((bufferedComment?.timestamp || 0) > comment.timestamp) {
       return
     }
   }
 
-  authorsCommentsStore.getState().setLastCommentCid(options.authorAddress, comment.cid)
-}
-
-const commentIsNewerThanBufferedComments = (comment: Comment, bufferedComments: Comment[]) => {
-  for (const bufferedComment of bufferedComments) {
-    if ((bufferedComment?.timestamp || 0) > comment.timestamp || 0) {
-      return
-    }
+  // is last comment cid, set it
+  setLastCommentCid(options.authorAddress, commentCid)
+  // add the last comment found to buffered comment cids
+  addBufferedCommentCid(options.authorAddress, commentCid)
+  // add the last comment to loadedComments
+  updateLoadedComments()
+  // start a new linked list of comments to fetch using the lastComment.author.previousCommentCid
+  if (comment.author?.previousCommentCid) {
+    setNextCommentCidsToFetch(options.authorAddress, getNextCommentCidToFetchNotFetched(comment.author.previousCommentCid))
   }
 }
 
@@ -314,7 +324,6 @@ const commentIsNewerThanBufferedComments = (comment: Comment, bufferedComments: 
 const originalState = authorsCommentsStore.getState()
 // async function because some stores have async init
 export const resetAuthorsCommentsStore = async () => {
-  previousBufferedComments = {}
   subplebbitLastCommentCidsFetching = {}
   previousComments = new QuickLru({maxSize: 10000})
   authorCommentCidsFetching = {}
