@@ -155,16 +155,16 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       }
     }
 
-    // log.trace('authorsCommentsActions.updateLoadedComments', {
-    //   bufferedCommentCids,
-    //   bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
-    //   previousAuthorsLoadedComments,
-    //   newAuthorsLoadedComments,
-    //   previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
-    //   newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
-    //   newShouldFetchNextComment,
-    //   lastCommentCids
-    // })
+    log.trace('authorsCommentsActions.updateLoadedComments', {
+      // bufferedCommentCids,
+      bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
+      // previousAuthorsLoadedComments,
+      // newAuthorsLoadedComments,
+      previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
+      newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
+      newShouldFetchNextComment,
+      // lastCommentCids
+    })
     setState(() => ({
       loadedComments: newAuthorsLoadedComments,
       shouldFetchNextComment: newShouldFetchNextComment,

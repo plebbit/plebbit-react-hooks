@@ -149,19 +149,23 @@ describe('authors comments store', () => {
     account.plebbit.commentToGet = commentToGet
   })
 
-  test.only('discover new lastCommentCid while scrolling', async () => {
+  test('discover new lastCommentCid while scrolling', async () => {
     // mock plebbit.getComment() result
     const commentToGet = account.plebbit.commentToGet
     const firstTimestamp = 1000
     const totalAuthorCommentCount = 105
     const totalAuthorCommentCountFromLastCommentCid = 40
+    const totalAuthorCommentCountFromLastCommentCid2 = 10
     account.plebbit.commentToGet = (commentCid: string) => {
-      let authorCommentIndex = Number(commentCid.match(/\d+/)?.[0])
+      let authorCommentIndex = Number(commentCid.match(/\d+$/)?.[0])
       if (commentCid === 'comment cid') {
         authorCommentIndex = totalAuthorCommentCount
       }
       if (commentCid === 'subplebbit last comment cid') {
         authorCommentIndex = totalAuthorCommentCountFromLastCommentCid
+      }
+      if (commentCid === 'subplebbit last comment cid 2') {
+        authorCommentIndex = totalAuthorCommentCountFromLastCommentCid2
       }
 
       // if is previous from 'comment cid'
@@ -197,6 +201,25 @@ describe('authors comments store', () => {
         // no more comments from last comment cid, go back to first 'comment cid'
         if (authorCommentIndex === 1) {
           comment.author.previousCommentCid = 'comment cid'
+        }
+      }
+
+      // if comment is 'subplebbit last comment cid 2'
+      if (commentCid === 'subplebbit last comment cid 2') {
+        // timestamp of last comment cid must be newer than all
+        comment.timestamp = firstTimestamp + totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+        // start a new linked list from the last comment cid
+        comment.author.previousCommentCid = `previous 2 from last comment cid ${authorCommentIndex - 1}`
+      }
+
+      // if comment is previous from 'subplebbit last comment cid 2'
+      if (commentCid.includes('previous 2 from last comment cid')) {
+        comment.timestamp = firstTimestamp + totalAuthorCommentCount + authorCommentIndex
+        comment.author.previousCommentCid = `previous 2 from last comment cid ${authorCommentIndex - 1}`
+
+        // no more comments from last comment cid, go back to first 'subplebbit last comment cid'
+        if (authorCommentIndex === 1) {
+          comment.author.previousCommentCid = 'subplebbit last comment cid'
         }
       }
 
@@ -303,14 +326,48 @@ describe('authors comments store', () => {
     expect(bufferedComments[4 * commentsPerPage].cid).toBe('previous comment cid 45')
     expect(bufferedComments[4 * commentsPerPage + 1].cid).toBe('previous comment cid 44')
 
-    // logBufferedComments(rendered, authorCommentsName, authorAddress)
-
     // discover a second lastCommentCid
+    commentsStore.setState((state: any) => {
+      const commentCid = 'comment cid'
+      const comment = {...state.comments[commentCid]}
+      comment.author.subplebbit = {lastCommentCid: 'subplebbit last comment cid 2'}
+      return {comments: {...state.comments, [commentCid]: comment}}
+    })
 
-    // commentsStore.setState((state: any) => {
-    //   const comment = {...state.comments[commentCid]}
-    //   comment.author.subplebbit = {lastCommentCid: 'subplebbit last comment cid'}
-    // })
+    // wait for last comment cid and next comment cid to fetch
+    await waitFor(() => rendered.result.current.lastCommentCids[authorAddress] === 'subplebbit last comment cid 2')
+    expect(rendered.result.current.lastCommentCids[authorAddress]).toBe('subplebbit last comment cid 2')
+    expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe('previous 2 from last comment cid 9')
+
+    // wait for 5th page, fetched all author comments, reach max buffered comments
+    act(() => {
+      rendered.result.current.incrementPageNumber(authorCommentsName)
+    })
+    await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === 5 * commentsPerPage)
+    expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(5 * commentsPerPage)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
+    // wait for buffered comments to stop loading
+    await waitFor(
+      () =>
+        rendered.result.current.bufferedCommentCids[authorAddress].size ===
+        totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+    )
+    expect(rendered.result.current.bufferedCommentCids[authorAddress].size).toBe(
+      totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+    )
+    // should fetch comment because buffer is not full, but author has no more comments
+    expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
+    // fetched all author comments, no next comment to fetch
+    expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe(undefined)
+
+    // last comment of loaded comments is from 'comment cid' previous comments because not all comments from lastCommentCid have loaded yet
+    bufferedComments = getBufferedComments(rendered, authorCommentsName, authorAddress)
+    expect(bufferedComments[5 * commentsPerPage - 1].cid).toBe('previous comment cid 22')
+    expect(rendered.result.current.loadedComments[authorCommentsName][5 * commentsPerPage - 1].cid).toBe('previous comment cid 22')
+
+    // first comments of next page are from last cid because buffered comments get reordered by most recent as they are fetched
+    expect(bufferedComments[5 * commentsPerPage].cid).toBe('previous 2 from last comment cid 9')
+    expect(bufferedComments[5 * commentsPerPage + 1].cid).toBe('previous 2 from last comment cid 8')
 
     // restore mock
     account.plebbit.commentToGet = commentToGet

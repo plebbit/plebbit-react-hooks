@@ -129,7 +129,12 @@ export const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string
   const {comments} = commentsStore.getState()
   let nextCommentCidToFetchNotFetched = nextCommentCidToFetch
   // scroll through comments until the comment doesn't exist, which means hasn't been fetched yet
+  let maxAttempt = 99999999
   while (true) {
+    // can't happen in production because of hashing, but can happen in tests
+    if (!maxAttempt--) {
+      throw Error(`getNextCommentCidToFetchNotFetched '${nextCommentCidToFetch}' infinite loop`)
+    }
     const comment = comments[nextCommentCidToFetchNotFetched || '']
     if (!comment) {
       break
