@@ -8,12 +8,13 @@ import {AuthorCommentsFilter, Comment, Account} from '../../types'
 import {setPlebbitJs} from '../..'
 import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
+import Logger from '@plebbit/plebbit-logger'
 
 const authorAddress = 'author.eth'
 
 describe('authors comments store', () => {
   // tests take longer than default jest 5 seconds
-  jest.setTimeout(10000)
+  jest.setTimeout(20000)
 
   beforeAll(() => {
     testUtils.silenceReactWarnings()
@@ -149,7 +150,7 @@ describe('authors comments store', () => {
     account.plebbit.commentToGet = commentToGet
   })
 
-  test.only('discover new lastCommentCid while scrolling', async () => {
+  test('discover new lastCommentCid while scrolling', async () => {
     // mock plebbit.getComment() result
     const commentToGet = account.plebbit.commentToGet
     const firstTimestamp = 1000
@@ -225,6 +226,19 @@ describe('authors comments store', () => {
         // no more comments from last comment cid, go back to first 'subplebbit last comment cid'
         if (authorCommentIndex === 1) {
           comment.author.previousCommentCid = 'subplebbit last comment cid'
+        }
+      }
+
+      // test different author
+      if (commentCid.includes('different author')) {
+        return {
+          cid: commentCid,
+          timestamp: firstTimestamp + authorCommentIndex,
+          author: {
+            address: 'different-' + authorAddress,
+            // no previous cid if no more comments
+            previousCommentCid: authorCommentIndex > 1 ? `different author comment cid ${authorCommentIndex - 1}` : undefined,
+          },
         }
       }
 
@@ -415,33 +429,61 @@ describe('authors comments store', () => {
       totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
     )
 
+    // add another author comments with empty filter
+    const emptyFilterName = authorAddress + '-empty-filter'
+    const emptyFilter = {}
+    act(() => {
+      rendered.result.current.addAuthorCommentsToStore(emptyFilterName, authorAddress, commentCid, emptyFilter, account)
+    })
+    await waitFor(() => rendered.result.current.loadedComments[emptyFilterName].length === commentsPerPage)
+    expect(rendered.result.current.loadedComments[emptyFilterName].length).toBe(commentsPerPage)
+
+    // add another author comments with subplebbit filter (0 matching)
+    const subplebbitFilterName = authorAddress + '-subplebbit-filter'
+    const subplebbitFilter = {subplebbitAddresses: [`doesn't exist`]}
+    act(() => {
+      rendered.result.current.addAuthorCommentsToStore(subplebbitFilterName, authorAddress, commentCid, subplebbitFilter, account)
+    })
+    // give some time to load comments
+    await new Promise((r) => setTimeout(r, 100))
+    expect(rendered.result.current.loadedComments[subplebbitFilterName].length).toBe(0)
+
+    // add another author comments with different address
+    const differentAuthorAddress = 'different-' + authorAddress
+    const differentAuthorAddressName = differentAuthorAddress + '-name'
+    const differentAuthorTotalCommentCount = 30
+    const differentAuthorTotalCommentCountFromLastCid = 60
+    const differentCommentCid = 'different author comment cid ' + differentAuthorTotalCommentCount
+    act(() => {
+      rendered.result.current.addAuthorCommentsToStore(differentAuthorAddressName, differentAuthorAddress, differentCommentCid, undefined, account)
+    })
+    await waitFor(() => rendered.result.current.loadedComments[differentAuthorAddressName].length === commentsPerPage)
+    expect(rendered.result.current.loadedComments[differentAuthorAddressName].length).toBe(commentsPerPage)
+
+    // discover a second lastCommentCid
+    commentsStore.setState((state: any) => {
+      const commentCid = 'different author comment cid 20'
+      const comment = {...state.comments[commentCid]}
+      comment.author.subplebbit = {lastCommentCid: 'different author comment cid ' + differentAuthorTotalCommentCountFromLastCid}
+      return {comments: {...state.comments, [commentCid]: comment}}
+    })
+
+    // wait for 2nd page
+    act(() => {
+      rendered.result.current.incrementPageNumber(differentAuthorAddressName)
+    })
+    await waitFor(() => rendered.result.current.loadedComments[differentAuthorAddressName].length === 2 * commentsPerPage)
+    expect(rendered.result.current.loadedComments[differentAuthorAddressName].length).toBe(2 * commentsPerPage)
+    expect(hasDuplicateComments(rendered.result.current.loadedComments[differentAuthorAddressName])).toBe(false)
+    // wait for buffered comments to stop loading
+    await waitFor(() => rendered.result.current.bufferedCommentCids[differentAuthorAddress].size === differentAuthorTotalCommentCountFromLastCid)
+    expect(rendered.result.current.bufferedCommentCids[differentAuthorAddress].size).toBe(differentAuthorTotalCommentCountFromLastCid)
+    expect(rendered.result.current.shouldFetchNextComment[differentAuthorAddress]).toBe(true)
+    expect(rendered.result.current.nextCommentCidsToFetch[differentAuthorAddress]).toBe(undefined)
+
     // restore mock
     account.plebbit.commentToGet = commentToGet
   })
-
-  // test('comments are already in store before add authors comments to store', () => {
-
-  // })
-
-  // test('mutliple authors at the same time', () => {
-
-  // })
-
-  // test('filter comments by subplebbit', () => {
-
-  // })
-
-  // test('filter comments by reply', () => {
-
-  // })
-
-  // test('filter comments by post', () => {
-
-  // })
-
-  // test('filter comments by subplebbit and reply', () => {
-
-  // })
 
   // test('multiple filters and authors at the same time', () => {
 

@@ -115,7 +115,7 @@ export const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string
 export const toSizes = (obj: {[key: string]: any}) => {
   const newObj: {[key: string]: number} = {}
   for (const i in obj) {
-    newObj[i] = obj[i].length || obj[i].size
+    newObj[i] = obj[i].length ?? obj[i].size
   }
   return newObj
 }

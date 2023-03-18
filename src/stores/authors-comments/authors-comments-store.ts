@@ -47,7 +47,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     assert(!filter || typeof filter === 'object', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter '${filter}'`)
     assert(typeof account?.plebbit?.getComment === 'function', `authorsCommentsStore.addAuthorCommentsToStore account '${account}' invalid`)
 
-    const {options} = getState()
+    const {options, updateLoadedComments} = getState()
     // in store already, do nothing
     if (options[authorCommentsName]) {
       return
@@ -66,6 +66,9 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: state.nextCommentCidsToFetch[authorAddress] || commentCid},
       shouldFetchNextComment: {...state.shouldFetchNextComment, [authorAddress]: state.shouldFetchNextComment[authorAddress] || true},
     }))
+
+    // update loadedComments in case the author already has bufferedCommentCids
+    updateLoadedComments()
   },
 
   setNextCommentCidsToFetch: (authorAddress: string, nextCommentCidToFetch: string | undefined) => {
