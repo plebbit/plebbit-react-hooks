@@ -86,29 +86,29 @@ Not implemented, but the easiest method would be to force a page reload, which w
 1. Start with an author.address and a comment.cid, fetch the comment.cid and validate the comment.author.address
   - in parallel:
     2. Fetch the previous comment using comment.author.previousCommentCid and validate the comment.author.address
-      3. Continue this process until comment.author.previousCommentCid is undefined (no more comments)
+    3. Continue this process until comment.author.previousCommentCid is undefined (no more comments)
   - in parallel:
     2. If one of the author comments receives an update with comment.author.subplebbit.lastCommentCid, fetch the lastCommentCid and validate the lastComment.author.address
-      3. If the lastComment is more recent than the original comment, replace the original comment with the lastComment and start fetching lastComment.author.previousCommentCid
-        4. Continue this process until comment.author.previousCommentCid is undefined (no more comments)
+    3. If the lastComment is more recent than the original comment, replace the original comment with the lastComment and start fetching lastComment.author.previousCommentCid
+    4. Continue this process until comment.author.previousCommentCid is undefined (no more comments)
 
 #### Flow of adding authorComments to authorsCommentsStore
 
 1. user calls useAuthorComments(authorAddress, commentCid, filter) and authorAddress+filter gets added to author comments store
-  2. nextCommentCidToFetch gets set to commentCid
-    3. nextCommentCidToFetch gets added to commentsStore*
-      4. on comments store update
-        - in parallel:
-          5. the fetched nextCommentCidToFetch comment gets added to bufferedCommentCids and filtered loadedComments
-        - in parallel:
-          5. nextCommentCidToFetch gets set to comment.author.previousCommentCid
-            6. go back to step 3
-        - in parallel:
-          5. if the updated comment has comment.author.subplebbit.lastCommentCid, add the lastCommentCid to commentsStore*
-            - go back to step 4
-        - in parallel:
-          5. if the updated comment was a lastCommentCid, and is comment.timestamp is newer than current lastCommentCid comment.timestamp, and newer than all bufferedCommentCids comment.timestamp, set lastCommentCid as comment.cid
-            6. comment gets added to bufferedCommentCids and filtered loadedComments
-              7. it is recommended to redirect the user to `/#/u/<authorAddress>/<lastCommentCid>` so if they share the link they share the most recent commentCid
+2. nextCommentCidToFetch gets set to commentCid
+3. nextCommentCidToFetch gets added to commentsStore*
+4. on comments store update
+  - in parallel:
+    5. the fetched nextCommentCidToFetch comment gets added to bufferedCommentCids and filtered loadedComments
+  - in parallel:
+    5. nextCommentCidToFetch gets set to comment.author.previousCommentCid
+    6. go back to step 3
+  - in parallel:
+    5. if the updated comment has comment.author.subplebbit.lastCommentCid, add the lastCommentCid to commentsStore*
+    6. go back to step 4
+  - in parallel:
+    5. if the updated comment was a lastCommentCid, and is comment.timestamp is newer than current lastCommentCid comment.timestamp, and newer than all bufferedCommentCids comment.timestamp, set lastCommentCid as comment.cid
+    6. comment gets added to bufferedCommentCids and filtered loadedComments
+    7. it is recommended to redirect the user to `/#/u/<authorAddress>/<lastCommentCid>` so if they share the link they share the most recent commentCid
 ---
 *commentsStore: any commentCid added the the commentsStore will fetch the comment (and comment updates), and emit events on comments changes
