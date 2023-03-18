@@ -107,7 +107,7 @@ Not implemented, but the easiest method would be to force a page reload, which w
     5. if the updated comment has comment.author.subplebbit.lastCommentCid, add the lastCommentCid to commentsStore*
     6. go back to step 4
   - in parallel:
-    5. if the updated comment was a lastCommentCid, and is comment.timestamp is newer than current lastCommentCid comment.timestamp, and newer than all bufferedCommentCids comment.timestamp, set lastCommentCid as comment.cid
+    5. if the updated comment was a lastCommentCid, and its comment.timestamp is newer than current lastCommentCid comment.timestamp, and newer than all bufferedCommentCids comment.timestamp, set lastCommentCid as comment.cid
     6. comment gets added to bufferedCommentCids and filtered loadedComments
     7. it is recommended to redirect the user to `/#/u/<authorAddress>/<lastCommentCid>` so if they share the link they share the most recent commentCid
 ---
