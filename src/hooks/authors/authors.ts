@@ -43,9 +43,11 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
     if (!authorAddress || !commentCid || !account) {
       return
     }
-    addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, filter, account).catch((error: unknown) =>
+    try {
+      addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, filter, account)
+    } catch (error: any) {
       log.error('useAuthorComments addAuthorCommentsToStore error', {authorCommentsName, error})
-    )
+    }
   }, [authorCommentsName, commentCid])
 
   const loadMore = async () => {
@@ -71,8 +73,11 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
     log('useAuthorComments', {
       authorAddress,
       commentCid,
-      authorComments,
+      // authorComments,
+      authorCommentsSize: authorComments.length,
       lastCommentCid,
+      hasMoreBufferedComments,
+      hasNextCommentCidToFetch,
       hasMore,
       state,
       errors,
