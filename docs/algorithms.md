@@ -109,6 +109,6 @@ Not implemented, but the easiest method would be to force a page reload, which w
         - in parallel:
           5. if the updated comment was a lastCommentCid, and is comment.timestamp is newer than current lastCommentCid comment.timestamp, and newer than all bufferedCommentCids comment.timestamp, set lastCommentCid as comment.cid
             6. comment gets added to bufferedCommentCids and filtered loadedComments
-              7. it is recommended to redirect the user to /u/<authorAddress>/<lastCommentCid> so if they share the link they share the most recent commentCid
+              7. it is recommended to redirect the user to `/#/u/<authorAddress>/<lastCommentCid>` so if they share the link they share the most recent commentCid
 ---
 *commentsStore: any commentCid added the the commentsStore will fetch the comment (and comment updates), and emit events on comments changes
