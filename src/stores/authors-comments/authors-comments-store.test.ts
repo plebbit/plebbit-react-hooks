@@ -404,7 +404,7 @@ describe('authors comments store', () => {
 
     // scroll all pages
     const postCount = 128
-    await scrollPages(rendered, postFilterName, 6, postCount)
+    await scrollPagesToComment(rendered, postFilterName, postCount)
 
     // the filter actually filtered
     expect(rendered.result.current.loadedComments[postFilterName].length).not.toBe(rendered.result.current.loadedComments[authorCommentsName].length)
@@ -423,7 +423,7 @@ describe('authors comments store', () => {
 
     // scroll all pages
     const replyCount = 27
-    await scrollPages(rendered, replyFilterName, 2, replyCount)
+    await scrollPagesToComment(rendered, replyFilterName, replyCount)
 
     // the filter actually filtered
     expect(rendered.result.current.loadedComments[replyFilterName].length).not.toBe(rendered.result.current.loadedComments[authorCommentsName].length)
@@ -443,6 +443,10 @@ describe('authors comments store', () => {
     })
     await waitFor(() => rendered.result.current.loadedComments[emptyFilterName].length === commentsPerPage)
     expect(rendered.result.current.loadedComments[emptyFilterName].length).toBe(commentsPerPage)
+    // scroll all pages
+    const emptyFilterCommentCount = totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+    await scrollPagesToComment(rendered, emptyFilterName, emptyFilterCommentCount)
+    expect(rendered.result.current.loadedComments[emptyFilterName].length).toBe(emptyFilterCommentCount)
 
     // add another author comments with subplebbit filter (0 matching)
     const subplebbitFilterName = authorAddress + '-subplebbit-filter'
@@ -578,8 +582,7 @@ describe('authors comments store', () => {
       if (filter?.subplebbitAddresses) {
         commentCount = Math.ceil(commentCount / 2)
       }
-      const pageCount = Math.ceil(commentCount / commentsPerPage)
-      await scrollPages(rendered, authorCommentsName, pageCount, commentCount)
+      await scrollPagesToComment(rendered, authorCommentsName, commentCount)
     }
 
     // run all tests concurrently to test concurrency
@@ -625,20 +628,23 @@ const getBufferedComments = (rendered: any, authorCommentsName: string, authorAd
   return filteredAndOrderedBufferedComments
 }
 
-const scrollPages = async (rendered: any, authorCommentsName: string, pageCount: number, commentCount: number) => {
+// scroll pages until find commentIndexToScrollTo, comment index should not be higher than total author comments, must start from page 1
+const scrollPagesToComment = async (rendered: any, authorCommentsName: string, commentIndexToScrollTo: number) => {
+  const totalPagesToScroll = Math.ceil(commentIndexToScrollTo / commentsPerPage)
   let pageIndex = 1
-  while (pageIndex++ < pageCount) {
-    act(() => {
-      rendered.result.current.incrementPageNumber(authorCommentsName)
-    })
-    let currentCommentCount = pageIndex * commentsPerPage
-    if (currentCommentCount > commentCount) {
-      currentCommentCount = commentCount
-    }
+  while (pageIndex++ < totalPagesToScroll) {
+    // console.log({authorCommentsName, commentIndexToScrollTo, totalPagesToScroll, nextPageIndex: pageIndex, loadedComments: rendered.result.current.loadedComments[authorCommentsName].length, nextLoadedComments: pageIndex * commentsPerPage, })
     try {
-      await rendered.waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === currentCommentCount, {timeout: 5000})
+      act(() => {
+        rendered.result.current.incrementPageNumber(authorCommentsName)
+      })
+      let currentCommentIndex = pageIndex * commentsPerPage
+      if (currentCommentIndex > commentIndexToScrollTo) {
+        currentCommentIndex = commentIndexToScrollTo
+      }
+      await rendered.waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === currentCommentIndex, {timeout: 5000})
     } catch (e: any) {
-      e.message = 'failed scrollPages waitFor: ' + e.message
+      e.message = `failed scrollPagesToComment '${authorCommentsName}' '${commentIndexToScrollTo}' waitFor: ${e.message}`
       console.warn(e)
     }
   }
@@ -648,7 +654,7 @@ const scrollPages = async (rendered: any, authorCommentsName: string, pageCount:
 const logBufferedComments = (rendered: any, authorCommentsName: string, authorAddress: string) => {
   const bufferedComments = getBufferedComments(rendered, authorCommentsName, authorAddress)
   for (const [i, comment] of bufferedComments.sort((a: any, b: any) => a.timestamp - b.timestamp).entries()) {
-    // console.log(i+1, {timestamp: comment.timestamp, cid: comment.cid, previousCommentCid: comment.author.previousCommentCid})
+    // console.log(i + 1, {timestamp: comment.timestamp, cid: comment.cid, previousCommentCid: comment.author.previousCommentCid})
     // console.log(i + 1, comment.timestamp, comment.cid)
   }
   console.log('from last comment cid', bufferedComments.filter((comment: any) => comment.cid.includes('last comment cid')).length)
