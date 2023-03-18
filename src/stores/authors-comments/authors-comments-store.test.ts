@@ -8,12 +8,11 @@ import {AuthorCommentsFilter, Comment, Account} from '../../types'
 import {setPlebbitJs} from '../..'
 import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
-import Logger from '@plebbit/plebbit-logger'
 
 const authorAddress = 'author.eth'
 
 describe('authors comments store', () => {
-  // tests take longer than default jest 5 seconds
+  // tests take longer than default jest 5 seconds because it takes a while to fetch all comments
   jest.setTimeout(20000)
 
   beforeAll(() => {
@@ -460,7 +459,7 @@ describe('authors comments store', () => {
     await waitFor(() => rendered.result.current.loadedComments[differentAuthorAddressName].length === commentsPerPage)
     expect(rendered.result.current.loadedComments[differentAuthorAddressName].length).toBe(commentsPerPage)
 
-    // discover a second lastCommentCid
+    // discover a lastCommentCid
     commentsStore.setState((state: any) => {
       const commentCid = 'different author comment cid 20'
       const comment = {...state.comments[commentCid]}
@@ -485,9 +484,119 @@ describe('authors comments store', () => {
     account.plebbit.commentToGet = commentToGet
   })
 
-  // test('multiple filters and authors at the same time', () => {
+  test('multiple filters and authors at the same time', async () => {
+    // because this is a concurrency test, must use overlapping act()
+    testUtils.silenceOverlappingActWarning()
 
-  // })
+    // mock plebbit.getComment() result
+    const commentToGet = account.plebbit.commentToGet
+    const getAccountCommentCid = (startCommentCid: string, authorCommentIndex: number) => `${startCommentCid.replace(/\d+$/, '')}${authorCommentIndex}`
+    const getAccountCommentIndex = (commentCid: string) => Number(commentCid.match(/\d+$/)?.[0])
+    account.plebbit.commentToGet = (commentCid: string) => {
+      const authorAddress = commentCid.split(' ')[0]
+      const authorCommentIndex = getAccountCommentIndex(commentCid)
+      const comment = {
+        cid: commentCid,
+        timestamp: 1000 + authorCommentIndex,
+        author: {
+          address: authorAddress,
+          // no previous cid if no more comments
+          previousCommentCid: authorCommentIndex > 1 ? getAccountCommentCid(commentCid, authorCommentIndex - 1) : undefined,
+        },
+        // 1/3 of comments are replies
+        parentCid: authorCommentIndex % 3 === 0 ? 'parent cid' : undefined,
+        // split comments between 2 subs
+        subplebbitAddress: authorCommentIndex % 2 === 0 ? 'subplebbit1.eth' : 'subplebbit2.eth',
+      }
+      return comment
+    }
+
+    const author1 = 'author1.eth'
+    const author2 = 'author2.eth'
+    const author3 = 'author3.eth'
+    const replyFilter = {hasParentCid: true}
+    const postAndSubplebbitFilter = {hasParentCid: false, subplebbitAddresses: ['subplebbit2.eth']}
+    const author1Name = `${author1}-name`
+    const author2Name = `${author2}-name`
+    const author3Name = `${author3}-name`
+    const author1ReplyFilterName = `${author1}-reply-filter-name`
+    const author1PostAndSubplebbitFilterName = `${author1}-post-and-subplebbit-filter-name`
+    const author1TotalCommentCount = 100
+    const author2TotalCommentCount = 70
+    const author3TotalCommentCount = 50
+    const author1TotalCommentCountFromLastCommentCid = 50
+    const author2TotalCommentCountFromLastCommentCid = 35
+    const author3TotalCommentCountFromLastCommentCid = 20
+    const author1StartCid = 'author1.eth cid ' + author1TotalCommentCount
+    const author2StartCid = 'author2.eth cid ' + author2TotalCommentCount
+    const author3StartCid = 'author3.eth cid ' + author3TotalCommentCount
+
+    const test = async (
+      authorCommentsName: string,
+      authorAddress: string,
+      startCid: string,
+      filter: AuthorCommentsFilter | undefined,
+      totalAuthorCommentCount: number,
+      totalAuthorCommentCountFromLastCommentCid: number
+    ) => {
+      // wait for 1st page
+      act(() => {
+        rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, startCid, filter, account)
+      })
+      await waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === commentsPerPage)
+      expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(commentsPerPage)
+
+      // discover a lastCommentCid on a random comment (or first comment)
+      const randomCommentIndexWithLastCommentCid = Math.floor(Math.random() * totalAuthorCommentCount + 1)
+      const commentCidWithLastCommentCid = getAccountCommentCid(startCid, randomCommentIndexWithLastCommentCid)
+      commentsStore.setState((state: any) => {
+        // use startCid as fallback in case the random comment hasn't been fetched yet
+        let comment = state.comments[commentCidWithLastCommentCid] || state.comments[startCid]
+        comment = {...comment}
+        comment.author.subplebbit = {lastCommentCid: getAccountCommentCid(startCid, totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid)}
+        return {comments: {...state.comments, [comment.cid]: comment}}
+      })
+
+      // scroll all pages
+      let commentCount = totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid
+      // 1/3 of comments are replies
+      if (filter?.hasParentCid === true) {
+        commentCount = Math.ceil(commentCount / 3)
+      }
+      // 2/3 of comments are posts
+      if (filter?.hasParentCid === false) {
+        commentCount = Math.ceil((commentCount / 3) * 2)
+      }
+      // 1/2 of subplebbits are filtered
+      if (filter?.subplebbitAddresses) {
+        commentCount = Math.ceil(commentCount / 2)
+      }
+      const pageCount = Math.ceil(commentCount / commentsPerPage)
+      await scrollPages(rendered, authorCommentsName, pageCount, commentCount)
+    }
+
+    // run all tests concurrently to test concurrency
+    await Promise.all([
+      test(author1Name, author1, author1StartCid, undefined, author1TotalCommentCount, author1TotalCommentCountFromLastCommentCid),
+      test(author2Name, author2, author2StartCid, undefined, author2TotalCommentCount, author2TotalCommentCountFromLastCommentCid),
+      test(author3Name, author3, author3StartCid, undefined, author3TotalCommentCount, author3TotalCommentCountFromLastCommentCid),
+      test(author1ReplyFilterName, author1, author1StartCid, replyFilter, author1TotalCommentCount, author1TotalCommentCountFromLastCommentCid),
+      test(author1PostAndSubplebbitFilterName, author1, author1StartCid, postAndSubplebbitFilter, author1TotalCommentCount, author1TotalCommentCountFromLastCommentCid),
+    ])
+
+    expect(rendered.result.current.loadedComments[author1Name].length).toBe(author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid)
+    expect(rendered.result.current.loadedComments[author2Name].length).toBe(author2TotalCommentCount + author2TotalCommentCountFromLastCommentCid)
+    expect(rendered.result.current.loadedComments[author3Name].length).toBe(author3TotalCommentCount + author3TotalCommentCountFromLastCommentCid)
+    expect(rendered.result.current.loadedComments[author1ReplyFilterName].length).toBe(
+      Math.ceil((author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid) / 3)
+    )
+    expect(rendered.result.current.loadedComments[author1PostAndSubplebbitFilterName].length).toBe(
+      (((author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid) / 3) * 2) / 2
+    )
+
+    // restore mock
+    account.plebbit.commentToGet = commentToGet
+  })
 })
 
 const hasDuplicateComments = (comments: any) => {
@@ -520,7 +629,7 @@ const scrollPages = async (rendered: any, authorCommentsName: string, pageCount:
       currentCommentCount = commentCount
     }
     try {
-      await rendered.waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === currentCommentCount)
+      await rendered.waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === currentCommentCount, {timeout: 5000})
     } catch (e: any) {
       e.message = 'failed scrollPages waitFor: ' + e.message
       console.warn(e)
@@ -533,7 +642,7 @@ const logBufferedComments = (rendered: any, authorCommentsName: string, authorAd
   const bufferedComments = getBufferedComments(rendered, authorCommentsName, authorAddress)
   for (const [i, comment] of bufferedComments.sort((a: any, b: any) => a.timestamp - b.timestamp).entries()) {
     // console.log(i+1, {timestamp: comment.timestamp, cid: comment.cid, previousCommentCid: comment.author.previousCommentCid})
-    console.log(i + 1, comment.timestamp, comment.cid)
+    // console.log(i + 1, comment.timestamp, comment.cid)
   }
   console.log('from last comment cid', bufferedComments.filter((comment: any) => comment.cid.includes('last comment cid')).length)
   console.log('from comment cid', bufferedComments.filter((comment: any) => !comment.cid.includes('last comment cid')).length)

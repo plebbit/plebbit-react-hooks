@@ -39,6 +39,22 @@ export const silenceTestWasNotWrappedInActWarning = () => {
   return restore
 }
 
+// this warning is usually good to have, so don't include it in silenceReactWarnings
+export const silenceOverlappingActWarning = () => {
+  const originalError = console.error
+  console.error = (...args) => {
+    if (/overlapping act\(\) calls/.test(args[0])) {
+      return
+    }
+    originalError.call(console, ...args)
+  }
+  const restore = () => {
+    console.error = originalError
+  }
+  restorables.push(restore)
+  return restore
+}
+
 export const silenceReactWarnings = () => {
   silenceUpdateUnmountedComponentWarning()
   silenceTestWasNotWrappedInActWarning()
@@ -108,6 +124,7 @@ export const resetDatabasesAndStores = async () => {
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
+  silenceOverlappingActWarning,
   silenceReactWarnings,
   restoreAll,
   resetStores,

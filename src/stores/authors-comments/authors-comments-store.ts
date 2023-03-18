@@ -5,7 +5,7 @@ import assert from 'assert'
 import {AuthorCommentsFilter, AuthorCommentsOptions, AuthorsComments, Account, Comment} from '../../types'
 import commentsStore, {CommentsState} from '../comments'
 import QuickLru from 'quick-lru'
-import {toSizes, getUpdatedLoadedComments, getNextCommentCidToFetchNotFetched} from './utils'
+import {toSizes, getUpdatedLoadedAndBufferedComments, getNextCommentCidToFetchNotFetched} from './utils'
 import accountsStore from '../accounts'
 
 // reddit loads approximately 25 posts per page while infinite scrolling
@@ -146,15 +146,21 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     for (const name of authorCommentsNames) {
       const {authorAddress, pageNumber, filter} = options[name]
       const previousLoadedComments = previousAuthorsLoadedComments[name]
-      const bufferedComments: Comment[] = [...bufferedCommentCids[authorAddress]].map((commentCid: string) => comments[commentCid])
+      const unfilteredBufferedComments: Comment[] = [...bufferedCommentCids[authorAddress]].map((commentCid: string) => comments[commentCid])
 
-      const loadedComments = getUpdatedLoadedComments(previousLoadedComments, bufferedComments, pageNumber, filter, comments)
+      const {loadedComments, bufferedComments: filteredBufferedComments} = getUpdatedLoadedAndBufferedComments(
+        previousLoadedComments,
+        unfilteredBufferedComments,
+        pageNumber,
+        filter,
+        comments
+      )
       newAuthorsLoadedComments[name] = loadedComments
 
       // if another authorCommentOptions should fetch, don't change it
       if (newShouldFetchNextComment[authorAddress] !== true) {
         // fetch if less comments than full page + buffer size
-        newShouldFetchNextComment[authorAddress] = bufferedComments.length < pageNumber * commentsPerPage + commentBufferSize
+        newShouldFetchNextComment[authorAddress] = filteredBufferedComments.length < pageNumber * commentsPerPage + commentBufferSize
       }
     }
 

@@ -3,7 +3,7 @@ import {commentsPerPage} from './authors-comments-store'
 import assert from 'assert'
 import commentsStore from '../comments'
 
-export const getUpdatedLoadedComments = (
+export const getUpdatedLoadedAndBufferedComments = (
   loadedComments: Comment[],
   bufferedComments: Comment[],
   pageNumber: number,
@@ -21,7 +21,7 @@ export const getUpdatedLoadedComments = (
     newLoadedComments = loadedComments
   }
 
-  return newLoadedComments
+  return {loadedComments: newLoadedComments, bufferedComments: newBufferedComments}
 }
 
 export const getUpdatedBufferedComments = (loadedComments: Comment[], bufferedComments: Comment[], filter: AccountPublicationsFilter | undefined, comments: Comments) => {
@@ -70,12 +70,14 @@ const commentsHaveChanged = (comments1: Comment[], comments2: Comment[]) => {
 }
 
 export const filterAuthorComments = (authorComments: Comment[], filter: AuthorCommentsFilter) => {
+  // console.log({filter})
   assert(
     !filter.subplebbitAddresses || Array.isArray(filter.subplebbitAddresses),
     `authorsCommentsStore filterAuthorComments invalid argument filter.subplebbitAddresses '${filter.subplebbitAddresses}' not an array`
   )
   const filtered = []
   for (const authorComment of authorComments) {
+    // console.log({authorComment})
     let isFilteredOut = false
     if (filter.subplebbitAddresses?.length && !filter.subplebbitAddresses.includes(authorComment.subplebbitAddress)) {
       isFilteredOut = true
@@ -84,7 +86,10 @@ export const filterAuthorComments = (authorComments: Comment[], filter: AuthorCo
       isFilteredOut = true
     }
     if (!isFilteredOut) {
+      // console.log('not filtered')
       filtered.push(authorComment)
+    } else {
+      // console.log('filtered')
     }
   }
   return filtered

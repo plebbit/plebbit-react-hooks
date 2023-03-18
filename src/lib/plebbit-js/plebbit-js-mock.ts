@@ -331,6 +331,7 @@ export class Comment extends Publication {
   parentCid: string | undefined
   replies: any
   updatedAt: number | undefined
+  subplebbitAddress: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -343,6 +344,7 @@ export class Comment extends Publication {
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
     this.replies = new Pages({comment: this})
+    this.subplebbitAddress = createCommentOptions?.subplebbitAddress
   }
 
   async update() {
