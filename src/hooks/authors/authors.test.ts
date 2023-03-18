@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
-import {resolveAuthorAddress, authorCommentsPerPage, authorCommentsBuffer} from './authors'
+import {commentsPerPage} from '../../stores/authors-comments'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
 import {ethers} from 'ethers'
@@ -42,8 +42,8 @@ describe('authors', () => {
   afterAll(() => {
     testUtils.restoreAll()
   })
-
-  describe.skip('useAuthorComments', () => {
+  /*
+  describe.only('useAuthorComments', () => {
     let rendered: any, waitFor: any
 
     beforeEach(async () => {
@@ -293,6 +293,7 @@ describe('authors', () => {
       Plebbit.prototype.commentToGet = commentToGet
     })
   })
+*/
 
   describe('useAuthor', () => {
     let rendered: any, waitFor: any

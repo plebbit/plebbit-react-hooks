@@ -33,7 +33,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       return
     }
     addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => log.error('useFeed addFeedToStore error', {feedName, error}))
-  }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/])
+  }, [feedName])
 
   const feed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
   let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || ''])

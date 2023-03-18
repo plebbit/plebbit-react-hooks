@@ -18,7 +18,82 @@ import {
 import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/blockchain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
-import {useAuthorLastCommentCid} from './utils'
+import {useAuthorCommentsName} from './utils'
+import useAuthorsCommentsStore from '../../stores/authors-comments'
+
+/**
+ * @param authorAddress - The address of the author
+ * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthorCommentsResult {
+  const {authorAddress, commentCid, accountName, filter} = options || {}
+  const account = useAccount({accountName})
+  const authorCommentsName = useAuthorCommentsName(account?.id, authorAddress, filter)
+  const incrementPageNumber = useAuthorsCommentsStore((state) => state.incrementPageNumber)
+  const addAuthorCommentsToStore = useAuthorsCommentsStore((state) => state.addAuthorCommentsToStore)
+  const hasMoreBufferedComments = useAuthorsCommentsStore((state) => state.hasMoreBufferedComments[authorCommentsName || ''])
+  const hasNextCommentCidToFetch = useAuthorsCommentsStore((state) => Boolean(state.nextCommentCidsToFetch[authorAddress || '']))
+  const authorComments = useAuthorsCommentsStore((state) => state.loadedComments[authorCommentsName || ''])
+  const lastCommentCid = useAuthorsCommentsStore((state) => state.lastCommentCids[authorAddress || ''])
+
+  // add authors comments to store
+  useEffect(() => {
+    if (!authorAddress || !commentCid || !account) {
+      return
+    }
+    addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, filter, account).catch((error: unknown) =>
+      log.error('useAuthorComments addAuthorCommentsToStore error', {authorCommentsName, error})
+    )
+  }, [authorCommentsName, commentCid])
+
+  const loadMore = async () => {
+    try {
+      if (!authorAddress || !account) {
+        throw Error('useAuthorComments cannot load more authorComments not initalized yet')
+      }
+      incrementPageNumber(authorCommentsName)
+    } catch (e: any) {
+      // wait 100 ms so infinite scroll doesn't spam this function
+      await new Promise((r) => setTimeout(r, 50))
+      // TODO: maybe add these errors to errors array
+    }
+  }
+
+  const hasMore = hasMoreBufferedComments || hasNextCommentCidToFetch
+
+  const authorResult = useAuthor({commentCid, authorAddress, accountName})
+  const state = authorResult.state
+  const errors = authorResult.errors
+
+  if (authorResult.author) {
+    log('useAuthorComments', {
+      authorAddress,
+      commentCid,
+      authorComments,
+      lastCommentCid,
+      hasMore,
+      state,
+      errors,
+      authorResult,
+      accountName,
+    })
+  }
+
+  return useMemo(
+    () => ({
+      authorComments,
+      lastCommentCid,
+      hasMore,
+      loadMore,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [authorComments, lastCommentCid, hasMore, errors, state]
+  )
+}
 
 /**
  * @param authorAddress - The address of the author
@@ -76,142 +151,6 @@ export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
       errors,
     }),
     [author, errors, state]
-  )
-}
-
-// reddit loads approximately 25 posts per page while infinite scrolling
-export const authorCommentsPerPage = 25
-// keep large buffer because fetching cids is slow
-export const authorCommentsBuffer = 50
-
-/**
- * @param authorAddress - The address of the author
- * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)
- * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
- * the active account.
- */
-export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthorCommentsResult {
-  const {authorAddress, commentCid, accountName, filter} = options || {}
-  const [pageNumber, setPageNumber] = useState<number>(1)
-  const [authorCommentCids, setAuthorCommentCids] = useState<string[]>([])
-  // only fetch comments up to the page number
-  // NOTE: authorCommentCidsToFetch is same as authorCommentCids until the page number limit is reached
-  const authorCommentCidsToFetch = useMemo(
-    () => (authorCommentCids || []).slice(0, pageNumber * authorCommentsPerPage + authorCommentsBuffer),
-    [authorCommentCids, pageNumber]
-  )
-
-  // fetch author when commentCid or authorAddress change
-  const authorResult = useAuthor({commentCid, authorAddress, accountName})
-  // fetch comments when authorCommentCidsToFetch change
-  const commentsResult = useComments({commentCids: authorCommentCidsToFetch, accountName})
-  const lastCommentCid = useAuthorLastCommentCid(authorAddress, commentsResult.comments)
-
-  // set new authorCommentCids to fetch when receiving either the initial
-  // commentCid or a new comment.author.previousCommentCid
-  useEffect(() => {
-    if (!commentCid || !authorAddress) {
-      return
-    }
-
-    // when author has loaded for the first time, set his last author comment cid to fetch
-    if (authorResult?.author && !authorCommentCids?.length) {
-      // set the original comment used in the argument
-      const cids = [commentCid]
-      // if has previous comment, set it
-      if (authorResult.author.previousCommentCid) {
-        cids.push(authorResult.author.previousCommentCid)
-      }
-      setAuthorCommentCids(cids)
-      return
-    }
-
-    // if last comment has a previous comment, add it
-    const previousCommentCid = commentsResult.comments[commentsResult.comments.length - 1]?.author?.previousCommentCid
-    if (previousCommentCid && !authorCommentCids.includes(previousCommentCid)) {
-      setAuthorCommentCids([...authorCommentCids, previousCommentCid])
-    }
-  }, [commentCid, authorAddress, authorResult?.author, commentsResult.comments])
-
-  // only deliver comment amount equal to the comments per page amount
-  const {authorComments, wrongAuthorError} = useMemo(() => {
-    const authorComments = commentsResult.comments.slice(0, pageNumber * authorCommentsPerPage)
-    let wrongAuthorError
-    for (const [i, authorComment] of authorComments.entries()) {
-      if (authorComment?.author?.address !== authorAddress) {
-        wrongAuthorError = Error(`comment.author.previousCommentCid comment has different author address from authorAddress`)
-        // trim author comments to remove any comments after the invalid authorAddress
-        authorComments.length = i
-        break
-      }
-    }
-    return {authorComments, wrongAuthorError}
-  }, [pageNumber, commentsResult.comments])
-
-  // if the last item in authorComments could have an author.previousCommentCid after loading, hasMore is true
-  const authorCommentsLast = authorComments[authorComments.length - 1]
-  const authorCommentsLastMightHaveAuthorPreviousCommentCid = !authorCommentsLast?.timestamp ? true : Boolean(authorCommentsLast?.author?.previousCommentCid)
-  // if has wrongAuthorError, hasMore is false
-  const hasMore = authorCommentsLastMightHaveAuthorPreviousCommentCid && !wrongAuthorError
-
-  // increment the page number
-  const loadMore = async () => {
-    // only increment page if page is loaded fully and wrongAuthorError is false
-    if (authorComments.length === pageNumber * authorCommentsPerPage && !wrongAuthorError) {
-      setPageNumber((pageNumber) => pageNumber + 1)
-    }
-    // if not wait 100ms to prevent spamming this function
-    else {
-      await new Promise((r) => setTimeout(r, 100))
-    }
-  }
-
-  // if useAuthor() failed, use state and errors from useAuthor, otherwise use from useComments
-  const state = authorResult.state === 'failed' ? 'failed' : commentsResult.state
-  const errors = useMemo(() => {
-    let errors
-    if (authorResult.state === 'failed') {
-      errors = authorResult.errors
-    } else {
-      errors = commentsResult.errors
-      // if wrongAuthorError, append the error
-      if (wrongAuthorError) {
-        errors = [...errors, wrongAuthorError]
-      }
-    }
-    return errors
-  }, [authorResult.state, authorResult.errors, commentsResult.errors, wrongAuthorError])
-
-  if (authorResult.author) {
-    log('useAuthorComments', {
-      authorAddress,
-      commentCid,
-      authorComments,
-      lastCommentCid,
-      hasMore,
-      state,
-      errors,
-      pageNumber,
-      authorCommentCidsToFetch,
-      authorCommentCids,
-      commentsResult,
-      authorResult,
-      accountName,
-    })
-  }
-
-  return useMemo(
-    () => ({
-      authorComments,
-      bufferedAuthorComments: commentsResult.comments,
-      lastCommentCid,
-      hasMore,
-      loadMore,
-      state,
-      error: errors[errors.length - 1],
-      errors,
-    }),
-    [commentsResult.comments, hasMore, errors, state]
   )
 }
 

@@ -194,7 +194,6 @@ export interface UseAuthorCommentsOptions extends Options {
 export interface UseAuthorCommentsResult extends Result {
   // TODO: remove | undefined, that shouldn't happen when comments have comment.state
   authorComments: (Comment | undefined)[]
-  bufferedAuthorComments: (Comment | undefined)[]
   lastCommentCid: string | undefined
   hasMore: boolean
   loadMore(): Promise<void>

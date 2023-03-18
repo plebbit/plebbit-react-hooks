@@ -87,10 +87,10 @@ export const useAuthorLastCommentCid = (authorAddress?: string, comments?: (Comm
 // cache JSON.stringify for filter because it's used a lot
 const stringifyFilter = utils.memoSync(JSON.stringify, {maxSize: 100})
 
-export const getAuthorCommentsName = (authorAddress: string, filter: AuthorCommentsFilter | undefined, accountId: string) => {
+export const useAuthorCommentsName = (accountId?: string, authorAddress?: string, filter?: AuthorCommentsFilter | undefined) => {
   // if filter is an object, stringify it (cached with memo)
   if (filter) {
     filter = stringifyFilter(filter)
   }
-  return authorAddress + '-' + filter + '-' + accountId
+  return useMemo(() => accountId + '-' + authorAddress + '-' + filter + '-', [accountId, authorAddress, filter])
 }

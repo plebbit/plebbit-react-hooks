@@ -39,6 +39,7 @@ describe('authors comments store', () => {
   test('initial store', async () => {
     expect(rendered.result.current.options).toEqual({})
     expect(rendered.result.current.loadedComments).toEqual({})
+    expect(rendered.result.current.hasMoreBufferedComments).toEqual({})
     expect(rendered.result.current.bufferedCommentCids).toEqual({})
     expect(rendered.result.current.nextCommentCidsToFetch).toEqual({})
     expect(rendered.result.current.shouldFetchNextComment).toEqual({})
@@ -81,11 +82,13 @@ describe('authors comments store', () => {
     expect(rendered.result.current.loadedComments[authorCommentsName].length).toBe(commentsPerPage)
     expect(hasDuplicateComments(rendered.result.current.loadedComments[authorCommentsName])).toBe(false)
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
+
     // wait for buffered comments to stop loading
     await waitFor(() => rendered.result.current.shouldFetchNextComment[authorAddress] === false)
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(false)
     expect(rendered.result.current.bufferedCommentCids[authorAddress].size).toBe(commentsPerPage + commentBufferSize)
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).not.toBe(undefined)
+    expect(rendered.result.current.hasMoreBufferedComments[authorCommentsName]).toBe(true)
 
     // wait for 2nd page
     act(() => {
@@ -99,6 +102,7 @@ describe('authors comments store', () => {
     expect(rendered.result.current.bufferedCommentCids[authorAddress].size).toBe(2 * commentsPerPage + commentBufferSize)
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(false)
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).not.toBe(undefined)
+    expect(rendered.result.current.hasMoreBufferedComments[authorCommentsName]).toBe(true)
 
     // wait for 3rd page, fetched all author comments, reach max buffered comments
     act(() => {
@@ -114,6 +118,7 @@ describe('authors comments store', () => {
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // fetched all author comments, no next comment to fetch
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe(undefined)
+    expect(rendered.result.current.hasMoreBufferedComments[authorCommentsName]).toBe(true)
 
     // wait for 4th page, fetched all author comments, reach max buffered comments
     act(() => {
@@ -129,6 +134,7 @@ describe('authors comments store', () => {
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // fetched all author comments, no next comment to fetch
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe(undefined)
+    expect(rendered.result.current.hasMoreBufferedComments[authorCommentsName]).toBe(true)
 
     // wait for 5th page, fetched all author comments, reach max loaded and buffered comments
     act(() => {
@@ -144,6 +150,7 @@ describe('authors comments store', () => {
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
     // fetched all author comments, no next comment to fetch
     expect(rendered.result.current.nextCommentCidsToFetch[authorAddress]).toBe(undefined)
+    expect(rendered.result.current.hasMoreBufferedComments[authorCommentsName]).toBe(false)
 
     // restore mock
     account.plebbit.commentToGet = commentToGet
