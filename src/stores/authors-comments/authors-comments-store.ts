@@ -5,7 +5,7 @@ import assert from 'assert'
 import {AuthorCommentsFilter, AuthorCommentsOptions, AuthorsComments, Account, Comment} from '../../types'
 import commentsStore, {CommentsState} from '../comments'
 import QuickLru from 'quick-lru'
-import {toSizes, getUpdatedLoadedComments, getSubplebbitLastCommentCids, getNextCommentCidToFetchNotFetched} from './utils'
+import {toSizes, getUpdatedLoadedComments, getNextCommentCidToFetchNotFetched} from './utils'
 import accountsStore from '../accounts'
 
 // reddit loads approximately 25 posts per page while infinite scrolling

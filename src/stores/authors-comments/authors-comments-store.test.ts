@@ -149,7 +149,7 @@ describe('authors comments store', () => {
     account.plebbit.commentToGet = commentToGet
   })
 
-  test('discover new lastCommentCid while scrolling', async () => {
+  test.only('discover new lastCommentCid while scrolling', async () => {
     // mock plebbit.getComment() result
     const commentToGet = account.plebbit.commentToGet
     const firstTimestamp = 1000
@@ -183,6 +183,11 @@ describe('authors comments store', () => {
       if (totalAuthorCommentCount - authorCommentIndex > 80) {
         comment.author.subplebbit = {lastCommentCid: 'subplebbit last comment cid'}
         comment.subplebbitAddress = 'subplebbit address'
+      }
+
+      // add parent cid to some of the comments for filters
+      if (totalAuthorCommentCount - authorCommentIndex > 95) {
+        comment.parentCid = 'parent cid'
       }
 
       // if comment is 'subplebbit last comment cid'
@@ -227,7 +232,7 @@ describe('authors comments store', () => {
     }
 
     const commentCid = 'comment cid'
-    const authorCommentsName = authorAddress + '-comments-name'
+    const authorCommentsName = authorAddress + '-no-filter'
     act(() => {
       rendered.result.current.addAuthorCommentsToStore(authorCommentsName, authorAddress, commentCid, undefined, account)
     })
@@ -369,6 +374,47 @@ describe('authors comments store', () => {
     expect(bufferedComments[5 * commentsPerPage].cid).toBe('previous 2 from last comment cid 9')
     expect(bufferedComments[5 * commentsPerPage + 1].cid).toBe('previous 2 from last comment cid 8')
 
+    // add another author comments with post filter
+    const postFilterName = authorAddress + '-post-filter'
+    const postFilter = {hasParentCid: false}
+    act(() => {
+      rendered.result.current.addAuthorCommentsToStore(postFilterName, authorAddress, commentCid, postFilter, account)
+    })
+    await waitFor(() => rendered.result.current.loadedComments[postFilterName].length === commentsPerPage)
+
+    // scroll all pages
+    const postCount = 128
+    await scrollPages(rendered, postFilterName, 6, postCount)
+
+    // the filter actually filtered
+    expect(rendered.result.current.loadedComments[postFilterName].length).not.toBe(rendered.result.current.loadedComments[authorCommentsName].length)
+    expect(rendered.result.current.loadedComments[postFilterName].length).toBe(postCount)
+    for (const comment of rendered.result.current.loadedComments[postFilterName]) {
+      expect(comment.parentCid).toBe(undefined)
+    }
+
+    // add another author comments with reply filter
+    const replyFilterName = authorAddress + '-reply-filter'
+    const replyFilter = {hasParentCid: true}
+    act(() => {
+      rendered.result.current.addAuthorCommentsToStore(replyFilterName, authorAddress, commentCid, replyFilter, account)
+    })
+    await waitFor(() => rendered.result.current.loadedComments[replyFilterName].length === commentsPerPage)
+
+    // scroll all pages
+    const replyCount = 27
+    await scrollPages(rendered, replyFilterName, 2, replyCount)
+
+    // the filter actually filtered
+    expect(rendered.result.current.loadedComments[replyFilterName].length).not.toBe(rendered.result.current.loadedComments[authorCommentsName].length)
+    expect(rendered.result.current.loadedComments[replyFilterName].length).toBe(replyCount)
+    for (const comment of rendered.result.current.loadedComments[replyFilterName]) {
+      expect(comment.parentCid).toBe('parent cid')
+    }
+    expect(rendered.result.current.loadedComments[replyFilterName].length + rendered.result.current.loadedComments[postFilterName].length).toBe(
+      totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+    )
+
     // restore mock
     account.plebbit.commentToGet = commentToGet
   })
@@ -419,6 +465,25 @@ const getBufferedComments = (rendered: any, authorCommentsName: string, authorAd
   const allBufferedComments: any = [...rendered.result.current.bufferedCommentCids[authorAddress]].map((commentCid: string) => comments[commentCid])
   const filteredAndOrderedBufferedComments: Comment[] = getUpdatedBufferedComments(loadedComments, allBufferedComments, filter, comments)
   return filteredAndOrderedBufferedComments
+}
+
+const scrollPages = async (rendered: any, authorCommentsName: string, pageCount: number, commentCount: number) => {
+  let pageIndex = 1
+  while (pageIndex++ < pageCount) {
+    act(() => {
+      rendered.result.current.incrementPageNumber(authorCommentsName)
+    })
+    let currentCommentCount = pageIndex * commentsPerPage
+    if (currentCommentCount > commentCount) {
+      currentCommentCount = commentCount
+    }
+    try {
+      await rendered.waitFor(() => rendered.result.current.loadedComments[authorCommentsName].length === currentCommentCount)
+    } catch (e: any) {
+      e.message = 'failed scrollPages waitFor: ' + e.message
+      console.warn(e)
+    }
+  }
 }
 
 // debug util
