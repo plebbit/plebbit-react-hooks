@@ -70,14 +70,12 @@ const commentsHaveChanged = (comments1: Comment[], comments2: Comment[]) => {
 }
 
 export const filterAuthorComments = (authorComments: Comment[], filter: AuthorCommentsFilter) => {
-  // console.log({filter})
   assert(
     !filter.subplebbitAddresses || Array.isArray(filter.subplebbitAddresses),
     `authorsCommentsStore filterAuthorComments invalid argument filter.subplebbitAddresses '${filter.subplebbitAddresses}' not an array`
   )
   const filtered = []
   for (const authorComment of authorComments) {
-    // console.log({authorComment})
     let isFilteredOut = false
     if (filter.subplebbitAddresses?.length && !filter.subplebbitAddresses.includes(authorComment.subplebbitAddress)) {
       isFilteredOut = true
@@ -86,10 +84,8 @@ export const filterAuthorComments = (authorComments: Comment[], filter: AuthorCo
       isFilteredOut = true
     }
     if (!isFilteredOut) {
-      // console.log('not filtered')
       filtered.push(authorComment)
     } else {
-      // console.log('filtered')
     }
   }
   return filtered

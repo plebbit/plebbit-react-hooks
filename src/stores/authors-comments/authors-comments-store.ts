@@ -59,7 +59,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     // subscribe to nextCommentCidsToFetch and shouldFetchNextComment to fetch the comments
     authorsCommentsStore.subscribe(fetchCommentOnShouldFetchOrNextCidChange(authorCommentsOptions))
 
-    log('authorsCommentsActions.addAuthorCommentsToStore', {authorCommentsName, authorCommentsOptions, commentCid})
+    log('authorsCommentsActions.addAuthorCommentsToStore', {authorCommentsName, authorCommentsOptions, commentCid, previousAuthorsCommentsOptions: options})
     setState((state: AuthorsCommentsState) => ({
       options: {...state.options, [authorCommentsName]: authorCommentsOptions},
       loadedComments: {...state.loadedComments, [authorCommentsName]: []},
@@ -105,7 +105,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       authorCommentsName && typeof authorCommentsName === 'string',
       `authorsCommentsActions.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`
     )
-    const {options, updateLoadedComments, loadedComments} = getState()
+    const {options, updateLoadedComments, loadedComments, nextCommentCidsToFetch} = getState()
     if (!options[authorCommentsName]) {
       throw Error(`authorsCommentsActions.incrementPageNumber can't increment page number of options '${authorCommentsName}' not in store`)
     }
@@ -114,7 +114,11 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       `authorsCommentsActions.incrementPageNumber cannot increment page number before current page has loaded`
     )
 
-    log('authorsCommentsActions.incrementPageNumber', {authorCommentsName, pageNumber: options[authorCommentsName].pageNumber + 1})
+    log('authorsCommentsActions.incrementPageNumber', {
+      authorCommentsName,
+      pageNumber: options[authorCommentsName].pageNumber + 1,
+      nextCommentCidsToFetch: nextCommentCidsToFetch[options[authorCommentsName].authorAddress],
+    })
     setState(({options}: AuthorsCommentsState) => {
       const authorCommentOptions = {...options[authorCommentsName]}
       authorCommentOptions.pageNumber++

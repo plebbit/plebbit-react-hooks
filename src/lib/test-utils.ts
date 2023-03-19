@@ -101,24 +101,33 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
   return waitFor
 }
 
+// always reset the least important store first, because a store even can affect another store
 export const resetStores = async () => {
+  await resetAuthorsCommentsStore()
   await resetSubplebbitsPagesStore()
   await resetFeedsStore()
   await resetSubplebbitsStore()
   await resetCommentsStore()
-  await resetAuthorsCommentsStore()
   // always accounts last because it has async initialization
   await resetAccountsStore()
+
+  // reset comments again, for some reason it is needed sometimes or
+  // comments from a previous test will be in the comments store, don't know why
+  await resetCommentsStore()
 }
 
 export const resetDatabasesAndStores = async () => {
+  await resetAuthorsCommentsDatabaseAndStore()
   await resetSubplebbitsPagesDatabaseAndStore()
   await resetFeedsDatabaseAndStore()
   await resetSubplebbitsDatabaseAndStore()
   await resetCommentsDatabaseAndStore()
-  await resetAuthorsCommentsDatabaseAndStore()
   // always accounts last because it has async initialization
   await resetAccountsDatabaseAndStore()
+
+  // reset comments again, for some reason it is needed sometimes or
+  // comments from a previous test will be in the comments store, don't know why
+  await resetCommentsDatabaseAndStore()
 }
 
 const testUtils = {

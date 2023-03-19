@@ -8,6 +8,7 @@ import {ethers} from 'ethers'
 import {Nft, Author} from '../../types'
 import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
+import Logger from '@plebbit/plebbit-logger'
 
 const avatarNft1 = {
   chainTicker: 'eth',
@@ -142,7 +143,7 @@ describe('authors', () => {
       Plebbit.prototype.commentToGet = commentToGet
     })
 
-    test.only('find more recent lastCommentCid while scrolling', async () => {
+    test('find more recent lastCommentCid while scrolling', async () => {
       // mock the correct author address on the comment
       const commentToGet = Plebbit.prototype.commentToGet
       let previousCommentCount = 0
@@ -184,7 +185,8 @@ describe('authors', () => {
 
     // })
 
-    test.only('some author comments have wrong author', async () => {
+    test('some author comments have wrong author', async () => {
+      // Logger.enable('plebbit-react-hooks:authors:stores*')
       // mock the correct author address on the comment
       const commentToGet = Plebbit.prototype.commentToGet
       // start giving a wrong author after this amount
@@ -193,7 +195,7 @@ describe('authors', () => {
       const getAuthorPreviousCommentCid = () => `previous comment cid ${++previousCommentCount}`
       Plebbit.prototype.commentToGet = () => ({
         author: {
-          address: 'author.eth', //previousCommentCount < wrongAuthorAfter ? 'author.eth' : 'wrong-author.eth',
+          address: previousCommentCount < wrongAuthorAfter ? 'author.eth' : 'wrong-author.eth',
           previousCommentCid: getAuthorPreviousCommentCid(),
         },
       })
@@ -202,9 +204,8 @@ describe('authors', () => {
       rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
       await waitFor(() => rendered.result.current.authorComments.length === commentsPerPage)
       expect(rendered.result.current.authorComments.length).toBe(commentsPerPage)
-      // TODO: not sure why this is flaky
-      // await waitFor(() => rendered.result.current.hasMore === true)
-      // expect(rendered.result.current.hasMore).toBe(true)
+      await waitFor(() => rendered.result.current.hasMore === true)
+      expect(rendered.result.current.hasMore).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
 
       // get 2nd page
@@ -217,6 +218,7 @@ describe('authors', () => {
       expect(rendered.result.current.authorComments.length).toBe(wrongAuthorAfter)
       // TODO: find a way to make hasMore false if previousComment has a wrong author.address
       // expect(rendered.result.current.hasMore).toBe(false)
+      // TODO: find a way to add the error to result.error
       // expect(rendered.result.current.error.message).toBe('comment.author.previousCommentCid comment has different author address from authorAddress')
 
       // restore mock
