@@ -244,6 +244,7 @@ const getAuthor = async (seed: string) => {
     const text = await getArrayItem([...firstNames, ...displayNames], seed + 'author ens first name')
     author.address = (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth'
   }
+  author.shortAddress = author.address.endsWith('.eth') ? author.address : author.address.substring(8, 20)
   const hasDisplayName = await getArrayItem([true, true, true, false], seed + 'has display name')
   if (hasDisplayName) {
     author.displayName = await getArrayItem(displayNames, seed + 'display name')
@@ -696,6 +697,7 @@ class Subplebbit extends EventEmitter {
   rules: string[] | undefined
   signer: any | undefined
   metricsCid: string
+  shortAddress: string | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -724,6 +726,7 @@ class Subplebbit extends EventEmitter {
     if (!this.address && this.signer?.address) {
       this.address = this.signer.address
     }
+    this.shortAddress = this.address?.endsWith('.eth') ? this.address : this.address?.substring(8, 20)
 
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
@@ -850,6 +853,7 @@ class Comment extends Publication {
   removed: boolean | undefined
   editTimestamp: number | undefined
   reason: string | undefined
+  shortCid: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -872,6 +876,9 @@ class Comment extends Publication {
     this.removed = createCommentOptions?.removed
     this.editTimestamp = createCommentOptions?.editTimestamp
     this.reason = createCommentOptions?.reason
+    if (this.cid) {
+      this.shortCid = this.cid.substring(2, 14)
+    }
 
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
@@ -905,6 +912,7 @@ class Comment extends Publication {
       // @ts-ignore
       this[prop] = commentUpdateContent[prop]
     }
+    this.shortCid = this.cid.substring(2, 14)
     this.emit('update', this)
   }
 }
