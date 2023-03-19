@@ -8,7 +8,6 @@ import {ethers} from 'ethers'
 import {Nft, Author} from '../../types'
 import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
-import Logger from '@plebbit/plebbit-logger'
 
 const avatarNft1 = {
   chainTicker: 'eth',
@@ -44,7 +43,7 @@ describe('authors', () => {
     testUtils.restoreAll()
   })
 
-  describe.only('useAuthorComments', () => {
+  describe('useAuthorComments', () => {
     let rendered: any, waitFor: any
 
     beforeEach(async () => {
@@ -94,18 +93,26 @@ describe('authors', () => {
           return `previous comment cid ${++previousCommentCount}`
         }
       }
-      Plebbit.prototype.commentToGet = () => ({
-        author: {
-          address: 'author.eth',
-          previousCommentCid: getAuthorPreviousCommentCid(),
-        },
-      })
+      Plebbit.prototype.commentToGet = (commentCid) => {
+        // ignore other comments used for testing changing useAuthorsOptions
+        if (commentCid?.startsWith('other comment')) {
+          return {}
+        }
+        return {
+          author: {
+            address: 'author.eth',
+            previousCommentCid: getAuthorPreviousCommentCid(),
+          },
+        }
+      }
 
       // get 1st page (25 comments, 75 buffered)
       rendered.rerender({commentCid: 'comment cid', authorAddress: 'author.eth'})
       await waitFor(() => rendered.result.current.authorComments.length === commentsPerPage)
       expect(rendered.result.current.authorComments.length).toBe(commentsPerPage)
       expect(rendered.result.current.hasMore).toBe(true)
+      // first comment should be the commentCid argument
+      expect(rendered.result.current.authorComments[0].cid).toBe('comment cid')
 
       // get 2nd page (50 comments, 100 buffered)
       await act(async () => {
@@ -119,6 +126,24 @@ describe('authors', () => {
       await act(async () => {
         await rendered.result.current.loadMore()
       })
+      await waitFor(() => rendered.result.current.authorComments.length === commentsPerPage * 3)
+      expect(rendered.result.current.authorComments.length).toBe(commentsPerPage * 3)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // change commentCid to lastCommentCid, should do nothing
+      rendered.rerender({commentCid: 'other comment cid', authorAddress: 'author.eth'})
+      await new Promise((r) => setTimeout(r, 500))
+      expect(rendered.result.current.authorComments.length).toBe(commentsPerPage * 3)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // change authorAddress, should reset authorComments to 0
+      rendered.rerender({commentCid: 'other comment cid 2', authorAddress: 'other-author.eth'})
+      await waitFor(() => rendered.result.current.authorComments.length === 0)
+      expect(rendered.result.current.authorComments.length).toBe(0)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // change back to original authorAddress, should get all previous pages loaded
+      rendered.rerender({commentCid: 'other comment cid 3', authorAddress: 'author.eth'})
       await waitFor(() => rendered.result.current.authorComments.length === commentsPerPage * 3)
       expect(rendered.result.current.authorComments.length).toBe(commentsPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
@@ -186,7 +211,6 @@ describe('authors', () => {
     // })
 
     test('some author comments have wrong author', async () => {
-      // Logger.enable('plebbit-react-hooks:authors:stores*')
       // mock the correct author address on the comment
       const commentToGet = Plebbit.prototype.commentToGet
       // start giving a wrong author after this amount

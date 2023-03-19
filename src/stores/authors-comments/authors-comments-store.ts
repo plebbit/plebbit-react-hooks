@@ -74,29 +74,30 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     updateLoadedComments()
   },
 
-  setNextCommentCidsToFetch: (authorAddress: string, nextCommentCidToFetch: string | undefined) => {
+  setNextCommentCidsToFetch: (authorAddress: string, authorComment: Comment) => {
     assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsActions.setNextCommentCidsToFetch invalid argument authorAddress '${authorAddress}'`)
-    assert(
-      !nextCommentCidToFetch || typeof nextCommentCidToFetch === 'string',
-      `authorsCommentsActions.setNextCommentCidsToFetch invalid argument nextCommentCidToFetch '${nextCommentCidToFetch}'`
-    )
+    assert(typeof authorComment?.timestamp === 'number', `authorsCommentsActions.setNextCommentCidsToFetch invalid argument authorComment '${authorComment}'`)
     const {nextCommentCidsToFetch, shouldFetchNextComment, lastCommentCids} = getState()
     if (typeof shouldFetchNextComment[authorAddress] !== 'boolean') {
       throw Error(`authorsCommentsActions.setNextCommentCidsToFetch can't set nextCommentCidToFetch '${authorAddress}' not in store`)
     }
+    const nextCommentCidToFetch = authorComment?.author?.previousCommentCid
     if (nextCommentCidToFetch === nextCommentCidsToFetch[authorAddress]) {
       throw Error(`authorsCommentsActions.setNextCommentCidsToFetch can't set nextCommentCidToFetch '${authorAddress}' to '${nextCommentCidToFetch}' same value`)
     }
+    const nextCommentCidToFetchNotFetched = getNextCommentCidToFetchNotFetched(nextCommentCidToFetch)
 
     log.trace('authorsCommentsActions.setNextCommentCidsToFetch', {
       authorAddress,
-      previousCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
+      authorComment,
+      previousNextCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
       nextCommentCidToFetch,
+      nextCommentCidToFetchNotFetched,
       lastCommentCid: lastCommentCids[authorAddress],
       shouldFetchNextComment: shouldFetchNextComment[authorAddress],
     })
     setState((state: AuthorsCommentsState) => ({
-      nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: nextCommentCidToFetch},
+      nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: nextCommentCidToFetchNotFetched},
     }))
   },
 
@@ -275,7 +276,7 @@ const updateCommentsOnCommentsChange = (options: AuthorCommentsOptions, commentC
   // the comment was the last cid to fetch, set the next cid to fetch as the author previous cid
   const nextCidToFetch = nextCommentCidsToFetch[options.authorAddress]
   if (commentCid === nextCidToFetch) {
-    setNextCommentCidsToFetch(options.authorAddress, getNextCommentCidToFetchNotFetched(comment?.author?.previousCommentCid))
+    setNextCommentCidsToFetch(options.authorAddress, comment)
   }
 
   // one of the comment changed, must update loaded comments
@@ -359,7 +360,7 @@ const setLastCommentCidOnCommentsChange = (options: AuthorCommentsOptions, comme
   updateLoadedComments()
   // start a new linked list of comments to fetch using the lastComment.author.previousCommentCid
   if (comment.author?.previousCommentCid) {
-    setNextCommentCidsToFetch(options.authorAddress, getNextCommentCidToFetchNotFetched(comment.author.previousCommentCid))
+    setNextCommentCidsToFetch(options.authorAddress, comment)
   }
 }
 
