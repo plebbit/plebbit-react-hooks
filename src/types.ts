@@ -363,6 +363,7 @@ export interface UseSubscribeResult extends Result {
 // useBlock(options): result
 export interface UseBlockOptions extends Options {
   address?: string
+  cid?: string
 }
 export interface UseBlockResult extends Result {
   blocked: boolean | undefined
@@ -391,16 +392,6 @@ export interface UseBlockResult extends Result {
 //   limited: number | undefined
 //   limit(): Promise<void>
 //   unlimit(): Promise<void>
-// }
-
-// useHide(options): result
-// export interface UseHideOptions extends Options {
-//   commentCid?: string
-// }
-// export interface UseHideResult extends Result {
-//   hidden: boolean | undefined
-//   hide(): Promise<void>
-//   unhide(): Promise<void>
 // }
 
 // useSave(options): result
