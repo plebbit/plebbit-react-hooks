@@ -341,6 +341,9 @@ describe('accounts', () => {
         }
         await act(async () => {
           await accountsActions.publishComment({...publishCommentOptions, content: 'content 1'})
+          // wait for account comment to have cid, for comment.author.previousCommentCid tests
+          await waitFor(() => rendered.result.current.accountComments[0]?.cid)
+
           await accountsActions.publishComment({...publishCommentOptions, content: 'content 2'})
           await accountsActions.publishVote({...publishVoteOptions, commentCid: 'comment cid 1'})
           await accountsActions.publishVote({...publishVoteOptions, commentCid: 'comment cid 2'})
@@ -353,6 +356,13 @@ describe('accounts', () => {
 
       afterEach(async () => {
         await testUtils.resetDatabasesAndStores()
+      })
+
+      test('published comment has comment.author.previousCommentCid', async () => {
+        await waitFor(() => rendered.result.current.accountComments.length >= 2)
+        expect(rendered.result.current.accountComments[0].author.previousCommentCid).toBe(undefined)
+        expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
+        expect(rendered.result.current.accountComments[1].author.previousCommentCid).toBe('content 1 cid')
       })
 
       test('export account', async () => {

@@ -19,6 +19,7 @@ import {
   PublishSubplebbitEditOptions,
   CreateSubplebbitOptions,
   Subplebbits,
+  AccountComment,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
 import {getAccountSubplebbits, getCommentCidsToAccountsComments} from './utils'
@@ -346,7 +347,7 @@ export const unblockAddress = async (address: string, accountName?: string) => {
 }
 
 export const publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
-  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  const {accounts, accountsComments, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
   let account = accounts[activeAccountId]
   if (accountName) {
@@ -355,9 +356,17 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   }
   validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
+  // find author.previousCommentCid if any
+  const accountCommentsWithCids = accountsComments[account.id].filter((comment: AccountComment) => comment.cid)
+  const previousCommentCid = accountCommentsWithCids[accountCommentsWithCids.length - 1]?.cid
+  const author = {...account.author}
+  if (previousCommentCid) {
+    author.previousCommentCid = previousCommentCid
+  }
+
   let createCommentOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
-    author: account.author,
+    author,
     signer: account.signer,
     ...publishCommentOptions,
   }
