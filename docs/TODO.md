@@ -5,3 +5,4 @@
 - useResolvedAuthorAddress check if public key matches resolved address
 - useAuthorAvatar check if ENS has an avatar set up
 - implement something like useCommentLinkTagName(commentLink?: string): 'a' | 'img' | 'video' | 'audio' to indicate how to display links (only do it after special embeds like twitter, youtube, etc are implemented)
+- add nft.timetamp caching and validation, if you see them same nft signature twice, only use the latest timestamp
