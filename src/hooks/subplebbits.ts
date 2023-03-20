@@ -28,6 +28,7 @@ import shallow from 'zustand/shallow'
  * the active account.
  */
 export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResult {
+  assert(!options || typeof options === 'object', `useSubplebbit options argument '${options}' not an object`)
   const {subplebbitAddress, accountName} = options || {}
   const account = useAccount({accountName})
   const subplebbit = useSubplebbitsStore((state: any) => state.subplebbits[subplebbitAddress || ''])
@@ -67,6 +68,7 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
  * the active account.
  */
 export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubplebbitStatsResult {
+  assert(!options || typeof options === 'object', `useSubplebbitStats options argument '${options}' not an object`)
   const {subplebbitAddress, accountName} = options || {}
   const account = useAccount({accountName})
   const subplebbit = useSubplebbit({subplebbitAddress})
@@ -112,6 +114,7 @@ export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubp
  * the active account.
  */
 export function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsResult {
+  assert(!options || typeof options === 'object', `useSubplebbits options argument '${options}' not an object`)
   const {subplebbitAddresses, accountName} = options || {}
   const account = useAccount({accountName})
   const subplebbits: (Subplebbit | undefined)[] = useSubplebbitsStore(
@@ -185,6 +188,7 @@ export function useListSubplebbits() {
  */
 // NOTE: useResolvedSubplebbitAddress tests are skipped, if changes are made they must be tested manually
 export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddressOptions): UseResolvedSubplebbitAddressResult {
+  assert(!options || typeof options === 'object', `useResolvedSubplebbitAddress options argument '${options}' not an object`)
   let {subplebbitAddress, accountName, cache} = options || {}
 
   // cache by default

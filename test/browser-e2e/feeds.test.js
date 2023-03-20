@@ -1,6 +1,7 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useFeed, useBufferedFeeds, useAccount, useAccountsActions, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const {useFeed, useBufferedFeeds, useAccount, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
 const signers = require('../fixtures/signers')
@@ -47,8 +48,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
 
       rendered = renderHook((props) => {
         const account = useAccount()
-        const accountsActions = useAccountsActions()
-        const feed = useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName)
+        const feed = useFeed(props)
         return {account, ...accountsActions, ...feed}
       })
       waitFor = testUtils.createWaitFor(rendered, {timeout})

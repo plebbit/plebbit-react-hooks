@@ -35,7 +35,7 @@ describe('feeds (plebbit-js mock)', () => {
     }
 
     beforeEach(async () => {
-      rendered = renderHook((props) => useFeed(props?.subplebbitAddresses, props?.sortType, props?.accountName))
+      rendered = renderHook((props) => useFeed(props))
       waitFor = testUtils.createWaitFor(rendered, {timeout})
     })
 

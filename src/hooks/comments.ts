@@ -16,6 +16,7 @@ import shallow from 'zustand/shallow'
  * the active account.
  */
 export function useComment(options?: UseCommentOptions): UseCommentResult {
+  assert(!options || typeof options === 'object', `useComment options argument '${options}' not an object`)
   const {commentCid, accountName} = options || {}
   const account = useAccount({accountName})
   const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
@@ -74,6 +75,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
  * the active account.
  */
 export function useComments(options?: UseCommentsOptions): UseCommentsResult {
+  assert(!options || typeof options === 'object', `useComments options argument '${options}' not an object`)
   const {commentCids, accountName} = options || {}
   const account = useAccount({accountName})
   const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(

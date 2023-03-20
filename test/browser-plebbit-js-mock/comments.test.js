@@ -23,9 +23,9 @@ describe('comments (plebbit-js mock)', () => {
   describe('no comments in database', () => {
     it('get comments one at a time', async () => {
       console.log('starting comments tests')
-      const rendered = renderHook((commentCid) => useComment(commentCid))
+      const rendered = renderHook((commentCid) => useComment({commentCid}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
-      expect(rendered.result.current).to.equal(undefined)
+      expect(rendered.result.current?.timestamp).to.equal(undefined)
 
       rendered.rerender('comment cid 1')
       await waitFor(() => typeof rendered.result.current?.cid === 'string')

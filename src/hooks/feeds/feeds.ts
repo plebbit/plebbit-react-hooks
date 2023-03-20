@@ -15,6 +15,7 @@ import shallow from 'zustand/shallow'
  * the active account.
  */
 export function useFeed(options?: UseFeedOptions): UseFeedResult {
+  assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`)
   let {subplebbitAddresses, sortType, accountName} = options || {}
   if (!sortType) {
     sortType = 'hot'
@@ -91,6 +92,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
  * the active account.
  */
 export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBufferedFeedsResult {
+  assert(!options || typeof options === 'object', `useBufferedFeeds options argument '${options}' not an object`)
   const {feedsOptions, accountName} = options || {}
   validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
   const account = useAccount({accountName})

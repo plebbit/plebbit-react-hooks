@@ -1,6 +1,7 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const Plebbit = require('@plebbit/plebbit-js')
 Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
@@ -59,11 +60,10 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         rendered = renderHook(
           ({subplebbitAddress, commentCid} = {}) => {
             const account = useAccount()
-            const accountsActions = useAccountsActions()
-            const subplebbit = useSubplebbit(subplebbitAddress)
-            const subplebbitStats = useSubplebbitStats(subplebbitAddress)
-            const accountVotes = useAccountVotes()
-            const comment = useComment(commentCid)
+            const subplebbit = useSubplebbit({subplebbitAddress})
+            const subplebbitStats = useSubplebbitStats({subplebbitAddress})
+            const {accountVotes} = useAccountVotes()
+            const comment = useComment({commentCid})
 
             return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
           },

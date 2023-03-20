@@ -3,6 +3,7 @@ import {useInterval} from '../utils/use-interval'
 import {useAccount} from '../accounts'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:authors:hooks')
+import assert from 'assert'
 import {
   ChainProviders,
   Author,
@@ -28,6 +29,7 @@ import useAuthorsCommentsStore from '../../stores/authors-comments'
  * the active account.
  */
 export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthorCommentsResult {
+  assert(!options || typeof options === 'object', `useAuthorComments options argument '${options}' not an object`)
   const {authorAddress, commentCid, accountName, filter} = options || {}
   const account = useAccount({accountName})
   const authorCommentsName = useAuthorCommentsName(account?.id, authorAddress, filter)
@@ -107,6 +109,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
  * the active account.
  */
 export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
+  assert(!options || typeof options === 'object', `useAuthor options argument '${options}' not an object`)
   const {authorAddress, commentCid, accountName} = options || {}
   const comment = useComment({commentCid, accountName})
 
@@ -166,6 +169,7 @@ export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
  */
 // NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
 export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvatarResult {
+  assert(!options || typeof options === 'object', `useAuthorAvatar options argument '${options}' not an object`)
   const {author, accountName} = options || {}
   const account = useAccount({accountName})
 
@@ -223,6 +227,7 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
  */
 // NOTE: useResolvedAuthorAddress tests are skipped, if changes are made they must be tested manually
 export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult {
+  assert(!options || typeof options === 'object', `useResolvedAuthorAddress options argument '${options}' not an object`)
   let {author, accountName, cache} = options || {}
 
   // cache by default

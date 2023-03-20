@@ -34,6 +34,7 @@ const publishChallengeAnswersNotReady: PublishChallengeAnswers = async (challeng
 }
 
 export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult {
+  assert(!options || typeof options === 'object', `useSubscribe options argument '${options}' not an object`)
   const {subplebbitAddress, accountName, onError} = options || {}
   const account = useAccount({accountName})
   const accountsActions = useAccountsStore((state) => state.accountsActions)
@@ -79,6 +80,7 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
 }
 
 export function useBlock(options?: UseBlockOptions): UseBlockResult {
+  assert(!options || typeof options === 'object', `useBlock options argument '${options}' not an object`)
   const {address, accountName, onError} = options || {}
   const account = useAccount({accountName})
   const accountsActions = useAccountsStore((state) => state.accountsActions)
@@ -124,6 +126,7 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
 }
 
 export function usePublishComment(options?: UsePublishCommentOptions): UsePublishCommentResult {
+  assert(!options || typeof options === 'object', `usePublishComment options argument '${options}' not an object`)
   const {accountName, ...publishCommentOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -196,6 +199,7 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
 }
 
 export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteResult {
+  assert(!options || typeof options === 'object', `usePublishVote options argument '${options}' not an object`)
   const {accountName, ...publishVoteOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -265,6 +269,7 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
 }
 
 export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): UsePublishCommentEditResult {
+  assert(!options || typeof options === 'object', `usePublishCommentEdit options argument '${options}' not an object`)
   const {accountName, ...publishCommentEditOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -334,6 +339,7 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
 }
 
 export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult {
+  assert(!options || typeof options === 'object', `usePublishSubplebbitEdit options argument '${options}' not an object`)
   const {accountName, subplebbitAddress, ...publishSubplebbitEditOptions} = options || {}
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
@@ -403,6 +409,7 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
 }
 
 export function useCreateSubplebbit(options?: UseCreateSubplebbitOptions): UseCreateSubplebbitResult {
+  assert(!options || typeof options === 'object', `useCreateSubplebbit options argument '${options}' not an object`)
   const {accountName, onError, ...createSubplebbitOptions} = options || {}
   const accountId = useAccountId(accountName)
   const accountsActions = useAccountsStore((state) => state.accountsActions)

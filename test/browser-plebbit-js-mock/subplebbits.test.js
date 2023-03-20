@@ -23,10 +23,10 @@ describe('subplebbits (plebbit-js mock)', () => {
   describe('no subplebbits in database', () => {
     it('get subplebbits one at a time', async () => {
       console.log('starting subplebbits tests')
-      const rendered = renderHook((subplebbitAddress) => useSubplebbit(subplebbitAddress))
+      const rendered = renderHook((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
-      expect(rendered.result.current).to.equal(undefined)
+      expect(rendered.result.current?.updatedAt).to.equal(undefined)
       rendered.rerender('subplebbit address 1')
       await waitFor(() => typeof rendered.result.current.address === 'string')
       expect(rendered.result.current.address).to.equal('subplebbit address 1')

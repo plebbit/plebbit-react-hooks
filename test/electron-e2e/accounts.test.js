@@ -1,6 +1,7 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useAccountComments, debugUtils, useAccountSubplebbits} = require('../../dist')
+const {useAccount, useSubplebbit, useAccountVotes, useAccountComments, debugUtils, useAccountSubplebbits} = require('../../dist')
+const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const Plebbit = require('@plebbit/plebbit-js')
 Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
@@ -82,9 +83,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       before(async () => {
         rendered = renderHook((subplebbitAddress) => {
           const account = useAccount()
-          const accountSubplebbits = useAccountSubplebbits()
-          const accountsActions = useAccountsActions()
-          const subplebbit = useSubplebbit(subplebbitAddress)
+          const {accountSubplebbits} = useAccountSubplebbits()
+          const subplebbit = useSubplebbit({subplebbitAddress})
           return {account, accountSubplebbits, subplebbit, ...accountsActions}
         })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
@@ -194,9 +194,9 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         await act(async () => {
           await rendered.result.current.deleteSubplebbit(editedSubplebbitAddress)
         })
-        await waitFor(() => rendered.result.current.subplebbit === undefined)
-        expect(rendered.result.current.subplebbit).to.equal(undefined)
-        await waitFor(() => rendered.result.current.accountSubplebbits[editedSubplebbitAddress] === undefined)
+        await waitFor(() => rendered.result.current.subplebbit?.updatedAt === undefined)
+        expect(rendered.result.current.subplebbit?.updatedAt).to.equal(undefined)
+        await waitFor(() => rendered.result.current.accountSubplebbits[editedSubplebbitAddress]?.updatedAt === undefined)
         console.log('after deleteSubplebbit')
       })
     })
@@ -207,9 +207,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       before(async () => {
         rendered = renderHook(() => {
           const account = useAccount()
-          const accountsActions = useAccountsActions()
-          const accountVotes = useAccountVotes()
-          const accountComments = useAccountComments()
+          const {accountVotes} = useAccountVotes()
+          const {accountComments} = useAccountComments()
           return {account, accountVotes, accountComments, ...accountsActions}
         })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
