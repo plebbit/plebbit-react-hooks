@@ -51,7 +51,13 @@ function createLocalForageInstance(localForageLruOptions) {
                 yield initialization();
                 const databaseValue = yield database1.getItem(key);
                 if (databaseValue !== null && databaseValue !== undefined) {
-                    yield database1.setItem(key, value);
+                    try {
+                        yield database1.setItem(key, value);
+                    }
+                    catch (error) {
+                        console.error('localforageLru.setItem error', { error, key, value });
+                        throw error;
+                    }
                 }
                 else {
                     yield updateDatabases(key, value);
@@ -91,15 +97,12 @@ function createLocalForageInstance(localForageLruOptions) {
     };
     function updateDatabases(key, value) {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO: remove this try catch and figure out why the weird error happens
             try {
                 yield database1.setItem(key, value);
             }
             catch (error) {
-                console.error('localforageLru.updateDatabases', { error, key, value });
-                if (error.message.match('could not be cloned')) {
-                    throw error;
-                }
+                console.error('localforageLru.setItem error', { error, key, value });
+                throw error;
             }
             databaseSize++;
             if (databaseSize >= localForageLruOptions.size) {
