@@ -78,7 +78,7 @@ export {
   // subplebbits
   useSubplebbit,
   useSubplebbits,
-  useSubplebbitMetrics,
+  useSubplebbitStats,
   useResolvedSubplebbitAddress,
   // authors
   useAuthor,
@@ -131,7 +131,7 @@ const hooks = {
   // subplebbits
   useSubplebbit,
   useSubplebbits,
-  useSubplebbitMetrics,
+  useSubplebbitStats,
   useResolvedSubplebbitAddress,
   // authors
   useAuthor,

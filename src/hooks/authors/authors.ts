@@ -4,7 +4,7 @@ import {useAccount} from '../accounts'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:authors:hooks')
 import {
-  BlockchainProviders,
+  ChainProviders,
   Author,
   UseAuthorOptions,
   UseAuthorResult,
@@ -15,7 +15,7 @@ import {
   UseResolvedAuthorAddressOptions,
   UseResolvedAuthorAddressResult,
 } from '../../types'
-import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/blockchain'
+import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/chain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
 import {useAuthorCommentsName} from './utils'
@@ -179,7 +179,7 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
   const avatar = verified && isWhitelisted ? author?.avatar : undefined
   const {metadataUrl, error: nftMetadataError} = useNftMetadataUrl(avatar, accountName)
   const {imageUrl, error: nftImageUrlError} = useNftImageUrl(metadataUrl, accountName)
-  const chainProvider = account?.plebbitOptions?.blockchainProviders?.[avatar?.chainTicker]
+  const chainProvider = account?.plebbitOptions?.chainProviders?.[avatar?.chainTicker]
 
   const error = whitelistedError || verifiedError || signatureError || nftMetadataError || nftImageUrlError || undefined
   const errors = useMemo(() => (error ? [error] : []), [error])
@@ -239,7 +239,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
 
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
-  const blockchainProviders = account?.plebbitOptions?.blockchainProviders
+  const chainProviders = account?.plebbitOptions?.chainProviders
   const [resolvedAddress, setResolvedAddress] = useState<string>()
   const [errors, setErrors] = useState<Error[]>([])
   const [state, setState] = useState<string>()
@@ -289,7 +289,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
       ;(async () => {
         try {
           setState('resolving')
-          const res = await resolveAuthorAddress(author?.address, blockchainProviders, cache)
+          const res = await resolveAuthorAddress(author?.address, chainProviders, cache)
           setState('succeeded')
 
           // TODO: check if resolved address is the same as author.signer.publicKey
@@ -301,19 +301,19 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
           setErrors([...errors, error])
           setState('failed')
           setResolvedAddress(undefined)
-          log.error('useResolvedAuthorAddress resolveAuthorAddress error', {author, blockchainProviders, error})
+          log.error('useResolvedAuthorAddress resolveAuthorAddress error', {author, chainProviders, error})
         }
       })()
     },
     interval,
     true,
-    [author?.address, blockchainProviders]
+    [author?.address, chainProviders]
   )
 
-  // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, blockchainProviders})
+  // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, chainProviders})
 
   // only support ENS at the moment
-  const chainProvider = blockchainProviders?.['eth']
+  const chainProvider = chainProviders?.['eth']
 
   return useMemo(
     () => ({
@@ -328,11 +328,11 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
 }
 
 // NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
-export const resolveAuthorAddress = async (authorAddress: string, blockchainProviders: BlockchainProviders, cache?: boolean) => {
+export const resolveAuthorAddress = async (authorAddress: string, chainProviders: ChainProviders, cache?: boolean) => {
   let resolvedAuthorAddress
   if (authorAddress.endsWith('.eth')) {
     const resolve = cache ? resolveEnsTxtRecord : resolveEnsTxtRecordNoCache
-    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', blockchainProviders?.['eth']?.url, blockchainProviders?.['eth']?.chainId)
+    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', chainProviders?.['eth']?.url, chainProviders?.['eth']?.chainId)
   } else {
     throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`)
   }

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import {Nft, BlockchainProviders} from '../../types'
+import {Nft, ChainProviders} from '../../types'
 import {ethers} from 'ethers'
 import fetch from 'node-fetch'
 import utils from '../utils'
@@ -83,10 +83,10 @@ const getChainProviderNoCache = (chainTicker: string, chainProviderUrl?: string,
     }
   }
   if (!chainProviderUrl) {
-    throw Error(`getBlockchainProvider invalid chainProviderUrl '${chainProviderUrl}'`)
+    throw Error(`getChainProvider invalid chainProviderUrl '${chainProviderUrl}'`)
   }
   if (!chainId && chainId !== 0) {
-    throw Error(`getBlockchainProvider invalid chainId '${chainId}'`)
+    throw Error(`getChainProvider invalid chainId '${chainId}'`)
   }
   return new ethers.providers.JsonRpcProvider({url: chainProviderUrl}, chainId)
 }

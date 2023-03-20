@@ -138,11 +138,11 @@ export interface UseSubplebbitsResult extends Result {
   subplebbits: (Subplebbit | undefined)[]
 }
 
-// useSubplebbitMetrics(options): result
-export interface UseSubplebbitMetricsOptions extends Options {
+// useSubplebbitStats(options): result
+export interface UseSubplebbitStatsOptions extends Options {
   subplebbitAddress?: string
 }
-export interface UseSubplebbitMetricsResult extends Result, SubplebbitMetrics {}
+export interface UseSubplebbitStatsResult extends Result, SubplebbitStats {}
 
 // useResolvedSubplebbitAddress(options): result
 export interface UseResolvedSubplebbitAddressOptions extends Options {
@@ -151,7 +151,7 @@ export interface UseResolvedSubplebbitAddressOptions extends Options {
 }
 export interface UseResolvedSubplebbitAddressResult extends Result {
   resolvedAddress: string | undefined
-  chainProvider: BlockchainProvider | undefined
+  chainProvider: ChainProvider | undefined
 }
 
 // useFeed(options): result
@@ -206,7 +206,7 @@ export interface UseResolvedAuthorAddressOptions extends Options {
 }
 export interface UseResolvedAuthorAddressResult extends Result {
   resolvedAddress: string | undefined
-  chainProvider: BlockchainProvider | undefined
+  chainProvider: ChainProvider | undefined
 }
 
 // useAuthorAvatar(options): result
@@ -216,7 +216,7 @@ export interface UseAuthorAvatarOptions extends Options {
 export interface UseAuthorAvatarResult extends Result {
   imageUrl: string | undefined
   metadataUrl: string | undefined
-  chainProvider: BlockchainProvider | undefined
+  chainProvider: ChainProvider | undefined
 }
 
 // useCreateAccount(options): result
@@ -436,7 +436,7 @@ export type Vote = {[key: string]: any}
 export type CommentEdit = {[key: string]: any}
 export type SubplebbitEdit = {[key: string]: any}
 export type Subplebbit = {[key: string]: any}
-export type SubplebbitMetrics = {[key: string]: any}
+export type SubplebbitStats = {[key: string]: any}
 export type Notification = {[key: string]: any}
 export type Nft = {[key: string]: any}
 export type Author = {[key: string]: any}
@@ -538,8 +538,8 @@ export type AccountPublicationsFilter = {
 /**
  * Other
  */
-export type BlockchainProvider = {
+export type ChainProvider = {
   chainId?: number
   url?: string
 }
-export type BlockchainProviders = {[chainTicker: string]: BlockchainProvider}
+export type ChainProviders = {[chainTicker: string]: ChainProvider}

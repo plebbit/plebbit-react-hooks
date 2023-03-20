@@ -177,8 +177,8 @@ describe('subplebbits', () => {
     expect(rendered.result.current).toEqual(['list subplebbit address 1', 'list subplebbit address 2'])
   })
 
-  test('useSubplebbitMetrics', async () => {
-    const rendered = renderHook<any, any>(() => useSubplebbitMetrics({subplebbitAddress: 'address 1'}))
+  test('useSubplebbitStats', async () => {
+    const rendered = renderHook<any, any>(() => useSubplebbitStats({subplebbitAddress: 'address 1'}))
     const waitFor = testUtils.createWaitFor(rendered)
     await waitFor(() => rendered.result.current.hourActiveUserCount)
     expect(rendered.result.current.hourActiveUserCount).toBe(1)

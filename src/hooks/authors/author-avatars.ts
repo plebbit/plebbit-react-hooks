@@ -3,9 +3,9 @@ import {useAccount} from '../accounts'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:authors:hooks')
 import assert from 'assert'
-import {Nft, BlockchainProviders, Author} from '../../types'
+import {Nft, ChainProviders, Author} from '../../types'
 import {ethers} from 'ethers'
-import {getNftMetadataUrl, getNftImageUrl, getNftOwner} from '../../lib/blockchain'
+import {getNftMetadataUrl, getNftImageUrl, getNftOwner} from '../../lib/chain'
 
 /**
  * @param nft - The NFT object to resolve the URL of.
@@ -17,7 +17,7 @@ export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
   const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
-  const blockchainProviders = account?.plebbitOptions?.blockchainProviders
+  const chainProviders = account?.plebbitOptions?.chainProviders
   const [nftMetadataUrl, setNftMetadataUrl] = useState()
   const [error, setError] = useState<Error | undefined>()
 
@@ -25,8 +25,8 @@ export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
     nft?.address,
     nft?.id,
     nft?.chainTicker,
-    blockchainProviders?.[nft?.chainTicker]?.url,
-    blockchainProviders?.[nft?.chainTicker]?.chainId,
+    chainProviders?.[nft?.chainTicker]?.url,
+    chainProviders?.[nft?.chainTicker]?.chainId,
     ipfsGatewayUrl,
   ]
 
@@ -45,12 +45,12 @@ export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
         setNftMetadataUrl(url)
       } catch (error: any) {
         setError(error)
-        log.error('useNftMetadataUrl getNftMetadataUrl error', {nft, ipfsGatewayUrl, blockchainProviders, error})
+        log.error('useNftMetadataUrl getNftMetadataUrl error', {nft, ipfsGatewayUrl, chainProviders, error})
       }
     })()
   }, getNftMetadataUrlArgs)
 
-  log('useNftMetadataUrl', {nft, ipfsGatewayUrl, nftMetadataUrl, blockchainProviders})
+  log('useNftMetadataUrl', {nft, ipfsGatewayUrl, nftMetadataUrl, chainProviders})
   return {metadataUrl: nftMetadataUrl, error}
 }
 
@@ -96,7 +96,7 @@ export function useNftImageUrl(nftMetadataUrl?: string, accountName?: string) {
 export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: string) {
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
-  const blockchainProviders = account?.plebbitOptions?.blockchainProviders
+  const chainProviders = account?.plebbitOptions?.chainProviders
   const [verified, setVerified] = useState<boolean>()
   const [error, setError] = useState<Error | undefined>()
 
@@ -111,21 +111,21 @@ export function useVerifiedAuthorAvatarSignature(author?: Author, accountName?: 
 
     ;(async () => {
       try {
-        const res = await verifyAuthorAvatarSignature(author.avatar, author.address, blockchainProviders)
+        const res = await verifyAuthorAvatarSignature(author.avatar, author.address, chainProviders)
         setVerified(res)
       } catch (error: any) {
         setError(error)
-        log.error('useVerifiedAuthorAvatarSignature verifyAuthorAvatarSignature error', {author, blockchainProviders, error})
+        log.error('useVerifiedAuthorAvatarSignature verifyAuthorAvatarSignature error', {author, chainProviders, error})
       }
     })()
-  }, [author?.avatar, author?.address, blockchainProviders])
+  }, [author?.avatar, author?.address, chainProviders])
 
   // don't verify nft signature when using mock content during development
   if (process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT) {
     return {verified: true, error: undefined}
   }
 
-  // log('useVerifiedAuthorAvatarSignature', {author, verified, blockchainProviders})
+  // log('useVerifiedAuthorAvatarSignature', {author, verified, chainProviders})
   return {verified, error}
 }
 
@@ -157,7 +157,7 @@ export function useAuthorAvatarIsWhitelisted(nft?: Nft) {
 }
 
 // NOTE: verifyAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
-export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: string, blockchainProviders: BlockchainProviders) => {
+export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: string, chainProviders: ChainProviders) => {
   assert(nft && typeof nft === 'object', `verifyAuthorAvatarSignature invalid nft argument '${nft}'`)
   assert(nft?.address, `verifyAuthorAvatarSignature invalid nft.address '${nft?.address}'`)
   assert(nft?.id, `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft?.id}'`)
@@ -170,8 +170,8 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
     nft?.address,
     nft?.id,
     nft?.chainTicker,
-    blockchainProviders?.[nft?.chainTicker]?.url,
-    blockchainProviders?.[nft?.chainTicker]?.chainId
+    chainProviders?.[nft?.chainTicker]?.url,
+    chainProviders?.[nft?.chainTicker]?.chainId
   )
 
   let messageThatShouldBeSigned: any = {}

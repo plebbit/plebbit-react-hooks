@@ -13,7 +13,7 @@ const avatarNft2 = {
 
 const ipfsGatewayUrl = 'https://cloudflare-ipfs.com'
 
-const blockchainProviders = {
+const chainProviders = {
   eth: {
     // default should not use a url, but rather ethers' default provider
     url: 'ethers.getDefaultProvider()',
@@ -29,7 +29,7 @@ const blockchainProviders = {
   },
 }
 
-describe('blockchain', () => {
+describe('chain', () => {
   describe('nft', () => {
     const timeout = 30000
     jest.setTimeout(timeout)
@@ -37,11 +37,11 @@ describe('blockchain', () => {
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
     test.skip('getNftImageUrl (cache and pending)', async () => {
-      // const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
+      // const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
       // console.log(url)
-      // const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
+      // const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
       // console.log(cachedUrl)
-      // const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders)])
+      // const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders)])
       // console.log(res)
     })
   })
