@@ -150,14 +150,22 @@ export class Pages {
 }
 export class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
+        var _a, _b, _c, _d;
         super();
         this.updateCalledTimes = 0;
         this.updating = false;
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
-        this.posts = new Pages({ subplebbit: this });
         this.statsCid = 'statscid';
+        this.posts = new Pages({ subplebbit: this });
+        // add subplebbit.posts from createSubplebbitOptions
+        if ((_a = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _a === void 0 ? void 0 : _a.pages) {
+            this.posts.pages = (_b = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _b === void 0 ? void 0 : _b.pages;
+        }
+        if ((_c = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _c === void 0 ? void 0 : _c.pageCids) {
+            this.posts.pageCids = (_d = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _d === void 0 ? void 0 : _d.pageCids;
+        }
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
