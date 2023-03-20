@@ -207,7 +207,7 @@ export function useResolvedAuthorAddress(options) {
     assert(!options || typeof options === 'object', `useResolvedAuthorAddress options argument '${options}' not an object`);
     let { author, accountName, cache } = options || {};
     // cache by default
-    if (cache === undefined) {
+    if (typeof cache !== 'boolean') {
         cache = true;
     }
     // poll every 15 seconds, about the duration of an eth block
