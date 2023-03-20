@@ -145,7 +145,7 @@ export function useResolvedSubplebbitAddress(options) {
     assert(!options || typeof options === 'object', `useResolvedSubplebbitAddress options argument '${options}' not an object`);
     let { subplebbitAddress, accountName, cache } = options || {};
     // cache by default
-    if (cache === undefined) {
+    if (typeof cache !== 'boolean') {
         cache = true;
     }
     // poll every 15 seconds, about the duration of an eth block
