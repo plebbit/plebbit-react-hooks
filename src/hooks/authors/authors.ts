@@ -231,7 +231,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
   let {author, accountName, cache} = options || {}
 
   // cache by default
-  if (cache === undefined) {
+  if (typeof cache !== 'boolean') {
     cache = true
   }
 
