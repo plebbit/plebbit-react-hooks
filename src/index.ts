@@ -29,7 +29,7 @@ import {
 import {useComment, useComments} from './hooks/comments'
 
 // subplebbits
-import {useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress} from './hooks/subplebbits'
+import {useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress} from './hooks/subplebbits'
 
 // feeds
 import {useFeed, useBufferedFeeds} from './hooks/feeds'

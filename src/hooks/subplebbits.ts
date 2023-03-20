@@ -74,23 +74,23 @@ export function useSubplebbitMetrics(options?: UseSubplebbitMetricsOptions): Use
   const [subplebbitMetrics, setSubplebbitMetrics] = useState<SubplebbitMetrics>()
 
   useEffect(() => {
-    if (!subplebbitMetricsCid || !account) {
+    if (!subplebbitStatsCid || !account) {
       return
     }
     ;(async () => {
       let fetchedCid
       try {
-        fetchedCid = await account.plebbit.fetchCid(subplebbitMetricsCid)
+        fetchedCid = await account.plebbit.fetchCid(subplebbitStatsCid)
         fetchedCid = JSON.parse(fetchedCid)
-        setSubplebbitMetrics(fetchedCid)
+        setSubplebbitStats(fetchedCid)
       } catch (error) {
-        log.error('useSubplebbitMetrics plebbit.fetchCid error', {subplebbitAddress, subplebbitMetricsCid, subplebbit, fetchedCid, error})
+        log.error('useSubplebbitStats plebbit.fetchCid error', {subplebbitAddress, subplebbitStatsCid, subplebbit, fetchedCid, error})
       }
     })()
-  }, [subplebbitMetricsCid, account?.id])
+  }, [subplebbitStatsCid, account?.id])
 
-  if (account && subplebbitMetricsCid) {
-    log('useSubplebbitMetrics', {subplebbitAddress, subplebbitMetricsCid, subplebbitMetrics, subplebbit, account})
+  if (account && subplebbitStatsCid) {
+    log('useSubplebbitStats', {subplebbitAddress, subplebbitStatsCid, subplebbitStats, subplebbit, account})
   }
 
   const state = subplebbitMetrics ? 'succeeded' : 'fetching-ipfs'

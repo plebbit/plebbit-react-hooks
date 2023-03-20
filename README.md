@@ -32,7 +32,7 @@ useComments({commentCids: string[]}): {comments: Comment[]}
 ```
 useSubplebbit({subplebbitAddress: string}): Subplebbit
 useSubplebbits({subplebbitAddresses: string[]}): {subplebbits: Subplebbits[]}
-useSubplebbitMetrics({subplebbitAddress: string}): SubplebbitMetrics
+useSubplebbitStats({subplebbitAddress: string}): SubplebbitStats
 useResolvedSubplebbitAddress({subplebbitAddress: string, cache: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own subplebbit address
 ```
 #### Feeds Hooks
@@ -207,7 +207,7 @@ useEffect(() => {
 
 ```js
 const subplebbit = useSubplebbit({subplebbitAddress})
-const subplebbitMetrics = useSubplebbitMetrics({subplebbitAddress})
+const subplebbitStats = useSubplebbitStats({subplebbitAddress})
 const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3]})
 ```
 

@@ -24,7 +24,7 @@ const privateKey = signers[0].privateKey
 
   const plebbit = await Plebbit(plebbitOptions)
   const plebbit2 = await Plebbit(plebbitOptions)
-  const signer = await plebbit.createSigner({privateKey, type: 'rsa'})
+  const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
 
   const dbConfig = {
     client: 'sqlite3',
@@ -77,7 +77,10 @@ const privateKey = signers[0].privateKey
     // to know when the test server is finished getting ready
     // and able to start the automated tests
     require('http')
-      .createServer((req, res) => res.end('test server ready'))
+      .createServer((req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.end('test server ready')
+      })
       .listen(59281)
   })
 })()

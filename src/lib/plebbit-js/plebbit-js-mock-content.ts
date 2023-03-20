@@ -642,7 +642,7 @@ class Plebbit extends EventEmitter {
   }
 
   async fetchCid(cid: string) {
-    if (cid?.startsWith('metricscid')) {
+    if (cid?.startsWith('statscid')) {
       return JSON.stringify({
         hourActiveUserCount: 1,
         dayActiveUserCount: 11,
@@ -696,8 +696,8 @@ class Subplebbit extends EventEmitter {
   features: any | undefined
   rules: string[] | undefined
   signer: any | undefined
-  metricsCid: string
   shortAddress: string | undefined
+  statsCid: string | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -713,7 +713,7 @@ class Subplebbit extends EventEmitter {
     this.rules = createSubplebbitOptions?.rules
     this.title = createSubplebbitOptions?.title
     this.description = createSubplebbitOptions?.description
-    this.metricsCid = 'metricscid'
+    this.statsCid = 'statscid'
 
     for (const prop in createSubplebbitOptions) {
       if (createSubplebbitOptions[prop]) {

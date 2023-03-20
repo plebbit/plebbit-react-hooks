@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useSubplebbit, useSubplebbitMetrics, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
+import {useSubplebbit, useSubplebbitStats, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
 import subplebbitStore from '../stores/subplebbits'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'

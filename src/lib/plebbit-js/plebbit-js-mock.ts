@@ -119,7 +119,7 @@ export class Plebbit extends EventEmitter {
   }
 
   async fetchCid(cid: string) {
-    if (cid?.startsWith('metricscid')) {
+    if (cid?.startsWith('statscid')) {
       return JSON.stringify({hourActiveUserCount: 1})
     }
     throw Error(`plebbit.fetchCid not implemented in plebbit-js mock for cid '${cid}'`)
@@ -151,8 +151,8 @@ export class Subplebbit extends EventEmitter {
   title: string | undefined
   description: string | undefined
   posts: Pages
-  metricsCid: string
   updatedAt: number | undefined
+  statsCid: string | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -160,7 +160,7 @@ export class Subplebbit extends EventEmitter {
     this.title = createSubplebbitOptions?.title
     this.description = createSubplebbitOptions?.description
     this.posts = new Pages({subplebbit: this})
-    this.metricsCid = 'metricscid'
+    this.statsCid = 'statscid'
   }
 
   async update() {

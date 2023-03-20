@@ -1,11 +1,13 @@
+const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitMetrics, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const Plebbit = require('@plebbit/plebbit-js')
 Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
+const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)
 
 window.fetch = () => {
   throw Error(`electron tests shouldn't use window.fetch`)
@@ -43,6 +45,13 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       await testUtils.resetDatabasesAndStores()
     })
 
+    beforeEach(async () => {
+      await assertTestServerDidntCrash()
+    })
+    afterEach(async () => {
+      await assertTestServerDidntCrash()
+    })
+
     describe(`no subplebbits in database (${plebbitOptionsType})`, () => {
       let rendered, waitFor, commentCid
 
@@ -52,18 +61,18 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
             const account = useAccount()
             const accountsActions = useAccountsActions()
             const subplebbit = useSubplebbit(subplebbitAddress)
-            const subplebbitMetrics = useSubplebbitMetrics(subplebbitAddress)
+            const subplebbitStats = useSubplebbitStats(subplebbitAddress)
             const accountVotes = useAccountVotes()
             const comment = useComment(commentCid)
 
-            return {account, subplebbit, subplebbitMetrics, comment, accountVotes, ...accountsActions}
+            return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
           },
           {wrapper: PlebbitProvider}
         )
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')
-        expect(rendered.result.current.account.signer.privateKey).to.match(/^-----BEGIN ENCRYPTED PRIVATE KEY-----/)
+        expect(isBase64(rendered.result.current.account.signer.privateKey)).to.be.true
         expect(rendered.result.current.account.signer.address).to.equal(rendered.result.current.account.author.address)
         expect(rendered.result.current.account.name).to.equal('Account 1')
         expect(typeof rendered.result.current.publishComment).to.equal('function')
@@ -91,10 +100,10 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         commentCid = rendered.result.current.subplebbit.posts.pages.hot.comments[0].cid
         console.log('comment cid', commentCid)
 
-        console.log('before subplebbit metrics')
-        await waitFor(() => typeof rendered.result.current.subplebbitMetrics.hourPostCount === 'number')
-        expect(typeof rendered.result.current.subplebbitMetrics.hourPostCount).to.equal('number')
-        console.log('after subplebbit metrics')
+        console.log('before subplebbit stats')
+        await waitFor(() => typeof rendered.result.current.subplebbitStats.hourPostCount === 'number')
+        expect(typeof rendered.result.current.subplebbitStats.hourPostCount).to.equal('number')
+        console.log('after subplebbit stats')
       })
 
       let onChallengeCalled = 0
