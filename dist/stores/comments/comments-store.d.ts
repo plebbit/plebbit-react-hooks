@@ -1,6 +1,6 @@
 import { Comments } from '../../types';
 export declare const listeners: any;
-declare type CommentsState = {
+export declare type CommentsState = {
     comments: Comments;
     addCommentToStore: Function;
 };

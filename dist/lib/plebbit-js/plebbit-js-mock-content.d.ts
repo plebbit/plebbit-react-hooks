@@ -39,7 +39,8 @@ declare class Subplebbit extends EventEmitter {
     features: any | undefined;
     rules: string[] | undefined;
     signer: any | undefined;
-    metricsCid: string;
+    shortAddress: string | undefined;
+    statsCid: string | undefined;
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
     update(): Promise<void>;
@@ -52,7 +53,7 @@ declare class Publication extends EventEmitter {
     cid: string | undefined;
     constructor();
     publish(): Promise<void>;
-    simulateChallengeEvent(): void;
+    simulateChallengeEvent(): Promise<void>;
     publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
     simulateChallengeVerificationEvent(): Promise<void>;
 }
@@ -75,6 +76,7 @@ declare class Comment extends Publication {
     removed: boolean | undefined;
     editTimestamp: number | undefined;
     reason: string | undefined;
+    shortCid: string | undefined;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): Promise<void>;

@@ -6,11 +6,11 @@ const path = require('path')
 // same as .mocharc.js
 const mochaConfig = {
   // set large value for manual debugging
-  timeout: 600000,
+  timeout: 600_000,
 }
 if (process.env.CI) {
   // set small value for timing out CI
-  mochaConfig.timeout = 120000
+  mochaConfig.timeout = 300_000
 }
 
 // electron browser options

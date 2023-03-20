@@ -10,6 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import markdownExample from './fixtures/markdown-example';
 import EventEmitter from 'events';
 import assert from 'assert';
+import { sha256 } from 'multiformats/hashes/sha2';
+import { fromString } from 'uint8arrays/from-string';
+import { toString } from 'uint8arrays/to-string';
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100);
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
@@ -25,9 +28,15 @@ const commentTitles = [
     '🤡',
 ];
 const commentContents = [
-    `First of all, the sentiment in this sub concerning moons seems very polarized. Some people think they are a genius idea and others think they are making this sub this sub worse because of “moon farming.” which camp are you in? Second, how/where can you sell them. And third, how many upvotes=one moon, some people have so many when I’m sitting here at 17.
+    `First of all, the sentiment in this sub concerning moons seems very __polarized__. Some people think they are a genius idea and others think they are making this sub this sub worse because of “moon farming.” which camp are you in? 
 
-**Personally** I think Reddit is ahead of the curve, in a couple years I could easily see every social media platform incorporating their own coin into their interface. Think about it; it costs the company next to nothing, encourages users to spend more time and be more active on the platform, and capitalizes on their existing user base, skipping any need for marketing. From the companies point of view it seems like a no brainer.
+Second, how/where can you sell them. And third, how many upvotes=one moon, some people have so many when I’m sitting here at 17.
+
+**Personally** I think Reddit is ahead of the _curve_, in a couple years I could easily see every social media platform incorporating their own coin into their interface. 
+
+Think about it; it costs the company next to nothing, encourages users to spend more time and be more active on the platform, and capitalizes on their existing user base, skipping any need for marketing. 
+
+From the companies point of view it seems like a no brainer.
 
 Can people think of issues with this approach? For either the company or the consumer, because besides increased levels of spamming I don’t see much downside.`,
     'What kind of messes up world is this. *Even* if they stop you, they would need some sort of seed phrase or private key to your account in order to get the funds.',
@@ -174,14 +183,9 @@ const reasons = [
 ];
 const hash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     assert(string, `cant hash string '${string}'`);
-    // use native crypto module in jsdom
-    // @ts-ignore
-    // const crypto = require('crypto')
-    // return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
-    // @ts-ignore
-    const hashBuffer = yield crypto.subtle.digest('SHA-256', new TextEncoder().encode(string));
-    // @ts-ignore
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuffer))).replace(/[^a-zA-Z0-9]/g, '');
+    const hash = yield sha256.digest(fromString(string));
+    const base58Hash = toString(hash.digest, 'base58btc');
+    return base58Hash;
 });
 const getNumberBetween = (min, max, seed) => __awaiter(void 0, void 0, void 0, function* () {
     const number = Number('0.' + parseInt((yield hash(seed)).substring(6, 12), 36));
@@ -218,6 +222,7 @@ const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
         const text = yield getArrayItem([...firstNames, ...displayNames], seed + 'author ens first name');
         author.address = (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth';
     }
+    author.shortAddress = author.address.endsWith('.eth') ? author.address : author.address.substring(8, 20);
     const hasDisplayName = yield getArrayItem([true, true, true, false], seed + 'has display name');
     if (hasDisplayName) {
         author.displayName = yield getArrayItem(displayNames, seed + 'display name');
@@ -273,13 +278,35 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
     // else is text post
     else {
         postContent.content = yield getArrayItem(commentContents, seed + 'content');
+        const hasQuote = yield getArrayItem([true, false, false, false], seed + 'hasquote');
+        if (hasQuote) {
+            const lines = postContent.content.split('\n');
+            for (const i in lines) {
+                const lineIsQuote = yield getArrayItem([true, false], seed + 'lineisquote' + i);
+                if (lineIsQuote) {
+                    lines[i] = '>' + lines[i];
+                }
+            }
+            postContent.content = lines.join('\n');
+        }
     }
     return postContent;
 });
 const getReplyContent = (getReplyContentOptions, seed) => __awaiter(void 0, void 0, void 0, function* () {
     const { depth, parentCid, postCid } = getReplyContentOptions;
     const author = yield getAuthor(seed + 'author');
-    const content = yield getArrayItem(commentContents, seed + 'replycontent');
+    let content = yield getArrayItem(commentContents, seed + 'replycontent');
+    const hasQuote = yield getArrayItem([true, false, false, false], seed + 'hasquote');
+    if (hasQuote) {
+        const lines = content.split('\n');
+        for (const i in lines) {
+            const lineIsQuote = yield getArrayItem([true, false], seed + 'lineisquote' + i);
+            if (lineIsQuote) {
+                lines[i] = '>' + lines[i];
+            }
+        }
+        content = lines.join('\n');
+    }
     return { content, author, depth, parentCid, postCid };
 });
 const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
@@ -562,7 +589,7 @@ class Plebbit extends EventEmitter {
     }
     fetchCid(cid) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (cid === null || cid === void 0 ? void 0 : cid.startsWith('metricscid')) {
+            if (cid === null || cid === void 0 ? void 0 : cid.startsWith('statscid')) {
                 return JSON.stringify({
                     hourActiveUserCount: 1,
                     dayActiveUserCount: 11,
@@ -599,7 +626,7 @@ class Pages {
 }
 class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
-        var _a;
+        var _a, _b, _c;
         super();
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
         this.pubsubTopic = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.pubsubTopic;
@@ -613,7 +640,7 @@ class Subplebbit extends EventEmitter {
         this.rules = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.rules;
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
-        this.metricsCid = 'metricscid';
+        this.statsCid = 'statscid';
         for (const prop in createSubplebbitOptions) {
             if (createSubplebbitOptions[prop]) {
                 // @ts-ignore
@@ -624,6 +651,7 @@ class Subplebbit extends EventEmitter {
         if (!this.address && ((_a = this.signer) === null || _a === void 0 ? void 0 : _a.address)) {
             this.address = this.signer.address;
         }
+        this.shortAddress = ((_b = this.address) === null || _b === void 0 ? void 0 : _b.endsWith('.eth')) ? this.address : (_c = this.address) === null || _c === void 0 ? void 0 : _c.substring(8, 20);
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
@@ -683,18 +711,25 @@ class Publication extends EventEmitter {
     publish() {
         return __awaiter(this, void 0, void 0, function* () {
             yield simulateLoadingTime();
-            this.simulateChallengeEvent();
+            yield this.simulateChallengeEvent();
         });
     }
     simulateChallengeEvent() {
-        const challenge = { type: 'image', challenge: captchaImageBase64 };
-        const challengeMessage = {
-            type: 'CHALLENGE',
+        return __awaiter(this, void 0, void 0, function* () {
+            const challenges = [];
             // @ts-ignore
-            challengeRequestId: this.challengeRequestId,
-            challenges: [challenge],
-        };
-        this.emit('challenge', challengeMessage, this);
+            const challengeCount = yield getNumberBetween(1, 3, this.challengeRequestId);
+            while (challenges.length < challengeCount) {
+                challenges.push({ type: 'image/png', challenge: captchaImageBase64 });
+            }
+            const challengeMessage = {
+                type: 'CHALLENGE',
+                // @ts-ignore
+                challengeRequestId: this.challengeRequestId,
+                challenges,
+            };
+            this.emit('challenge', challengeMessage, this);
+        });
     }
     publishChallengeAnswers(challengeAnswers) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -743,6 +778,9 @@ class Comment extends Publication {
         this.removed = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.removed;
         this.editTimestamp = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.editTimestamp;
         this.reason = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.reason;
+        if (this.cid) {
+            this.shortCid = this.cid.substring(2, 14);
+        }
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
@@ -776,6 +814,7 @@ class Comment extends Publication {
                 // @ts-ignore
                 this[prop] = commentUpdateContent[prop];
             }
+            this.shortCid = this.cid.substring(2, 14);
             this.emit('update', this);
         });
     }

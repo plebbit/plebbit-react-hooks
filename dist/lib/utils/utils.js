@@ -204,13 +204,12 @@ const utils = {
     flattenCommentsPages,
     memo,
     memoSync,
-    // define for typescript
-    retryInfinity: (f) => { },
+    retryInfinity: (f, o) => { },
     // export timeout values to mock them in tests
     retryInfinityMinTimeout: 1000,
     retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
 };
-export const retryInfinity = (functionToRetry) => __awaiter(void 0, void 0, void 0, function* () {
+export const retryInfinity = (functionToRetry, options) => __awaiter(void 0, void 0, void 0, function* () {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     let attempt = 0;
     while (true) {
@@ -219,6 +218,7 @@ export const retryInfinity = (functionToRetry) => __awaiter(void 0, void 0, void
             return res;
         }
         catch (e) {
+            options === null || options === void 0 ? void 0 : options.onError(e || Error(`retryInfinity failed attempt ${attempt}`));
             const factor = 2;
             let timeout = Math.round(utils.retryInfinityMinTimeout * Math.pow(factor, attempt++));
             timeout = Math.min(timeout, utils.retryInfinityMaxTimeout);

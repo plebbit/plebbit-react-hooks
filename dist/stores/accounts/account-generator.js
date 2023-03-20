@@ -11,8 +11,8 @@ import PlebbitJs from '../../lib/plebbit-js';
 import validator from '../../lib/validator';
 import { v4 as uuid } from 'uuid';
 import accountsDatabase from './accounts-database';
-// default blockchain providers
-const blockchainProviders = {
+// default chain providers
+const chainProviders = {
     eth: {
         // default should not use a url, but rather ethers' default provider
         url: 'ethers.getDefaultProvider()',
@@ -32,16 +32,16 @@ export const getDefaultPlebbitOptions = () => {
     // default plebbit options defined by the electron process
     // @ts-ignore
     if (window.defaultPlebbitOptions) {
-        // add missing blockchain providers
+        // add missing chain providers
         // @ts-ignore
         const defaultPlebbitOptions = JSON.parse(JSON.stringify(window.defaultPlebbitOptions));
-        if (!defaultPlebbitOptions.blockchainProviders) {
-            defaultPlebbitOptions.blockchainProviders = {};
+        if (!defaultPlebbitOptions.chainProviders) {
+            defaultPlebbitOptions.chainProviders = {};
         }
-        // add default blockchain providers if missing
-        for (const chainTicker in blockchainProviders) {
-            if (!defaultPlebbitOptions.blockchainProviders[chainTicker]) {
-                defaultPlebbitOptions.blockchainProviders[chainTicker] = blockchainProviders[chainTicker];
+        // add default chain providers if missing
+        for (const chainTicker in chainProviders) {
+            if (!defaultPlebbitOptions.chainProviders[chainTicker]) {
+                defaultPlebbitOptions.chainProviders[chainTicker] = chainProviders[chainTicker];
             }
         }
         return defaultPlebbitOptions;
@@ -51,7 +51,7 @@ export const getDefaultPlebbitOptions = () => {
         ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
         ipfsHttpClientOptions: undefined,
         pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
-        blockchainProviders,
+        chainProviders,
     };
 };
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {

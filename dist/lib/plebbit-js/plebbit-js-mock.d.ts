@@ -13,7 +13,7 @@ export declare class Plebbit extends EventEmitter {
     listSubplebbits(): Promise<string[]>;
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
-    commentToGet(): {};
+    commentToGet(commentCid?: string): {};
     createVote(): Promise<Vote>;
     createCommentEdit(createCommentEditOptions: any): Promise<CommentEdit>;
     createSubplebbitEdit(createSubplebbitEditOptions: any): Promise<SubplebbitEdit>;
@@ -34,8 +34,8 @@ export declare class Subplebbit extends EventEmitter {
     title: string | undefined;
     description: string | undefined;
     posts: Pages;
-    metricsCid: string;
     updatedAt: number | undefined;
+    statsCid: string | undefined;
     constructor(createSubplebbitOptions?: any);
     update(): Promise<void>;
     delete(): Promise<void>;
@@ -66,6 +66,7 @@ export declare class Comment extends Publication {
     parentCid: string | undefined;
     replies: any;
     updatedAt: number | undefined;
+    subplebbitAddress: string | undefined;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): void;

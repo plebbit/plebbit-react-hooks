@@ -1,4 +1,4 @@
-import { BlockchainProviders, UseResolvedSubplebbitAddressOptions, UseResolvedSubplebbitAddressResult, UseSubplebbitOptions, UseSubplebbitResult, UseSubplebbitsOptions, UseSubplebbitsResult, UseSubplebbitMetricsOptions, UseSubplebbitMetricsResult } from '../types';
+import { ChainProviders, UseResolvedSubplebbitAddressOptions, UseResolvedSubplebbitAddressResult, UseSubplebbitOptions, UseSubplebbitResult, UseSubplebbitsOptions, UseSubplebbitsResult, UseSubplebbitStatsOptions, UseSubplebbitStatsResult } from '../types';
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -10,7 +10,7 @@ export declare function useSubplebbit(options?: UseSubplebbitOptions): UseSubple
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useSubplebbitMetrics(options?: UseSubplebbitMetricsOptions): UseSubplebbitMetricsResult;
+export declare function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubplebbitStatsResult;
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -27,4 +27,4 @@ export declare function useListSubplebbits(): string[];
  * the active account.
  */
 export declare function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddressOptions): UseResolvedSubplebbitAddressResult;
-export declare const resolveSubplebbitAddress: (subplebbitAddress: string, blockchainProviders: BlockchainProviders) => Promise<any>;
+export declare const resolveSubplebbitAddress: (subplebbitAddress: string, chainProviders: ChainProviders) => Promise<any>;

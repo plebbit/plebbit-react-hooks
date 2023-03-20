@@ -22,12 +22,14 @@ import { useMemo, useState } from 'react';
 import useAccountsStore from '../../stores/accounts';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:hooks');
+import assert from 'assert';
 import { useAccount, useAccountId } from '../accounts';
 const publishChallengeAnswersNotReady = (challengeAnswers) => __awaiter(void 0, void 0, void 0, function* () {
     throw Error(`can't call publishChallengeAnswers() before result.challenge is defined (before the challenge message is received)`);
 });
 export function useSubscribe(options) {
     var _a;
+    assert(!options || typeof options === 'object', `useSubscribe options argument '${options}' not an object`);
     const { subplebbitAddress, accountName, onError } = options || {};
     const account = useAccount({ accountName });
     const accountsActions = useAccountsStore((state) => state.accountsActions);
@@ -67,6 +69,7 @@ export function useSubscribe(options) {
     }), [state, subscribed, errors, subplebbitAddress, accountName]);
 }
 export function useBlock(options) {
+    assert(!options || typeof options === 'object', `useBlock options argument '${options}' not an object`);
     const { address, accountName, onError } = options || {};
     const account = useAccount({ accountName });
     const accountsActions = useAccountsStore((state) => state.accountsActions);
@@ -106,6 +109,7 @@ export function useBlock(options) {
     }), [state, blocked, errors, address, accountName]);
 }
 export function usePublishComment(options) {
+    assert(!options || typeof options === 'object', `usePublishComment options argument '${options}' not an object`);
     const _a = options || {}, { accountName } = _a, publishCommentOptions = __rest(_a, ["accountName"]);
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
@@ -170,6 +174,7 @@ export function usePublishComment(options) {
     }), [state, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function usePublishVote(options) {
+    assert(!options || typeof options === 'object', `usePublishVote options argument '${options}' not an object`);
     const _a = options || {}, { accountName } = _a, publishVoteOptions = __rest(_a, ["accountName"]);
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
@@ -231,6 +236,7 @@ export function usePublishVote(options) {
     }), [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function usePublishCommentEdit(options) {
+    assert(!options || typeof options === 'object', `usePublishCommentEdit options argument '${options}' not an object`);
     const _a = options || {}, { accountName } = _a, publishCommentEditOptions = __rest(_a, ["accountName"]);
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
@@ -292,6 +298,7 @@ export function usePublishCommentEdit(options) {
     }), [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function usePublishSubplebbitEdit(options) {
+    assert(!options || typeof options === 'object', `usePublishSubplebbitEdit options argument '${options}' not an object`);
     const _a = options || {}, { accountName, subplebbitAddress } = _a, publishSubplebbitEditOptions = __rest(_a, ["accountName", "subplebbitAddress"]);
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
@@ -353,6 +360,7 @@ export function usePublishSubplebbitEdit(options) {
     }), [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function useCreateSubplebbit(options) {
+    assert(!options || typeof options === 'object', `useCreateSubplebbit options argument '${options}' not an object`);
     const _a = options || {}, { accountName, onError } = _a, createSubplebbitOptions = __rest(_a, ["accountName", "onError"]);
     const accountId = useAccountId(accountName);
     const accountsActions = useAccountsStore((state) => state.accountsActions);

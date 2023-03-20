@@ -39,14 +39,34 @@ const getAccount = (accountId) => __awaiter(void 0, void 0, void 0, function* ()
     const accounts = yield getAccounts([accountId]);
     return accounts[accountId];
 });
-const getAccountJson = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
+const getExportedAccountJson = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
     assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`);
     // do not serialize or instantiate anything (unlike getAccount)
     const account = yield accountsDatabase.getItem(accountId);
     if (!account) {
         throw Error(`getAccountJson no account in database with accountId '${accountId}'`);
     }
-    return JSON.stringify(account);
+    const accountCommentsDatabase = getAccountCommentsDatabase(accountId);
+    const accountVotesDatabase = getAccountVotesDatabase(accountId);
+    const accountEditsDatabase = getAccountEditsDatabase(accountId);
+    const [accountComments, accountVotes, accountEdits] = yield Promise.all([
+        getDatabaseAsArray(accountCommentsDatabase),
+        getDatabaseAsArray(accountVotesDatabase),
+        getDatabaseAsArray(accountEditsDatabase),
+    ]);
+    return JSON.stringify({ account, accountComments, accountVotes, accountEdits });
+});
+// accountVotes, accountComments and accountEdits are indexeddb
+// databases formed like an array (keys are numbers)
+const getDatabaseAsArray = (database) => __awaiter(void 0, void 0, void 0, function* () {
+    const length = (yield database.getItem('length')) || 0;
+    let promises = [];
+    let i = 0;
+    while (i < length) {
+        promises.push(database.getItem(String(i++)));
+    }
+    const items = yield Promise.all(promises);
+    return items;
 });
 const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     validator.validateAccountsDatabaseAddAccountArguments(account);
@@ -161,6 +181,7 @@ const getAccountComments = (accountId) => __awaiter(void 0, void 0, void 0, func
     return comments;
 });
 const getAccountsComments = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
+    assert(Array.isArray(accountIds), `getAccountsComments invalid accountIds '${accountIds}' not an array`);
     const promises = [];
     for (const accountId of accountIds) {
         promises.push(getAccountComments(accountId));
@@ -218,6 +239,7 @@ const getAccountVotes = (accountId) => __awaiter(void 0, void 0, void 0, functio
     return votes;
 });
 const getAccountsVotes = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
+    assert(Array.isArray(accountIds), `getAccountsVotes invalid accountIds '${accountIds}' not an array`);
     const promises = [];
     for (const accountId of accountIds) {
         promises.push(getAccountVotes(accountId));
@@ -260,6 +282,7 @@ const getAccountCommentsReplies = (accountId) => __awaiter(void 0, void 0, void 
     return replies;
 });
 const getAccountsCommentsReplies = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
+    assert(Array.isArray(accountIds), `getAccountsCommentsReplies invalid accountIds '${accountIds}' not an array`);
     const promises = [];
     for (const accountId of accountIds) {
         promises.push(getAccountCommentsReplies(accountId));
@@ -324,6 +347,7 @@ const getAccountEdits = (accountId) => __awaiter(void 0, void 0, void 0, functio
     return edits;
 });
 const getAccountsEdits = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
+    assert(Array.isArray(accountIds), `getAccountsEdits invalid accountIds '${accountIds}' not an array`);
     const promises = [];
     for (const accountId of accountIds) {
         promises.push(getAccountEdits(accountId));
@@ -346,7 +370,7 @@ const database = {
     addAccountComment,
     addAccount,
     removeAccount,
-    getAccountJson,
+    getExportedAccountJson,
     getAccounts,
     getAccount,
     addAccountCommentReply,

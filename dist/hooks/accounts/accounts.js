@@ -12,6 +12,7 @@ import isEqual from 'lodash.isequal';
 import useAccountsStore from '../../stores/accounts';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:hooks');
+import assert from 'assert';
 import { useListSubplebbits, useSubplebbits } from '../subplebbits';
 import { filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications } from './utils';
 /**
@@ -30,6 +31,7 @@ export function useAccountId(accountName) {
  * the active account.
  */
 export function useAccount(options) {
+    assert(!options || typeof options === 'object', `useAccount options argument '${options}' not an object`);
     const { accountName } = options || {};
     // get state
     const accountId = useAccountId(accountName);
@@ -71,6 +73,7 @@ export function useAccounts() {
  * Returns all subplebbits where the account is a creator or moderator
  */
 export function useAccountSubplebbits(options) {
+    assert(!options || typeof options === 'object', `useAccountSubplebbits options argument '${options}' not an object`);
     const { accountName } = options || {};
     const accountId = useAccountId(accountName);
     const accountsStoreAccountSubplebbits = useAccountsStore((state) => { var _a; return (_a = state.accounts[accountId || '']) === null || _a === void 0 ? void 0 : _a.subplebbits; });
@@ -131,6 +134,7 @@ export function useAccountSubplebbits(options) {
  * the active account's notifications.
  */
 export function useNotifications(options) {
+    assert(!options || typeof options === 'object', `useNotifications options argument '${options}' not an object`);
     const { accountName } = options || {};
     // get state
     const accountId = useAccountId(accountName);
@@ -163,6 +167,7 @@ export function useNotifications(options) {
     }), [notifications, errors]);
 }
 export function useAccountComments(options) {
+    assert(!options || typeof options === 'object', `useAccountComments options argument '${options}' not an object`);
     const { accountName, filter } = options || {};
     const accountId = useAccountId(accountName);
     const accountComments = useAccountsStore((state) => state.accountsComments[accountId || '']);
@@ -190,6 +195,7 @@ export function useAccountComments(options) {
  * Returns an account's single comment, e.g. a pending comment they published.
  */
 export function useAccountComment(options) {
+    assert(!options || typeof options === 'object', `useAccountComment options argument '${options}' not an object`);
     const { commentIndex, accountName } = options || {};
     const { accountComments } = useAccountComments({ accountName });
     const accountComment = useMemo(() => (accountComments === null || accountComments === void 0 ? void 0 : accountComments[Number(commentIndex)]) || {}, [accountComments, commentIndex]);
@@ -201,6 +207,7 @@ export function useAccountComment(options) {
  * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
 export function useAccountVotes(options) {
+    assert(!options || typeof options === 'object', `useAccountVotes options argument '${options}' not an object`);
     const { accountName, filter } = options || {};
     const accountId = useAccountId(accountName);
     const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || '']);
@@ -232,6 +239,7 @@ export function useAccountVotes(options) {
  * Returns an account's single vote on a comment, e.g. to know if you already voted on a comment.
  */
 export function useAccountVote(options) {
+    assert(!options || typeof options === 'object', `useAccountVote options argument '${options}' not an object`);
     const { commentCid, accountName } = options || {};
     const accountId = useAccountId(accountName);
     const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || '']);
@@ -243,6 +251,7 @@ export function useAccountVote(options) {
  * Returns all the comment and subplebbit edits published by an account.
  */
 export function useAccountEdits(options) {
+    assert(!options || typeof options === 'object', `useAccountEdits options argument '${options}' not an object`);
     const { filter, accountName } = options || {};
     const accountId = useAccountId(accountName);
     const accountEdits = useAccountsStore((state) => state.accountsEdits[accountId || '']);
@@ -272,6 +281,7 @@ export function useAccountEdits(options) {
  * Returns the comment edited (if has any edits), as well as the pending, succeeded or failed state of the edit.
  */
 export function useEditedComment(options) {
+    assert(!options || typeof options === 'object', `useEditedComment options argument '${options}' not an object`);
     const { comment, accountName } = options || {};
     const accountId = useAccountId(accountName);
     const commentEdits = useAccountsStore((state) => { var _a; return (_a = state.accountsEdits[accountId || '']) === null || _a === void 0 ? void 0 : _a[(comment === null || comment === void 0 ? void 0 : comment.cid) || '']; });

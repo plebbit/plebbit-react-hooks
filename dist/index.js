@@ -5,6 +5,9 @@ try {
     if (process.env.DEBUG_DEPTH) {
         require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH;
     }
+    if (process.env.DEBUG_ARRAY) {
+        require('util').inspect.defaultOptions.maxArrayLength = null;
+    }
 }
 catch (e) { }
 // accounts
@@ -12,15 +15,15 @@ import { useAccount, useAccounts, useAccountComment, useAccountComments, useAcco
 // comments
 import { useComment, useComments } from './hooks/comments';
 // subplebbits
-import { useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress } from './hooks/subplebbits';
+import { useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress } from './hooks/subplebbits';
 // feeds
 import { useFeed, useBufferedFeeds } from './hooks/feeds';
 // authors
-import { useAuthorAvatar, useResolvedAuthorAddress } from './hooks/authors';
+import { useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress } from './hooks/authors';
 // actions
 import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit } from './hooks/actions';
 // actions that don't have their own hooks yet
-import { createAccount, deleteAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit } from './stores/accounts/accounts-actions';
+import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, } from './stores/accounts/accounts-actions';
 // utils
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
@@ -33,15 +36,15 @@ useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes,
 // comments
 useComment, useComments, useEditedComment, 
 // subplebbits
-useSubplebbit, useSubplebbits, useSubplebbitMetrics, useResolvedSubplebbitAddress, 
+useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, 
 // authors
-useAuthorAvatar, useResolvedAuthorAddress, 
+useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, 
 // feeds
 useFeed, useBufferedFeeds, 
 // actions
 useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishSubplebbitEdit, useCreateSubplebbit, 
 // actions that don't have their own hooks yet
-createAccount, deleteAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, 
+createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, 
 // utils
 setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 // IMPORTANT: should be the same as 'export {}'
@@ -63,9 +66,11 @@ const hooks = {
     // subplebbits
     useSubplebbit,
     useSubplebbits,
-    useSubplebbitMetrics,
+    useSubplebbitStats,
     useResolvedSubplebbitAddress,
     // authors
+    useAuthor,
+    useAuthorComments,
     useAuthorAvatar,
     useResolvedAuthorAddress,
     // feeds
@@ -82,6 +87,7 @@ const hooks = {
     // actions that don't have their own hooks yet
     createAccount,
     deleteAccount,
+    setAccount,
     setActiveAccount,
     setAccountsOrder,
     importAccount,

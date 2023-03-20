@@ -12,6 +12,7 @@ import { useAccount } from '../accounts';
 import validator from '../../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:feeds:hooks');
+import assert from 'assert';
 import useFeedsStore from '../../stores/feeds';
 import shallow from 'zustand/shallow';
 /**
@@ -21,6 +22,7 @@ import shallow from 'zustand/shallow';
  * the active account.
  */
 export function useFeed(options) {
+    assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`);
     let { subplebbitAddresses, sortType, accountName } = options || {};
     if (!sortType) {
         sortType = 'hot';
@@ -38,7 +40,7 @@ export function useFeed(options) {
             return;
         }
         addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
-    }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/]);
+    }, [feedName]);
     const feed = useFeedsStore((state) => state.loadedFeeds[feedName || '']);
     let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
     // if the feed is not yet defined, then it has more
@@ -88,6 +90,7 @@ export function useFeed(options) {
  * the active account.
  */
 export function useBufferedFeeds(options) {
+    assert(!options || typeof options === 'object', `useBufferedFeeds options argument '${options}' not an object`);
     const { feedsOptions, accountName } = options || {};
     validator.validateUseBufferedFeedsArguments(feedsOptions, accountName);
     const account = useAccount({ accountName });

@@ -97,10 +97,10 @@ export interface UseSubplebbitsOptions extends Options {
 export interface UseSubplebbitsResult extends Result {
     subplebbits: (Subplebbit | undefined)[];
 }
-export interface UseSubplebbitMetricsOptions extends Options {
+export interface UseSubplebbitStatsOptions extends Options {
     subplebbitAddress?: string;
 }
-export interface UseSubplebbitMetricsResult extends Result, SubplebbitMetrics {
+export interface UseSubplebbitStatsResult extends Result, SubplebbitStats {
 }
 export interface UseResolvedSubplebbitAddressOptions extends Options {
     subplebbitAddress: string | undefined;
@@ -108,7 +108,7 @@ export interface UseResolvedSubplebbitAddressOptions extends Options {
 }
 export interface UseResolvedSubplebbitAddressResult extends Result {
     resolvedAddress: string | undefined;
-    chainProvider: BlockchainProvider | undefined;
+    chainProvider: ChainProvider | undefined;
 }
 export interface UseFeedOptions extends Options {
     subplebbitAddresses: string[];
@@ -125,13 +125,31 @@ export interface UseBufferedFeedsOptions extends Options {
 export interface UseBufferedFeedsResult extends Result {
     bufferedFeeds: Comment[][];
 }
+export interface UseAuthorOptions extends Options {
+    authorAddress?: string;
+    commentCid?: string;
+}
+export interface UseAuthorResult extends Result {
+    author: Author | undefined;
+}
+export interface UseAuthorCommentsOptions extends Options {
+    authorAddress?: string;
+    commentCid?: string;
+    filter?: AccountPublicationsFilter;
+}
+export interface UseAuthorCommentsResult extends Result {
+    authorComments: (Comment | undefined)[];
+    lastCommentCid: string | undefined;
+    hasMore: boolean;
+    loadMore(): Promise<void>;
+}
 export interface UseResolvedAuthorAddressOptions extends Options {
     author?: Author;
     cache?: boolean;
 }
 export interface UseResolvedAuthorAddressResult extends Result {
     resolvedAddress: string | undefined;
-    chainProvider: BlockchainProvider | undefined;
+    chainProvider: ChainProvider | undefined;
 }
 export interface UseAuthorAvatarOptions extends Options {
     author?: Author;
@@ -139,7 +157,7 @@ export interface UseAuthorAvatarOptions extends Options {
 export interface UseAuthorAvatarResult extends Result {
     imageUrl: string | undefined;
     metadataUrl: string | undefined;
-    chainProvider: BlockchainProvider | undefined;
+    chainProvider: ChainProvider | undefined;
 }
 export interface UsePublishCommentOptions extends Options {
     onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
@@ -206,6 +224,7 @@ export interface UseSubscribeResult extends Result {
 }
 export interface UseBlockOptions extends Options {
     address?: string;
+    cid?: string;
 }
 export interface UseBlockResult extends Result {
     blocked: boolean | undefined;
@@ -265,7 +284,7 @@ export declare type SubplebbitEdit = {
 export declare type Subplebbit = {
     [key: string]: any;
 };
-export declare type SubplebbitMetrics = {
+export declare type SubplebbitStats = {
     [key: string]: any;
 };
 export declare type Notification = {
@@ -376,6 +395,25 @@ export declare type SubplebbitsPages = {
     [pageCid: string]: SubplebbitPage;
 };
 /**
+ * Authors comments store
+ */
+export declare type AuthorsComments = {
+    [authorCommentsName: string]: Comment[];
+};
+export declare type AuthorCommentsOptions = {
+    authorAddress: string;
+    pageNumber: number;
+    filter?: AuthorCommentsFilter;
+    accountId: string;
+};
+export declare type AuthorsCommentsOptions = {
+    [authorCommentsName: string]: FeedOptions;
+};
+export declare type AuthorCommentsFilter = {
+    subplebbitAddresses?: string[];
+    hasParentCid?: boolean;
+};
+/**
  * Accounts hooks
  */
 export declare type AccountPublicationsFilter = {
@@ -388,10 +426,10 @@ export declare type AccountPublicationsFilter = {
 /**
  * Other
  */
-export declare type BlockchainProvider = {
+export declare type ChainProvider = {
     chainId?: number;
     url?: string;
 };
-export declare type BlockchainProviders = {
-    [chainTicker: string]: BlockchainProvider;
+export declare type ChainProviders = {
+    [chainTicker: string]: ChainProvider;
 };

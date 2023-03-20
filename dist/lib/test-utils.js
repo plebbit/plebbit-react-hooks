@@ -12,6 +12,7 @@ import { resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore } from '../stor
 import { resetAccountsStore, resetAccountsDatabaseAndStore } from '../stores/accounts';
 import { resetFeedsStore, resetFeedsDatabaseAndStore } from '../stores/feeds';
 import { resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore } from '../stores/subplebbits-pages';
+import { resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore } from '../stores/authors-comments';
 const restorables = [];
 export const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
@@ -31,6 +32,21 @@ export const silenceTestWasNotWrappedInActWarning = () => {
     const originalError = console.error;
     console.error = (...args) => {
         if (/inside a test was not wrapped in act/.test(args[0])) {
+            return;
+        }
+        originalError.call(console, ...args);
+    };
+    const restore = () => {
+        console.error = originalError;
+    };
+    restorables.push(restore);
+    return restore;
+};
+// this warning is usually good to have, so don't include it in silenceReactWarnings
+export const silenceOverlappingActWarning = () => {
+    const originalError = console.error;
+    console.error = (...args) => {
+        if (/overlapping act\(\) calls/.test(args[0])) {
             return;
         }
         originalError.call(console, ...args);
@@ -80,25 +96,35 @@ const createWaitFor = (rendered, waitForOptions) => {
     });
     return waitFor;
 };
+// always reset the least important store first, because a store even can affect another store
 export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetAuthorsCommentsStore();
     yield resetSubplebbitsPagesStore();
     yield resetFeedsStore();
     yield resetSubplebbitsStore();
     yield resetCommentsStore();
     // always accounts last because it has async initialization
     yield resetAccountsStore();
+    // reset comments again, for some reason it is needed sometimes or
+    // comments from a previous test will be in the comments store, don't know why
+    yield resetCommentsStore();
 });
 export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetAuthorsCommentsDatabaseAndStore();
     yield resetSubplebbitsPagesDatabaseAndStore();
     yield resetFeedsDatabaseAndStore();
     yield resetSubplebbitsDatabaseAndStore();
     yield resetCommentsDatabaseAndStore();
     // always accounts last because it has async initialization
     yield resetAccountsDatabaseAndStore();
+    // reset comments again, for some reason it is needed sometimes or
+    // comments from a previous test will be in the comments store, don't know why
+    yield resetCommentsDatabaseAndStore();
 });
 const testUtils = {
     silenceTestWasNotWrappedInActWarning,
     silenceUpdateUnmountedComponentWarning,
+    silenceOverlappingActWarning,
     silenceReactWarnings,
     restoreAll,
     resetStores,

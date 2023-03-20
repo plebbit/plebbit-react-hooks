@@ -7,9 +7,9 @@ declare const utils: {
     flattenCommentsPages: (pageInstanceOrPagesInstance: any) => any[];
     memo: (functionToMemo: Function, memoOptions: any) => (...args: any) => Promise<any>;
     memoSync: (functionToMemo: Function, memoOptions: any) => (...args: any) => any;
-    retryInfinity: (f: any) => any;
+    retryInfinity: (f: any, o?: any) => any;
     retryInfinityMinTimeout: number;
     retryInfinityMaxTimeout: number;
 };
-export declare const retryInfinity: (functionToRetry: any) => Promise<any>;
+export declare const retryInfinity: (functionToRetry: any, options?: any) => Promise<any>;
 export default utils;

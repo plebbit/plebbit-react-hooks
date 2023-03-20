@@ -3,6 +3,7 @@ import { useAccount } from './accounts';
 import validator from '../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:comments:hooks');
+import assert from 'assert';
 import useCommentsStore from '../stores/comments';
 import useAccountsStore from '../stores/accounts';
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages';
@@ -13,6 +14,7 @@ import shallow from 'zustand/shallow';
  * the active account.
  */
 export function useComment(options) {
+    assert(!options || typeof options === 'object', `useComment options argument '${options}' not an object`);
     const { commentCid, accountName } = options || {};
     const account = useAccount({ accountName });
     const commentFromStore = useCommentsStore((state) => state.comments[commentCid || '']);
@@ -54,6 +56,7 @@ export function useComment(options) {
  * the active account.
  */
 export function useComments(options) {
+    assert(!options || typeof options === 'object', `useComments options argument '${options}' not an object`);
     const { commentCids, accountName } = options || {};
     const account = useAccount({ accountName });
     const commentsStoreComments = useCommentsStore((state) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']), shallow);

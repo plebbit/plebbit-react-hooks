@@ -97,12 +97,12 @@ export class Plebbit extends EventEmitter {
             yield simulateLoadingTime();
             const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: commentCid + ' ipns name', 
                 // useComment() requires timestamp or will use account comment instead of comment from store
-                timestamp: 1670000000 }, this.commentToGet());
+                timestamp: 1670000000 }, this.commentToGet(commentCid));
             return new Comment(createCommentOptions);
         });
     }
     // mock this method to get a comment with different content, timestamp, address, etc
-    commentToGet() {
+    commentToGet(commentCid) {
         return {
         // content: 'mock some content'
         // author: {address: 'mock some address'},
@@ -126,7 +126,7 @@ export class Plebbit extends EventEmitter {
     }
     fetchCid(cid) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (cid === null || cid === void 0 ? void 0 : cid.startsWith('metricscid')) {
+            if (cid === null || cid === void 0 ? void 0 : cid.startsWith('statscid')) {
                 return JSON.stringify({ hourActiveUserCount: 1 });
             }
             throw Error(`plebbit.fetchCid not implemented in plebbit-js mock for cid '${cid}'`);
@@ -157,7 +157,7 @@ export class Subplebbit extends EventEmitter {
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
         this.posts = new Pages({ subplebbit: this });
-        this.metricsCid = 'metricscid';
+        this.statsCid = 'statscid';
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -317,6 +317,7 @@ export class Comment extends Publication {
         this.timestamp = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.timestamp;
         this.parentCid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.parentCid;
         this.replies = new Pages({ comment: this });
+        this.subplebbitAddress = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.subplebbitAddress;
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {

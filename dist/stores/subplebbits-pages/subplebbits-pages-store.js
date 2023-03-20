@@ -23,13 +23,13 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
     subplebbitsPages: {},
     comments: {},
     addNextSubplebbitPageToStore: (subplebbit, sortType, account) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c;
         assert((subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) && typeof (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`);
         assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`);
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`);
         // check the preloaded posts on subplebbit.posts.pages first, then the subplebbit.posts.pageCids
         const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType);
-        assert(subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts?.pageCids?.['${sortType}'] '${(_c = (_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.pageCids) === null || _c === void 0 ? void 0 : _c[sortType]}' invalid`);
+        assert(subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address}' sortType '${sortType}' subplebbitFirstPageCid '${subplebbitFirstPageCid}' invalid`);
         // all subplebbits pages in store
         const { subplebbitsPages } = getState();
         // only specific pages of the subplebbit+sortType
@@ -40,7 +40,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
             pageCidToAdd = subplebbitFirstPageCid;
         }
         else {
-            const nextCid = (_d = subplebbitPages[subplebbitPages.length - 1]) === null || _d === void 0 ? void 0 : _d.nextCid;
+            const nextCid = (_b = subplebbitPages[subplebbitPages.length - 1]) === null || _b === void 0 ? void 0 : _b.nextCid;
             // if last nextCid is undefined, reached end of pages
             if (!nextCid) {
                 log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore no more pages', { subplebbitAddress: subplebbit.address, sortType, account });
@@ -74,7 +74,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         let hasNewComments = false;
         const newComments = {};
         for (const comment of flattenedComments) {
-            if (comment.cid && (comment.updatedAt || 0) > (((_e = comments[comment.cid]) === null || _e === void 0 ? void 0 : _e.updatedAt) || 0)) {
+            if (comment.cid && (comment.updatedAt || 0) > (((_c = comments[comment.cid]) === null || _c === void 0 ? void 0 : _c.updatedAt) || 0)) {
                 // don't clone the comment to save memory, comments remain a pointer to the page object
                 newComments[comment.cid] = comment;
                 hasNewComments = true;
@@ -107,8 +107,9 @@ const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, voi
         return cachedSubplebbitPage;
     }
     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
-    const fetchedSubplebbitPage = yield utils.retryInfinity(() => subplebbit.posts.getPage(pageCid));
-    yield subplebbitsPagesDatabase.setItem(pageCid, fetchedSubplebbitPage);
+    const onError = (error) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error);
+    const fetchedSubplebbitPage = yield utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), { onError });
+    yield subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage));
     return fetchedSubplebbitPage;
 });
 /**

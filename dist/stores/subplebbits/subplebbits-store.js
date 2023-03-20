@@ -45,7 +45,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
             // subplebbit not in database, try to fetch from plebbit-js
             if (!subplebbit) {
                 try {
-                    subplebbit = yield utils.retryInfinity(() => account.plebbit.getSubplebbit(subplebbitAddress));
+                    const onError = (error) => log.error(`subplebbitsStore.addSubplebbitToStore failed plebbit.getSubplebbit address '${subplebbitAddress}':`, error);
+                    subplebbit = yield utils.retryInfinity(() => account.plebbit.getSubplebbit(subplebbitAddress), { onError });
                     log.trace('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', { subplebbitAddress, subplebbit, account });
                     // if a subplebbit has a role with an account's address add it to the account.subplebbits
                     accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbit);

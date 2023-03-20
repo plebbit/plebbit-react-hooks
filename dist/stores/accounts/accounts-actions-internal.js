@@ -28,7 +28,8 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
             // and doesn't have a cid, so has no way to know the ipns name
             return;
         }
-        comment = yield utils.retryInfinity(() => account.plebbit.getComment(comment.cid));
+        const onError = (error) => log.error(`startUpdatingAccountCommentOnCommentUpdateEvents failed plebbit.getComment cid '${comment === null || comment === void 0 ? void 0 : comment.cid}' index '${accountCommentIndex}':`, error);
+        comment = yield utils.retryInfinity(() => account.plebbit.getComment(comment.cid, { onError }));
     }
     // account comment already updating
     if (accountsStore.getState().accountsCommentsUpdating[comment.cid]) {
