@@ -158,7 +158,8 @@ export const verifyAuthorAvatarSignature = (nft, authorAddress, chainProviders) 
     var _a, _b, _c, _d;
     assert(nft && typeof nft === 'object', `verifyAuthorAvatarSignature invalid nft argument '${nft}'`);
     assert(nft === null || nft === void 0 ? void 0 : nft.address, `verifyAuthorAvatarSignature invalid nft.address '${nft === null || nft === void 0 ? void 0 : nft.address}'`);
-    assert(nft === null || nft === void 0 ? void 0 : nft.id, `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft === null || nft === void 0 ? void 0 : nft.id}'`);
+    assert((nft === null || nft === void 0 ? void 0 : nft.id) && typeof (nft === null || nft === void 0 ? void 0 : nft.id) === 'string', `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft === null || nft === void 0 ? void 0 : nft.id}' not a string`);
+    assert(typeof (nft === null || nft === void 0 ? void 0 : nft.timestamp) === 'number', `verifyAuthorAvatarSignature invalid nft.timestamp '${nft === null || nft === void 0 ? void 0 : nft.timestamp}' not a number`);
     assert(nft === null || nft === void 0 ? void 0 : nft.signature, `verifyAuthorAvatarSignature invalid nft.signature '${nft === null || nft === void 0 ? void 0 : nft.signature}'`);
     assert((_a = nft === null || nft === void 0 ? void 0 : nft.signature) === null || _a === void 0 ? void 0 : _a.signature, `verifyAuthorAvatarSignature invalid nft.signature.signature '${(_b = nft === null || nft === void 0 ? void 0 : nft.signature) === null || _b === void 0 ? void 0 : _b.signature}'`);
     assert(authorAddress, `verifyAuthorAvatarSignature invalid authorAddress '${authorAddress}'`);
@@ -168,9 +169,11 @@ export const verifyAuthorAvatarSignature = (nft, authorAddress, chainProviders) 
     // the property names must be in this order for the signature to match
     // insert props one at a time otherwise babel/webpack will reorder
     messageThatShouldBeSigned.domainSeparator = 'plebbit-author-avatar';
-    messageThatShouldBeSigned.tokenAddress = nft.address;
-    messageThatShouldBeSigned.tokenId = String(nft.id); // must be string type, not number
     messageThatShouldBeSigned.authorAddress = authorAddress;
+    messageThatShouldBeSigned.timestamp = nft.timestamp;
+    messageThatShouldBeSigned.tokenAddress = nft.address;
+    messageThatShouldBeSigned.tokenId = nft.id; // must be a type string, not number
+    // use plain JSON so the user can read what he's signing
     messageThatShouldBeSigned = JSON.stringify(messageThatShouldBeSigned);
     const signatureAddress = ethers.utils.verifyMessage(messageThatShouldBeSigned, nft.signature.signature);
     let verified = true;
