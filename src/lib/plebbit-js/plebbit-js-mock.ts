@@ -90,13 +90,15 @@ export class Plebbit extends EventEmitter {
     const createCommentOptions = {
       cid: commentCid,
       ipnsName: commentCid + ' ipns name',
-      ...this.commentToGet(),
+      // useComment() requires timestamp or will use account comment instead of comment from store
+      timestamp: 1670000000,
+      ...this.commentToGet(commentCid),
     }
     return new Comment(createCommentOptions)
   }
 
   // mock this method to get a comment with different content, timestamp, address, etc
-  commentToGet() {
+  commentToGet(commentCid?: string) {
     return {
       // content: 'mock some content'
       // author: {address: 'mock some address'},
@@ -149,7 +151,8 @@ export class Subplebbit extends EventEmitter {
   title: string | undefined
   description: string | undefined
   posts: Pages
-  statsCid: string
+  updatedAt: number | undefined
+  statsCid: string | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -190,6 +193,7 @@ export class Subplebbit extends EventEmitter {
 
   simulateUpdateEvent() {
     this.description = this.address + ' description updated'
+    this.updatedAt = Math.floor(Date.now() / 1000)
     this.emit('update', this)
   }
 
@@ -326,6 +330,8 @@ export class Comment extends Publication {
   content: string | undefined
   parentCid: string | undefined
   replies: any
+  updatedAt: number | undefined
+  subplebbitAddress: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -338,6 +344,7 @@ export class Comment extends Publication {
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
     this.replies = new Pages({comment: this})
+    this.subplebbitAddress = createCommentOptions?.subplebbitAddress
   }
 
   async update() {
@@ -365,6 +372,7 @@ export class Comment extends Publication {
     // simulate finding vote counts on an IPNS record
     this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+    this.updatedAt = Math.floor(Date.now() / 1000)
     this.emit('update', this)
   }
 }

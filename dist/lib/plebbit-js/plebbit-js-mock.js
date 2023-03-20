@@ -95,7 +95,9 @@ export class Plebbit extends EventEmitter {
     getComment(commentCid) {
         return __awaiter(this, void 0, void 0, function* () {
             yield simulateLoadingTime();
-            const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: commentCid + ' ipns name' }, this.commentToGet());
+            const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: commentCid + ' ipns name', 
+                // useComment() requires timestamp or will use account comment instead of comment from store
+                timestamp: 1670000000 }, this.commentToGet());
             return new Comment(createCommentOptions);
         });
     }
@@ -187,6 +189,7 @@ export class Subplebbit extends EventEmitter {
     }
     simulateUpdateEvent() {
         this.description = this.address + ' description updated';
+        this.updatedAt = Math.floor(Date.now() / 1000);
         this.emit('update', this);
     }
     // use getting to easily mock it
@@ -339,6 +342,7 @@ export class Comment extends Publication {
         // simulate finding vote counts on an IPNS record
         this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3;
         this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1;
+        this.updatedAt = Math.floor(Date.now() / 1000);
         this.emit('update', this);
     }
 }

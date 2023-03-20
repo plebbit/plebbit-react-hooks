@@ -19,7 +19,7 @@ export declare const getFeedAfterIncrementPageNumber: (feedName: string, feedOpt
     bufferedFeedSubplebbitsPostCounts: import("../../types").FeedSubplebbitsPostCounts;
     feedHasMore: boolean;
 };
-export declare const getFeedsSubplebbits: (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => Map<string, any>;
+export declare const getFeedsSubplebbits: (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => Map<string, Subplebbit>;
 export declare const feedsSubplebbitsChanged: (previousFeedsSubplebbits: Map<string, Subplebbit>, feedsSubplebbits: Map<string, Subplebbit>) => boolean;
 export declare const getFeedsSubplebbitsFirstPageCids: (feedsSubplebbits: Map<string, Subplebbit>) => string[];
 export declare const getAccountsBlockedAddresses: (accounts: Accounts) => string[];

@@ -1,10 +1,13 @@
-import { Nft, BlockchainProviders } from '../../types';
-export declare const getNftImageUrl: (nft: Nft, ipfsGatewayUrl: string, blockchainProviders: BlockchainProviders) => Promise<any>;
-export declare const resolveEnsTxtRecord: (ensName: string, txtRecordName: string, blockchainProviders: BlockchainProviders) => Promise<any>;
-export declare const getBlockchainProvider: (chainTicker: string, blockchainProviders: BlockchainProviders) => any;
+export declare const getNftImageUrl: (...args: any) => Promise<any>;
+export declare const getNftMetadataUrl: (...args: any) => Promise<any>;
+export declare const getNftOwnerNoCache: (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number) => Promise<any>;
+export declare const getNftOwner: (...args: any) => Promise<any>;
+export declare const resolveEnsTxtRecordNoCache: (ensName: string, txtRecordName: string, chainTicker: string, chainProviderUrl?: string | undefined, chainId?: number | undefined) => Promise<any>;
+export declare const resolveEnsTxtRecord: (...args: any) => Promise<any>;
 declare const _default: {
-    getNftImageUrl: (nft: any, ipfsGatewayUrl: string, blockchainProviders: BlockchainProviders) => Promise<any>;
-    resolveEnsTxtRecord: (ensName: string, txtRecordName: string, blockchainProviders: BlockchainProviders) => Promise<any>;
-    getBlockchainProvider: (chainTicker: string, blockchainProviders: BlockchainProviders) => any;
+    getNftOwner: (...args: any) => Promise<any>;
+    getNftMetadataUrl: (...args: any) => Promise<any>;
+    getNftImageUrl: (...args: any) => Promise<any>;
+    resolveEnsTxtRecord: (...args: any) => Promise<any>;
 };
 export default _default;

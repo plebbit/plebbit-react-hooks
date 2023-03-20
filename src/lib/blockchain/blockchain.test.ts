@@ -37,13 +37,12 @@ describe('blockchain', () => {
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
     test.skip('getNftImageUrl (cache and pending)', async () => {
-      const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
-      console.log(url)
-      const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
-      console.log(cachedUrl)
-
-      const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders)])
-      console.log(res)
+      // const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
+      // console.log(url)
+      // const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, blockchainProviders)
+      // console.log(cachedUrl)
+      // const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, blockchainProviders)])
+      // console.log(res)
     })
   })
 })

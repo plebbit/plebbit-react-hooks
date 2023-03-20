@@ -7,11 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAccount } from './accounts';
 import validator from '../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:hooks:subplebbits');
+const log = Logger('plebbit-react-hooks:subplebbits:hooks');
 import useInterval from './utils/use-interval';
 import { resolveEnsTxtRecord } from '../lib/blockchain';
 import useSubplebbitsStore from '../stores/subplebbits';
@@ -21,8 +21,9 @@ import shallow from 'zustand/shallow';
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbit(subplebbitAddress, accountName) {
-    const account = useAccount(accountName);
+export function useSubplebbit(options) {
+    const { subplebbitAddress, accountName } = options || {};
+    const account = useAccount({ accountName });
     const subplebbit = useSubplebbitsStore((state) => state.subplebbits[subplebbitAddress || '']);
     const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
     useEffect(() => {
@@ -38,16 +39,18 @@ export function useSubplebbit(subplebbitAddress, accountName) {
     if (account && subplebbitAddress) {
         log('useSubplebbit', { subplebbitAddress, subplebbit, account });
     }
-    return subplebbit;
+    const state = subplebbit ? 'succeeded' : 'fetching-ipns';
+    return useMemo(() => (Object.assign(Object.assign({}, subplebbit), { state, error: undefined, errors: [] })), [subplebbit, subplebbitAddress]);
 }
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbitMetrics(subplebbitAddress, accountName) {
-    const account = useAccount(accountName);
-    const subplebbit = useSubplebbit(subplebbitAddress);
+export function useSubplebbitMetrics(options) {
+    const { subplebbitAddress, accountName } = options || {};
+    const account = useAccount({ accountName });
+    const subplebbit = useSubplebbit({ subplebbitAddress });
     const subplebbitMetricsCid = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.metricsCid;
     const [subplebbitMetrics, setSubplebbitMetrics] = useState();
     useEffect(() => {
@@ -70,16 +73,18 @@ export function useSubplebbitMetrics(subplebbitAddress, accountName) {
     if (account && subplebbitMetricsCid) {
         log('useSubplebbitMetrics', { subplebbitAddress, subplebbitMetricsCid, subplebbitMetrics, subplebbit, account });
     }
-    return subplebbitMetrics;
+    const state = subplebbitMetrics ? 'succeeded' : 'fetching-ipfs';
+    return useMemo(() => (Object.assign(Object.assign({}, subplebbitMetrics), { state, error: undefined, errors: [] })), [subplebbitMetrics, subplebbitMetricsCid]);
 }
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useSubplebbits(subplebbitAddresses = [], accountName) {
-    const account = useAccount(accountName);
-    const subplebbits = useSubplebbitsStore((state) => subplebbitAddresses.map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']), shallow);
+export function useSubplebbits(options) {
+    const { subplebbitAddresses, accountName } = options || {};
+    const account = useAccount({ accountName });
+    const subplebbits = useSubplebbitsStore((state) => (subplebbitAddresses || []).map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']), shallow);
     const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
     useEffect(() => {
         if (!subplebbitAddresses || !account) {
@@ -90,11 +95,18 @@ export function useSubplebbits(subplebbitAddresses = [], accountName) {
         for (const subplebbitAddress of uniqueSubplebbitAddresses) {
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => log.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));
         }
-    }, [subplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
+    }, [subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.toString(), account === null || account === void 0 ? void 0 : account.id]);
     if (account && (subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.length)) {
         log('useSubplebbits', { subplebbitAddresses, subplebbits, account });
     }
-    return subplebbits;
+    // succeed if no subplebbits are undefined
+    const state = subplebbits.indexOf(undefined) === -1 ? 'succeeded' : 'fetching-ipns';
+    return useMemo(() => ({
+        subplebbits,
+        state,
+        error: undefined,
+        errors: [],
+    }), [subplebbits, subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.toString()]);
 }
 /**
  * Returns all the owner subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
@@ -109,7 +121,7 @@ export function useListSubplebbits() {
             return;
         }
         account.plebbit.listSubplebbits().then((_subplebbitAddresses) => {
-            if (JSON.stringify(_subplebbitAddresses) === JSON.stringify(subplebbitAddresses)) {
+            if (_subplebbitAddresses.toString() === subplebbitAddresses.toString()) {
                 return;
             }
             log('useListSubplebbits', { subplebbitAddresses });
@@ -124,41 +136,97 @@ export function useListSubplebbits() {
  * the active account.
  */
 // NOTE: useResolvedSubplebbitAddress tests are skipped, if changes are made they must be tested manually
-export function useResolvedSubplebbitAddress(subplebbitAddress, accountName) {
+export function useResolvedSubplebbitAddress(options) {
     var _a;
-    const account = useAccount(accountName);
+    let { subplebbitAddress, accountName, cache } = options || {};
+    // cache by default
+    if (cache === undefined) {
+        cache = true;
+    }
+    // poll every 15 seconds, about the duration of an eth block
+    let interval = 15000;
+    // no point in polling often if caching is on
+    if (cache) {
+        interval = 1000 * 60 * 60 * 25;
+    }
+    const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
     const blockchainProviders = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.blockchainProviders;
-    const [resolvedSubplebbitAddress, setResolvedSubplebbitAddress] = useState();
+    const [resolvedAddress, setResolvedAddress] = useState();
+    const [errors, setErrors] = useState([]);
+    const [state, setState] = useState();
+    let initialState = 'initializing';
+    // before those defined, nothing can happen
+    if (options && account && subplebbitAddress) {
+        initialState = 'ready';
+    }
     useInterval(() => {
-        // only support resolving '.eth' for now
-        if (!(subplebbitAddress === null || subplebbitAddress === void 0 ? void 0 : subplebbitAddress.endsWith('.eth'))) {
+        // no options, do nothing or reset
+        if (!account || !subplebbitAddress) {
+            if (resolvedAddress !== undefined) {
+                setResolvedAddress(undefined);
+            }
+            if (state !== undefined) {
+                setState(undefined);
+            }
+            if (errors.length) {
+                setErrors([]);
+            }
             return;
         }
-        if (!account || !subplebbitAddress) {
+        // address isn't a crypto domain, can't be resolved
+        if (!(subplebbitAddress === null || subplebbitAddress === void 0 ? void 0 : subplebbitAddress.includes('.'))) {
+            if (state !== 'failed') {
+                setErrors([Error('not a crypto domain')]);
+                setState('failed');
+                setResolvedAddress(undefined);
+            }
+            return;
+        }
+        // only support resolving '.eth' for now
+        if (!(subplebbitAddress === null || subplebbitAddress === void 0 ? void 0 : subplebbitAddress.endsWith('.eth'))) {
+            if (state !== 'failed') {
+                setErrors([Error('crypto domain type unsupported')]);
+                setState('failed');
+                setResolvedAddress(undefined);
+            }
             return;
         }
         ;
         (() => __awaiter(this, void 0, void 0, function* () {
             try {
+                setState('resolving');
                 const res = yield resolveSubplebbitAddress(subplebbitAddress, blockchainProviders);
-                if (res !== resolvedSubplebbitAddress) {
-                    setResolvedSubplebbitAddress(res);
+                setState('succeeded');
+                if (res !== resolvedAddress) {
+                    setResolvedAddress(res);
                 }
             }
             catch (error) {
+                setErrors([...errors, error]);
+                setState('failed');
+                setResolvedAddress(undefined);
                 log.error('useResolvedSubplebbitAddress resolveSubplebbitAddress error', { subplebbitAddress, blockchainProviders, error });
             }
         }))();
-    }, 15000, true, [subplebbitAddress, blockchainProviders]);
-    // log('useResolvedSubplebbitAddress', {subplebbitAddress, resolvedSubplebbitAddress, blockchainProviders})
-    return resolvedSubplebbitAddress;
+    }, interval, true, [subplebbitAddress, blockchainProviders]);
+    // only support ENS at the moment
+    const chainProvider = blockchainProviders === null || blockchainProviders === void 0 ? void 0 : blockchainProviders['eth'];
+    // log('useResolvedSubplebbitAddress', {subplebbitAddress, state, errors, resolvedAddress, blockchainProviders})
+    return {
+        resolvedAddress,
+        chainProvider,
+        state: state || initialState,
+        error: errors[errors.length - 1],
+        errors,
+    };
 }
 // NOTE: resolveSubplebbitAddress tests are skipped, if changes are made they must be tested manually
 export const resolveSubplebbitAddress = (subplebbitAddress, blockchainProviders) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     let resolvedSubplebbitAddress;
     if (subplebbitAddress.endsWith('.eth')) {
-        resolvedSubplebbitAddress = yield resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', blockchainProviders);
+        resolvedSubplebbitAddress = yield resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', 'eth', (_a = blockchainProviders === null || blockchainProviders === void 0 ? void 0 : blockchainProviders['eth']) === null || _a === void 0 ? void 0 : _a.url, (_b = blockchainProviders === null || blockchainProviders === void 0 ? void 0 : blockchainProviders['eth']) === null || _b === void 0 ? void 0 : _b.chainId);
     }
     else {
         throw Error(`resolveSubplebbitAddress invalid subplebbitAddress '${subplebbitAddress}'`);

@@ -1,13 +1,27 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:accounts:stores')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
-import {Subplebbit, AccountNamesToAccountIds, Account, Accounts, AccountsActions, Comment, AccountComment, AccountsComments, AccountsCommentsReplies} from '../../types'
+import {
+  Subplebbit,
+  AccountNamesToAccountIds,
+  Account,
+  Accounts,
+  AccountsActions,
+  Comment,
+  AccountsVotes,
+  AccountsEdits,
+  AccountComment,
+  AccountsComments,
+  AccountsCommentsReplies,
+  CommentCidsToAccountsComments,
+} from '../../types'
 import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'
 import localForage from 'localforage'
+import {getCommentCidsToAccountsComments} from './utils'
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -18,11 +32,13 @@ type AccountsState = {
   activeAccountId: string | undefined
   accountNamesToAccountIds: AccountNamesToAccountIds
   accountsComments: AccountsComments
-  accountsCommentsUpdating: {[commendCid: string]: boolean}
+  commentCidsToAccountsComments: CommentCidsToAccountsComments
+  accountsCommentsUpdating: {[commentCid: string]: boolean}
   accountsCommentsReplies: AccountsCommentsReplies
-  accountsVotes: any
-  accountsActions: {[key: string]: Function}
-  accountsActionsInternal: {[key: string]: Function}
+  accountsVotes: AccountsVotes
+  accountsEdits: AccountsEdits
+  accountsActions: {[functionName: string]: Function}
+  accountsActionsInternal: {[functionName: string]: Function}
 }
 
 const accountsStore = createStore<AccountsState>((setState: Function, getState: Function) => ({
@@ -31,9 +47,11 @@ const accountsStore = createStore<AccountsState>((setState: Function, getState: 
   activeAccountId: undefined,
   accountNamesToAccountIds: {},
   accountsComments: {},
+  commentCidsToAccountsComments: {},
   accountsCommentsUpdating: {},
   accountsCommentsReplies: {},
   accountsVotes: {},
+  accountsEdits: {},
   accountsActions,
   accountsActionsInternal,
 }))
@@ -70,12 +88,24 @@ const initializeAccountsStore = async () => {
       )}'`
     )
   }
-  const [accountsComments, accountsVotes, accountsCommentsReplies] = await Promise.all<any>([
+  const [accountsComments, accountsVotes, accountsCommentsReplies, accountsEdits] = await Promise.all<any>([
     accountsDatabase.getAccountsComments(accountIds),
     accountsDatabase.getAccountsVotes(accountIds),
     accountsDatabase.getAccountsCommentsReplies(accountIds),
+    accountsDatabase.getAccountsEdits(accountIds),
   ])
-  accountsStore.setState((state) => ({accounts, accountIds, activeAccountId, accountNamesToAccountIds, accountsComments, accountsVotes, accountsCommentsReplies}))
+  const commentCidsToAccountsComments = getCommentCidsToAccountsComments(accountsComments)
+  accountsStore.setState((state) => ({
+    accounts,
+    accountIds,
+    activeAccountId,
+    accountNamesToAccountIds,
+    accountsComments,
+    commentCidsToAccountsComments,
+    accountsVotes,
+    accountsCommentsReplies,
+    accountsEdits,
+  }))
 
   // start looking for updates for all accounts comments in database
   for (const accountId in accountsComments) {
@@ -122,7 +152,7 @@ const initializeStartSubplebbits = async () => {
   const startSubplebbitsPollTime = 10000
   startSubplebbitsInterval = setInterval(() => {
     const {accounts, activeAccountId} = accountsStore.getState()
-    const account = activeAccountId && accounts?.[activeAccountId]
+    const account = accounts?.[activeAccountId || '']
     if (!account?.plebbit) {
       return
     }
@@ -138,7 +168,8 @@ const initializeStartSubplebbits = async () => {
           startedSubplebbits[subplebbitAddress] = subplebbit
           log('subplebbit started', {subplebbit})
         } catch (error) {
-          log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
+          // don't log start errors, too much spam
+          // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
         }
         pendingStartedSubplebbits[subplebbitAddress] = false
       }
@@ -148,6 +179,13 @@ const initializeStartSubplebbits = async () => {
 
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
+const waitForInitialized = async () => {
+  while (isInitializing()) {
+    // uncomment to debug accounts init
+    // console.warn(`can't reset accounts store while initializing, waiting 100ms`)
+    await new Promise((r) => setTimeout(r, 100))
+  }
+}
 
 ;(async () => {
   // don't initialize on load multiple times when loading the file multiple times during karma tests
@@ -181,10 +219,7 @@ const originalState = accountsStore.getState()
 // async function because some stores have async init
 export const resetAccountsStore = async () => {
   // don't reset while initializing, it could happen during quick successive tests
-  while (isInitializing()) {
-    console.warn(`can't reset accounts store while initializing, waiting 100ms`)
-    await new Promise((r) => setTimeout(r, 100))
-  }
+  await waitForInitialized()
 
   log('accounts store reset started')
 
@@ -205,10 +240,8 @@ export const resetAccountsStore = async () => {
 // reset database and store in between tests
 export const resetAccountsDatabaseAndStore = async () => {
   // don't reset while initializing, it could happen during quick successive tests
-  while (isInitializing()) {
-    console.warn(`can't reset accounts database while initializing, waiting 100ms`)
-    await new Promise((r) => setTimeout(r, 100))
-  }
+  await waitForInitialized()
+
   await Promise.all([localForage.createInstance({name: 'accountsMetadata'}).clear(), localForage.createInstance({name: 'accounts'}).clear()])
   await resetAccountsStore()
 }

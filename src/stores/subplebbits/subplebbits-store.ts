@@ -2,7 +2,7 @@ import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
 const subplebbitsDatabase = localForageLru.createInstance({name: 'subplebbits', size: 500})
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:stores:subplebbits')
+const log = Logger('plebbit-react-hooks:subplebbits:stores')
 import {Subplebbit, Subplebbits, Account, CreateSubplebbitOptions} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'
@@ -13,7 +13,7 @@ let plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type SubplebbitsState = {
+export type SubplebbitsState = {
   subplebbits: Subplebbits
   addSubplebbitToStore: Function
   editSubplebbit: Function

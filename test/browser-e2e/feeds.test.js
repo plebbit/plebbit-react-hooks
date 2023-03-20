@@ -38,7 +38,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     after(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
-    })    
+    })
 
     let rendered, waitFor
 

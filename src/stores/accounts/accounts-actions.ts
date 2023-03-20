@@ -7,7 +7,7 @@ import accountGenerator from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 import validator from '../../lib/validator'
 import assert from 'assert'
-const log = Logger('plebbit-react-hooks:stores:accounts')
+const log = Logger('plebbit-react-hooks:accounts:stores')
 import {
   Account,
   Accounts,
@@ -19,25 +19,31 @@ import {
   PublishSubplebbitEditOptions,
   CreateSubplebbitOptions,
   Subplebbits,
+  AccountComment,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
-import {getAccountSubplebbits} from './utils'
+import {getAccountSubplebbits, getCommentCidsToAccountsComments} from './utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
-  const {accounts, accountsComments, accountsVotes} = accountsStore.getState()
+  // add to database first to init the account
   await accountsDatabase.addAccount(newAccount)
-  const newAccounts = {...accounts, [newAccount.id]: newAccount}
+  // use database data for these because it's easier
   const [newAccountIds, newAccountNamesToAccountIds] = await Promise.all<any>([
     accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
     accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
   ])
 
+  // set the new state
+  const {accounts, accountsComments, accountsVotes, accountsEdits, accountsCommentsReplies} = accountsStore.getState()
+  const newAccounts = {...accounts, [newAccount.id]: newAccount}
   const newState: any = {
     accounts: newAccounts,
     accountIds: newAccountIds,
     accountNamesToAccountIds: newAccountNamesToAccountIds,
     accountsComments: {...accountsComments, [newAccount.id]: []},
     accountsVotes: {...accountsVotes, [newAccount.id]: {}},
+    accountsEdits: {...accountsEdits, [newAccount.id]: {}},
+    accountsCommentsReplies: {...accountsCommentsReplies, [newAccount.id]: {}},
   }
   // if there is only 1 account, make it active
   // otherwise stay on the same active account
@@ -144,29 +150,84 @@ export const setAccountsOrder = async (newOrderedAccountNames: string[]) => {
 export const importAccount = async (serializedAccount: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
-  let account
+  let imported
   try {
-    account = JSON.parse(serializedAccount)
+    imported = JSON.parse(serializedAccount)
   } catch (e) {}
-  assert(account && account?.id && account?.name, `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`)
+  assert(
+    imported?.account && imported?.account?.id && imported?.account?.name,
+    `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`
+  )
 
   // add subplebbit roles already in subplebbits store to imported account
   // TODO: add test to check if roles get added
-  const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits)
+  const subplebbits = getAccountSubplebbits(imported.account, subplebbitsStore.getState().subplebbits)
 
-  // if account.name already exists, add ' 2', don't overwrite
-  if (accountNamesToAccountIds[account.name]) {
-    account.name += ' 2'
+  // if imported.account.name already exists, add ' 2', don't overwrite
+  if (accountNamesToAccountIds[imported.account.name]) {
+    imported.account.name += ' 2'
   }
 
+  // generate new account
   const generatedAccount = await accountGenerator.generateDefaultAccount()
   // use generatedAccount to init properties like .plebbit and .id on a new account
   // overwrite account.id to avoid duplicate ids
-  const newAccount = {...generatedAccount, ...account, subplebbits, id: generatedAccount.id}
-  await addNewAccountToDatabaseAndState(newAccount)
-  log('accountsActions.importAccount', {account: newAccount})
+  const newAccount = {...generatedAccount, ...imported.account, subplebbits, id: generatedAccount.id}
 
-  // TODO: the 'account' should contain AccountComments and AccountVotes
+  // add account to database
+  await accountsDatabase.addAccount(newAccount)
+
+  // add account comments, votes, edits to database
+  for (const accountComment of imported.accountComments || []) {
+    await accountsDatabase.addAccountComment(newAccount.id, accountComment)
+  }
+  for (const accountVote of imported.accountVotes || []) {
+    await accountsDatabase.addAccountVote(newAccount.id, accountVote)
+  }
+  for (const accountEdit of imported.accountEdits || []) {
+    await accountsDatabase.addAccountEdit(newAccount.id, accountEdit)
+  }
+
+  // set new state
+
+  // get new state data from database because it's easier
+  const [accountComments, accountVotes, accountEdits, accountIds, newAccountNamesToAccountIds] = await Promise.all<any>([
+    accountsDatabase.getAccountComments(newAccount.id),
+    accountsDatabase.getAccountVotes(newAccount.id),
+    accountsDatabase.getAccountEdits(newAccount.id),
+    accountsDatabase.accountsMetadataDatabase.getItem('accountIds'),
+    accountsDatabase.accountsMetadataDatabase.getItem('accountNamesToAccountIds'),
+  ])
+
+  accountsStore.setState((state) => ({
+    accounts: {...state.accounts, [newAccount.id]: newAccount},
+    accountIds,
+    accountNamesToAccountIds: newAccountNamesToAccountIds,
+    accountsComments: {...state.accountsComments, [newAccount.id]: accountComments},
+    commentCidsToAccountsComments: getCommentCidsToAccountsComments({...state.accountsComments, [newAccount.id]: accountComments}),
+    accountsVotes: {...state.accountsVotes, [newAccount.id]: accountVotes},
+    accountsEdits: {...state.accountsEdits, [newAccount.id]: accountEdits},
+    // don't import/export replies to own comments, those are just cached and can be refetched
+    accountsCommentsReplies: {...state.accountsCommentsReplies, [newAccount.id]: {}},
+  }))
+
+  log('accountsActions.importAccount', {account: newAccount, accountComments, accountVotes, accountEdits})
+
+  // start looking for updates for all accounts comments in database
+  for (const accountComment of accountComments) {
+    accountsStore
+      .getState()
+      .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, newAccount, accountComment.index)
+      .catch((error: unknown) =>
+        log.error('accountsActions.importAccount startUpdatingAccountCommentOnCommentUpdateEvents error', {
+          accountComment,
+          accountCommentIndex: accountComment.index,
+          importedAccount: newAccount,
+          error,
+        })
+      )
+  }
+
   // TODO: add options to only import private key, account settings, or include all account comments/votes history
 }
 
@@ -179,15 +240,12 @@ export const exportAccount = async (accountName?: string) => {
     account = accounts[accountId]
   }
   assert(account?.id, `accountsActions.exportAccount account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
-  const accountJson = await accountsDatabase.getAccountJson(account.id)
-  log('accountsActions.exportAccount', {accountJson})
-  return accountJson
-
-  // TODO: the 'account' should contain AccountComments and AccountVotes
-  // TODO: add options to only export private key, account settings, or include all account comments/votes history
+  const exportedAccountJson = await accountsDatabase.getExportedAccountJson(account.id)
+  log('accountsActions.exportAccount', {exportedAccountJson})
+  return exportedAccountJson
 }
 
-export const subscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+export const subscribe = async (subplebbitAddress: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.subscribe invalid subplebbitAddress '${subplebbitAddress}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -204,7 +262,7 @@ export const subscribe = async (subplebbitAddress: string | number, accountName?
   }
   subscriptions.push(subplebbitAddress)
 
-  const updatedAccount = {...account, subscriptions}
+  const updatedAccount: Account = {...account, subscriptions}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -212,7 +270,7 @@ export const subscribe = async (subplebbitAddress: string | number, accountName?
   accountsStore.setState({accounts: updatedAccounts})
 }
 
-export const unsubscribe = async (subplebbitAddress: string | number, accountName?: string) => {
+export const unsubscribe = async (subplebbitAddress: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountsActions.unsubscribe invalid subplebbitAddress '${subplebbitAddress}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -230,7 +288,7 @@ export const unsubscribe = async (subplebbitAddress: string | number, accountNam
   // remove subplebbitAddress
   subscriptions = subscriptions.filter((address) => address !== subplebbitAddress)
 
-  const updatedAccount = {...account, subscriptions}
+  const updatedAccount: Account = {...account, subscriptions}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -238,7 +296,7 @@ export const unsubscribe = async (subplebbitAddress: string | number, accountNam
   accountsStore.setState({accounts: updatedAccounts})
 }
 
-export const blockAddress = async (address: string | number, accountName?: string) => {
+export const blockAddress = async (address: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(address && typeof address === 'string', `accountsActions.blockAddress invalid address '${address}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -255,7 +313,7 @@ export const blockAddress = async (address: string | number, accountName?: strin
   }
   blockedAddresses[address] = true
 
-  const updatedAccount = {...account, blockedAddresses}
+  const updatedAccount: Account = {...account, blockedAddresses}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -263,7 +321,7 @@ export const blockAddress = async (address: string | number, accountName?: strin
   accountsStore.setState({accounts: updatedAccounts})
 }
 
-export const unblockAddress = async (address: string | number, accountName?: string) => {
+export const unblockAddress = async (address: string, accountName?: string) => {
   const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(address && typeof address === 'string', `accountsActions.unblockAddress invalid address '${address}'`)
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
@@ -280,7 +338,7 @@ export const unblockAddress = async (address: string | number, accountName?: str
   }
   delete blockedAddresses[address]
 
-  const updatedAccount = {...account, blockedAddresses}
+  const updatedAccount: Account = {...account, blockedAddresses}
   // update account in db
   await accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
@@ -289,7 +347,7 @@ export const unblockAddress = async (address: string | number, accountName?: str
 }
 
 export const publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
-  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  const {accounts, accountsComments, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
   let account = accounts[activeAccountId]
   if (accountName) {
@@ -298,9 +356,17 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   }
   validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
-  let createCommentOptions = {
+  // find author.previousCommentCid if any
+  const accountCommentsWithCids = accountsComments[account.id].filter((comment: AccountComment) => comment.cid)
+  const previousCommentCid = accountCommentsWithCids[accountCommentsWithCids.length - 1]?.cid
+  const author = {...account.author}
+  if (previousCommentCid) {
+    author.previousCommentCid = previousCommentCid
+  }
+
+  let createCommentOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
-    author: account.author,
+    author,
     signer: account.signer,
     ...publishCommentOptions,
   }
@@ -328,11 +394,14 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         if (challengeVerification?.publication?.cid) {
           const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
           await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
-          accountsStore.setState(({accountsComments}) => {
+          accountsStore.setState(({accountsComments, commentCidsToAccountsComments}) => {
             const updatedAccountComments = [...accountsComments[account.id]]
             const updatedAccountComment = {...commentWithCid, index: accountCommentIndex, accountId: account.id}
             updatedAccountComments[accountCommentIndex] = updatedAccountComment
-            return {accountsComments: {...accountsComments, [account.id]: updatedAccountComments}}
+            return {
+              accountsComments: {...accountsComments, [account.id]: updatedAccountComments},
+              commentCidsToAccountsComments: {...commentCidsToAccountsComments, [challengeVerification?.publication?.cid]: {accountId: account.id, accountCommentIndex}},
+            }
           })
 
           accountsActionsInternal
@@ -386,7 +455,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   }
   validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
 
-  let createVoteOptions = {
+  let createVoteOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
@@ -426,7 +495,12 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   accountsStore.setState(({accountsVotes}) => ({
     accountsVotes: {
       ...accountsVotes,
-      [account.id]: {...accountsVotes[account.id], [createVoteOptions.commentCid]: createVoteOptions},
+      [account.id]: {
+        ...accountsVotes[account.id],
+        [createVoteOptions.commentCid]:
+          // remove signer and author because not needed and they expose private key
+          {...createVoteOptions, signer: undefined, author: undefined},
+      },
     },
   }))
 }
@@ -441,7 +515,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   }
   validator.validateAccountsActionsPublishCommentEditArguments({publishCommentEditOptions, accountName, account})
 
-  let createCommentEditOptions = {
+  let createCommentEditOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
@@ -476,9 +550,21 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   }
 
   publishAndRetryFailedChallengeVerification()
-  log('accountsActions.publishCommentEdit', {createCommentEditOptions})
 
-  // TODO: show pending edits somewhere
+  await accountsDatabase.addAccountEdit(account.id, createCommentEditOptions)
+  log('accountsActions.publishCommentEdit', {createCommentEditOptions})
+  accountsStore.setState(({accountsEdits}) => {
+    // remove signer and author because not needed and they expose private key
+    const commentEdit = {...createCommentEditOptions, signer: undefined, author: undefined}
+    let commentEdits = accountsEdits[account.id][createCommentEditOptions.commentCid] || []
+    commentEdits = [...commentEdits, commentEdit]
+    return {
+      accountsEdits: {
+        ...accountsEdits,
+        [account.id]: {...accountsEdits[account.id], [createCommentEditOptions.commentCid]: commentEdits},
+      },
+    }
+  })
 }
 
 export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string) => {
@@ -504,7 +590,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
     !publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress,
     `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`
   )
-  let createSubplebbitEditOptions = {
+  let createSubplebbitEditOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,

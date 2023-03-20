@@ -1,6 +1,6 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:stores:feeds')
+const log = Logger('plebbit-react-hooks:feeds:stores')
 import {Feed, Feeds, Subplebbit, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
@@ -32,7 +32,7 @@ export const subplebbitPostsLeftBeforeNextPage = 50
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type FeedsState = {
+export type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
   loadedFeeds: Feeds

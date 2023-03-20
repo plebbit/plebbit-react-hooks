@@ -73,7 +73,9 @@ const createWaitFor = (rendered, waitForOptions) => {
         catch (e) {
             // @ts-ignore
             errorWithUsefulStackTrace.message = `${e.message} ${waitForFunction.toString()}`;
-            console.warn(errorWithUsefulStackTrace);
+            if (!testUtils.silenceWaitForWarning) {
+                console.warn(errorWithUsefulStackTrace);
+            }
         }
     });
     return waitFor;
@@ -99,8 +101,10 @@ const testUtils = {
     silenceUpdateUnmountedComponentWarning,
     silenceReactWarnings,
     restoreAll,
-    createWaitFor,
     resetStores,
     resetDatabasesAndStores,
+    createWaitFor,
+    // can be useful to silence warnings in tests that use retry
+    silenceWaitForWarning: false,
 };
 export default testUtils;

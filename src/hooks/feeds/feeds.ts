@@ -2,9 +2,9 @@ import {useEffect, useMemo, useState} from 'react'
 import {useAccount} from '../accounts'
 import validator from '../../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:feeds')
+const log = Logger('plebbit-react-hooks:feeds:hooks')
 import assert from 'assert'
-import {Feed, Feeds, UseBufferedFeedOptions} from '../../types'
+import {Feed, Feeds, UseBufferedFeedsOptions, UseBufferedFeedsResult, UseFeedOptions, UseFeedResult} from '../../types'
 import useFeedsStore from '../../stores/feeds'
 import shallow from 'zustand/shallow'
 
@@ -14,40 +14,50 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accountName?: string) {
+export function useFeed(options?: UseFeedOptions): UseFeedResult {
+  let {subplebbitAddresses, sortType, accountName} = options || {}
+  if (!sortType) {
+    sortType = 'hot'
+  }
   validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName)
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
+  const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
+  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses)
+  const [errors, setErrors] = useState<Error[]>([])
 
-  const [uniqueSubplebbitAddresses] = useUniqueSorted([subplebbitAddresses])
-  const [feedName] = useStringified([[account?.id, sortType, uniqueSubplebbitAddresses]])
-
+  // add feed to store
   useEffect(() => {
     if (!uniqueSubplebbitAddresses || !account) {
       return
     }
     addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => log.error('useFeed addFeedToStore error', {feedName, error}))
-  }, [feedName /*, uniqueSubplebbitAddresses?.toString(), sortType, account?.id*/])
+  }, [feedName])
 
-  const loadedFeed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
+  const feed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
   let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || ''])
   // if the feed is not yet defined, then it has more
   if (!feedName || typeof hasMore !== 'boolean') {
     hasMore = true
   }
 
-  const loadMore = () => {
-    if (!uniqueSubplebbitAddresses || !account) {
-      throw Error('useFeed cannot load more feed not initalized yet')
+  const loadMore = async () => {
+    try {
+      if (!uniqueSubplebbitAddresses || !account) {
+        throw Error('useFeed cannot load more feed not initalized yet')
+      }
+      incrementFeedPageNumber(feedName)
+    } catch (e: any) {
+      // wait 100 ms so infinite scroll doesn't spam this function
+      await new Promise((r) => setTimeout(r, 50))
+      setErrors([...errors, e])
     }
-    incrementFeedPageNumber(feedName)
   }
 
-  const feed = loadedFeed || []
   if (account && subplebbitAddresses?.length) {
     log('useFeed', {
-      feed: feed.length,
+      feedLength: feed?.length || 0,
       hasMore,
       subplebbitAddresses,
       sortType,
@@ -56,7 +66,20 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
       feedsStore: useFeedsStore.getState(),
     })
   }
-  return {feed, hasMore, loadMore}
+
+  const state = !hasMore ? 'succeeded' : 'fetching-ipns'
+
+  return useMemo(
+    () => ({
+      feed: feed || [],
+      hasMore,
+      loadMore,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [feed, feedName, errors]
+  )
 }
 
 /**
@@ -67,24 +90,24 @@ export function useFeed(subplebbitAddresses?: string[], sortType = 'hot', accoun
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], accountName?: string) {
+export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBufferedFeedsResult {
+  const {feedsOptions, accountName} = options || {}
   validator.validateUseBufferedFeedsArguments(feedsOptions, accountName)
-  const account = useAccount(accountName)
+  const account = useAccount({accountName})
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
 
   // do a bunch of calculations to get feedsOptionsFlattened and feedNames
-  const subplebbitAddressesArrays = []
-  const sortTypes = []
-  for (const feedOptions of feedsOptions) {
-    subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses)
-    sortTypes.push(feedOptions.sortType)
-  }
-  const uniqueSubplebbitAddressesArrays = useUniqueSorted(subplebbitAddressesArrays)
-  const feedsOptionsFlattened: any = []
-  for (const i in feedsOptions) {
-    feedsOptionsFlattened[i] = [account?.id, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]]
-  }
-  const feedNames: (string | undefined)[] = useStringified(feedsOptionsFlattened)
+  const {subplebbitAddressesArrays, sortTypes} = useMemo(() => {
+    const subplebbitAddressesArrays = []
+    const sortTypes = []
+    for (const feedOptions of feedsOptions || []) {
+      subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses || [])
+      sortTypes.push(feedOptions.sortType)
+    }
+    return {subplebbitAddressesArrays, sortTypes}
+  }, [feedsOptions])
+  const uniqueSubplebbitAddressesArrays = useUniqueSortedArrays(subplebbitAddressesArrays)
+  const feedNames = useFeedNames(account?.id, sortTypes, uniqueSubplebbitAddressesArrays)
 
   const bufferedFeeds = useFeedsStore((state) => {
     const bufferedFeeds: Feeds = {}
@@ -97,11 +120,13 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
     return bufferedFeeds
   }, shallow)
 
+  // add feed to store
   useEffect(() => {
-    for (const i in feedsOptionsFlattened) {
-      const [accountId, sortType, uniqueSubplebbitAddresses] = feedsOptionsFlattened[Number(i)]
+    for (const [i] of uniqueSubplebbitAddressesArrays.entries()) {
+      const sortType = sortTypes[i] || 'hot'
+      const uniqueSubplebbitAddresses = uniqueSubplebbitAddressesArrays[i]
       validator.validateFeedSortType(sortType)
-      const feedName = feedNames[Number(i)]
+      const feedName = feedNames[i]
       if (!uniqueSubplebbitAddresses || !account) {
         return
       }
@@ -112,13 +137,16 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
         )
       }
     }
-  }, [feedNames?.toString()])
+  }, [feedNames])
 
   // only give to the user the buffered feeds he requested
-  const bufferedFeedsArray: Feed[] = []
-  for (const feedName of feedNames) {
-    bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || [])
-  }
+  const bufferedFeedsArray: Feed[] = useMemo(() => {
+    const bufferedFeedsArray: Feed[] = []
+    for (const feedName of feedNames) {
+      bufferedFeedsArray.push(bufferedFeeds[feedName || ''] || [])
+    }
+    return bufferedFeedsArray
+  }, [bufferedFeeds, feedNames])
 
   if (account && feedsOptions?.length) {
     log('useBufferedFeeds', {
@@ -130,39 +158,54 @@ export function useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[] = [], ac
       feedsStore: useFeedsStore.getState(),
     })
   }
-  return bufferedFeedsArray
+
+  const state = 'fetching-ipns'
+
+  return useMemo(
+    () => ({
+      bufferedFeeds: bufferedFeedsArray,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [bufferedFeedsArray, feedsOptions]
+  )
 }
 
 /**
  * Util to find unique and sorted subplebbit addresses for multiple feed options
  */
-function useUniqueSorted(stringsArrays?: (string[] | undefined)[]) {
+function useUniqueSortedArrays(stringsArrays?: string[][]) {
   return useMemo(() => {
-    const uniqueSorted: (string[] | undefined)[] = []
+    const uniqueSorted: string[][] = []
     for (const stringsArray of stringsArrays || []) {
-      if (!stringsArray) {
-        uniqueSorted.push(undefined)
-      } else {
-        uniqueSorted.push([...new Set(stringsArray.sort())])
-      }
+      uniqueSorted.push([...new Set(stringsArray.sort())])
     }
     return uniqueSorted
-  }, [stringsArrays?.toString()])
+  }, [stringsArrays])
 }
 
-/**
- * Util to stringify multiple objects or return undefineds
- */
-function useStringified(objs?: any[]) {
+function useUniqueSorted(stringsArray?: string[]) {
   return useMemo(() => {
-    const stringified: (string | undefined)[] = []
-    for (const obj of objs || []) {
-      if (obj === undefined) {
-        stringified.push(undefined)
-      } else {
-        stringified.push(JSON.stringify(obj))
-      }
+    if (!stringsArray) {
+      return []
     }
-    return stringified
-  }, [JSON.stringify(objs)])
+    return [...new Set(stringsArray.sort())]
+  }, [stringsArray])
+}
+
+function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[]) {
+  return useMemo(() => {
+    return JSON.stringify([accountId, sortType, uniqueSubplebbitAddresses])
+  }, [accountId, sortType, uniqueSubplebbitAddresses])
+}
+
+function useFeedNames(accountId: string, sortTypes: (string | undefined)[], uniqueSubplebbitAddressesArrays: string[][]) {
+  return useMemo(() => {
+    const feedNames = []
+    for (const [i] of uniqueSubplebbitAddressesArrays.entries()) {
+      feedNames.push(JSON.stringify([accountId, sortTypes[i] || 'hot', uniqueSubplebbitAddressesArrays[i]]))
+    }
+    return feedNames
+  }, [accountId, sortTypes, uniqueSubplebbitAddressesArrays])
 }

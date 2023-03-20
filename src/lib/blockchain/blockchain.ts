@@ -2,89 +2,95 @@ import assert from 'assert'
 import {Nft, BlockchainProviders} from '../../types'
 import {ethers} from 'ethers'
 import fetch from 'node-fetch'
+import utils from '../utils'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
-const nftImageUrlPendingPromises: any = {}
-const nftImageUrlCache: any = {}
-export const getNftImageUrl = async (nft: Nft, ipfsGatewayUrl: string, blockchainProviders: BlockchainProviders) => {
-  assert(blockchainProviders && typeof blockchainProviders === 'object', `invalid blockchainProviders '${blockchainProviders}'`)
-  assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
+const getNftImageUrlNoCache = async (nftMetadataUrl: string, ipfsGatewayUrl: string) => {
+  assert(nftMetadataUrl && typeof nftMetadataUrl === 'string', `getNftImageUrl invalid nftMetadataUrl '${nftMetadataUrl}'`)
+  assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `getNftImageUrl invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
 
-  // cache the result
-  const cacheKey = JSON.stringify({nft, ipfsGatewayUrl, blockchainProviders})
-  if (nftImageUrlCache[cacheKey]) {
-    return nftImageUrlCache[cacheKey]
-  }
-
-  // will throw if no matching provider
-  const blockchainProvider = getBlockchainProvider(nft.chainTicker, blockchainProviders)
-
-  // don't request the same url twice if fetching is pending
-  if (nftImageUrlPendingPromises[cacheKey]) {
-    return nftImageUrlPendingPromises[cacheKey]
-  }
-  let resolve
-  let getNftImageUrlPromise = new Promise((_resolve) => {
-    resolve = _resolve
-  })
-  nftImageUrlPendingPromises[cacheKey] = getNftImageUrlPromise
-
-  const nftContract = new ethers.Contract(nft.address, nftAbi, blockchainProvider)
-  let nftUrl = await nftContract.tokenURI(nft.id)
-
-  // if the ipfs nft is json, get the image url using the ipfs gateway in account settings
-  if (nftUrl.startsWith('ipfs://')) {
-    nftUrl = `${ipfsGatewayUrl}/${nftUrl.replace('://', '/')}`
-  }
+  let nftImageUrl
 
   // if the ipfs file is json, it probably has an 'image' property
+  const text = await fetch(nftMetadataUrl).then((resp) => resp.text())
   try {
-    const json = await fetch(nftUrl).then((resp) => resp.json())
-    nftUrl = json.image
-
-    // if the image property is an ipfs url, get the image url using the ipfs gateway in account settings
-    if (nftUrl.startsWith('ipfs://')) {
-      nftUrl = `${ipfsGatewayUrl}/${nftUrl.replace('://', '/')}`
-    }
+    nftImageUrl = JSON.parse(text).image
   } catch (e) {
-    // console.error(e)
+    // dont throw the json parse error, instead throw the http response
+    throw Error(text)
   }
 
-  nftImageUrlCache[cacheKey] = nftUrl
-  // @ts-ignore
-  resolve(nftUrl)
-  return nftUrl
-}
+  // if the image property is an ipfs url, get the image url using the ipfs gateway in account settings
+  if (nftImageUrl.startsWith('ipfs://')) {
+    nftImageUrl = `${ipfsGatewayUrl}/${nftImageUrl.replace('://', '/')}`
+  }
 
-export const resolveEnsTxtRecord = async (ensName: string, txtRecordName: string, blockchainProviders: BlockchainProviders) => {
-  const blockchainProvider = getBlockchainProvider('eth', blockchainProviders)
-  const resolver = await blockchainProvider.getResolver(ensName)
+  return nftImageUrl
+}
+export const getNftImageUrl = utils.memo(getNftImageUrlNoCache, {maxSize: 5000})
+
+// NOTE: getNftMetadataUrl tests are skipped, if changes are made they must be tested manually
+// don't use objects in arguments for faster caching
+const getNftMetadataUrlNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number, ipfsGatewayUrl: string) => {
+  assert(nftAddress && typeof nftAddress === 'string', `getNftMetadataUrl invalid nftAddress '${nftAddress}'`)
+  assert(nftId && typeof nftId === 'string', `getNftMetadataUrl invalid nftId '${nftId}'`)
+  assert(chainTicker && typeof chainTicker === 'string', `getNftMetadataUrl invalid chainTicker '${chainTicker}'`)
+  assert(chainProviderUrl && typeof chainProviderUrl === 'string', `getNftMetadataUrl invalid chainProviderUrl '${chainProviderUrl}'`)
+  assert(typeof chainId === 'number', `getNftMetadataUrl invalid chainId '${chainId}' not a number`)
+  assert(ipfsGatewayUrl && typeof ipfsGatewayUrl === 'string', `getNftMetadataUrl invalid ipfsGatewayUrl '${ipfsGatewayUrl}'`)
+
+  const chainProvider = getChainProvider(chainTicker, chainProviderUrl, chainId)
+  const nftContract = new ethers.Contract(nftAddress, nftAbi, chainProvider)
+  let nftMetadataUrl = await nftContract.tokenURI(nftId)
+
+  // if the image property is an ipfs url, get the image url using the ipfs gateway in account settings
+  if (nftMetadataUrl.startsWith('ipfs://')) {
+    nftMetadataUrl = `${ipfsGatewayUrl}/${nftMetadataUrl.replace('://', '/')}`
+  }
+
+  return nftMetadataUrl
+}
+export const getNftMetadataUrl = utils.memo(getNftMetadataUrlNoCache, {maxSize: 5000})
+
+// don't use objects in arguments for faster caching
+export const getNftOwnerNoCache = async (nftAddress: string, nftId: string, chainTicker: string, chainProviderUrl: string, chainId: number) => {
+  assert(nftAddress && typeof nftAddress === 'string', `getNftOwner invalid nftAddress '${nftAddress}'`)
+  assert(nftId && typeof nftId === 'string', `getNftOwner invalid nftId '${nftId}'`)
+  assert(chainTicker && typeof chainTicker === 'string', `getNftOwner invalid chainTicker '${chainTicker}'`)
+  assert(chainProviderUrl && typeof chainProviderUrl === 'string', `getNftOwner invalid chainProviderUrl '${chainProviderUrl}'`)
+  assert(typeof chainId === 'number', `getNftOwner invalid chainId '${chainId}' not a number`)
+  const chainProvider = getChainProvider(chainTicker, chainProviderUrl, chainId)
+  const nftContract = new ethers.Contract(nftAddress, nftAbi, chainProvider)
+  const currentNftOwnerAddress = await nftContract.ownerOf(nftId)
+  return currentNftOwnerAddress
+}
+export const getNftOwner = utils.memo(getNftOwnerNoCache, {maxSize: 5000, maxAge: 1000 * 60 * 60 * 24})
+
+export const resolveEnsTxtRecordNoCache = async (ensName: string, txtRecordName: string, chainTicker: string, chainProviderUrl?: string, chainId?: number) => {
+  const chainProvider = getChainProvider(chainTicker, chainProviderUrl, chainId)
+  const resolver = await chainProvider.getResolver(ensName)
   const txtRecordResult = await resolver.getText(txtRecordName)
   return txtRecordResult
 }
+export const resolveEnsTxtRecord = utils.memo(resolveEnsTxtRecordNoCache, {maxSize: 10000, maxAge: 1000 * 60 * 60 * 24})
 
-// cache the blockchain providers because only 1 should be running at the same time
-const cachedBlockchainProviders: any = {}
-export const getBlockchainProvider = (chainTicker: string, blockchainProviders: BlockchainProviders) => {
-  assert(chainTicker && typeof chainTicker === 'string', `invalid chainTicker '${chainTicker}'`)
-  assert(blockchainProviders && typeof blockchainProviders === 'object', `invalid blockchainProviders '${blockchainProviders}'`)
-  if (cachedBlockchainProviders[chainTicker]) {
-    return cachedBlockchainProviders[chainTicker]
-  }
+// cache the chain providers because only 1 should be running at the same time
+const getChainProviderNoCache = (chainTicker: string, chainProviderUrl?: string, chainId?: number) => {
   if (chainTicker === 'eth') {
     // if using eth, use ethers' default provider unless another provider is specified
-    if (!blockchainProviders['eth'] || blockchainProviders['eth']?.url?.match(/DefaultProvider/i)) {
-      cachedBlockchainProviders['eth'] = ethers.getDefaultProvider()
-      return cachedBlockchainProviders['eth']
+    if (!chainProviderUrl || chainProviderUrl.match(/DefaultProvider/i)) {
+      return ethers.getDefaultProvider()
     }
   }
-  if (blockchainProviders[chainTicker]) {
-    // @ts-ignore
-    cachedBlockchainProviders[chainTicker] = new ethers.providers.JsonRpcProvider({url: blockchainProviders[chainTicker].url}, blockchainProviders[chainTicker].chainId)
-    return cachedBlockchainProviders[chainTicker]
+  if (!chainProviderUrl) {
+    throw Error(`getBlockchainProvider invalid chainProviderUrl '${chainProviderUrl}'`)
   }
-  throw Error(`no blockchain provider options set for chain ticker '${chainTicker}'`)
+  if (!chainId && chainId !== 0) {
+    throw Error(`getBlockchainProvider invalid chainId '${chainId}'`)
+  }
+  return new ethers.providers.JsonRpcProvider({url: chainProviderUrl}, chainId)
 }
+const getChainProvider = utils.memoSync(getChainProviderNoCache, {maxSize: 1000})
 
 const nftAbi = [
   {
@@ -104,7 +110,8 @@ const nftAbi = [
 ]
 
 export default {
+  getNftOwner,
+  getNftMetadataUrl,
   getNftImageUrl,
   resolveEnsTxtRecord,
-  getBlockchainProvider,
 }

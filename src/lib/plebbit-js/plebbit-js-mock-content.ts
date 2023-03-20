@@ -1,6 +1,9 @@
 import markdownExample from './fixtures/markdown-example'
 import EventEmitter from 'events'
 import assert from 'assert'
+import {sha256} from 'multiformats/hashes/sha2'
+import {fromString} from 'uint8arrays/from-string'
+import {toString} from 'uint8arrays/to-string'
 
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100)
@@ -22,9 +25,15 @@ const commentTitles = [
 ]
 
 const commentContents = [
-  `First of all, the sentiment in this sub concerning moons seems very polarized. Some people think they are a genius idea and others think they are making this sub this sub worse because of “moon farming.” which camp are you in? Second, how/where can you sell them. And third, how many upvotes=one moon, some people have so many when I’m sitting here at 17.
+  `First of all, the sentiment in this sub concerning moons seems very __polarized__. Some people think they are a genius idea and others think they are making this sub this sub worse because of “moon farming.” which camp are you in? 
 
-**Personally** I think Reddit is ahead of the curve, in a couple years I could easily see every social media platform incorporating their own coin into their interface. Think about it; it costs the company next to nothing, encourages users to spend more time and be more active on the platform, and capitalizes on their existing user base, skipping any need for marketing. From the companies point of view it seems like a no brainer.
+Second, how/where can you sell them. And third, how many upvotes=one moon, some people have so many when I’m sitting here at 17.
+
+**Personally** I think Reddit is ahead of the _curve_, in a couple years I could easily see every social media platform incorporating their own coin into their interface. 
+
+Think about it; it costs the company next to nothing, encourages users to spend more time and be more active on the platform, and capitalizes on their existing user base, skipping any need for marketing. 
+
+From the companies point of view it seems like a no brainer.
 
 Can people think of issues with this approach? For either the company or the consumer, because besides increased levels of spamming I don’t see much downside.`,
   'What kind of messes up world is this. *Even* if they stop you, they would need some sort of seed phrase or private key to your account in order to get the funds.',
@@ -37,6 +46,16 @@ const commentLinks = [
   'https://fortune.com/2022/03/16/bitcoin-200k-price-prediction-crypto-outlook/',
   'https://finance.yahoo.com/news/c2x-announces-25-million-funding-120000728.html',
   'https://finance.yahoo.com/news/adopting-crypto-legal-tender-signify-101309571.html',
+  'https://twitter.com/getplebbit/status/1632113706015309825',
+  'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+]
+
+const mediaLinks = [
+  'https://upload.wikimedia.org/wikipedia/en/transcoded/b/bd/Exorcist_angiogram_scene.webm/Exorcist_angiogram_scene.webm.480p.vp9.webm',
+  'https://upload.wikimedia.org/wikipedia/en/f/fa/2001_space_travel.ogv',
+  'https://upload.wikimedia.org/wikipedia/en/e/e1/Don%27t_Look_Now_love_scene_.ogg',
+  'https://upload.wikimedia.org/wikipedia/en/8/8a/Ellen_comes_out_airport.mp3',
+  'https://upload.wikimedia.org/wikipedia/en/b/bf/Dave_Niehaus_Winning_Call_1995_AL_Division_Series.ogg',
 ]
 
 const subplebbitTitles = ['The Ethereum investment community', 'Cryptography news and discussions', 'Memes', '🤡']
@@ -172,16 +191,9 @@ const reasons = [
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
-
-  // use native crypto module in jsdom
-  // @ts-ignore
-  // const crypto = require('crypto')
-  // return crypto.createHash('sha256').update(string).digest('base64').replace(/[^a-zA-Z0-9]/g, '')
-
-  // @ts-ignore
-  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(string))
-  // @ts-ignore
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuffer))).replace(/[^a-zA-Z0-9]/g, '')
+  const hash = await sha256.digest(fromString(string))
+  const base58Hash = toString(hash.digest, 'base58btc')
+  return base58Hash
 }
 
 const getNumberBetween = async (min: number, max: number, seed: string) => {
@@ -232,6 +244,7 @@ const getAuthor = async (seed: string) => {
     const text = await getArrayItem([...firstNames, ...displayNames], seed + 'author ens first name')
     author.address = (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth'
   }
+  author.shortAddress = author.address.endsWith('.eth') ? author.address : author.address.substring(8, 20)
   const hasDisplayName = await getArrayItem([true, true, true, false], seed + 'has display name')
   if (hasDisplayName) {
     author.displayName = await getArrayItem(displayNames, seed + 'display name')
@@ -277,6 +290,12 @@ const getPostContent = async (seed: string) => {
     const linkIsImage = await getArrayItem([true, false], seed + 'linkisimage')
     if (linkIsImage) {
       postContent.link = await getImageUrl(seed + 'linkimage')
+
+      // add video and audio
+      const imageIsMedia = await getArrayItem([true, false, false, false], seed + 'imageismedia')
+      if (imageIsMedia) {
+        postContent.link = await getArrayItem(mediaLinks, seed + 'medialink')
+      }
     }
     const hasThumbnail = await getArrayItem([true, true, true, false], seed + 'hasthumbnail')
     if (!linkIsImage && hasThumbnail) {
@@ -286,6 +305,17 @@ const getPostContent = async (seed: string) => {
   // else is text post
   else {
     postContent.content = await getArrayItem(commentContents, seed + 'content')
+    const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+    if (hasQuote) {
+      const lines = postContent.content.split('\n')
+      for (const i in lines) {
+        const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+        if (lineIsQuote) {
+          lines[i] = '>' + lines[i]
+        }
+      }
+      postContent.content = lines.join('\n')
+    }
   }
   return postContent
 }
@@ -293,7 +323,18 @@ const getPostContent = async (seed: string) => {
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
   const {depth, parentCid, postCid} = getReplyContentOptions
   const author = await getAuthor(seed + 'author')
-  const content = await getArrayItem(commentContents, seed + 'replycontent')
+  let content = await getArrayItem(commentContents, seed + 'replycontent')
+  const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+  if (hasQuote) {
+    const lines = content.split('\n')
+    for (const i in lines) {
+      const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+      if (lineIsQuote) {
+        lines[i] = '>' + lines[i]
+      }
+    }
+    content = lines.join('\n')
+  }
   return {content, author, depth, parentCid, postCid}
 }
 
@@ -655,7 +696,8 @@ class Subplebbit extends EventEmitter {
   features: any | undefined
   rules: string[] | undefined
   signer: any | undefined
-  statsCid: string
+  shortAddress: string | undefined
+  statsCid: string | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -684,6 +726,7 @@ class Subplebbit extends EventEmitter {
     if (!this.address && this.signer?.address) {
       this.address = this.signer.address
     }
+    this.shortAddress = this.address?.endsWith('.eth') ? this.address : this.address?.substring(8, 20)
 
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
@@ -748,16 +791,21 @@ class Publication extends EventEmitter {
 
   async publish() {
     await simulateLoadingTime()
-    this.simulateChallengeEvent()
+    await this.simulateChallengeEvent()
   }
 
-  simulateChallengeEvent() {
-    const challenge = {type: 'image', challenge: captchaImageBase64}
+  async simulateChallengeEvent() {
+    const challenges: any = []
+    // @ts-ignore
+    const challengeCount = await getNumberBetween(1, 3, this.challengeRequestId)
+    while (challenges.length < challengeCount) {
+      challenges.push({type: 'image/png', challenge: captchaImageBase64})
+    }
     const challengeMessage = {
       type: 'CHALLENGE',
       // @ts-ignore
       challengeRequestId: this.challengeRequestId,
-      challenges: [challenge],
+      challenges,
     }
     this.emit('challenge', challengeMessage, this)
   }
@@ -805,6 +853,7 @@ class Comment extends Publication {
   removed: boolean | undefined
   editTimestamp: number | undefined
   reason: string | undefined
+  shortCid: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -827,6 +876,9 @@ class Comment extends Publication {
     this.removed = createCommentOptions?.removed
     this.editTimestamp = createCommentOptions?.editTimestamp
     this.reason = createCommentOptions?.reason
+    if (this.cid) {
+      this.shortCid = this.cid.substring(2, 14)
+    }
 
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
@@ -860,6 +912,7 @@ class Comment extends Publication {
       // @ts-ignore
       this[prop] = commentUpdateContent[prop]
     }
+    this.shortCid = this.cid.substring(2, 14)
     this.emit('update', this)
   }
 }

@@ -12,7 +12,7 @@ import accountsStore, { listeners } from './accounts-store';
 import accountsDatabase from './accounts-database';
 import Logger from '@plebbit/plebbit-logger';
 import assert from 'assert';
-const log = Logger('plebbit-react-hooks:stores:accounts');
+const log = Logger('plebbit-react-hooks:accounts:stores');
 import utils from '../../lib/utils';
 // TODO: we currently subscribe to updates for every single comment
 // in the user's account history. This probably does not scale, we
@@ -164,9 +164,9 @@ const getAccountsCommentsWithoutCids = () => {
     return accountsCommentsWithoutCids;
 };
 // internal accounts action: mark an account's notifications as read
-export const markAccountNotificationsAsRead = (account) => __awaiter(void 0, void 0, void 0, function* () {
+export const markNotificationsAsRead = (account) => __awaiter(void 0, void 0, void 0, function* () {
     const { accountsCommentsReplies } = accountsStore.getState();
-    assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `accountsStore.markAccountNotificationsAsRead invalid account argument '${account}'`);
+    assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `accountsStore.markNotificationsAsRead invalid account argument '${account}'`);
     // find all unread replies
     const repliesToMarkAsRead = {};
     for (const replyCid in accountsCommentsReplies[account.id]) {
@@ -181,7 +181,7 @@ export const markAccountNotificationsAsRead = (account) => __awaiter(void 0, voi
     }
     yield Promise.all(promises);
     // add all to react store
-    log('accountsActions.markAccountNotificationsAsRead', { account, repliesToMarkAsRead });
+    log('accountsActions.markNotificationsAsRead', { account, repliesToMarkAsRead });
     accountsStore.setState(({ accountsCommentsReplies }) => {
         const updatedAccountCommentsReplies = Object.assign(Object.assign({}, accountsCommentsReplies[account.id]), repliesToMarkAsRead);
         return { accountsCommentsReplies: Object.assign(Object.assign({}, accountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies }) };
