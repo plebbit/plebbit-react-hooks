@@ -1,7 +1,6 @@
 - e2e test to publish to an electron sub
 - async useAuthorAddress hook (because resolving ETH address synchronously is too slow)
 - implement sort by active
-- useHide
 - implement showing your own pending replies in a comment (when reloading) and your own pending posts in a sub (when reloading)
 - useResolvedAuthorAddress check if public key matches resolved address
 - useAuthorAvatar check if ENS has an avatar set up
