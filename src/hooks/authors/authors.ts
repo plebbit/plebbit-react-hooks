@@ -221,7 +221,7 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
 }
 
 /**
- * @param author - The author address to resolve to a public key, e.g. 'john.eth' resolves to 'Qm...'.
+ * @param author - The author with author.address to resolve to a public key, e.g. 'john.eth' resolves to '12D3KooW...'.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */

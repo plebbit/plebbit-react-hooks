@@ -81,7 +81,10 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
 
 export function useBlock(options?: UseBlockOptions): UseBlockResult {
   assert(!options || typeof options === 'object', `useBlock options argument '${options}' not an object`)
-  const {address, accountName, onError} = options || {}
+  const {address, cid, accountName, onError} = options || {}
+  if (address && cid) {
+    throw Error(`can't useBlock with both an address '${address}' and cid '${cid}' argument at the same time`)
+  }
   const account = useAccount({accountName})
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const [errors, setErrors] = useState<Error[]>([])
@@ -89,14 +92,23 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
   let blocked: boolean | undefined
 
   // before the account and address is defined, nothing can happen
-  if (account && address) {
+  if (account && (address || cid)) {
     state = 'ready'
-    blocked = Boolean(account.blockedAddresses[address])
+    if (address) {
+      blocked = Boolean(account.blockedAddresses[address])
+    }
+    if (cid) {
+      blocked = Boolean(account.blockedCids[cid])
+    }
   }
 
   const block = async () => {
     try {
-      await accountsActions.blockAddress(address, accountName)
+      if (cid) {
+        await accountsActions.blockCid(cid, accountName)
+      } else {
+        await accountsActions.blockAddress(address, accountName)
+      }
     } catch (e: any) {
       setErrors([...errors, e])
       onError?.(e)
@@ -105,7 +117,11 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
 
   const unblock = async () => {
     try {
-      await accountsActions.unblockAddress(address, accountName)
+      if (cid) {
+        await accountsActions.unblockCid(cid, accountName)
+      } else {
+        await accountsActions.unblockAddress(address, accountName)
+      }
     } catch (e: any) {
       setErrors([...errors, e])
       onError?.(e)

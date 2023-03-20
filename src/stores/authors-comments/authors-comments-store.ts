@@ -87,15 +87,15 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     }
     const nextCommentCidToFetchNotFetched = getNextCommentCidToFetchNotFetched(nextCommentCidToFetch)
 
-    log.trace('authorsCommentsActions.setNextCommentCidsToFetch', {
-      authorAddress,
-      authorComment,
-      previousNextCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
-      nextCommentCidToFetch,
-      nextCommentCidToFetchNotFetched,
-      lastCommentCid: lastCommentCids[authorAddress],
-      shouldFetchNextComment: shouldFetchNextComment[authorAddress],
-    })
+    // log.trace('authorsCommentsActions.setNextCommentCidsToFetch', {
+    //   authorAddress,
+    //   authorComment,
+    //   previousNextCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
+    //   nextCommentCidToFetch,
+    //   nextCommentCidToFetchNotFetched,
+    //   lastCommentCid: lastCommentCids[authorAddress],
+    //   shouldFetchNextComment: shouldFetchNextComment[authorAddress],
+    // })
     setState((state: AuthorsCommentsState) => ({
       nextCommentCidsToFetch: {...state.nextCommentCidsToFetch, [authorAddress]: nextCommentCidToFetchNotFetched},
     }))
@@ -142,7 +142,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       throw Error(`authorsCommentsActions.addBufferedCommentCid can't add commentCid '${authorAddress}' '${commentCid}' already added`)
     }
 
-    log.trace('authorsCommentsActions.addBufferedCommentCid', {authorAddress, commentCid, previousBufferedCommentCidsSize: bufferedCommentCids[authorAddress].size})
+    // log.trace('authorsCommentsActions.addBufferedCommentCid', {authorAddress, commentCid, previousBufferedCommentCidsSize: bufferedCommentCids[authorAddress].size})
     setState((state: AuthorsCommentsState) => ({
       bufferedCommentCids: {...state.bufferedCommentCids, [authorAddress]: new Set([...bufferedCommentCids[authorAddress], commentCid])},
     }))
@@ -178,16 +178,16 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
       }
     }
 
-    log.trace('authorsCommentsActions.updateLoadedComments', {
-      // bufferedCommentCids,
-      bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
-      // previousAuthorsLoadedComments,
-      // newAuthorsLoadedComments,
-      previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
-      newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
-      newShouldFetchNextComment,
-      // lastCommentCids
-    })
+    // log.trace('authorsCommentsActions.updateLoadedComments', {
+    //   bufferedCommentCids,
+    //   bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
+    //   previousAuthorsLoadedComments,
+    //   newAuthorsLoadedComments,
+    //   previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
+    //   newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
+    //   newShouldFetchNextComment,
+    //   lastCommentCids
+    // })
     setState(() => ({
       loadedComments: newAuthorsLoadedComments,
       shouldFetchNextComment: newShouldFetchNextComment,

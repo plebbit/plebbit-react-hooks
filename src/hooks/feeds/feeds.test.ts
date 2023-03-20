@@ -801,6 +801,61 @@ describe('feeds', () => {
       expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
     })
 
+    test(`feed doesn't contain blocked cids`, async () => {
+      const expectFeedToHaveCid = (feed: any[], cid: string) => {
+        const cids = feed.map((comment) => comment?.cid)
+        expect(cids).toContain(cid)
+        return true
+      }
+      const expectFeedNotToHaveCid = (feed: any[], cid: string) => {
+        const cids = feed.map((comment) => comment?.cid)
+        expect(cids).not.toContain(cid)
+        return true
+      }
+
+      const rendered = renderHook<any, any>((props: any) => {
+        const [bufferedFeed] = useBufferedFeeds({feedsOptions: [{subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'}]}).bufferedFeeds
+        const {blockCid, unblockCid} = accountsActions
+        const account = useAccount()
+        return {bufferedFeed, blockCid, unblockCid, account}
+      })
+      const waitFor = testUtils.createWaitFor(rendered)
+      await waitFor(() => typeof rendered.result.current.blockCid === 'function')
+
+      // render feed before blocking
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      // wait until feed contains both blocked and unblocked addresses
+      await waitFor(() => rendered.result.current.bufferedFeed.length > 0)
+      const blockedCid = rendered.result.current.bufferedFeed[0].cid
+      expect(typeof blockedCid).toBe('string')
+      expectFeedToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
+
+      // block cid
+      await act(async () => {
+        await rendered.result.current.blockCid(blockedCid)
+      })
+      await waitFor(
+        () => Object.keys(rendered.result.current.account.blockedCids).length === 1 && expectFeedNotToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
+      )
+      expect(Object.keys(rendered.result.current.account.blockedCids).length).toBe(1)
+      expectFeedNotToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
+
+      // unblock cid
+      await act(async () => {
+        await rendered.result.current.unblockCid(blockedCid)
+      })
+
+      // NOTE: feeds won't update on cid unblock events, another event must cause the feed to update
+      // it seems preferable to causing unnecessary rerenders every time an unused block event occurs
+
+      // cause another feed update to fix the edge case
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2']})
+
+      await waitFor(() => Object.keys(rendered.result.current.account.blockedCids).length === 0 && expectFeedToHaveCid(rendered.result.current.bufferedFeed, blockedCid))
+      expect(Object.keys(rendered.result.current.account.blockedCids).length).toBe(0)
+      expectFeedToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
+    })
+
     // TODO: not implemented
     // at the moment a comment already inside a loaded feed will ignore all updates from future pages
     test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`)

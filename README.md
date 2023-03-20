@@ -48,7 +48,7 @@ useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
 #### Actions Hooks
 ```
 useSubscribe({subplebbitAddress: string}): {subscribed: boolean | undefined, subscribe: Function, unsubscribe: Function}
-useBlock({address: string}): {blocked: boolean | undefined, block: Function, unblock: Function}
+useBlock({address?: string, cid?: string}): {blocked: boolean | undefined, block: Function, unblock: Function}
 usePublishComment(options: UsePublishCommentOptions): {index: number, ...UsePublishCommentResult}
 usePublishVote(options: UsePublishVoteOptions): UsePublishVoteResult
 usePublishCommentEdit(options: UsePublishCommentEditOptions): UsePublishCommentEditResult
@@ -246,7 +246,7 @@ const onError = (error, comment) => console.error(error)
 const publishCommentOptions = {
   content: 'hello',
   title: 'hello',
-  subplebbitAddress: 'Qm...',
+  subplebbitAddress: '12D3KooW...',
   onChallenge,
   onChallengeVerification,
   onError
@@ -265,7 +265,7 @@ console.log(state)
 const publishReplyOptions = {
   content: 'hello',
   parentCid: 'Qm...', // the cid of the comment to reply to
-  subplebbitAddress: 'Qm...',
+  subplebbitAddress: '12D3KooW...',
   onChallenge,
   onChallengeVerification,
   onError
@@ -280,7 +280,7 @@ await publishComment()
 const publishCommentOptions = {
   content: 'hello',
   title: 'hello',
-  subplebbitAddress: 'Qm...',
+  subplebbitAddress: '12D3KooW...',
 }
 
 const {index, state, publishComment, challenge, challengeVerification, publishChallengeAnswers, error} = usePublishComment(publishCommentOptions)
@@ -362,7 +362,7 @@ console.log(error)
 
 ```js
 let subplebbitAddress = 'news.eth'
-subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
+subplebbitAddress = '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z'
 subplebbitAddress = 'tech.eth'
 const {subscribed, subscribe, unsubscribe} = useSubscribe({subplebbitAddress})
 await subscribe()
@@ -370,7 +370,7 @@ console.log(subscribed) // true
 
 // view subscriptions
 const account = useAccount()
-console.log(account.subscriptions) // ['news.eth', 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui', 'tech.eth']
+console.log(account.subscriptions) // ['news.eth', '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z', 'tech.eth']
 
 // unsubscribe
 await unsubscribe()
@@ -384,7 +384,7 @@ console.log(feed)
 
 ```js
 import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
-const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['memes.eth', 'Qm...', 'Qm...'], sortType: 'topAll'})
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['memes.eth', '12D3KooW...', '12D3KooW...'], sortType: 'topAll'})
 const posts = feed.map(post => <Post post={post} />)
 
 <InfiniteScroll
@@ -402,7 +402,7 @@ useBufferedFeeds({
   feedsOptions: [
     {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
     {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
-    {subplebbitAddresses: ['Qm...', 'Qm...', 'Qm...', 'Qm...'], sortType: 'hot'}
+    {subplebbitAddresses: ['12D3KooW...', '12D3KooW...', '12D3KooW...', '12D3KooW...'], sortType: 'hot'}
   ]
 })
 ```
@@ -518,6 +518,45 @@ const {accounts} = useAccounts()
 const accountsUnreadNotificationsCounts = accounts?.map(account => account.unreadNotificationCount)
 ```
 
+#### Block an address (author, subplebbit or multisub)
+
+```js
+const address: 'subplebbit-address.eth' // or 'author-address.eth' or '12D3KooW...'
+const {blocked, unblock, block} = useBlock({address})
+
+if (blocked) {
+  console.log(`'${address}' is blocked`)
+}
+else {
+  console.log(`'${address}' is not blocked`)
+}
+
+// to block
+block()
+
+// to unblock
+unblock()
+```
+
+#### Block a cid (hide a comment)
+
+```js
+const {blocked, unblock, block} = useBlock({cid: 'Qm...'})
+
+if (blocked) {
+  console.log(`'${cid}' is blocked`)
+}
+else {
+  console.log(`'${cid}' is not blocked`)
+}
+
+// to block
+block()
+
+// to unblock
+unblock()
+```
+
 #### (Desktop only) Create a subplebbit
 
 ```js
@@ -564,7 +603,7 @@ const onError = (error, subplebbitEdit) => console.error(error)
 
 // add ENS to your subplebbit
 const editSubplebbitOptions = {
-  subplebbitAddress: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui', // the previous address before changing it
+  subplebbitAddress: '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z', // the previous address before changing it
   address: 'your-subplebbit-address.eth', // the new address to change to
   onChallenge, 
   onChallengeVerification,

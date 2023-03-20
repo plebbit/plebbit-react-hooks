@@ -145,7 +145,7 @@ describe('actions', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test(`block and unblock to subplebbit`, async () => {
+    test(`block and unblock two addresses (subplebbit addresses)`, async () => {
       const address = 'address.eth'
       const address2 = 'address2.eth'
 
@@ -219,6 +219,86 @@ describe('actions', () => {
 
       // subscribing persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useBlock({address: address2}))
+      const waitFor2 = testUtils.createWaitFor(rendered2)
+      await waitFor(() => rendered.result.current[1].state === 'ready')
+      expect(rendered.result.current[1].state).toBe('ready')
+      expect(rendered.result.current[1].blocked).toBe(true)
+    })
+
+    test(`block and unblock two cids (hide comment)`, async () => {
+      const cid = 'comment cid 1'
+      const cid2 = 'comment cid 2'
+
+      expect(rendered.result.current[0].state).toBe('initializing')
+      expect(rendered.result.current[0].blocked).toBe(undefined)
+      expect(typeof rendered.result.current[0].block).toBe('function')
+      expect(typeof rendered.result.current[0].unblock).toBe('function')
+
+      // get the default value
+      rendered.rerender([{cid}])
+      await waitFor(() => typeof rendered.result.current[0].blocked === 'boolean')
+      expect(rendered.result.current[0].state).toBe('ready')
+      expect(rendered.result.current[0].blocked).toBe(false)
+
+      // block to 1 cid
+      await act(async () => {
+        await rendered.result.current[0].block()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === true)
+      expect(rendered.result.current[0].blocked).toEqual(true)
+
+      // fail blocking twice
+      expect(rendered.result.current[0].errors.length).toBe(0)
+      await act(async () => {
+        await rendered.result.current[0].block()
+      })
+      expect(rendered.result.current[0].errors.length).toBe(1)
+
+      // unblock
+      await act(async () => {
+        await rendered.result.current[0].unblock()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === false)
+      expect(rendered.result.current[0].blocked).toEqual(false)
+
+      // fail unblocking twice
+      expect(rendered.result.current[0].errors.length).toBe(1)
+      await act(async () => {
+        await rendered.result.current[0].unblock()
+      })
+      expect(rendered.result.current[0].errors.length).toBe(2)
+
+      // block 2 cids
+      rendered.rerender([{cid}, {cid: cid2}])
+      await waitFor(() => rendered.result.current[0].state === 'ready')
+      await waitFor(() => rendered.result.current[1].state === 'ready')
+      expect(rendered.result.current[0].state).toBe('ready')
+      expect(rendered.result.current[1].state).toBe('ready')
+      expect(rendered.result.current[0].blocked).toBe(false)
+      expect(rendered.result.current[1].blocked).toBe(false)
+
+      await act(async () => {
+        await rendered.result.current[0].block()
+        await rendered.result.current[1].block()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === true)
+      await waitFor(() => rendered.result.current[1].blocked === true)
+      expect(rendered.result.current[0].blocked).toBe(true)
+      expect(rendered.result.current[1].blocked).toBe(true)
+
+      // unblock with 2 cids
+      await act(async () => {
+        await rendered.result.current[0].unblock()
+      })
+      await waitFor(() => rendered.result.current[0].blocked === false)
+      expect(rendered.result.current[0].blocked).toBe(false)
+      expect(rendered.result.current[1].blocked).toBe(true)
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
+      // subscribing persists in database after store reset
+      const rendered2 = renderHook<any, any>(() => useBlock({cid: cid2}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor(() => rendered.result.current[1].state === 'ready')
       expect(rendered.result.current[1].state).toBe('ready')
@@ -322,7 +402,7 @@ describe('actions', () => {
 
     test(`can publish comment`, async () => {
       const publishCommentOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
         content: 'some content acions.test',
       }
@@ -363,7 +443,7 @@ describe('actions', () => {
       }
 
       const publishCommentOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
         content: 'some content acions.test',
       }
@@ -406,7 +486,7 @@ describe('actions', () => {
 
     test(`can publish comment edit`, async () => {
       const publishCommentEditOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         removed: true,
       }
@@ -446,7 +526,7 @@ describe('actions', () => {
       }
 
       const publishCommentEditOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         removed: true,
       }
@@ -489,7 +569,7 @@ describe('actions', () => {
 
     test(`can publish subplebbit edit`, async () => {
       const publishSubplebbitEditOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         title: 'new title',
       }
       rendered.rerender(publishSubplebbitEditOptions)
@@ -528,7 +608,7 @@ describe('actions', () => {
       }
 
       const publishSubplebbitEditOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         title: 'new title',
       }
       rendered.rerender(publishSubplebbitEditOptions)
@@ -570,7 +650,7 @@ describe('actions', () => {
 
     test(`can publish vote`, async () => {
       const publishVoteOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         vote: 1,
       }
@@ -610,7 +690,7 @@ describe('actions', () => {
       }
 
       const publishVoteOptions = {
-        subplebbitAddress: 'Qm... acions.test',
+        subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         vote: 1,
       }

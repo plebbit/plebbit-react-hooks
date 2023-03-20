@@ -63,6 +63,7 @@ const mockAccount: any = {
     listSubplebbits: async () => [],
   },
   blockedAddresses: {},
+  blockedCids: {},
 }
 
 describe('feeds store', () => {

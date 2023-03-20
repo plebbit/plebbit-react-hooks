@@ -346,6 +346,56 @@ export const unblockAddress = async (address: string, accountName?: string) => {
   accountsStore.setState({accounts: updatedAccounts})
 }
 
+export const blockCid = async (cid: string, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(cid && typeof cid === 'string', `accountsActions.blockCid invalid cid '${cid}'`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  assert(account?.id, `accountsActions.blockCid account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+  const blockedCids: {[cid: string]: boolean} = {...account.blockedCids}
+  if (blockedCids[cid] === true) {
+    throw Error(`account '${account.id}' already blocked cid '${cid}'`)
+  }
+  blockedCids[cid] = true
+
+  const updatedAccount: Account = {...account, blockedCids}
+  // update account in db
+  await accountsDatabase.addAccount(updatedAccount)
+  const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+  log('accountsActions.blockCid', {account: updatedAccount, accountName, cid})
+  accountsStore.setState({accounts: updatedAccounts})
+}
+
+export const unblockCid = async (cid: string, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(cid && typeof cid === 'string', `accountsActions.unblockCid invalid cid '${cid}'`)
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  assert(account?.id, `accountsActions.unblockCid account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
+
+  const blockedCids: {[cid: string]: boolean} = {...account.blockedCids}
+  if (!blockedCids[cid]) {
+    throw Error(`account '${account.id}' already blocked cid '${cid}'`)
+  }
+  delete blockedCids[cid]
+
+  const updatedAccount: Account = {...account, blockedCids}
+  // update account in db
+  await accountsDatabase.addAccount(updatedAccount)
+  const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
+  log('accountsActions.unblockCid', {account: updatedAccount, accountName, cid})
+  accountsStore.setState({accounts: updatedAccounts})
+}
+
 export const publishComment = async (publishCommentOptions: PublishCommentOptions, accountName?: string) => {
   const {accounts, accountsComments, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
   assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)

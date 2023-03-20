@@ -49,6 +49,7 @@ describe('accounts', () => {
       expect(typeof account.author.address).toBe('string')
       expect(Array.isArray(account.subscriptions)).toBe(true)
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').toBe(true)
+      expect(account.blockedCids && typeof account.blockedCids === 'object').toBe(true)
       expect(account.plebbit && typeof account.plebbit === 'object').toBe(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').toBe(true)
       expect(account.plebbitOptions.ipfsGatewayUrl).toBe('https://cloudflare-ipfs.com')
@@ -776,7 +777,7 @@ describe('accounts', () => {
 
       test('publish comment', async () => {
         const publishCommentOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           parentCid: 'Qm...',
           content: 'some content',
           onChallenge,
@@ -867,7 +868,7 @@ describe('accounts', () => {
 
       test('publish vote', async () => {
         const publishVoteOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           commentCid: 'Qm...',
           vote: 1,
           onChallenge,
@@ -919,7 +920,7 @@ describe('accounts', () => {
 
       test('publish comment edit', async () => {
         const commentEditOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           commentCid: 'Qm...',
           locked: true,
           onChallenge,
@@ -997,7 +998,7 @@ describe('accounts', () => {
       const onChallengeVerification = jest.fn()
 
       test('publish subplebbit edit', async () => {
-        const subplebbitAddress = 'Qm...'
+        const subplebbitAddress = '12D3KooW...'
         const publishSubplebbitEditOptions = {
           title: 'edited title',
           onChallenge,

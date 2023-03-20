@@ -23,7 +23,7 @@ const avatarNft2 = {
 }
 const avatarNftImageUrl1 = 'https://cloudflare-ipfs.com/ipfs/QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/100'
 const avatarNftImageUrl2 = 'https://peer.decentraland.org/lambdas/collections/standard/erc721/137/0xf6d8e606c862143556b342149a7fe0558c220375/0/100'
-const authorAddress = 'Qm...'
+const authorAddress = '12D3KooW...'
 
 describe('authors', () => {
   let author: Author

@@ -71,7 +71,13 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
         continue
       }
 
+      // address is blocked
       if (accounts[accountId].blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[accountId].blockedAddresses[post.author.address])) {
+        continue
+      }
+
+      // comment cid is blocked
+      if (accounts[accountId].blockedCids[post.cid]) {
         continue
       }
 
@@ -346,10 +352,56 @@ export const feedsHaveChangedBlockedAddresses = (feedsOptions: FeedsOptions, buf
   }
 
   // feeds posts author addresses have a changed blocked address
+  // NOTE: because of this, if an author address is unblocked, feeds won't update until some other event causes a feed update
+  // it seems preferable to causing unnecessary rerenders every time an unused block event occurs
   const changedBlockedAddressesSet = new Set(changedBlockedAddresses)
   for (const feedName in bufferedFeeds) {
     for (const post of bufferedFeeds[feedName] || []) {
       if (post?.author?.address && changedBlockedAddressesSet.has(post.author.address)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+export const getAccountsBlockedCids = (accounts: Accounts) => {
+  const blockedCidsSet = new Set<string>()
+  for (const {blockedCids} of Object.values(accounts)) {
+    for (const address in blockedCids) {
+      if (blockedCids[address]) {
+        blockedCidsSet.add(address)
+      }
+    }
+  }
+  return [...blockedCidsSet].sort()
+}
+
+export const accountsBlockedCidsChanged = (previousAccountsBlockedCids: {[address: string]: boolean}[], accountsBlockedCids: {[address: string]: boolean}[]) => {
+  if (previousAccountsBlockedCids.length !== accountsBlockedCids.length) {
+    return true
+  }
+  for (const i in previousAccountsBlockedCids) {
+    // check if the object is still the same
+    if (previousAccountsBlockedCids[i] !== accountsBlockedCids[i]) {
+      return true
+    }
+  }
+  return false
+}
+
+export const feedsHaveChangedBlockedCids = (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, blockedCids: string[], previousBlockedCids: string[]) => {
+  // find the difference between current and previous blocked addresses
+  const changedBlockedCids = blockedCids.filter((x) => !previousBlockedCids.includes(x)).concat(previousBlockedCids.filter((x) => !blockedCids.includes(x)))
+
+  // feeds posts author addresses have a changed blocked address
+  // NOTE: because of this, if a cid is unblocked, feeds won't update until some other event causes a feed update
+  // it seems preferable to causing unnecessary rerenders every time an unused block event occurs
+  const changedBlockedCidsSet = new Set(changedBlockedCids)
+  for (const feedName in bufferedFeeds) {
+    for (const post of bufferedFeeds[feedName] || []) {
+      if (post?.cid && changedBlockedCidsSet.has(post?.cid)) {
         return true
       }
     }

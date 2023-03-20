@@ -76,6 +76,7 @@ export const generateDefaultAccount = async () => {
     plebbit: plebbit,
     subscriptions: [],
     blockedAddresses: {},
+    blockedCids: {},
     subplebbits,
   }
   return account
