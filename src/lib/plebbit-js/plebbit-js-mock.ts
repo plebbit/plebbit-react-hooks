@@ -159,8 +159,17 @@ export class Subplebbit extends EventEmitter {
     this.address = createSubplebbitOptions?.address
     this.title = createSubplebbitOptions?.title
     this.description = createSubplebbitOptions?.description
-    this.posts = new Pages({subplebbit: this})
     this.statsCid = 'statscid'
+
+    this.posts = new Pages({subplebbit: this})
+
+    // add subplebbit.posts from createSubplebbitOptions
+    if (createSubplebbitOptions?.posts?.pages) {
+      this.posts.pages = createSubplebbitOptions?.posts?.pages
+    }
+    if (createSubplebbitOptions?.posts?.pageCids) {
+      this.posts.pageCids = createSubplebbitOptions?.posts?.pageCids
+    }
   }
 
   async update() {
