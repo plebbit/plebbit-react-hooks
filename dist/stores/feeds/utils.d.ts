@@ -29,3 +29,10 @@ export declare const accountsBlockedAddressesChanged: (previousAccountsBlockedAd
     [address: string]: boolean;
 }[]) => boolean;
 export declare const feedsHaveChangedBlockedAddresses: (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, blockedAddresses: string[], previousBlockedAddresses: string[]) => boolean;
+export declare const getAccountsBlockedCids: (accounts: Accounts) => string[];
+export declare const accountsBlockedCidsChanged: (previousAccountsBlockedCids: {
+    [address: string]: boolean;
+}[], accountsBlockedCids: {
+    [address: string]: boolean;
+}[]) => boolean;
+export declare const feedsHaveChangedBlockedCids: (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, blockedCids: string[], previousBlockedCids: string[]) => boolean;

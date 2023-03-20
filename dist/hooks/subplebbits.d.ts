@@ -1,18 +1,18 @@
 import { ChainProviders, UseResolvedSubplebbitAddressOptions, UseResolvedSubplebbitAddressResult, UseSubplebbitOptions, UseSubplebbitResult, UseSubplebbitsOptions, UseSubplebbitsResult, UseSubplebbitStatsOptions, UseSubplebbitStatsResult } from '../types';
 /**
- * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
 export declare function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResult;
 /**
- * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
 export declare function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubplebbitStatsResult;
 /**
- * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
+ * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', '12D3KooWA...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
@@ -22,7 +22,7 @@ export declare function useSubplebbits(options?: UseSubplebbitsOptions): UseSubp
  */
 export declare function useListSubplebbits(): string[];
 /**
- * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to 'Qm...'.
+ * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to '12D3KooW...'.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
