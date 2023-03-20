@@ -13,11 +13,13 @@ const avatarNft1 = {
   chainTicker: 'eth',
   address: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', // the contract address of the nft
   id: '100', // the nft number 100 in the colletion
+  timestamp: Math.ceil(Date.now() / 1000),
 }
 const avatarNft2 = {
   chainTicker: 'matic',
   address: '0xf6d8e606c862143556b342149a7fe0558c220375', // the contract address of the nft
   id: '100', // the nft number 100 in the colletion
+  timestamp: Math.ceil(Date.now() / 1000),
 }
 const avatarNftImageUrl1 = 'https://cloudflare-ipfs.com/ipfs/QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/100'
 const avatarNftImageUrl2 = 'https://peer.decentraland.org/lambdas/collections/standard/erc721/137/0xf6d8e606c862143556b342149a7fe0558c220375/0/100'
@@ -511,7 +513,7 @@ const createAuthorAvatarSignature = async (nft: Nft, authorAddress: string) => {
   // insert props one at a time otherwise babel/webpack will reorder
   messageToSign.domainSeparator = 'plebbit-author-avatar'
   messageToSign.authorAddress = authorAddress
-  messageToSign.timestamp = Math.ceil(Date.now() / 1000)
+  messageToSign.timestamp = nft.timestamp
   messageToSign.tokenAddress = nft.address
   messageToSign.tokenId = nft.id
   // use plain JSON so the user can read what he's signing

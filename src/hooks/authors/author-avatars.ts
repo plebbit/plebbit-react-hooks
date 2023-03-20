@@ -160,7 +160,8 @@ export function useAuthorAvatarIsWhitelisted(nft?: Nft) {
 export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: string, chainProviders: ChainProviders) => {
   assert(nft && typeof nft === 'object', `verifyAuthorAvatarSignature invalid nft argument '${nft}'`)
   assert(nft?.address, `verifyAuthorAvatarSignature invalid nft.address '${nft?.address}'`)
-  assert(nft?.id, `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft?.id}'`)
+  assert(nft?.id && typeof nft?.id === 'string', `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft?.id}' not a string`)
+  assert(typeof nft?.timestamp === 'number', `verifyAuthorAvatarSignature invalid nft.timestamp '${nft?.timestamp}' not a number`)
   assert(nft?.signature, `verifyAuthorAvatarSignature invalid nft.signature '${nft?.signature}'`)
   assert(nft?.signature?.signature, `verifyAuthorAvatarSignature invalid nft.signature.signature '${nft?.signature?.signature}'`)
   assert(authorAddress, `verifyAuthorAvatarSignature invalid authorAddress '${authorAddress}'`)
@@ -178,9 +179,11 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
   // the property names must be in this order for the signature to match
   // insert props one at a time otherwise babel/webpack will reorder
   messageThatShouldBeSigned.domainSeparator = 'plebbit-author-avatar'
-  messageThatShouldBeSigned.tokenAddress = nft.address
-  messageThatShouldBeSigned.tokenId = String(nft.id) // must be string type, not number
   messageThatShouldBeSigned.authorAddress = authorAddress
+  messageThatShouldBeSigned.timestamp = nft.timestamp
+  messageThatShouldBeSigned.tokenAddress = nft.address
+  messageThatShouldBeSigned.tokenId = nft.id // must be a type string, not number
+  // use plain JSON so the user can read what he's signing
   messageThatShouldBeSigned = JSON.stringify(messageThatShouldBeSigned)
 
   const signatureAddress = ethers.utils.verifyMessage(messageThatShouldBeSigned, nft.signature.signature)
