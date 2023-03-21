@@ -1,7 +1,5 @@
 import EventEmitter from 'events'
 
-// TODO: make load time changeable with env variable
-// so the frontend can test with latency
 const loadingTime = 10
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
 
@@ -153,6 +151,8 @@ export class Subplebbit extends EventEmitter {
   posts: Pages
   updatedAt: number | undefined
   statsCid: string | undefined
+  state: string
+  updatingState: string
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -160,6 +160,8 @@ export class Subplebbit extends EventEmitter {
     this.title = createSubplebbitOptions?.title
     this.description = createSubplebbitOptions?.description
     this.statsCid = 'statscid'
+    this.state = 'stopped'
+    this.updatingState = 'stopped'
 
     this.posts = new Pages({subplebbit: this})
 
@@ -188,6 +190,8 @@ export class Subplebbit extends EventEmitter {
       return
     }
     this.updating = true
+    this.state = 'updating'
+    this.emit('statechange', 'updating')
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
@@ -292,8 +296,12 @@ class Publication extends EventEmitter {
   cid: string | undefined
   challengeRequestId = `r${++challengeRequestCount}`
   challengeAnswerId = `a${++challengeAnswerCount}`
+  state: string | undefined
+  publishingState: string | undefined
 
   async publish() {
+    this.state = 'publishing'
+    this.emit('statechange', 'publishing')
     await simulateLoadingTime()
     this.simulateChallengeEvent()
   }
@@ -341,6 +349,9 @@ export class Comment extends Publication {
   replies: any
   updatedAt: number | undefined
   subplebbitAddress: string | undefined
+  state: string
+  updatingState: string
+  publishingState: string
 
   constructor(createCommentOptions?: any) {
     super()
@@ -354,6 +365,9 @@ export class Comment extends Publication {
     this.parentCid = createCommentOptions?.parentCid
     this.replies = new Pages({comment: this})
     this.subplebbitAddress = createCommentOptions?.subplebbitAddress
+    this.state = 'stopped'
+    this.updatingState = 'stopped'
+    this.publishingState = 'stopped'
   }
 
   async update() {
@@ -372,6 +386,10 @@ export class Comment extends Publication {
       return
     }
     this.updating = true
+    this.state = 'updating'
+    this.emit('statechange', 'updating')
+    this.updatingState = 'fetching-ipns'
+    this.emit('updatingstatechange', 'fetching-ipns')
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
@@ -383,6 +401,9 @@ export class Comment extends Publication {
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
     this.updatedAt = Math.floor(Date.now() / 1000)
     this.emit('update', this)
+
+    this.updatingState = 'succeeded'
+    this.emit('updatingstatechange', 'succeeded')
   }
 }
 
