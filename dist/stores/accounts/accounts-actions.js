@@ -302,6 +302,50 @@ export const unblockAddress = (address, accountName) => __awaiter(void 0, void 0
     log('accountsActions.unblockAddress', { account: updatedAccount, accountName, address });
     accountsStore.setState({ accounts: updatedAccounts });
 });
+export const blockCid = (cid, accountName) => __awaiter(void 0, void 0, void 0, function* () {
+    const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
+    assert(cid && typeof cid === 'string', `accountsActions.blockCid invalid cid '${cid}'`);
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
+    let account = accounts[activeAccountId];
+    if (accountName) {
+        const accountId = accountNamesToAccountIds[accountName];
+        account = accounts[accountId];
+    }
+    assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.blockCid account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+    const blockedCids = Object.assign({}, account.blockedCids);
+    if (blockedCids[cid] === true) {
+        throw Error(`account '${account.id}' already blocked cid '${cid}'`);
+    }
+    blockedCids[cid] = true;
+    const updatedAccount = Object.assign(Object.assign({}, account), { blockedCids });
+    // update account in db
+    yield accountsDatabase.addAccount(updatedAccount);
+    const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
+    log('accountsActions.blockCid', { account: updatedAccount, accountName, cid });
+    accountsStore.setState({ accounts: updatedAccounts });
+});
+export const unblockCid = (cid, accountName) => __awaiter(void 0, void 0, void 0, function* () {
+    const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
+    assert(cid && typeof cid === 'string', `accountsActions.unblockCid invalid cid '${cid}'`);
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
+    let account = accounts[activeAccountId];
+    if (accountName) {
+        const accountId = accountNamesToAccountIds[accountName];
+        account = accounts[accountId];
+    }
+    assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.unblockCid account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
+    const blockedCids = Object.assign({}, account.blockedCids);
+    if (!blockedCids[cid]) {
+        throw Error(`account '${account.id}' already blocked cid '${cid}'`);
+    }
+    delete blockedCids[cid];
+    const updatedAccount = Object.assign(Object.assign({}, account), { blockedCids });
+    // update account in db
+    yield accountsDatabase.addAccount(updatedAccount);
+    const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
+    log('accountsActions.unblockCid', { account: updatedAccount, accountName, cid });
+    accountsStore.setState({ accounts: updatedAccounts });
+});
 export const publishComment = (publishCommentOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
     const { accounts, accountsComments, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();

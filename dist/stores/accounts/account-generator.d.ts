@@ -11,6 +11,7 @@ export declare const generateDefaultAccount: () => Promise<{
     plebbit: import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit;
     subscriptions: never[];
     blockedAddresses: {};
+    blockedCids: {};
     subplebbits: {
         [subplebbitAddress: string]: AccountSubplebbit;
     };
@@ -27,6 +28,7 @@ declare const accountGenerator: {
         plebbit: import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit;
         subscriptions: never[];
         blockedAddresses: {};
+        blockedCids: {};
         subplebbits: {
             [subplebbitAddress: string]: AccountSubplebbit;
         };

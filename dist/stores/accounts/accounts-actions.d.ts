@@ -10,6 +10,8 @@ export declare const subscribe: (subplebbitAddress: string, accountName?: string
 export declare const unsubscribe: (subplebbitAddress: string, accountName?: string | undefined) => Promise<void>;
 export declare const blockAddress: (address: string, accountName?: string | undefined) => Promise<void>;
 export declare const unblockAddress: (address: string, accountName?: string | undefined) => Promise<void>;
+export declare const blockCid: (cid: string, accountName?: string | undefined) => Promise<void>;
+export declare const unblockCid: (cid: string, accountName?: string | undefined) => Promise<void>;
 export declare const publishComment: (publishCommentOptions: PublishCommentOptions, accountName?: string | undefined) => Promise<undefined>;
 export declare const deleteComment: (commentCidOrAccountCommentIndex: string | number, accountName?: string | undefined) => Promise<never>;
 export declare const publishVote: (publishVoteOptions: PublishVoteOptions, accountName?: string | undefined) => Promise<void>;

@@ -18,7 +18,7 @@ import { resolveEnsTxtRecord } from '../lib/chain';
 import useSubplebbitsStore from '../stores/subplebbits';
 import shallow from 'zustand/shallow';
 /**
- * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
@@ -45,7 +45,7 @@ export function useSubplebbit(options) {
     return useMemo(() => (Object.assign(Object.assign({}, subplebbit), { state, error: undefined, errors: [] })), [subplebbit, subplebbitAddress]);
 }
 /**
- * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
@@ -80,7 +80,7 @@ export function useSubplebbitStats(options) {
     return useMemo(() => (Object.assign(Object.assign({}, subplebbitStats), { state, error: undefined, errors: [] })), [subplebbitStats, subplebbitStatsCid]);
 }
 /**
- * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
+ * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', '12D3KooWA...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
@@ -135,7 +135,7 @@ export function useListSubplebbits() {
     return subplebbitAddresses;
 }
 /**
- * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to 'Qm...'.
+ * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to '12D3KooW...'.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */

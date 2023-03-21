@@ -13,7 +13,7 @@ import createStore from 'zustand';
 import assert from 'assert';
 import commentsStore from '../comments';
 import QuickLru from 'quick-lru';
-import { toSizes, getUpdatedLoadedAndBufferedComments, getNextCommentCidToFetchNotFetched } from './utils';
+import { getUpdatedLoadedAndBufferedComments, getNextCommentCidToFetchNotFetched } from './utils';
 import accountsStore from '../accounts';
 // reddit loads approximately 25 posts per page while infinite scrolling
 export const commentsPerPage = 25;
@@ -68,15 +68,15 @@ const authorsCommentsStore = createStore((setState, getState) => ({
             throw Error(`authorsCommentsActions.setNextCommentCidsToFetch can't set nextCommentCidToFetch '${authorAddress}' to '${nextCommentCidToFetch}' same value`);
         }
         const nextCommentCidToFetchNotFetched = getNextCommentCidToFetchNotFetched(nextCommentCidToFetch);
-        log.trace('authorsCommentsActions.setNextCommentCidsToFetch', {
-            authorAddress,
-            authorComment,
-            previousNextCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
-            nextCommentCidToFetch,
-            nextCommentCidToFetchNotFetched,
-            lastCommentCid: lastCommentCids[authorAddress],
-            shouldFetchNextComment: shouldFetchNextComment[authorAddress],
-        });
+        // log.trace('authorsCommentsActions.setNextCommentCidsToFetch', {
+        //   authorAddress,
+        //   authorComment,
+        //   previousNextCommentCidToFetch: nextCommentCidsToFetch[authorAddress],
+        //   nextCommentCidToFetch,
+        //   nextCommentCidToFetchNotFetched,
+        //   lastCommentCid: lastCommentCids[authorAddress],
+        //   shouldFetchNextComment: shouldFetchNextComment[authorAddress],
+        // })
         setState((state) => ({
             nextCommentCidsToFetch: Object.assign(Object.assign({}, state.nextCommentCidsToFetch), { [authorAddress]: nextCommentCidToFetchNotFetched }),
         }));
@@ -111,7 +111,7 @@ const authorsCommentsStore = createStore((setState, getState) => ({
         if (bufferedCommentCids[authorAddress].has(commentCid)) {
             throw Error(`authorsCommentsActions.addBufferedCommentCid can't add commentCid '${authorAddress}' '${commentCid}' already added`);
         }
-        log.trace('authorsCommentsActions.addBufferedCommentCid', { authorAddress, commentCid, previousBufferedCommentCidsSize: bufferedCommentCids[authorAddress].size });
+        // log.trace('authorsCommentsActions.addBufferedCommentCid', {authorAddress, commentCid, previousBufferedCommentCidsSize: bufferedCommentCids[authorAddress].size})
         setState((state) => ({
             bufferedCommentCids: Object.assign(Object.assign({}, state.bufferedCommentCids), { [authorAddress]: new Set([...bufferedCommentCids[authorAddress], commentCid]) }),
         }));
@@ -136,16 +136,16 @@ const authorsCommentsStore = createStore((setState, getState) => ({
                 newShouldFetchNextComment[authorAddress] = filteredBufferedComments.length < pageNumber * commentsPerPage + commentBufferSize;
             }
         }
-        log.trace('authorsCommentsActions.updateLoadedComments', {
-            // bufferedCommentCids,
-            bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
-            // previousAuthorsLoadedComments,
-            // newAuthorsLoadedComments,
-            previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
-            newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
-            newShouldFetchNextComment,
-            // lastCommentCids
-        });
+        // log.trace('authorsCommentsActions.updateLoadedComments', {
+        //   bufferedCommentCids,
+        //   bufferedCommentCidsSizes: toSizes(bufferedCommentCids),
+        //   previousAuthorsLoadedComments,
+        //   newAuthorsLoadedComments,
+        //   previousAuthorsLoadedCommentsSizes: toSizes(previousAuthorsLoadedComments),
+        //   newAuthorsLoadedCommentsSizes: toSizes(newAuthorsLoadedComments),
+        //   newShouldFetchNextComment,
+        //   lastCommentCids
+        // })
         setState(() => ({
             loadedComments: newAuthorsLoadedComments,
             shouldFetchNextComment: newShouldFetchNextComment,

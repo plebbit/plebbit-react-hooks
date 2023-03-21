@@ -76,6 +76,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         plebbit: plebbit,
         subscriptions: [],
         blockedAddresses: {},
+        blockedCids: {},
         subplebbits,
     };
     return account;

@@ -70,20 +70,33 @@ export function useSubscribe(options) {
 }
 export function useBlock(options) {
     assert(!options || typeof options === 'object', `useBlock options argument '${options}' not an object`);
-    const { address, accountName, onError } = options || {};
+    const { address, cid, accountName, onError } = options || {};
+    if (address && cid) {
+        throw Error(`can't useBlock with both an address '${address}' and cid '${cid}' argument at the same time`);
+    }
     const account = useAccount({ accountName });
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const [errors, setErrors] = useState([]);
     let state = 'initializing';
     let blocked;
     // before the account and address is defined, nothing can happen
-    if (account && address) {
+    if (account && (address || cid)) {
         state = 'ready';
-        blocked = Boolean(account.blockedAddresses[address]);
+        if (address) {
+            blocked = Boolean(account.blockedAddresses[address]);
+        }
+        if (cid) {
+            blocked = Boolean(account.blockedCids[cid]);
+        }
     }
     const block = () => __awaiter(this, void 0, void 0, function* () {
         try {
-            yield accountsActions.blockAddress(address, accountName);
+            if (cid) {
+                yield accountsActions.blockCid(cid, accountName);
+            }
+            else {
+                yield accountsActions.blockAddress(address, accountName);
+            }
         }
         catch (e) {
             setErrors([...errors, e]);
@@ -92,7 +105,12 @@ export function useBlock(options) {
     });
     const unblock = () => __awaiter(this, void 0, void 0, function* () {
         try {
-            yield accountsActions.unblockAddress(address, accountName);
+            if (cid) {
+                yield accountsActions.unblockCid(cid, accountName);
+            }
+            else {
+                yield accountsActions.unblockAddress(address, accountName);
+            }
         }
         catch (e) {
             setErrors([...errors, e]);
