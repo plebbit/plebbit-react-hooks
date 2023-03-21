@@ -8,8 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import EventEmitter from 'events';
-// TODO: make load time changeable with env variable
-// so the frontend can test with latency
 const loadingTime = 10;
 export const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
 // keep a list of created and edited owner subplebbits
@@ -158,6 +156,8 @@ export class Subplebbit extends EventEmitter {
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
         this.statsCid = 'statscid';
+        this.state = 'stopped';
+        this.updatingState = 'stopped';
         this.posts = new Pages({ subplebbit: this });
         // add subplebbit.posts from createSubplebbitOptions
         if ((_a = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _a === void 0 ? void 0 : _a.pages) {
@@ -182,6 +182,8 @@ export class Subplebbit extends EventEmitter {
                 return;
             }
             this.updating = true;
+            this.state = 'updating';
+            this.emit('statechange', 'updating');
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
             });
@@ -278,6 +280,8 @@ class Publication extends EventEmitter {
     }
     publish() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.state = 'publishing';
+            this.emit('statechange', 'publishing');
             yield simulateLoadingTime();
             this.simulateChallengeEvent();
         });
@@ -326,6 +330,9 @@ export class Comment extends Publication {
         this.parentCid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.parentCid;
         this.replies = new Pages({ comment: this });
         this.subplebbitAddress = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.subplebbitAddress;
+        this.state = 'stopped';
+        this.updatingState = 'stopped';
+        this.publishingState = 'stopped';
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -342,6 +349,10 @@ export class Comment extends Publication {
                 return;
             }
             this.updating = true;
+            this.state = 'updating';
+            this.emit('statechange', 'updating');
+            this.updatingState = 'fetching-ipns';
+            this.emit('updatingstatechange', 'fetching-ipns');
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
             });
@@ -353,6 +364,8 @@ export class Comment extends Publication {
         this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1;
         this.updatedAt = Math.floor(Date.now() / 1000);
         this.emit('update', this);
+        this.updatingState = 'succeeded';
+        this.emit('updatingstatechange', 'succeeded');
     }
 }
 export class Vote extends Publication {
