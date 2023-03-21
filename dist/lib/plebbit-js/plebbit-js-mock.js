@@ -184,6 +184,8 @@ export class Subplebbit extends EventEmitter {
             this.updating = true;
             this.state = 'updating';
             this.emit('statechange', 'updating');
+            this.updatingState = 'fetching-ipns';
+            this.emit('updatingstatechange', 'fetching-ipns');
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
             });
@@ -201,6 +203,8 @@ export class Subplebbit extends EventEmitter {
         this.description = this.address + ' description updated';
         this.updatedAt = Math.floor(Date.now() / 1000);
         this.emit('update', this);
+        this.updatingState = 'succeeded';
+        this.emit('updatingstatechange', 'succeeded');
     }
     // use getting to easily mock it
     get roles() {
@@ -282,11 +286,15 @@ class Publication extends EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             this.state = 'publishing';
             this.emit('statechange', 'publishing');
+            this.publishingState = 'publishing-challenge-request';
+            this.emit('publishingstatechange', 'publishing-challenge-request');
             yield simulateLoadingTime();
             this.simulateChallengeEvent();
         });
     }
     simulateChallengeEvent() {
+        this.publishingState = 'waiting-challenge-answers';
+        this.emit('publishingstatechange', 'waiting-challenge-answers');
         const challenge = { type: 'text', challenge: '2+2=?' };
         const challengeMessage = {
             type: 'CHALLENGE',
@@ -297,6 +305,10 @@ class Publication extends EventEmitter {
     }
     publishChallengeAnswers(challengeAnswers) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.publishingState = 'publishing-challenge-answer';
+            this.emit('publishingstatechange', 'publishing-challenge-answer');
+            this.publishingState = 'waiting-challenge-verification';
+            this.emit('publishingstatechange', 'waiting-challenge-verification');
             yield simulateLoadingTime();
             this.simulateChallengeVerificationEvent();
         });
@@ -313,6 +325,8 @@ class Publication extends EventEmitter {
             publication,
         };
         this.emit('challengeverification', challengeVerificationMessage, this);
+        this.publishingState = 'succeeded';
+        this.emit('publishingstatechange', 'succeeded');
     }
 }
 export class Comment extends Publication {
