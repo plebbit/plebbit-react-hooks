@@ -64,8 +64,8 @@ export const useCalculatedNotifications = (account?: Account, accountCommentsRep
     }
     // get reply notifications only
     // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
-    return getReplyNotificationsFromAccountCommentsReplies(accountCommentsReplies, account?.blockedAddresses)
-  }, [accountCommentsReplies, account?.blockedAddresses])
+    return getReplyNotificationsFromAccountCommentsReplies(accountCommentsReplies, account?.blockedAddresses, account?.blockedCids)
+  }, [accountCommentsReplies, account?.blockedAddresses, account?.blockedCids])
 }
 
 // accountsBlockedAddresses must be cached to prevent rerenders
@@ -85,14 +85,34 @@ const getAccountsBlockedAddressesNoCache = (...args: any) => {
 // length false because variable arguments legnth
 const getAccountsBlockedAddressesCached = memoize(getAccountsBlockedAddressesNoCache, {max: 100, length: false})
 
+// accountsBlockedCids must be cached to prevent rerenders
+// TODO: add accountsBlockedCids as an object in the store that can easily be === checked for equality
+const getAccountsBlockedCidsNoCache = (...args: any) => {
+  const accountsBlockedCids: {[accountId: string]: {[cid: string]: boolean}} = {}
+  const separator = Math.ceil(args.length / 2)
+  for (const [i] of args.entries()) {
+    const accountId = args[i]
+    const accountBlockedCids = args[i + separator]
+    if (accountBlockedCids) {
+      accountsBlockedCids[accountId] = accountBlockedCids
+    }
+  }
+  return accountsBlockedCids
+}
+// length false because variable arguments legnth
+const getAccountsBlockedCidsCached = memoize(getAccountsBlockedCidsNoCache, {max: 100, length: false})
+
 export const useCalculatedAccountsNotifications = (accounts?: Accounts, accountsCommentsReplies?: AccountsCommentsReplies) => {
-  // accountsBlockedAddresses must be cached to prevent rerenders
-  // TODO: add accountsBlockedAddresses as an object in the store that can easily be === checked for equality
+  // accountsBlockedAddresses and accountsBlockedCids must be cached to prevent rerenders
+  // TODO: add accountsBlockedAddresses and accountsBlockedCids as objects in the store that can easily be === checked for equality
   let accountsBlockedAddresses: any
+  let accountsBlockedCids: any
   if (accounts && accountsCommentsReplies) {
     const accountIds = Object.keys(accountsCommentsReplies)
     const accountsBlockedAddressesArray = accountIds.map((accountId) => accounts[accountId]?.blockedAddresses)
     accountsBlockedAddresses = getAccountsBlockedAddressesCached(...accountIds, ...accountsBlockedAddressesArray)
+    const accountsBlockedCidsArray = accountIds.map((accountId) => accounts[accountId]?.blockedCids)
+    accountsBlockedCids = getAccountsBlockedCidsCached(...accountIds, ...accountsBlockedCidsArray)
   }
 
   return useMemo(() => {
@@ -103,21 +123,31 @@ export const useCalculatedAccountsNotifications = (accounts?: Accounts, accounts
     for (const accountId in accountsCommentsReplies) {
       // get reply notifications only
       // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
-      accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(accountsCommentsReplies[accountId], accountsBlockedAddresses[accountId])
+      accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(
+        accountsCommentsReplies[accountId],
+        accountsBlockedAddresses[accountId],
+        accountsBlockedCids[accountId]
+      )
     }
     return accountsNotifications
-  }, [accountsCommentsReplies, accountsBlockedAddresses])
+  }, [accountsCommentsReplies, accountsBlockedAddresses, accountsBlockedCids])
 }
 
-const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies: AccountCommentsReplies, accountBlockedAddresses?: {[address: string]: boolean}) => {
+const getReplyNotificationsFromAccountCommentsReplies = (
+  accountCommentsReplies: AccountCommentsReplies,
+  accountBlockedAddresses?: {[address: string]: boolean},
+  accountBlockedCids?: {[cid: string]: boolean}
+) => {
   // get reply notifications
   const replyNotifications: AccountCommentReply[] = []
   for (const replyCid in accountCommentsReplies) {
     const reply = accountCommentsReplies[replyCid]
-    // TODO: filter blocked addresses
-    // if (accountBlockedAddresses?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
-    //   continue
-    // }
+    if (accountBlockedAddresses?.[reply.subplebbitAddress] || accountBlockedAddresses?.[reply.author?.address]) {
+      continue
+    }
+    if (accountBlockedCids?.[reply.cid] || accountBlockedCids?.[reply.parentCid] || accountBlockedCids?.[reply.postCid]) {
+      continue
+    }
     replyNotifications.push(reply)
   }
   return replyNotifications.sort((a, b) => b.timestamp - a.timestamp)

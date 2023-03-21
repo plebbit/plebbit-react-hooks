@@ -334,7 +334,7 @@ export const unblockAddress = async (address: string, accountName?: string) => {
 
   const blockedAddresses: {[address: string]: boolean} = {...account.blockedAddresses}
   if (!blockedAddresses[address]) {
-    throw Error(`account '${account.id}' already blocked address '${address}'`)
+    throw Error(`account '${account.id}' already unblocked address '${address}'`)
   }
   delete blockedAddresses[address]
 
@@ -384,7 +384,7 @@ export const unblockCid = async (cid: string, accountName?: string) => {
 
   const blockedCids: {[cid: string]: boolean} = {...account.blockedCids}
   if (!blockedCids[cid]) {
-    throw Error(`account '${account.id}' already blocked cid '${cid}'`)
+    throw Error(`account '${account.id}' already unblocked cid '${cid}'`)
   }
   delete blockedCids[cid]
 

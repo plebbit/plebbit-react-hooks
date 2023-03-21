@@ -1530,9 +1530,10 @@ describe('accounts', () => {
 
       rendered = renderHook<any, any>((props?: any) => {
         const account = useAccount(props)
+        const accounts = useAccounts()
         const {notifications, markAsRead} = useNotifications(props)
         const {publishComment} = accountsActions
-        return {account, notifications, markAsRead, publishComment}
+        return {account, accounts, notifications, markAsRead, publishComment}
       })
       waitFor = testUtils.createWaitFor(rendered)
 
@@ -1568,6 +1569,7 @@ describe('accounts', () => {
       const comment = updatingComments[0]
       expect(rendered.result.current.notifications).toEqual([])
       expect(rendered.result.current.account.unreadNotificationCount).toBe(0)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
 
       act(() => {
         // update the comment with replies to see get notifications
@@ -1597,6 +1599,7 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[1].markedAsRead).toBe(false)
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(false)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(3)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(3)
 
       await act(async () => {
         // mark the notifications as read
@@ -1614,6 +1617,7 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[1].markedAsRead).toBe(true)
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(0)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
 
       act(() => {
         // update the comment with one unread reply and one read reply
@@ -1622,8 +1626,8 @@ describe('accounts', () => {
             topAll: {
               nextCid: undefined,
               comments: [
-                {cid: 'reply cid 3', timestamp: 3},
-                {cid: 'reply cid 4', timestamp: 4},
+                {cid: 'reply cid 3', timestamp: 3, subplebbitAddress: 'blocked subplebbit address', postCid: 'blocked post cid'},
+                {cid: 'reply cid 4', timestamp: 4, author: {address: 'blocked author address'}, parentCid: 'blocked parent cid'},
               ],
             },
           },
@@ -1644,6 +1648,56 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
       expect(rendered.result.current.notifications[3].markedAsRead).toBe(true)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(1)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(1)
+
+      // block addresses
+      await act(async () => {
+        await accountsActions.blockAddress('blocked subplebbit address')
+        await accountsActions.blockAddress('blocked author address')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 2)
+      expect(rendered.result.current.notifications.length).toBe(2)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
+
+      // unblock addresses
+      await act(async () => {
+        await accountsActions.unblockAddress('blocked subplebbit address')
+        await accountsActions.unblockAddress('blocked author address')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 4)
+      expect(rendered.result.current.notifications.length).toBe(4)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[3].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(1)
+
+      // block cids
+      await act(async () => {
+        await accountsActions.blockCid('blocked parent cid')
+        await accountsActions.blockCid('blocked post cid')
+        await accountsActions.blockCid('reply cid 2')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 1)
+      expect(rendered.result.current.notifications.length).toBe(1)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
+
+      // unblock cids
+      await act(async () => {
+        await accountsActions.unblockCid('blocked parent cid')
+        await accountsActions.unblockCid('blocked post cid')
+        await accountsActions.unblockCid('reply cid 2')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 4)
+      expect(rendered.result.current.notifications.length).toBe(4)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[3].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(1)
 
       // reset stores to force using the db
       await testUtils.resetStores()
