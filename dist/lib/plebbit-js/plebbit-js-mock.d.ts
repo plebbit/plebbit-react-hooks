@@ -36,6 +36,8 @@ export declare class Subplebbit extends EventEmitter {
     posts: Pages;
     updatedAt: number | undefined;
     statsCid: string | undefined;
+    state: string;
+    updatingState: string;
     constructor(createSubplebbitOptions?: any);
     update(): Promise<void>;
     delete(): Promise<void>;
@@ -50,6 +52,8 @@ declare class Publication extends EventEmitter {
     cid: string | undefined;
     challengeRequestId: string;
     challengeAnswerId: string;
+    state: string | undefined;
+    publishingState: string | undefined;
     publish(): Promise<void>;
     simulateChallengeEvent(): void;
     publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
@@ -67,6 +71,9 @@ export declare class Comment extends Publication {
     replies: any;
     updatedAt: number | undefined;
     subplebbitAddress: string | undefined;
+    state: string;
+    updatingState: string;
+    publishingState: string;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): void;
