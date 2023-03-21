@@ -59,6 +59,11 @@ describe('authors', () => {
 
     afterEach(async () => {
       await testUtils.resetDatabasesAndStores()
+
+      // wait and reset comments store again, for some reason it is needed sometimes or
+      // comments from a previous test will be in the comments store, don't know why
+      await new Promise((r) => setTimeout(r, 50))
+      await testUtils.resetDatabasesAndStores()
     })
 
     test('no comment cid', async () => {
@@ -207,10 +212,6 @@ describe('authors', () => {
       // restore mock
       Plebbit.prototype.commentToGet = commentToGet
     })
-
-    // test('change commentCid argument to lastCommentCid while scrolling', async () => {
-
-    // })
 
     test('some author comments have wrong author', async () => {
       // mock the correct author address on the comment

@@ -2073,8 +2073,9 @@ describe('accounts', () => {
       expect(commentsStore.getState().comments[commentCid]).not.toBe(undefined)
       expect(commentsStore.getState().comments[commentCid].cid).toBe(commentCid)
 
-      await waitFor(() => rendered.result.current.comment?.cid)
+      await waitFor(() => rendered.result.current.comment.index === undefined)
       expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      expect(typeof rendered.result.current.comment?.timestamp).toBe('number')
       // comment isn't an account comment (doesn't have comment.index)
       expect(rendered.result.current.comment.index).toBe(undefined)
     })

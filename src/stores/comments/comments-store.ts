@@ -37,8 +37,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // comment not in database, fetch from plebbit-js
     try {
       if (!comment) {
-        const onError = (error: any) => log.error(`commentsStore.addCommentToStore failed plebbit.getComment cid '${commentId}':`, error)
-        comment = await utils.retryInfinity(() => account.plebbit.getComment(commentId), {onError})
+        comment = await account.plebbit.createComment({cid: commentId})
         log.trace('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
         await commentsDatabase.setItem(commentId, utils.clone(comment))
       }
@@ -63,7 +62,16 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
     // comment, and if yes, add the CID to your account comments database
-    await accountsStore.getState().accountsActionsInternal.addCidToAccountComment(comment)
+    // if comment.timestamp isn't defined, it means the next update will contain the timestamp and author
+    // which is used in addCidToAccountComment
+    if (!comment?.timestamp) {
+      comment?.once('update', () =>
+        accountsStore
+          .getState()
+          .accountsActionsInternal.addCidToAccountComment(comment)
+          .catch((error: any) => log.error('accountsActionsInternal.addCidToAccountComment error', {comment, error}))
+      )
+    }
   },
 }))
 

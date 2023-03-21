@@ -56,7 +56,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
     comment = accountComment
   }
 
-  const state = comment ? 'succeeded' : 'fetching-ipfs'
+  const state = comment?.state || 'initializing'
 
   return useMemo(
     () => ({

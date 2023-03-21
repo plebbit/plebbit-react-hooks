@@ -194,6 +194,7 @@ export class Subplebbit extends EventEmitter {
     this.emit('statechange', 'updating')
     this.updatingState = 'fetching-ipns'
     this.emit('updatingstatechange', 'fetching-ipns')
+
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
@@ -397,10 +398,6 @@ export class Comment extends Publication {
         'with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
       )
     }
-    // is ipnsName is known, look for updates and emit updates immediately after creation
-    if (!this.ipnsName) {
-      throw Error(`can't update without comment.ipnsName`)
-    }
     // don't update twice
     if (this.updating) {
       return
@@ -408,14 +405,21 @@ export class Comment extends Publication {
     this.updating = true
     this.state = 'updating'
     this.emit('statechange', 'updating')
-    this.updatingState = 'fetching-ipns'
-    this.emit('updatingstatechange', 'fetching-ipns')
+    this.updatingState = 'fetching-ipfs'
+    this.emit('updatingstatechange', 'fetching-ipfs')
+
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
   }
 
   simulateUpdateEvent() {
+    // if timestamp isn't defined, simulate fetching the comment ipfs
+    if (!this.timestamp) {
+      this.simulateFetchCommentIpfsUpdateEvent()
+      return
+    }
+
     // simulate finding vote counts on an IPNS record
     this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
@@ -424,6 +428,25 @@ export class Comment extends Publication {
 
     this.updatingState = 'succeeded'
     this.emit('updatingstatechange', 'succeeded')
+  }
+
+  async simulateFetchCommentIpfsUpdateEvent() {
+    // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
+    const commentIpfs = await new Plebbit().getComment(this.cid || '')
+    this.ipnsName = commentIpfs.ipnsName
+    this.content = commentIpfs.content
+    this.author = commentIpfs.author
+    this.timestamp = commentIpfs.timestamp
+    this.parentCid = commentIpfs.parentCid
+    this.subplebbitAddress = commentIpfs.subplebbitAddress
+    this.emit('update', this)
+
+    // simulate the ipns update
+    this.updatingState = 'fetching-ipns'
+    this.emit('updatingstatechange', 'fetching-ipns')
+    simulateLoadingTime().then(() => {
+      this.simulateUpdateEvent()
+    })
   }
 }
 

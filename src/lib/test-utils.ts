@@ -110,10 +110,6 @@ export const resetStores = async () => {
   await resetCommentsStore()
   // always accounts last because it has async initialization
   await resetAccountsStore()
-
-  // reset comments again, for some reason it is needed sometimes or
-  // comments from a previous test will be in the comments store, don't know why
-  await resetCommentsStore()
 }
 
 export const resetDatabasesAndStores = async () => {
@@ -124,10 +120,6 @@ export const resetDatabasesAndStores = async () => {
   await resetCommentsDatabaseAndStore()
   // always accounts last because it has async initialization
   await resetAccountsDatabaseAndStore()
-
-  // reset comments again, for some reason it is needed sometimes or
-  // comments from a previous test will be in the comments store, don't know why
-  await resetCommentsDatabaseAndStore()
 }
 
 const testUtils = {
