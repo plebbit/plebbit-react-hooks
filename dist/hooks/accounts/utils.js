@@ -51,8 +51,8 @@ export const useCalculatedNotifications = (account, accountCommentsReplies) => {
         }
         // get reply notifications only
         // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
-        return getReplyNotificationsFromAccountCommentsReplies(accountCommentsReplies, account === null || account === void 0 ? void 0 : account.blockedAddresses);
-    }, [accountCommentsReplies, account === null || account === void 0 ? void 0 : account.blockedAddresses]);
+        return getReplyNotificationsFromAccountCommentsReplies(accountCommentsReplies, account === null || account === void 0 ? void 0 : account.blockedAddresses, account === null || account === void 0 ? void 0 : account.blockedCids);
+    }, [accountCommentsReplies, account === null || account === void 0 ? void 0 : account.blockedAddresses, account === null || account === void 0 ? void 0 : account.blockedCids]);
 };
 // accountsBlockedAddresses must be cached to prevent rerenders
 // TODO: add accountsBlockedAddresses as an object in the store that can easily be === checked for equality
@@ -70,14 +70,33 @@ const getAccountsBlockedAddressesNoCache = (...args) => {
 };
 // length false because variable arguments legnth
 const getAccountsBlockedAddressesCached = memoize(getAccountsBlockedAddressesNoCache, { max: 100, length: false });
+// accountsBlockedCids must be cached to prevent rerenders
+// TODO: add accountsBlockedCids as an object in the store that can easily be === checked for equality
+const getAccountsBlockedCidsNoCache = (...args) => {
+    const accountsBlockedCids = {};
+    const separator = Math.ceil(args.length / 2);
+    for (const [i] of args.entries()) {
+        const accountId = args[i];
+        const accountBlockedCids = args[i + separator];
+        if (accountBlockedCids) {
+            accountsBlockedCids[accountId] = accountBlockedCids;
+        }
+    }
+    return accountsBlockedCids;
+};
+// length false because variable arguments legnth
+const getAccountsBlockedCidsCached = memoize(getAccountsBlockedCidsNoCache, { max: 100, length: false });
 export const useCalculatedAccountsNotifications = (accounts, accountsCommentsReplies) => {
-    // accountsBlockedAddresses must be cached to prevent rerenders
-    // TODO: add accountsBlockedAddresses as an object in the store that can easily be === checked for equality
+    // accountsBlockedAddresses and accountsBlockedCids must be cached to prevent rerenders
+    // TODO: add accountsBlockedAddresses and accountsBlockedCids as objects in the store that can easily be === checked for equality
     let accountsBlockedAddresses;
+    let accountsBlockedCids;
     if (accounts && accountsCommentsReplies) {
         const accountIds = Object.keys(accountsCommentsReplies);
         const accountsBlockedAddressesArray = accountIds.map((accountId) => { var _a; return (_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.blockedAddresses; });
         accountsBlockedAddresses = getAccountsBlockedAddressesCached(...accountIds, ...accountsBlockedAddressesArray);
+        const accountsBlockedCidsArray = accountIds.map((accountId) => { var _a; return (_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.blockedCids; });
+        accountsBlockedCids = getAccountsBlockedCidsCached(...accountIds, ...accountsBlockedCidsArray);
     }
     return useMemo(() => {
         const accountsNotifications = {};
@@ -87,20 +106,23 @@ export const useCalculatedAccountsNotifications = (accounts, accountsCommentsRep
         for (const accountId in accountsCommentsReplies) {
             // get reply notifications only
             // TODO: at some point we should also add upvote notifications like 'your post has gotten 10 upvotes'
-            accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(accountsCommentsReplies[accountId], accountsBlockedAddresses[accountId]);
+            accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(accountsCommentsReplies[accountId], accountsBlockedAddresses[accountId], accountsBlockedCids[accountId]);
         }
         return accountsNotifications;
-    }, [accountsCommentsReplies, accountsBlockedAddresses]);
+    }, [accountsCommentsReplies, accountsBlockedAddresses, accountsBlockedCids]);
 };
-const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies, accountBlockedAddresses) => {
+const getReplyNotificationsFromAccountCommentsReplies = (accountCommentsReplies, accountBlockedAddresses, accountBlockedCids) => {
+    var _a;
     // get reply notifications
     const replyNotifications = [];
     for (const replyCid in accountCommentsReplies) {
         const reply = accountCommentsReplies[replyCid];
-        // TODO: filter blocked addresses
-        // if (accountBlockedAddresses?.[reply.subplebbitAddress] || accountsBlockedAddresses[accountId]?.[reply.author.address]) {
-        //   continue
-        // }
+        if ((accountBlockedAddresses === null || accountBlockedAddresses === void 0 ? void 0 : accountBlockedAddresses[reply.subplebbitAddress]) || (accountBlockedAddresses === null || accountBlockedAddresses === void 0 ? void 0 : accountBlockedAddresses[(_a = reply.author) === null || _a === void 0 ? void 0 : _a.address])) {
+            continue;
+        }
+        if ((accountBlockedCids === null || accountBlockedCids === void 0 ? void 0 : accountBlockedCids[reply.cid]) || (accountBlockedCids === null || accountBlockedCids === void 0 ? void 0 : accountBlockedCids[reply.parentCid]) || (accountBlockedCids === null || accountBlockedCids === void 0 ? void 0 : accountBlockedCids[reply.postCid])) {
+            continue;
+        }
         replyNotifications.push(reply);
     }
     return replyNotifications.sort((a, b) => b.timestamp - a.timestamp);

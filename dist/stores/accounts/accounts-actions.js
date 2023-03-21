@@ -292,7 +292,7 @@ export const unblockAddress = (address, accountName) => __awaiter(void 0, void 0
     assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.unblockAddress account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
     const blockedAddresses = Object.assign({}, account.blockedAddresses);
     if (!blockedAddresses[address]) {
-        throw Error(`account '${account.id}' already blocked address '${address}'`);
+        throw Error(`account '${account.id}' already unblocked address '${address}'`);
     }
     delete blockedAddresses[address];
     const updatedAccount = Object.assign(Object.assign({}, account), { blockedAddresses });
@@ -336,7 +336,7 @@ export const unblockCid = (cid, accountName) => __awaiter(void 0, void 0, void 0
     assert(account === null || account === void 0 ? void 0 : account.id, `accountsActions.unblockCid account.id '${account === null || account === void 0 ? void 0 : account.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`);
     const blockedCids = Object.assign({}, account.blockedCids);
     if (!blockedCids[cid]) {
-        throw Error(`account '${account.id}' already blocked cid '${cid}'`);
+        throw Error(`account '${account.id}' already unblocked cid '${cid}'`);
     }
     delete blockedCids[cid];
     const updatedAccount = Object.assign(Object.assign({}, account), { blockedCids });
