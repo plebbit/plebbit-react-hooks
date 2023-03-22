@@ -15,11 +15,13 @@ export const listeners: any = []
 
 export type CommentsState = {
   comments: Comments
+  errors: {[commentCid: string]: Error[]}
   addCommentToStore: Function
 }
 
 const commentsStore = createStore<CommentsState>((setState: Function, getState: Function) => ({
   comments: {},
+  errors: {},
 
   async addCommentToStore(commentId: string, account: Account) {
     const {comments} = getState()
@@ -41,7 +43,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
         await commentsDatabase.setItem(commentId, utils.clone(comment))
       }
       log('commentsStore.addCommentToStore', {commentId, comment, account})
-      setState((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
+      setState((state: CommentsState) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
     } catch (e) {
       throw e
     } finally {
@@ -53,16 +55,24 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
       log('commentsStore comment update', {commentId, updatedComment, account})
-      setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
+      setState((state: CommentsState) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
 
-    comment?.on('updatingstatechange', async (updatingState: string) => {
-      setState((state: any) => ({
+    comment?.on('updatingstatechange', (updatingState: string) => {
+      setState((state: CommentsState) => ({
         comments: {
           ...state.comments,
           [commentId]: {...state.comments[commentId], updatingState},
         },
       }))
+    })
+
+    comment?.on('error', (error: Error) => {
+      setState((state: CommentsState) => {
+        let commentErrors = state.errors[commentId] || []
+        commentErrors = [...commentErrors, error]
+        return {...state, errors: {...state.errors, [commentId]: commentErrors}}
+      })
     })
 
     // when publishing a comment, you don't yet know its CID
