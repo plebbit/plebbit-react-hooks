@@ -15,6 +15,7 @@ export const listeners: any = []
 
 export type SubplebbitsState = {
   subplebbits: Subplebbits
+  errors: {[subplebbitAddress: string]: Error[]}
   addSubplebbitToStore: Function
   editSubplebbit: Function
   createSubplebbit: Function
@@ -23,6 +24,7 @@ export type SubplebbitsState = {
 
 const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getState: Function) => ({
   subplebbits: {},
+  errors: {},
 
   async addSubplebbitToStore(subplebbitAddress: string, account: Account) {
     assert(
@@ -84,6 +86,24 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
       // if a subplebbit has a role with an account's address add it to the account.subplebbits
       accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
     })
+
+    subplebbit.on('updatingstatechange', (updatingState: string) => {
+      setState((state: SubplebbitsState) => ({
+        subplebbits: {
+          ...state.subplebbits,
+          [subplebbitAddress]: {...state.subplebbits[subplebbitAddress], updatingState},
+        },
+      }))
+    })
+
+    subplebbit.on('error', (error: Error) => {
+      setState((state: SubplebbitsState) => {
+        let subplebbitErrors = state.errors[subplebbitAddress] || []
+        subplebbitErrors = [...subplebbitErrors, error]
+        return {...state, errors: {...state.errors, [subplebbitAddress]: subplebbitErrors}}
+      })
+    })
+
     listeners.push(subplebbit)
     subplebbit.update().catch((error: unknown) => log.trace('subplebbit.update error', {subplebbit, error}))
   },

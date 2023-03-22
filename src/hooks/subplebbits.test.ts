@@ -126,6 +126,53 @@ describe('subplebbits', () => {
       expect(rendered.result.current.subplebbits[1].description).toBe('subplebbit address 2 description updated')
       expect(rendered.result.current.subplebbits[2].description).toBe('subplebbit address 3 description updated')
     })
+
+    test('has updating state', async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      rendered.rerender('subplebbit address')
+
+      await waitFor(() => rendered.result.current.state === 'fetching-ipns')
+      expect(rendered.result.current.state).toBe('fetching-ipns')
+
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+    })
+
+    test('has error events', async () => {
+      // mock update to save subplebbit instance
+      const subplebbitUpdate = Subplebbit.prototype.update
+      const updatingSubplebbits: any = []
+      Subplebbit.prototype.update = function () {
+        updatingSubplebbits.push(this)
+        return subplebbitUpdate.bind(this)()
+      }
+
+      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      rendered.rerender('subplebbit address')
+
+      // emit error event
+      await waitFor(() => updatingSubplebbits.length > 0)
+      updatingSubplebbits[0].emit('error', Error('error 1'))
+
+      // first error
+      await waitFor(() => rendered.result.current.error.message === 'error 1')
+      expect(rendered.result.current.error.message).toBe('error 1')
+      expect(rendered.result.current.errors[0].message).toBe('error 1')
+      expect(rendered.result.current.errors.length).toBe(1)
+
+      // second error
+      updatingSubplebbits[0].emit('error', Error('error 2'))
+      await waitFor(() => rendered.result.current.error.message === 'error 2')
+      expect(rendered.result.current.error.message).toBe('error 2')
+      expect(rendered.result.current.errors[0].message).toBe('error 1')
+      expect(rendered.result.current.errors[1].message).toBe('error 2')
+      expect(rendered.result.current.errors.length).toBe(2)
+
+      // restore mock
+      Subplebbit.prototype.update = subplebbitUpdate
+    })
   })
 
   test('useListSubplebbits', async () => {
