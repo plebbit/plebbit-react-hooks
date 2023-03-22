@@ -41,7 +41,7 @@ describe('PlebbitJsMock', () => {
 
   test('Subplebbit.state and Subplebbit.updatingState', async () => {
     const plebbit = await PlebbitJsMock()
-    const subplebbit = await plebbit.getSubplebbit('subplebbit address')
+    const subplebbit = await plebbit.createSubplebbit({address: 'subplebbit address'})
 
     // initial state is stopped
     expect(subplebbit.state).toBe('stopped')
@@ -53,10 +53,11 @@ describe('PlebbitJsMock', () => {
     subplebbit.on('statechange', onStatechange)
     subplebbit.on('updatingstatechange', onUpdatingstatechange)
 
-    // wait for succeeded
+    // wait for succeeded twice (2 updates)
+    let succeededCount = 0
     const succeededPromise = new Promise((resolve) =>
       subplebbit.on('updatingstatechange', (state: string) => {
-        state === 'succeeded' && resolve(state)
+        state === 'succeeded' && ++succeededCount === 2 && resolve(state)
       })
     )
 
@@ -70,9 +71,13 @@ describe('PlebbitJsMock', () => {
     expect(onStatechange.mock.calls.length).toBe(1)
     expect(onUpdatingstatechange.mock.calls[0]).toEqual(['fetching-ipns'])
     expect(onUpdatingstatechange.mock.calls[1]).toEqual(['succeeded'])
-    expect(onUpdatingstatechange.mock.calls.length).toBe(2)
+    expect(onUpdatingstatechange.mock.calls[2]).toEqual(['fetching-ipns'])
+    expect(onUpdatingstatechange.mock.calls[3]).toEqual(['succeeded'])
+    expect(onUpdatingstatechange.mock.calls.length).toBe(4)
     expect(onUpdatingstatechange.mock.results[0].value).toEqual('fetching-ipns')
     expect(onUpdatingstatechange.mock.results[1].value).toEqual('succeeded')
+    expect(onUpdatingstatechange.mock.results[2].value).toEqual('fetching-ipns')
+    expect(onUpdatingstatechange.mock.results[3].value).toEqual('succeeded')
   })
 
   test('Comment.publishingState', async () => {

@@ -145,6 +145,7 @@ export class Pages {
 export class Subplebbit extends EventEmitter {
   updateCalledTimes = 0
   updating = false
+  firstUpdate = true
   address: string | undefined
   title: string | undefined
   description: string | undefined
@@ -171,6 +172,11 @@ export class Subplebbit extends EventEmitter {
     }
     if (createSubplebbitOptions?.posts?.pageCids) {
       this.posts.pageCids = createSubplebbitOptions?.posts?.pageCids
+    }
+
+    // only trigger a first update if argument is only ({address})
+    if (!createSubplebbitOptions?.address || Object.keys(createSubplebbitOptions).length !== 1) {
+      this.firstUpdate = false
     }
   }
 
@@ -209,12 +215,43 @@ export class Subplebbit extends EventEmitter {
   }
 
   simulateUpdateEvent() {
+    if (this.firstUpdate) {
+      this.simulateFirstUpdateEvent()
+      return
+    }
+
     this.description = this.address + ' description updated'
     this.updatedAt = Math.floor(Date.now() / 1000)
 
     this.updatingState = 'succeeded'
     this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
+  }
+
+  // the first update event adds all the field from getSubplebbit
+  async simulateFirstUpdateEvent() {
+    this.firstUpdate = false
+
+    this.title = this.address + ' title'
+    const hotPageCid = this.address + ' page cid hot'
+    this.posts.pages.hot = getCommentsPage(hotPageCid, this)
+    this.posts.pageCids = {
+      hot: hotPageCid,
+      topAll: this.address + ' page cid topAll',
+      new: this.address + ' page cid new',
+    }
+
+    // simulate the ipns update
+    this.updatingState = 'succeeded'
+    this.emit('update', this)
+    this.emit('updatingstatechange', 'succeeded')
+
+    // simulate the next update
+    this.updatingState = 'fetching-ipns'
+    this.emit('updatingstatechange', 'fetching-ipns')
+    simulateLoadingTime().then(() => {
+      this.simulateUpdateEvent()
+    })
   }
 
   // use getting to easily mock it

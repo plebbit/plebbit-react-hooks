@@ -29,7 +29,7 @@ describe('subplebbits', () => {
 
       expect(rendered.result.current.address).toBe(undefined)
       rendered.rerender('subplebbit address 1')
-      await waitFor(() => typeof rendered.result.current.address === 'string')
+      await waitFor(() => typeof rendered.result.current.title === 'string')
 
       expect(rendered.result.current.address).toBe('subplebbit address 1')
       expect(rendered.result.current.title).toBe('subplebbit address 1 title')
@@ -39,7 +39,7 @@ describe('subplebbits', () => {
       expect(rendered.result.current.description).toBe('subplebbit address 1 description updated')
 
       rendered.rerender('subplebbit address 2')
-      await waitFor(() => typeof rendered.result.current.address === 'string')
+      await waitFor(() => typeof rendered.result.current.title === 'string')
 
       expect(rendered.result.current.address).toBe('subplebbit address 2')
       expect(rendered.result.current.title).toBe('subplebbit address 2 title')
@@ -54,12 +54,7 @@ describe('subplebbits', () => {
       expect(rendered.result.current.description).toBe('subplebbit address 1 description updated')
 
       // make sure subplebbits are still in database
-      const getSubplebbit = Plebbit.prototype.getSubplebbit
       const simulateUpdateEvent = Subplebbit.prototype.simulateUpdateEvent
-      // mock getSubplebbit on the Plebbit class
-      Plebbit.prototype.getSubplebbit = (subplebbitAddress) => {
-        throw Error(`plebbit.getSubplebbit called with subplebbit address '${subplebbitAddress}' should not be called when getting subplebbit from database`)
-      }
       // don't simulate 'update' event during this test to see if the updates were saved to database
       let throwOnSubplebbitUpdateEvent = false
       Subplebbit.prototype.simulateUpdateEvent = () => {
@@ -101,7 +96,6 @@ describe('subplebbits', () => {
 
       // restore mock
       Subplebbit.prototype.simulateUpdateEvent = simulateUpdateEvent
-      Plebbit.prototype.getSubplebbit = getSubplebbit
     })
 
     test('get multiple subplebbits at once', async () => {
@@ -131,42 +125,6 @@ describe('subplebbits', () => {
       expect(rendered.result.current.subplebbits[0].description).toBe('subplebbit address 1 description updated')
       expect(rendered.result.current.subplebbits[1].description).toBe('subplebbit address 2 description updated')
       expect(rendered.result.current.subplebbits[2].description).toBe('subplebbit address 3 description updated')
-    })
-
-    test('get subplebbit, plebbit.getSubplebbit fails 3 times', async () => {
-      // mock getSubplebbit on the Plebbit class to fail 3 times
-      const getSubplebbit = Plebbit.prototype.getSubplebbit
-      const retryInfinityMinTimeout = utils.retryInfinityMinTimeout
-      const retryInfinityMaxTimeout = utils.retryInfinityMaxTimeout
-      utils.retryInfinityMinTimeout = 10
-      utils.retryInfinityMaxTimeout = 10
-      let failCount = 0
-      Plebbit.prototype.getSubplebbit = async (subplebbitAddress) => {
-        // restore original function after 3 fails
-        if (++failCount >= 3) {
-          Plebbit.prototype.getSubplebbit = getSubplebbit
-        }
-        throw Error(`failed to get subplebbit`)
-      }
-
-      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
-      const waitFor = testUtils.createWaitFor(rendered)
-
-      expect(rendered.result.current.address).toBe(undefined)
-      rendered.rerender('subplebbit address 1')
-      await waitFor(() => typeof rendered.result.current?.address === 'string')
-
-      expect(rendered.result.current?.address).toBe('subplebbit address 1')
-      expect(rendered.result.current?.title).toBe('subplebbit address 1 title')
-      // wait for subplebbit.on('update') to fetch the updated description
-      await waitFor(() => typeof rendered.result.current?.description === 'string')
-
-      expect(rendered.result.current?.description).toBe('subplebbit address 1 description updated')
-
-      // restore mock
-      Plebbit.prototype.getSubplebbit = getSubplebbit
-      utils.retryInfinityMinTimeout = retryInfinityMinTimeout
-      utils.retryInfinityMaxTimeout = retryInfinityMaxTimeout
     })
   })
 
