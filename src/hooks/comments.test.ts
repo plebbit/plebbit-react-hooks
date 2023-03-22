@@ -183,5 +183,21 @@ describe('comments', () => {
       await waitFor(() => rendered.result.current.comments[1].replyCount === 100)
       expect(rendered.result.current.comments[1].replyCount).toBe(100)
     })
+
+    test('has updating state', async () => {
+      // on first render, the account is undefined because it's not yet loaded from database
+      const rendered = renderHook<any, any>((commentCid) => useComment({commentCid}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      rendered.rerender('comment cid')
+
+      await waitFor(() => rendered.result.current.state === 'fetching-ipfs')
+      expect(rendered.result.current.state).toBe('fetching-ipfs')
+
+      await waitFor(() => rendered.result.current.state === 'fetching-ipns')
+      expect(rendered.result.current.state).toBe('fetching-ipns')
+
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+    })
   })
 })

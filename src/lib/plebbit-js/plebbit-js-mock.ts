@@ -190,9 +190,10 @@ export class Subplebbit extends EventEmitter {
       return
     }
     this.updating = true
+
     this.state = 'updating'
-    this.emit('statechange', 'updating')
     this.updatingState = 'fetching-ipns'
+    this.emit('statechange', 'updating')
     this.emit('updatingstatechange', 'fetching-ipns')
 
     simulateLoadingTime().then(() => {
@@ -210,9 +211,9 @@ export class Subplebbit extends EventEmitter {
   simulateUpdateEvent() {
     this.description = this.address + ' description updated'
     this.updatedAt = Math.floor(Date.now() / 1000)
-    this.emit('update', this)
 
     this.updatingState = 'succeeded'
+    this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
   }
 
@@ -307,8 +308,8 @@ class Publication extends EventEmitter {
 
   async publish() {
     this.state = 'publishing'
-    this.emit('statechange', 'publishing')
     this.publishingState = 'publishing-challenge-request'
+    this.emit('statechange', 'publishing')
     this.emit('publishingstatechange', 'publishing-challenge-request')
 
     await simulateLoadingTime()
@@ -403,9 +404,10 @@ export class Comment extends Publication {
       return
     }
     this.updating = true
+
     this.state = 'updating'
-    this.emit('statechange', 'updating')
     this.updatingState = 'fetching-ipfs'
+    this.emit('statechange', 'updating')
     this.emit('updatingstatechange', 'fetching-ipfs')
 
     simulateLoadingTime().then(() => {
@@ -424,9 +426,9 @@ export class Comment extends Publication {
     this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
     this.updatedAt = Math.floor(Date.now() / 1000)
-    this.emit('update', this)
 
     this.updatingState = 'succeeded'
+    this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
   }
 
@@ -439,10 +441,10 @@ export class Comment extends Publication {
     this.timestamp = commentIpfs.timestamp
     this.parentCid = commentIpfs.parentCid
     this.subplebbitAddress = commentIpfs.subplebbitAddress
-    this.emit('update', this)
 
     // simulate the ipns update
     this.updatingState = 'fetching-ipns'
+    this.emit('update', this)
     this.emit('updatingstatechange', 'fetching-ipns')
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()

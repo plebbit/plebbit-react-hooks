@@ -38,7 +38,6 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     try {
       if (!comment) {
         comment = await account.plebbit.createComment({cid: commentId})
-        log.trace('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
         await commentsDatabase.setItem(commentId, utils.clone(comment))
       }
       log('commentsStore.addCommentToStore', {commentId, comment, account})
@@ -56,8 +55,15 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       log('commentsStore comment update', {commentId, updatedComment, account})
       setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
-    listeners.push(comment)
-    comment?.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
+
+    comment?.on('updatingstatechange', async (updatingState: string) => {
+      setState((state: any) => ({
+        comments: {
+          ...state.comments,
+          [commentId]: {...state.comments[commentId], updatingState},
+        },
+      }))
+    })
 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
@@ -72,6 +78,9 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
           .catch((error: any) => log.error('accountsActionsInternal.addCidToAccountComment error', {comment, error}))
       )
     }
+
+    listeners.push(comment)
+    comment?.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
   },
 }))
 

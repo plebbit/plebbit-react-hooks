@@ -56,7 +56,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
     comment = accountComment
   }
 
-  const state = comment?.state || 'initializing'
+  let state = comment?.updatingState || 'initializing'
 
   return useMemo(
     () => ({
