@@ -75,6 +75,8 @@ describe('mock content', () => {
     console.log(rendered.result.current)
     expect(rendered.result.current.address).toBe('anything2.eth')
     expect(typeof rendered.result.current.updatedAt).toBe('number')
+    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
+    expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
 
     rendered.rerender(null)
     await waitFor(() => rendered.result.current.updatedAt === undefined)
@@ -86,6 +88,8 @@ describe('mock content', () => {
     console.log(rendered.result.current)
     expect(rendered.result.current.address).toBe('jokes2.eth')
     expect(typeof rendered.result.current.updatedAt).toBe('number')
+    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
+    expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
 
     rendered.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
     await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
@@ -93,39 +97,8 @@ describe('mock content', () => {
     console.log(rendered.result.current)
     expect(rendered.result.current.address).toBe('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
     expect(typeof rendered.result.current.updatedAt).toBe('number')
-  })
-
-  test('use account subplebbits', async () => {
-    const rendered = renderHook<any, any>(() => {
-      const account = useAccount()
-      const {createSubplebbit} = accountsActions
-      const accountSubplebbits = useAccountSubplebbits()
-      return {createSubplebbit, accountSubplebbits, account}
-    })
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
-    await waitFor(() => typeof rendered.result.current.account?.plebbit?.createSubplebbit === 'function')
-    expect(typeof rendered.result.current.account?.plebbit?.createSubplebbit).toBe('function')
-
-    console.log('creating subplebbit')
-    const subplebbit = await rendered.result.current.createSubplebbit({
-      title: 'title',
-      description: 'description',
-    })
-    console.log({subplebbit})
-    expect(subplebbit.title).toBe('title')
-
-    // wait for account subplebbits
-    await waitFor(() => JSON.stringify(rendered.result.current?.accountSubplebbits?.accountSubplebbits) !== '{}')
-    expect(JSON.stringify(rendered.result.current?.accountSubplebbits?.accountSubplebbits)).not.toBe('{}')
-    console.log(rendered.result.current?.accountSubplebbits)
-
-    // NOTE: this test won't change accountSubplebbits state, need to use publishSubplebbitEdit for that
-    console.log('editing subplebbit')
-    await subplebbit.edit({
-      address: 'name.eth',
-    })
-    console.log({subplebbit})
-    expect(subplebbit.address).toBe('name.eth')
+    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
+    expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
   })
 
   test('use feed', async () => {
@@ -195,5 +168,38 @@ describe('mock content', () => {
     })
 
     await waitFor(() => onChallengeVerificationCalled === true)
+  })
+
+  test('use account subplebbits', async () => {
+    const rendered = renderHook<any, any>(() => {
+      const account = useAccount()
+      const {createSubplebbit} = accountsActions
+      const accountSubplebbits = useAccountSubplebbits()
+      return {createSubplebbit, accountSubplebbits, account}
+    })
+    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    await waitFor(() => typeof rendered.result.current.account?.plebbit?.createSubplebbit === 'function')
+    expect(typeof rendered.result.current.account?.plebbit?.createSubplebbit).toBe('function')
+
+    console.log('creating subplebbit')
+    const subplebbit = await rendered.result.current.createSubplebbit({
+      title: 'title',
+      description: 'description',
+    })
+    console.log({subplebbit})
+    expect(subplebbit.title).toBe('title')
+
+    // wait for account subplebbits
+    await waitFor(() => JSON.stringify(rendered.result.current?.accountSubplebbits?.accountSubplebbits) !== '{}')
+    expect(JSON.stringify(rendered.result.current?.accountSubplebbits?.accountSubplebbits)).not.toBe('{}')
+    console.log(rendered.result.current?.accountSubplebbits)
+
+    // NOTE: this test won't change accountSubplebbits state, need to use publishSubplebbitEdit for that
+    console.log('editing subplebbit')
+    await subplebbit.edit({
+      address: 'name.eth',
+    })
+    console.log({subplebbit})
+    expect(subplebbit.address).toBe('name.eth')
   })
 })

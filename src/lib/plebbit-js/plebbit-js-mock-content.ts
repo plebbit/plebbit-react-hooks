@@ -755,6 +755,14 @@ class Subplebbit extends EventEmitter {
     }
     this.posts = new Pages({subplebbit: this})
 
+    // add subplebbit.posts from createSubplebbitOptions
+    if (createSubplebbitOptions?.posts?.pages) {
+      this.posts.pages = createSubplebbitOptions?.posts?.pages
+    }
+    if (createSubplebbitOptions?.posts?.pageCids) {
+      this.posts.pageCids = createSubplebbitOptions?.posts?.pageCids
+    }
+
     if (!this.address && this.signer?.address) {
       this.address = this.signer.address
     }
