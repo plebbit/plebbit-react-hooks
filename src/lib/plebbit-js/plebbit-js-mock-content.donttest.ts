@@ -63,6 +63,17 @@ describe('mock content', () => {
     await waitFor(() => typeof rendered.result.current.upvoteCount === 'number')
     console.log(rendered.result.current)
     expect(typeof rendered.result.current.upvoteCount).toBe('number')
+
+    // test getting from db
+    await testUtils.resetStores()
+    const rendered2 = renderHook<any, any>((commentCid) => useComment({commentCid}))
+
+    rendered2.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa3')
+    await waitFor(() => typeof rendered2.result.current.subplebbitAddress === 'string')
+    console.log(rendered2.result.current)
+    expect(typeof rendered2.result.current.subplebbitAddress).toBe('string')
+    expect(typeof rendered2.result.current.timestamp).toBe('number')
+    expect(typeof rendered2.result.current.upvoteCount).toBe('number')
   })
 
   test('use subplebbits', async () => {
@@ -99,6 +110,18 @@ describe('mock content', () => {
     expect(typeof rendered.result.current.updatedAt).toBe('number')
     expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
     expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
+
+    // test getting from db
+    await testUtils.resetStores()
+    const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
+
+    rendered2.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    await waitFor(() => typeof rendered2.result.current.subplebbitAddress === 'string')
+    console.log(rendered2.result.current)
+    expect(rendered2.result.current.address).toBe('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    expect(typeof rendered2.result.current.updatedAt).toBe('number')
+    expect(typeof rendered2.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
+    expect(typeof rendered2.result.current.posts?.pageCids?.new).toBe('string')
   })
 
   test('use feed', async () => {
