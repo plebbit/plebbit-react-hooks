@@ -191,9 +191,36 @@ const reasons = [
 
 const hash = async (string: string) => {
   assert(string, `cant hash string '${string}'`)
-  const hash = await sha256.digest(fromString(string))
-  const base58Hash = toString(hash.digest, 'base58btc')
-  return base58Hash
+
+  let base58Digest
+  // in browser
+  // try {
+  //   const digest = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(string))
+  //   base58Digest = toString(new Uint8Array(digest), 'base58btc')
+  // }
+  // // in jest
+  // catch (e) {
+  //   const digest = await sha256.digest(fromString(string))
+  //   base58Digest = toString(digest.digest, 'base58btc')
+  // }
+
+  // use fake hash because it's faster
+  base58Digest = fakeHash(string)
+
+  // make the hash same length as a cid
+  return (base58Digest + base58Digest).slice(0, 46)
+}
+
+const fakeHash = (string: string) => {
+  let hash = 0
+  for (let i = 0; i < string.length; i++) {
+    const char = string.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash &= hash // Convert to 32bit integer
+  }
+  const result = new Uint32Array([hash])[0].toString(36)
+  // needs to be longer and in base58
+  return toString(fromString(result + result + result + result), 'base58btc')
 }
 
 const getNumberBetween = async (min: number, max: number, seed: string) => {
@@ -324,17 +351,22 @@ const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
   const {depth, parentCid, postCid} = getReplyContentOptions
   const author = await getAuthor(seed + 'author')
   let content = await getArrayItem(commentContents, seed + 'replycontent')
-  const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
-  if (hasQuote) {
-    const lines = content.split('\n')
-    for (const i in lines) {
-      const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
-      if (lineIsQuote) {
-        lines[i] = '>' + lines[i]
+
+  // only add quotes if depth is high because otherwise takes too long to load
+  if (depth <= 1) {
+    const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+    if (hasQuote) {
+      const lines = content.split('\n')
+      for (const i in lines) {
+        const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+        if (lineIsQuote) {
+          lines[i] = '>' + lines[i]
+        }
       }
+      content = lines.join('\n')
     }
-    content = lines.join('\n')
   }
+
   return {content, author, depth, parentCid, postCid}
 }
 
@@ -722,6 +754,14 @@ class Subplebbit extends EventEmitter {
       }
     }
     this.posts = new Pages({subplebbit: this})
+
+    // add subplebbit.posts from createSubplebbitOptions
+    if (createSubplebbitOptions?.posts?.pages) {
+      this.posts.pages = createSubplebbitOptions?.posts?.pages
+    }
+    if (createSubplebbitOptions?.posts?.pageCids) {
+      this.posts.pageCids = createSubplebbitOptions?.posts?.pageCids
+    }
 
     if (!this.address && this.signer?.address) {
       this.address = this.signer.address

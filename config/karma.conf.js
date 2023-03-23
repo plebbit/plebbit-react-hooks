@@ -62,10 +62,16 @@ let files = [
   'test-karma-webpack/test/browser-e2e/**/*.test.js',
 ]
 
-// test the plebbit-js mock files
+// test the plebbit-js-mock files
 // launch the mock tests separately because it sometimes wrongly mocks all files
 if (process.argv.includes('plebbit-js-mock') || process.argv.includes('--plebbit-js-mock')) {
   files = ['test-karma-webpack/test/browser-plebbit-js-mock/**/*.test.js']
+}
+
+// test the plebbit-js-mock-content files
+// launch the mock tests separately because it sometimes wrongly mocks all files
+if (process.argv.includes('plebbit-js-mock-content') || process.argv.includes('--plebbit-js-mock-content')) {
+  files = ['test-karma-webpack/test/browser-plebbit-js-mock-content/**/*.test.js']
 }
 
 module.exports = function (config) {
