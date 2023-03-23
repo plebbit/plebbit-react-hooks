@@ -53,7 +53,7 @@ function createLocalForageInstance(localForageLruOptions: any): any {
         try {
           await database1.setItem(key, value)
         } catch (error: any) {
-          console.error('localforageLru.setItem error', {error, key, value})
+          console.error('localforageLru.setItem setItem error', {error, errorMessage: error?.message, key, value})
           throw error
         }
       } else {
@@ -86,7 +86,12 @@ function createLocalForageInstance(localForageLruOptions: any): any {
     try {
       await database1.setItem(key, value)
     } catch (error: any) {
-      console.error('localforageLru.setItem error', {error, key, value})
+      console.error('localforageLru updateDatabases setItem error', {error, errorMessage: error?.message, key, value})
+
+      // ignore this error, don't know why it happens
+      if (error?.message?.includes?.('unit storage quota has been exceeded')) {
+        return
+      }
       throw error
     }
     databaseSize++
