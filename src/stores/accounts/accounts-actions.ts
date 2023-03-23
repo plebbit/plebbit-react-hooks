@@ -423,6 +423,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   delete createCommentOptions.onChallenge
   delete createCommentOptions.onChallengeVerification
   delete createCommentOptions.onError
+  delete createCommentOptions.onPublishingStateChange
 
   let accountCommentIndex: number
 
@@ -462,6 +463,10 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         }
       }
     })
+
+    comment.on('error', (error: Error) => publishCommentOptions.onError?.(error, comment))
+    comment.on('publishingstatechange', (publishingState: string) => publishCommentOptions.onPublishingStateChange?.(publishingState))
+
     listeners.push(comment)
     try {
       // publish will resolve after the challenge request

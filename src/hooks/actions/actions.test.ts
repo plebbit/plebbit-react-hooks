@@ -417,15 +417,25 @@ describe('actions', () => {
         await rendered.result.current.publishComment()
       })
 
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
       // wait for challenge
       await waitFor(() => rendered.result.current.challenge)
       expect(rendered.result.current.error).toBe(undefined)
       expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+      expect(rendered.result.current.state).toBe('waiting-challenge-answers')
 
       // publish challenge verification
-      await act(async () => {
-        await rendered.result.current.publishChallengeAnswers(['4'])
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
       })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
 
       // wait for challenge verification
       await waitFor(() => rendered.result.current.challengeVerification)

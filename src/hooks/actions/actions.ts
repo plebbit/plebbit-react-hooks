@@ -1,7 +1,7 @@
 import {useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:accounts:hooks')
+const log = Logger('plebbit-react-hooks:actions:hooks')
 import assert from 'assert'
 import {useAccount, useAccountId} from '../accounts'
 import type {
@@ -147,7 +147,7 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
   const [errors, setErrors] = useState<Error[]>([])
-  const [state, setState] = useState<string>()
+  const [publishingState, setPublishingState] = useState<string>()
   const [index, setIndex] = useState<number>()
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
@@ -162,7 +162,6 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
   // define onError if not defined
   const originalOnError = publishCommentOptions.onError
   const onError = async (error: Error) => {
-    setState('failed')
     setErrors([...errors, error])
     originalOnError?.(error)
   }
@@ -171,7 +170,6 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
   // define onChallenge if not defined
   const originalOnChallenge = publishCommentOptions.onChallenge
   const onChallenge = async (challenge: Challenge, comment: Comment) => {
-    setState('waiting-challenge-verification')
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => comment?.publishChallengeAnswers.bind(comment))
     setChallenge(challenge)
@@ -182,21 +180,32 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishCommentOptions.onChallengeVerification
   const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
-    setState(challengeVerification?.challengeSuccess === true ? 'succeeded' : 'failed')
     setChallengeVerification(challengeVerification)
     originalOnChallengeVerification?.(challengeVerification)
   }
   publishCommentOptions.onChallengeVerification = onChallengeVerification
 
+  // change state on publishing state change
+  publishCommentOptions.onPublishingStateChange = (publishingState: string) => {
+    setPublishingState(publishingState)
+  }
+
   const publishComment = async () => {
     try {
       const {index} = await accountsActions.publishComment(publishCommentOptions, accountName)
-      setState('waiting-challenge')
       setIndex(index)
     } catch (e: any) {
       setErrors([...errors, e])
       publishCommentOptions.onError?.(e)
     }
+  }
+
+  if (initialState === 'ready') {
+    log('usePublishComment', {
+      options,
+      publishingState,
+      initialState,
+    })
   }
 
   return useMemo(
@@ -206,11 +215,11 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
       challengeVerification,
       publishComment,
       publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-      state: state || initialState,
+      state: publishingState || initialState,
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
   )
 }
 

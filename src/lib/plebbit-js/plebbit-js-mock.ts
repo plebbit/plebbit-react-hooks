@@ -370,6 +370,7 @@ class Publication extends EventEmitter {
     this.publishingState = 'publishing-challenge-answer'
     this.emit('publishingstatechange', 'publishing-challenge-answer')
 
+    await simulateLoadingTime()
     this.publishingState = 'waiting-challenge-verification'
     this.emit('publishingstatechange', 'waiting-challenge-verification')
 
