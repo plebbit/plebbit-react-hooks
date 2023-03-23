@@ -651,7 +651,7 @@ class Pages {
 }
 class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f, _g;
         super();
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
         this.pubsubTopic = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.pubsubTopic;
@@ -673,10 +673,17 @@ class Subplebbit extends EventEmitter {
             }
         }
         this.posts = new Pages({ subplebbit: this });
-        if (!this.address && ((_a = this.signer) === null || _a === void 0 ? void 0 : _a.address)) {
+        // add subplebbit.posts from createSubplebbitOptions
+        if ((_a = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _a === void 0 ? void 0 : _a.pages) {
+            this.posts.pages = (_b = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _b === void 0 ? void 0 : _b.pages;
+        }
+        if ((_c = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _c === void 0 ? void 0 : _c.pageCids) {
+            this.posts.pageCids = (_d = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _d === void 0 ? void 0 : _d.pageCids;
+        }
+        if (!this.address && ((_e = this.signer) === null || _e === void 0 ? void 0 : _e.address)) {
             this.address = this.signer.address;
         }
-        this.shortAddress = ((_b = this.address) === null || _b === void 0 ? void 0 : _b.endsWith('.eth')) ? this.address : (_c = this.address) === null || _c === void 0 ? void 0 : _c.substring(8, 20);
+        this.shortAddress = ((_f = this.address) === null || _f === void 0 ? void 0 : _f.endsWith('.eth')) ? this.address : (_g = this.address) === null || _g === void 0 ? void 0 : _g.substring(8, 20);
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
