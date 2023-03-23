@@ -19,7 +19,7 @@ REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME=1000
 import {useFeed} from '@plebbit/plebbit-react-hooks'
 
 function App() {
-  const {feed, hasMore, loadMore} = useFeed(['news.eth'], 'new')
+  const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['news.eth'], sortType: 'new'})
   console.log({feed})
   return <div className="App"></div>
 }
