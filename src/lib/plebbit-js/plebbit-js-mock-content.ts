@@ -556,6 +556,8 @@ const getCommentUpdateContent = async (comment: any) => {
     }
   }
 
+  commentUpdateContent.updatedAt = Math.round(Date.now() / 1000)
+
   return commentUpdateContent
 }
 
@@ -923,6 +925,12 @@ class Comment extends Publication {
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
     this.updating = false
+
+    // add missing props from createCommentOptions
+    for (const prop in createCommentOptions) {
+      // @ts-ignore
+      this[prop] = createCommentOptions[prop]
+    }
   }
 
   async update() {
