@@ -499,6 +499,7 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
             commentUpdateContent.reason = yield getArrayItem(reasons, comment.cid + 'locked removed');
         }
     }
+    commentUpdateContent.updatedAt = Math.round(Date.now() / 1000);
     return commentUpdateContent;
 });
 const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 0, function* () {
@@ -816,6 +817,11 @@ class Comment extends Publication {
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
+        // add missing props from createCommentOptions
+        for (const prop in createCommentOptions) {
+            // @ts-ignore
+            this[prop] = createCommentOptions[prop];
+        }
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
