@@ -52,7 +52,7 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
     try {
       await accountsActions.subscribe(subplebbitAddress, accountName)
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       onError?.(e)
     }
   }
@@ -61,7 +61,7 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
     try {
       await accountsActions.unsubscribe(subplebbitAddress, accountName)
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       onError?.(e)
     }
   }
@@ -110,7 +110,7 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
         await accountsActions.blockAddress(address, accountName)
       }
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       onError?.(e)
     }
   }
@@ -123,7 +123,7 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
         await accountsActions.unblockAddress(address, accountName)
       }
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       onError?.(e)
     }
   }
@@ -162,7 +162,7 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
   // define onError if not defined
   const originalOnError = publishCommentOptions.onError
   const onError = async (error: Error) => {
-    setErrors([...errors, error])
+    setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
   publishCommentOptions.onError = onError
@@ -195,17 +195,9 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
       const {index} = await accountsActions.publishComment(publishCommentOptions, accountName)
       setIndex(index)
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       publishCommentOptions.onError?.(e)
     }
-  }
-
-  if (initialState === 'ready') {
-    log('usePublishComment', {
-      options,
-      publishingState,
-      initialState,
-    })
   }
 
   return useMemo(
@@ -244,7 +236,7 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
   const originalOnError = publishVoteOptions.onError
   const onError = async (error: Error) => {
     setState('failed')
-    setErrors([...errors, error])
+    setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
   publishVoteOptions.onError = onError
@@ -274,7 +266,7 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
       await accountsActions.publishVote(publishVoteOptions, accountName)
       setState('waiting-challenge')
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       publishVoteOptions.onError?.(e)
     }
   }
@@ -314,7 +306,7 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
   const originalOnError = publishCommentEditOptions.onError
   const onError = async (error: Error) => {
     setState('failed')
-    setErrors([...errors, error])
+    setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
   publishCommentEditOptions.onError = onError
@@ -344,7 +336,7 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
       await accountsActions.publishCommentEdit(publishCommentEditOptions, accountName)
       setState('waiting-challenge')
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       publishCommentEditOptions.onError?.(e)
     }
   }
@@ -384,7 +376,7 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
   const originalOnError = publishSubplebbitEditOptions.onError
   const onError = async (error: Error) => {
     setState('failed')
-    setErrors([...errors, error])
+    setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
   publishSubplebbitEditOptions.onError = onError
@@ -414,7 +406,7 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
       await accountsActions.publishSubplebbitEdit(subplebbitAddress, publishSubplebbitEditOptions, accountName)
       setState('waiting-challenge')
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       publishSubplebbitEditOptions.onError?.(e)
     }
   }
@@ -455,7 +447,7 @@ export function useCreateSubplebbit(options?: UseCreateSubplebbitOptions): UseCr
       setCreatedSubplebbit(createdSubplebbit)
       setState('succeeded')
     } catch (e: any) {
-      setErrors([...errors, e])
+      setErrors((errors) => [...errors, e])
       setState('failed')
       onError?.(e)
     }

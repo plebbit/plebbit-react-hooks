@@ -448,7 +448,8 @@ describe('actions', () => {
     test(`can error`, async () => {
       // mock the comment publish to error out
       const commentPublish = Comment.prototype.publish
-      Comment.prototype.publish = async () => {
+      Comment.prototype.publish = async function () {
+        this.emit('error', Error('emit error'))
         throw Error('publish error')
       }
 
@@ -470,9 +471,11 @@ describe('actions', () => {
       })
 
       // wait for error
-      await waitFor(() => rendered.result.current.error)
+      await waitFor(() => rendered.result.current.errors.length === 2)
+      expect(rendered.result.current.errors.length).toBe(2)
       expect(rendered.result.current.error.message).toBe('publish error')
-      expect(rendered.result.current.errors.length).toBe(1)
+      expect(rendered.result.current.errors[0].message).toBe('emit error')
+      expect(rendered.result.current.errors[1].message).toBe('publish error')
 
       // restore mock
       Comment.prototype.publish = commentPublish
