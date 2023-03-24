@@ -221,7 +221,7 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
   const [errors, setErrors] = useState<Error[]>([])
-  const [state, setState] = useState<string>()
+  const [publishingState, setPublishingState] = useState<string>()
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
@@ -235,7 +235,6 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
   // define onError if not defined
   const originalOnError = publishVoteOptions.onError
   const onError = async (error: Error) => {
-    setState('failed')
     setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
@@ -244,7 +243,6 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
   // define onChallenge if not defined
   const originalOnChallenge = publishVoteOptions.onChallenge
   const onChallenge = async (challenge: Challenge, vote: Vote) => {
-    setState('waiting-challenge-verification')
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => vote?.publishChallengeAnswers.bind(vote))
     setChallenge(challenge)
@@ -255,16 +253,19 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishVoteOptions.onChallengeVerification
   const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
-    setState(challengeVerification?.challengeSuccess === true ? 'succeeded' : 'failed')
     setChallengeVerification(challengeVerification)
     originalOnChallengeVerification?.(challengeVerification)
   }
   publishVoteOptions.onChallengeVerification = onChallengeVerification
 
+  // change state on publishing state change
+  publishVoteOptions.onPublishingStateChange = (publishingState: string) => {
+    setPublishingState(publishingState)
+  }
+
   const publishVote = async () => {
     try {
       await accountsActions.publishVote(publishVoteOptions, accountName)
-      setState('waiting-challenge')
     } catch (e: any) {
       setErrors((errors) => [...errors, e])
       publishVoteOptions.onError?.(e)
@@ -277,11 +278,11 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
       challengeVerification,
       publishVote,
       publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-      state: state || initialState,
+      state: publishingState || initialState,
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
   )
 }
 
@@ -291,7 +292,7 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
   const [errors, setErrors] = useState<Error[]>([])
-  const [state, setState] = useState<string>()
+  const [publishingState, setPublishingState] = useState<string>()
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
@@ -305,7 +306,6 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
   // define onError if not defined
   const originalOnError = publishCommentEditOptions.onError
   const onError = async (error: Error) => {
-    setState('failed')
     setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
@@ -314,7 +314,6 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
   // define onChallenge if not defined
   const originalOnChallenge = publishCommentEditOptions.onChallenge
   const onChallenge = async (challenge: Challenge, commentEdit: CommentEdit) => {
-    setState('waiting-challenge-verification')
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => commentEdit?.publishChallengeAnswers.bind(commentEdit))
     setChallenge(challenge)
@@ -325,16 +324,19 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishCommentEditOptions.onChallengeVerification
   const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
-    setState(challengeVerification?.challengeSuccess === true ? 'succeeded' : 'failed')
     setChallengeVerification(challengeVerification)
     originalOnChallengeVerification?.(challengeVerification)
   }
   publishCommentEditOptions.onChallengeVerification = onChallengeVerification
 
+  // change state on publishing state change
+  publishCommentEditOptions.onPublishingStateChange = (publishingState: string) => {
+    setPublishingState(publishingState)
+  }
+
   const publishCommentEdit = async () => {
     try {
       await accountsActions.publishCommentEdit(publishCommentEditOptions, accountName)
-      setState('waiting-challenge')
     } catch (e: any) {
       setErrors((errors) => [...errors, e])
       publishCommentEditOptions.onError?.(e)
@@ -347,11 +349,11 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
       challengeVerification,
       publishCommentEdit,
       publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-      state: state || initialState,
+      state: publishingState || initialState,
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
   )
 }
 
@@ -361,7 +363,7 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
   const accountsActions = useAccountsStore((state) => state.accountsActions)
   const accountId = useAccountId(accountName)
   const [errors, setErrors] = useState<Error[]>([])
-  const [state, setState] = useState<string>()
+  const [publishingState, setPublishingState] = useState<string>()
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
@@ -375,7 +377,6 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
   // define onError if not defined
   const originalOnError = publishSubplebbitEditOptions.onError
   const onError = async (error: Error) => {
-    setState('failed')
     setErrors((errors) => [...errors, error])
     originalOnError?.(error)
   }
@@ -384,7 +385,6 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
   // define onChallenge if not defined
   const originalOnChallenge = publishSubplebbitEditOptions.onChallenge
   const onChallenge = async (challenge: Challenge, subplebbitEdit: SubplebbitEdit) => {
-    setState('waiting-challenge-verification')
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => subplebbitEdit?.publishChallengeAnswers.bind(subplebbitEdit))
     setChallenge(challenge)
@@ -395,16 +395,19 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishSubplebbitEditOptions.onChallengeVerification
   const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
-    setState(challengeVerification?.challengeSuccess === true ? 'succeeded' : 'failed')
     setChallengeVerification(challengeVerification)
     originalOnChallengeVerification?.(challengeVerification)
   }
   publishSubplebbitEditOptions.onChallengeVerification = onChallengeVerification
 
+  // change state on publishing state change
+  publishSubplebbitEditOptions.onPublishingStateChange = (publishingState: string) => {
+    setPublishingState(publishingState)
+  }
+
   const publishSubplebbitEdit = async () => {
     try {
       await accountsActions.publishSubplebbitEdit(subplebbitAddress, publishSubplebbitEditOptions, accountName)
-      setState('waiting-challenge')
     } catch (e: any) {
       setErrors((errors) => [...errors, e])
       publishSubplebbitEditOptions.onError?.(e)
@@ -417,11 +420,11 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
       challengeVerification,
       publishSubplebbitEdit,
       publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-      state: state || initialState,
+      state: publishingState || initialState,
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
   )
 }
 

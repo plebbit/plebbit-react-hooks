@@ -519,6 +519,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   delete createVoteOptions.onChallenge
   delete createVoteOptions.onChallengeVerification
   delete createVoteOptions.onError
+  delete createVoteOptions.onPublishingStateChange
 
   let vote = await account.plebbit.createVote(createVoteOptions)
   const publishAndRetryFailedChallengeVerification = async () => {
@@ -534,6 +535,8 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
         publishAndRetryFailedChallengeVerification()
       }
     })
+    vote.on('error', (error: Error) => publishVoteOptions.onError?.(error, vote))
+    vote.on('publishingstatechange', (publishingState: string) => publishVoteOptions.onPublishingStateChange?.(publishingState))
     listeners.push(vote)
     try {
       // publish will resolve after the challenge request
@@ -579,6 +582,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   delete createCommentEditOptions.onChallenge
   delete createCommentEditOptions.onChallengeVerification
   delete createCommentEditOptions.onError
+  delete createCommentEditOptions.onPublishingStateChange
 
   let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
   const publishAndRetryFailedChallengeVerification = async () => {
@@ -594,6 +598,8 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
         publishAndRetryFailedChallengeVerification()
       }
     })
+    commentEdit.on('error', (error: Error) => publishCommentEditOptions.onError?.(error, commentEdit))
+    commentEdit.on('publishingstatechange', (publishingState: string) => publishCommentEditOptions.onPublishingStateChange?.(publishingState))
     listeners.push(commentEdit)
     try {
       // publish will resolve after the challenge request
@@ -638,6 +644,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
     await subplebbitsStore.getState().editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account)
     // create fake success challenge verification for consistent behavior with remote subplebbit edit
     publishSubplebbitEditOptions.onChallengeVerification({challengeSuccess: true})
+    publishSubplebbitEditOptions.onPublishingStateChange?.('succeeded')
     return
   }
 
@@ -656,6 +663,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   delete createSubplebbitEditOptions.onChallenge
   delete createSubplebbitEditOptions.onChallengeVerification
   delete createSubplebbitEditOptions.onError
+  delete createSubplebbitEditOptions.onPublishingStateChange
 
   let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
   const publishAndRetryFailedChallengeVerification = async () => {
@@ -671,6 +679,8 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
         publishAndRetryFailedChallengeVerification()
       }
     })
+    subplebbitEdit.on('error', (error: Error) => publishSubplebbitEditOptions.onError?.(error, subplebbitEdit))
+    subplebbitEdit.on('publishingstatechange', (publishingState: string) => publishSubplebbitEditOptions.onPublishingStateChange?.(publishingState))
     listeners.push(subplebbitEdit)
     try {
       // publish will resolve after the challenge request
