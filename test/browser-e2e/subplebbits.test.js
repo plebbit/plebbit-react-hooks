@@ -81,14 +81,14 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
 
       it(`get subplebbits one at a time (${plebbitOptionsType})`, async () => {
-        console.log(`starting subplebbits tests (${plebbitOptionsType})`)
-
         rendered.rerender({subplebbitAddress})
-        await waitFor(() => typeof rendered.result.current.subplebbit.address === 'string')
+        await waitFor(() => typeof rendered.result.current.subplebbit.updatedAt === 'number')
+        expect(typeof rendered.result.current.subplebbit.updatedAt).to.equal('number')
         expect(rendered.result.current.subplebbit.address).to.equal(subplebbitAddress)
         await waitFor(() => rendered.result.current.subplebbit.posts.pages.hot.comments[0])
         expect(typeof rendered.result.current.subplebbit.posts.pages.hot.comments[0].cid).to.equal('string')
         commentCid = rendered.result.current.subplebbit.posts.pages.hot.comments[0].cid
+        expect(rendered.result.current.subplebbit.state).to.equal('succeeded')
         console.log('comment cid', commentCid)
       })
 
@@ -169,6 +169,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         )
         console.log('after getting comment update')
         expect(rendered.result.current.comment?.cid).to.equal(commentCid)
+        expect(rendered.result.current.comment.state).to.equal('succeeded')
         // could be greater than 1 if code is ran several times with the same test server
         expect(rendered.result.current.comment?.upvoteCount).to.be.greaterThan(0)
       })
