@@ -353,11 +353,15 @@ const getPostContent = async (seed: string) => {
     postContent.content = await getArrayItem(commentContents, postNumberSeed * 13)
     const hasQuote = await getArrayItem([true, false, false, false], postNumberSeed * 14)
     if (hasQuote) {
+      const max = 7
       const lines = postContent.content.split('\n')
       for (const i in lines) {
         const lineIsQuote = await getArrayItem([true, false], postNumberSeed * Number(i))
         if (lineIsQuote) {
           lines[i] = '>' + lines[i]
+        }
+        if (Number(i) > max) {
+          break
         }
       }
       postContent.content = lines.join('\n')
@@ -372,22 +376,49 @@ const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
   const author = await getAuthor(String(replyNumberSeed))
   let content = await getArrayItem(commentContents, replyNumberSeed * 2)
 
-  // only add quotes if depth is high because otherwise takes too long to load
-  if (depth <= 1) {
-    const hasQuote = await getArrayItem([true, false, false, false], replyNumberSeed * 3)
-    if (hasQuote) {
-      const lines = content.split('\n')
-      for (const i in lines) {
-        const lineIsQuote = await getArrayItem([true, false], replyNumberSeed * Number(i))
-        if (lineIsQuote) {
-          lines[i] = '>' + lines[i]
-        }
+  const hasQuote = await getArrayItem([true, false, false, false], replyNumberSeed * 3)
+  if (hasQuote) {
+    const max = 7
+    const lines = content.split('\n')
+    for (const i in lines) {
+      const lineIsQuote = await getArrayItem([true, false], replyNumberSeed * Number(i))
+      if (lineIsQuote) {
+        lines[i] = '>' + lines[i]
       }
-      content = lines.join('\n')
+      if (Number(i) > max) {
+        break
+      }
+    }
+    content = lines.join('\n')
+  }
+
+  const replyContent: any = {content, author, depth, parentCid, postCid}
+
+  const hasLink = await getArrayItem([true, false, false, false], replyNumberSeed * 5)
+  if (hasLink) {
+    replyContent.link = await getArrayItem(commentLinks, replyNumberSeed * 6)
+    const linkIsImage = await getArrayItem([true, false], replyNumberSeed * 7)
+    if (linkIsImage) {
+      replyContent.link = await getImageUrl(replyNumberSeed * 8)
+
+      // add video and audio
+      const imageIsMedia = await getArrayItem([true, false, false, false], replyNumberSeed * 9)
+      if (imageIsMedia) {
+        replyContent.link = await getArrayItem(mediaLinks, replyNumberSeed * 10)
+      }
+    }
+    const hasThumbnail = await getArrayItem([true, true, true, false], replyNumberSeed * 11)
+    if (!linkIsImage && hasThumbnail) {
+      replyContent.thumbnailUrl = await getImageUrl(replyNumberSeed * 12)
     }
   }
 
-  return {content, author, depth, parentCid, postCid}
+  const hasTitle = await getArrayItem([true, false, false, false, false, false, false], replyNumberSeed * 13)
+  if (hasTitle) {
+    replyContent.title = await getArrayItem(commentTitles, replyNumberSeed * 14)
+  }
+
+  return replyContent
 }
 
 const getSubplebbitContent = async (seed: string) => {
