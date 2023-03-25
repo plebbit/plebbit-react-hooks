@@ -105,9 +105,6 @@ export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () 
     yield resetCommentsStore();
     // always accounts last because it has async initialization
     yield resetAccountsStore();
-    // reset comments again, for some reason it is needed sometimes or
-    // comments from a previous test will be in the comments store, don't know why
-    yield resetCommentsStore();
 });
 export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, function* () {
     yield resetAuthorsCommentsDatabaseAndStore();
@@ -117,9 +114,6 @@ export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, f
     yield resetCommentsDatabaseAndStore();
     // always accounts last because it has async initialization
     yield resetAccountsDatabaseAndStore();
-    // reset comments again, for some reason it is needed sometimes or
-    // comments from a previous test will be in the comments store, don't know why
-    yield resetCommentsDatabaseAndStore();
 });
 const testUtils = {
     silenceTestWasNotWrappedInActWarning,

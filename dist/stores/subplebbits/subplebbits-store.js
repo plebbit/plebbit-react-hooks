@@ -20,6 +20,7 @@ let plebbitGetSubplebbitPending = {};
 export const listeners = [];
 const subplebbitsStore = createStore((setState, getState) => ({
     subplebbits: {},
+    errors: {},
     addSubplebbitToStore(subplebbitAddress, account) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -45,11 +46,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
             // subplebbit not in database, try to fetch from plebbit-js
             if (!subplebbit) {
                 try {
-                    const onError = (error) => log.error(`subplebbitsStore.addSubplebbitToStore failed plebbit.getSubplebbit address '${subplebbitAddress}':`, error);
-                    subplebbit = yield utils.retryInfinity(() => account.plebbit.getSubplebbit(subplebbitAddress), { onError });
-                    log.trace('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', { subplebbitAddress, subplebbit, account });
-                    // if a subplebbit has a role with an account's address add it to the account.subplebbits
-                    accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbit);
+                    subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
                 }
                 catch (e) {
                     errorGettingSubplebbit = e;
@@ -74,6 +71,18 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 // if a subplebbit has a role with an account's address add it to the account.subplebbits
                 accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit);
             }));
+            subplebbit.on('updatingstatechange', (updatingState) => {
+                setState((state) => ({
+                    subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { updatingState }) }),
+                }));
+            });
+            subplebbit.on('error', (error) => {
+                setState((state) => {
+                    let subplebbitErrors = state.errors[subplebbitAddress] || [];
+                    subplebbitErrors = [...subplebbitErrors, error];
+                    return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [subplebbitAddress]: subplebbitErrors }) });
+                });
+            });
             listeners.push(subplebbit);
             subplebbit.update().catch((error) => log.trace('subplebbit.update error', { subplebbit, error }));
         });

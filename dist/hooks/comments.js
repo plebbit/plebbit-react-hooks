@@ -20,6 +20,7 @@ export function useComment(options) {
     const commentFromStore = useCommentsStore((state) => state.comments[commentCid || '']);
     const addCommentToStore = useCommentsStore((state) => state.addCommentToStore);
     const subplebbitsPagesComment = useSubplebbitsPagesStore((state) => state.comments[commentCid || '']);
+    const errors = useCommentsStore((state) => state.errors[commentCid || '']);
     // get account comment of the cid if any
     const accountCommentInfo = useAccountsStore((state) => state.commentCidsToAccountsComments[commentCid || '']);
     const accountComment = useAccountsStore((state) => { var _a; return (_a = state.accountsComments[(accountCommentInfo === null || accountCommentInfo === void 0 ? void 0 : accountCommentInfo.accountId) || '']) === null || _a === void 0 ? void 0 : _a[Number(accountCommentInfo === null || accountCommentInfo === void 0 ? void 0 : accountCommentInfo.accountCommentIndex)]; });
@@ -47,8 +48,8 @@ export function useComment(options) {
     if (commentCid && commentFromStoreNotLoaded && accountComment) {
         comment = accountComment;
     }
-    const state = comment ? 'succeeded' : 'fetching-ipfs';
-    return useMemo(() => (Object.assign(Object.assign({}, comment), { state, error: undefined, errors: [] })), [comment, commentCid]);
+    const state = (comment === null || comment === void 0 ? void 0 : comment.updatingState) || 'initializing';
+    return useMemo(() => (Object.assign(Object.assign({}, comment), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [comment, commentCid, errors]);
 }
 /**
  * @param commentCids - The IPFS CIDs of the comments to get

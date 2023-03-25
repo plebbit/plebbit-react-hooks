@@ -19,6 +19,7 @@ let plebbitGetCommentPending = {};
 export const listeners = [];
 const commentsStore = createStore((setState, getState) => ({
     comments: {},
+    errors: {},
     addCommentToStore(commentId, account) {
         return __awaiter(this, void 0, void 0, function* () {
             const { comments } = getState();
@@ -33,9 +34,7 @@ const commentsStore = createStore((setState, getState) => ({
             // comment not in database, fetch from plebbit-js
             try {
                 if (!comment) {
-                    const onError = (error) => log.error(`commentsStore.addCommentToStore failed plebbit.getComment cid '${commentId}':`, error);
-                    comment = yield utils.retryInfinity(() => account.plebbit.getComment(commentId), { onError });
-                    log.trace('commentsStore.addCommentToStore plebbit.getComment', { commentId, comment, account });
+                    comment = yield account.plebbit.createComment({ cid: commentId });
                     yield commentsDatabase.setItem(commentId, utils.clone(comment));
                 }
                 log('commentsStore.addCommentToStore', { commentId, comment, account });
@@ -54,12 +53,31 @@ const commentsStore = createStore((setState, getState) => ({
                 log('commentsStore comment update', { commentId, updatedComment, account });
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: updatedComment }) }));
             }));
-            listeners.push(comment);
-            comment === null || comment === void 0 ? void 0 : comment.update().catch((error) => log.trace('comment.update error', { comment, error }));
+            comment === null || comment === void 0 ? void 0 : comment.on('updatingstatechange', (updatingState) => {
+                setState((state) => ({
+                    comments: Object.assign(Object.assign({}, state.comments), { [commentId]: Object.assign(Object.assign({}, state.comments[commentId]), { updatingState }) }),
+                }));
+            });
+            comment === null || comment === void 0 ? void 0 : comment.on('error', (error) => {
+                setState((state) => {
+                    let commentErrors = state.errors[commentId] || [];
+                    commentErrors = [...commentErrors, error];
+                    return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [commentId]: commentErrors }) });
+                });
+            });
             // when publishing a comment, you don't yet know its CID
             // so when a new comment is fetched, check to see if it's your own
             // comment, and if yes, add the CID to your account comments database
-            yield accountsStore.getState().accountsActionsInternal.addCidToAccountComment(comment);
+            // if comment.timestamp isn't defined, it means the next update will contain the timestamp and author
+            // which is used in addCidToAccountComment
+            if (!(comment === null || comment === void 0 ? void 0 : comment.timestamp)) {
+                comment === null || comment === void 0 ? void 0 : comment.once('update', () => accountsStore
+                    .getState()
+                    .accountsActionsInternal.addCidToAccountComment(comment)
+                    .catch((error) => log.error('accountsActionsInternal.addCidToAccountComment error', { comment, error })));
+            }
+            listeners.push(comment);
+            comment === null || comment === void 0 ? void 0 : comment.update().catch((error) => log.trace('comment.update error', { comment, error }));
         });
     },
 }));

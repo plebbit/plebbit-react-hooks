@@ -28,6 +28,7 @@ export function useSubplebbit(options) {
     const account = useAccount({ accountName });
     const subplebbit = useSubplebbitsStore((state) => state.subplebbits[subplebbitAddress || '']);
     const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
+    const errors = useSubplebbitsStore((state) => state.errors[subplebbitAddress || '']);
     useEffect(() => {
         if (!subplebbitAddress || !account) {
             return;
@@ -41,8 +42,8 @@ export function useSubplebbit(options) {
     if (account && subplebbitAddress) {
         log('useSubplebbit', { subplebbitAddress, subplebbit, account });
     }
-    const state = subplebbit ? 'succeeded' : 'fetching-ipns';
-    return useMemo(() => (Object.assign(Object.assign({}, subplebbit), { state, error: undefined, errors: [] })), [subplebbit, subplebbitAddress]);
+    const state = (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) || 'initializing';
+    return useMemo(() => (Object.assign(Object.assign({}, subplebbit), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [subplebbit, subplebbitAddress, errors]);
 }
 /**
  * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc

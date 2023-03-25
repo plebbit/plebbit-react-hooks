@@ -152,6 +152,7 @@ export class Subplebbit extends EventEmitter {
         super();
         this.updateCalledTimes = 0;
         this.updating = false;
+        this.firstUpdate = true;
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
         this.title = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.title;
         this.description = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.description;
@@ -165,6 +166,10 @@ export class Subplebbit extends EventEmitter {
         }
         if ((_c = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _c === void 0 ? void 0 : _c.pageCids) {
             this.posts.pageCids = (_d = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _d === void 0 ? void 0 : _d.pageCids;
+        }
+        // only trigger a first update if argument is only ({address})
+        if (!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address) || Object.keys(createSubplebbitOptions).length !== 1) {
+            this.firstUpdate = false;
         }
     }
     update() {
@@ -183,8 +188,8 @@ export class Subplebbit extends EventEmitter {
             }
             this.updating = true;
             this.state = 'updating';
-            this.emit('statechange', 'updating');
             this.updatingState = 'fetching-ipns';
+            this.emit('statechange', 'updating');
             this.emit('updatingstatechange', 'fetching-ipns');
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
@@ -200,11 +205,39 @@ export class Subplebbit extends EventEmitter {
         });
     }
     simulateUpdateEvent() {
+        if (this.firstUpdate) {
+            this.simulateFirstUpdateEvent();
+            return;
+        }
         this.description = this.address + ' description updated';
         this.updatedAt = Math.floor(Date.now() / 1000);
-        this.emit('update', this);
         this.updatingState = 'succeeded';
+        this.emit('update', this);
         this.emit('updatingstatechange', 'succeeded');
+    }
+    // the first update event adds all the field from getSubplebbit
+    simulateFirstUpdateEvent() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.firstUpdate = false;
+            this.title = this.address + ' title';
+            const hotPageCid = this.address + ' page cid hot';
+            this.posts.pages.hot = getCommentsPage(hotPageCid, this);
+            this.posts.pageCids = {
+                hot: hotPageCid,
+                topAll: this.address + ' page cid topAll',
+                new: this.address + ' page cid new',
+            };
+            // simulate the ipns update
+            this.updatingState = 'succeeded';
+            this.emit('update', this);
+            this.emit('updatingstatechange', 'succeeded');
+            // simulate the next update
+            this.updatingState = 'fetching-ipns';
+            this.emit('updatingstatechange', 'fetching-ipns');
+            simulateLoadingTime().then(() => {
+                this.simulateUpdateEvent();
+            });
+        });
     }
     // use getting to easily mock it
     get roles() {
@@ -285,8 +318,8 @@ class Publication extends EventEmitter {
     publish() {
         return __awaiter(this, void 0, void 0, function* () {
             this.state = 'publishing';
-            this.emit('statechange', 'publishing');
             this.publishingState = 'publishing-challenge-request';
+            this.emit('statechange', 'publishing');
             this.emit('publishingstatechange', 'publishing-challenge-request');
             yield simulateLoadingTime();
             this.simulateChallengeEvent();
@@ -307,6 +340,7 @@ class Publication extends EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             this.publishingState = 'publishing-challenge-answer';
             this.emit('publishingstatechange', 'publishing-challenge-answer');
+            yield simulateLoadingTime();
             this.publishingState = 'waiting-challenge-verification';
             this.emit('publishingstatechange', 'waiting-challenge-verification');
             yield simulateLoadingTime();
@@ -354,32 +388,52 @@ export class Comment extends Publication {
             if (this.updateCalledTimes > 2) {
                 throw Error('with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times');
             }
-            // is ipnsName is known, look for updates and emit updates immediately after creation
-            if (!this.ipnsName) {
-                throw Error(`can't update without comment.ipnsName`);
-            }
             // don't update twice
             if (this.updating) {
                 return;
             }
             this.updating = true;
             this.state = 'updating';
+            this.updatingState = 'fetching-ipfs';
             this.emit('statechange', 'updating');
-            this.updatingState = 'fetching-ipns';
-            this.emit('updatingstatechange', 'fetching-ipns');
+            this.emit('updatingstatechange', 'fetching-ipfs');
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
             });
         });
     }
     simulateUpdateEvent() {
+        // if timestamp isn't defined, simulate fetching the comment ipfs
+        if (!this.timestamp) {
+            this.simulateFetchCommentIpfsUpdateEvent();
+            return;
+        }
         // simulate finding vote counts on an IPNS record
         this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3;
         this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1;
         this.updatedAt = Math.floor(Date.now() / 1000);
-        this.emit('update', this);
         this.updatingState = 'succeeded';
+        this.emit('update', this);
         this.emit('updatingstatechange', 'succeeded');
+    }
+    simulateFetchCommentIpfsUpdateEvent() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
+            const commentIpfs = yield new Plebbit().getComment(this.cid || '');
+            this.ipnsName = commentIpfs.ipnsName;
+            this.content = commentIpfs.content;
+            this.author = commentIpfs.author;
+            this.timestamp = commentIpfs.timestamp;
+            this.parentCid = commentIpfs.parentCid;
+            this.subplebbitAddress = commentIpfs.subplebbitAddress;
+            // simulate the ipns update
+            this.updatingState = 'fetching-ipns';
+            this.emit('update', this);
+            this.emit('updatingstatechange', 'fetching-ipns');
+            simulateLoadingTime().then(() => {
+                this.simulateUpdateEvent();
+            });
+        });
     }
 }
 export class Vote extends Publication {
