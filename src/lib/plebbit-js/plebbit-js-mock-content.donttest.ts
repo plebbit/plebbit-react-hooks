@@ -30,12 +30,15 @@ describe('mock content', () => {
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa0')
+    await waitFor(() => rendered.result.current.state === 'fetching-ipfs')
+    expect(rendered.result.current.state).toBe('fetching-ipfs')
     await waitFor(() => typeof rendered.result.current.timestamp === 'number')
     console.log(rendered.result.current)
     expect(typeof rendered.result.current.timestamp).toBe('number')
     await waitFor(() => typeof rendered.result.current.upvoteCount === 'number')
     console.log(rendered.result.current)
     expect(typeof rendered.result.current.upvoteCount).toBe('number')
+    expect(rendered.result.current.state).toBe('succeeded')
 
     rendered.rerender(null)
     await waitFor(() => rendered.result.current.timestamp === undefined)
@@ -81,6 +84,8 @@ describe('mock content', () => {
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
     rendered.rerender('anything2.eth')
+    await waitFor(() => rendered.result.current.state === 'fetching-ipns')
+    expect(rendered.result.current.state).toBe('fetching-ipns')
     await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
     // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
     console.log(rendered.result.current)
@@ -88,6 +93,7 @@ describe('mock content', () => {
     expect(typeof rendered.result.current.updatedAt).toBe('number')
     expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
     expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
+    expect(rendered.result.current.state).toBe('succeeded')
 
     rendered.rerender(null)
     await waitFor(() => rendered.result.current.updatedAt === undefined)

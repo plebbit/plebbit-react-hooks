@@ -794,6 +794,7 @@ class Subplebbit extends EventEmitter {
   shortAddress: string | undefined
   statsCid: string | undefined
   _getSubplebbitOnFirstUpdate = false
+  updatingState: string | undefined
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -864,6 +865,8 @@ class Subplebbit extends EventEmitter {
     }
     // @ts-ignore
     this.updating = true
+    this.updatingState = 'fetching-ipns'
+    this.emit('updatingstatechange', 'fetching-ipns')
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
@@ -895,7 +898,9 @@ class Subplebbit extends EventEmitter {
       // @ts-ignore
       this[prop] = props[prop]
     }
+    this.updatingState = 'succeeded'
     this.emit('update', this)
+    this.emit('updatingstatechange', 'succeeded')
 
     this.simulateUpdateEvent()
   }
@@ -985,6 +990,7 @@ class Comment extends Publication {
   reason: string | undefined
   shortCid: string | undefined
   _getCommentOnFirstUpdate = false
+  updatingState: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
@@ -1035,6 +1041,8 @@ class Comment extends Publication {
     }
     // @ts-ignore
     this.updating = true
+    this.updatingState = 'fetching-ipfs'
+    this.emit('updatingstatechange', 'fetching-ipfs')
     ;(async () => {
       while (true) {
         await simulateLoadingTime()
@@ -1055,7 +1063,9 @@ class Comment extends Publication {
       this[prop] = commentUpdateContent[prop]
     }
     this.shortCid = this.cid.substring(2, 14)
+    this.updatingState = 'succeeded'
     this.emit('update', this)
+    this.emit('updatingstatechange', 'succeeded')
   }
 
   async simulateGetCommentOnFirstUpdateEvent() {
