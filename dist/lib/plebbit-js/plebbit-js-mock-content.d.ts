@@ -42,6 +42,7 @@ declare class Subplebbit extends EventEmitter {
     shortAddress: string | undefined;
     statsCid: string | undefined;
     _getSubplebbitOnFirstUpdate: boolean;
+    updatingState: string | undefined;
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
     update(): Promise<void>;
@@ -80,6 +81,7 @@ declare class Comment extends Publication {
     reason: string | undefined;
     shortCid: string | undefined;
     _getCommentOnFirstUpdate: boolean;
+    updatingState: string | undefined;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): Promise<void>;
