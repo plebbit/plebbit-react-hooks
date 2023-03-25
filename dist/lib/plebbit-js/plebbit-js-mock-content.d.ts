@@ -41,11 +41,13 @@ declare class Subplebbit extends EventEmitter {
     signer: any | undefined;
     shortAddress: string | undefined;
     statsCid: string | undefined;
+    _getSubplebbitOnFirstUpdate: boolean;
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
     update(): Promise<void>;
     delete(): Promise<void>;
-    simulateUpdateEvent(): void;
+    simulateUpdateEvent(): Promise<void> | undefined;
+    simulateGetSubplebbitOnFirstUpdateEvent(): Promise<void>;
 }
 declare class Publication extends EventEmitter {
     timestamp: number | undefined;
@@ -77,9 +79,11 @@ declare class Comment extends Publication {
     editTimestamp: number | undefined;
     reason: string | undefined;
     shortCid: string | undefined;
+    _getCommentOnFirstUpdate: boolean;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): Promise<void>;
+    simulateGetCommentOnFirstUpdateEvent(): Promise<void>;
 }
 declare class Vote extends Publication {
 }

@@ -582,6 +582,10 @@ class Plebbit extends EventEmitter {
     }
     createSubplebbit(createSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {
+            // if the only argument is {address}, the user didn't create the sub, it's a fetched sub
+            if ((createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address) && Object.keys(createSubplebbitOptions).length === 1) {
+                return new Subplebbit(createSubplebbitOptions);
+            }
             const signer = yield this.createSigner();
             const subplebbit = new Subplebbit(Object.assign({ signer }, createSubplebbitOptions));
             // keep a list of subplebbits the user probably created himself to use with listSubplebbits
@@ -704,6 +708,7 @@ class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
         var _a, _b, _c, _d, _e, _f, _g;
         super();
+        this._getSubplebbitOnFirstUpdate = false;
         this.address = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address;
         this.pubsubTopic = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.pubsubTopic;
         this.createdAt = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.createdAt;
@@ -738,6 +743,10 @@ class Subplebbit extends EventEmitter {
         Object.defineProperty(this, 'updating', { enumerable: false, writable: true });
         // @ts-ignore
         this.updating = false;
+        // if the only argument is {address}, it means the first update should use getSubplebbit()
+        if ((createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address) && Object.keys(createSubplebbitOptions).length === 1) {
+            this._getSubplebbitOnFirstUpdate = true;
+        }
     }
     edit(editSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -776,7 +785,27 @@ class Subplebbit extends EventEmitter {
         });
     }
     simulateUpdateEvent() {
+        if (this._getSubplebbitOnFirstUpdate) {
+            return this.simulateGetSubplebbitOnFirstUpdateEvent();
+        }
         this.emit('update', this);
+    }
+    simulateGetSubplebbitOnFirstUpdateEvent() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._getSubplebbitOnFirstUpdate = false;
+            // @ts-ignore
+            const subplebbit = yield new Plebbit().getSubplebbit(this.address);
+            const props = JSON.parse(JSON.stringify(subplebbit));
+            for (const prop in props) {
+                if (prop.startsWith('_')) {
+                    continue;
+                }
+                // @ts-ignore
+                this[prop] = props[prop];
+            }
+            this.emit('update', this);
+            this.simulateUpdateEvent();
+        });
     }
 }
 let challengeRequestCount = 0;
@@ -842,6 +871,7 @@ class Publication extends EventEmitter {
 class Comment extends Publication {
     constructor(createCommentOptions) {
         super();
+        this._getCommentOnFirstUpdate = false;
         this.ipnsName = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.ipnsName;
         this.cid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.cid;
         this.upvoteCount = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.upvoteCount;
@@ -872,13 +902,13 @@ class Comment extends Publication {
             // @ts-ignore
             this[prop] = createCommentOptions[prop];
         }
+        // if the only argument is {cid}, it means the first update should use getComment()
+        if ((createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.cid) && Object.keys(createCommentOptions).length === 1) {
+            this._getCommentOnFirstUpdate = true;
+        }
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
-            // is ipnsName is known, look for updates and emit updates immediately after creation
-            if (!this.ipnsName) {
-                throw Error(`can't update without comment.ipnsName`);
-            }
             // don't update twice
             // @ts-ignore
             if (this.updating) {
@@ -897,12 +927,31 @@ class Comment extends Publication {
     simulateUpdateEvent() {
         return __awaiter(this, void 0, void 0, function* () {
             assert(this.cid, `invalid comment.cid '${this.cid}' can't simulateUpdateEvent`);
+            if (this._getCommentOnFirstUpdate) {
+                return this.simulateGetCommentOnFirstUpdateEvent();
+            }
             const commentUpdateContent = yield getCommentUpdateContent(this);
             for (const prop in commentUpdateContent) {
                 // @ts-ignore
                 this[prop] = commentUpdateContent[prop];
             }
             this.shortCid = this.cid.substring(2, 14);
+            this.emit('update', this);
+        });
+    }
+    simulateGetCommentOnFirstUpdateEvent() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._getCommentOnFirstUpdate = false;
+            // @ts-ignore
+            const comment = yield new Plebbit().getComment(this.cid);
+            const props = JSON.parse(JSON.stringify(comment));
+            for (const prop in props) {
+                if (prop.startsWith('_')) {
+                    continue;
+                }
+                // @ts-ignore
+                this[prop] = props[prop];
+            }
             this.emit('update', this);
         });
     }
