@@ -2,8 +2,8 @@ import markdownExample from './fixtures/markdown-example'
 import EventEmitter from 'events'
 import assert from 'assert'
 import {sha256} from 'multiformats/hashes/sha2'
-import {fromString} from 'uint8arrays/from-string'
-import {toString} from 'uint8arrays/to-string'
+import {fromString as uint8ArrayFromString} from 'uint8arrays/from-string'
+import {toString as uint8ArrayToString} from 'uint8arrays/to-string'
 
 // changeable with env variable so the frontend can test with different latencies
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100)
@@ -189,61 +189,71 @@ const reasons = [
   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
 ]
 
-const hash = async (string: string) => {
-  assert(string, `cant hash string '${string}'`)
-
-  let base58Digest
-  // in browser
-  // try {
-  //   const digest = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(string))
-  //   base58Digest = toString(new Uint8Array(digest), 'base58btc')
-  // }
-  // // in jest
-  // catch (e) {
-  //   const digest = await sha256.digest(fromString(string))
-  //   base58Digest = toString(digest.digest, 'base58btc')
-  // }
-
-  // use fake hash because it's faster
-  base58Digest = fakeHash(string)
-
-  // make the hash same length as a cid
-  return (base58Digest + base58Digest).slice(0, 46)
+const getCidHash = async (string: string) => {
+  assert(string && typeof string === 'string', `can't getCidHash '${string} not a string'`)
+  const seed = await getNumberHash(string)
+  const cid = await seedToCid(seed)
+  return cid
 }
 
-const fakeHash = (string: string) => {
+const seedToCid = async (seed: number) => {
+  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `seedToCid seed argument must be positive number not '${seed}'`)
+  let base10Seed = String(seed)
+
+  // seed base10 string is usually too small for a cid, make it longer
+  // the cid is usually around 46 chars in base58, so 80 chars in base10
+  const base10SeedLength = 80
+  while (base10Seed.length < base10SeedLength) {
+    base10Seed += base10Seed
+  }
+  base10Seed = base10Seed.substring(0, base10SeedLength)
+
+  const uint8Array = uint8ArrayFromString(base10Seed, 'base10')
+  const base58Cid = uint8ArrayToString(uint8Array, 'base58btc')
+  return base58Cid
+}
+
+// fake hash with lots of collision for speed
+const getNumberHash = async (string: string) => {
+  assert(string && typeof string === 'string', `can't getNumberHash '${string} not a string'`)
   let hash = 0
   for (let i = 0; i < string.length; i++) {
     const char = string.charCodeAt(i)
     hash = (hash << 5) - hash + char
     hash &= hash // Convert to 32bit integer
   }
-  const result = new Uint32Array([hash])[0].toString(36)
-  // needs to be longer and in base58
-  return toString(fromString(result + result + result + result), 'base58btc')
+  return Math.abs(hash)
 }
 
-const getNumberBetween = async (min: number, max: number, seed: string) => {
-  const number = Number('0.' + parseInt((await hash(seed)).substring(6, 12), 36))
+const getNumberBetween = async (min: number, max: number, seed: number) => {
+  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
+
+  // if the string is exponent, remove chars
+  if (String(seed).match(/[^0-9]/)) {
+    throw Error(`getNumberBetween seed too large '${seed}'`)
+  }
+
+  const number = Number('0.' + seed)
   return Math.floor(number * (max - min + 1) + min)
 }
 
-const getArrayItem = async (array: any[], seed: string) => {
+const getArrayItem = async (array: any[], seed: number) => {
   const index = await getNumberBetween(0, array.length - 1, seed)
   return array[index]
 }
 
-const getImageUrl = async (seed: string) => {
-  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 1)}/${await getNumberBetween(10, 2000, seed + 2)}/${await getNumberBetween(
+const getImageUrl = async (seed: number) => {
+  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getImageUrl seed argument must be positive number not '${seed}'`)
+  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed * 2)}/${await getNumberBetween(10, 2000, seed * 3)}/${await getNumberBetween(
     10,
     2000,
-    seed + 3
+    seed * 6
   )}.jpg`
 
-  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed + 4)}/${await getNumberBetween(10, 2000, seed + 5)}/${await getNumberBetween(
+  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed * 4)}/${await getNumberBetween(10, 2000, seed * 5)}/${await getNumberBetween(
     10,
     2000,
-    seed + 6
+    seed * 7
   )}.webp`
 
   const imageUrls = [
@@ -258,26 +268,34 @@ const getImageUrl = async (seed: string) => {
     'https://brokensite.xyz/images/dog.png', // broken image
     'https://brokensite.xyz/images/dog.jpeg', // broken jpeg
   ]
-  const imageUrl = (await getArrayItem(imageUrls, seed + 'image')) + (await getArrayItem(urlSuffixes, seed + 'suffix'))
+  const imageUrl = (await getArrayItem(imageUrls, seed * 8)) + (await getArrayItem(urlSuffixes, seed * 9))
   return imageUrl
 }
 
-const getAuthor = async (seed: string) => {
-  const author: any = {
-    address: await hash(seed + 'author address'),
-  }
-  const hasEns = await getArrayItem([true, false, false, false], seed + 'has ens')
+const getAuthorAddress = async (seed: number) => {
+  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getAuthorAddress seed argument must be positive number not '${seed}'`)
+  const hasEns = await getArrayItem([true, false, false, false], seed * 2)
   if (hasEns) {
-    const text = await getArrayItem([...firstNames, ...displayNames], seed + 'author ens first name')
-    author.address = (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth'
+    const text = await getArrayItem([...firstNames, ...displayNames], seed * 3)
+    return (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth'
+  } else {
+    const address = await seedToCid(seed)
+    return address
+  }
+}
+
+const getAuthor = async (seed: string) => {
+  const authorNumberSeed = await getNumberHash(seed)
+  const author: any = {
+    address: await getAuthorAddress(authorNumberSeed),
   }
   author.shortAddress = author.address.endsWith('.eth') ? author.address : author.address.substring(8, 20)
-  const hasDisplayName = await getArrayItem([true, true, true, false], seed + 'has display name')
+  const hasDisplayName = await getArrayItem([true, true, true, false], authorNumberSeed * 4)
   if (hasDisplayName) {
-    author.displayName = await getArrayItem(displayNames, seed + 'display name')
+    author.displayName = await getArrayItem(displayNames, authorNumberSeed * 5)
   }
   const rareTrue = [true, false, false, false, false, false, false, false]
-  const hasNftAvatar = await getArrayItem(rareTrue, seed + 'has nft avatar')
+  const hasNftAvatar = await getArrayItem(rareTrue, authorNumberSeed * 6)
   if (hasNftAvatar) {
     author.avatar = {
       chainTicker: 'eth',
@@ -289,54 +307,55 @@ const getAuthor = async (seed: string) => {
           '0x79fcdef22feed20eddacbb2587640e45491b757f',
           '0x0000000000000000000000000000000000000dead',
         ],
-        seed + 'nft avatar address'
+        authorNumberSeed * 11
       ),
-      index: await getNumberBetween(1, 2000, seed + 'nft avatar index'),
+      index: await getNumberBetween(1, 2000, authorNumberSeed * 7),
     }
   }
-  const hasFlair = await getArrayItem(rareTrue, seed + 'has author flair')
+  const hasFlair = await getArrayItem(rareTrue, authorNumberSeed * 8)
   if (hasFlair) {
-    author.flair = await getArrayItem(authorFlairs, seed + 'author flair')
+    author.flair = await getArrayItem(authorFlairs, authorNumberSeed * 9)
   }
   return author
 }
 
 const getPostContent = async (seed: string) => {
+  const postNumberSeed = await getNumberHash(seed)
   const postContent: any = {
     depth: 0,
-    author: await getAuthor(seed + 'author'),
-    title: await getArrayItem(commentTitles, seed + 'title'),
+    author: await getAuthor(String(postNumberSeed)),
+    title: await getArrayItem(commentTitles, postNumberSeed * 2),
   }
-  const hasFlair = await getArrayItem([true, false, false, false], seed + 'has flair')
+  const hasFlair = await getArrayItem([true, false, false, false], postNumberSeed * 3)
   if (hasFlair) {
-    postContent.flair = await getArrayItem(postFlairs, seed + 'flair')
+    postContent.flair = await getArrayItem(postFlairs, postNumberSeed * 4)
   }
-  const isLinkPost = await getArrayItem([true, false], seed + 'islinkpost')
+  const isLinkPost = await getArrayItem([true, false], postNumberSeed * 5)
   if (isLinkPost) {
-    postContent.link = await getArrayItem(commentLinks, seed + 'link')
-    const linkIsImage = await getArrayItem([true, false], seed + 'linkisimage')
+    postContent.link = await getArrayItem(commentLinks, postNumberSeed * 6)
+    const linkIsImage = await getArrayItem([true, false], postNumberSeed * 7)
     if (linkIsImage) {
-      postContent.link = await getImageUrl(seed + 'linkimage')
+      postContent.link = await getImageUrl(postNumberSeed * 8)
 
       // add video and audio
-      const imageIsMedia = await getArrayItem([true, false, false, false], seed + 'imageismedia')
+      const imageIsMedia = await getArrayItem([true, false, false, false], postNumberSeed * 9)
       if (imageIsMedia) {
-        postContent.link = await getArrayItem(mediaLinks, seed + 'medialink')
+        postContent.link = await getArrayItem(mediaLinks, postNumberSeed * 10)
       }
     }
-    const hasThumbnail = await getArrayItem([true, true, true, false], seed + 'hasthumbnail')
+    const hasThumbnail = await getArrayItem([true, true, true, false], postNumberSeed * 11)
     if (!linkIsImage && hasThumbnail) {
-      postContent.thumbnailUrl = await getImageUrl(seed + 'thumbnail')
+      postContent.thumbnailUrl = await getImageUrl(postNumberSeed * 12)
     }
   }
   // else is text post
   else {
-    postContent.content = await getArrayItem(commentContents, seed + 'content')
-    const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+    postContent.content = await getArrayItem(commentContents, postNumberSeed * 13)
+    const hasQuote = await getArrayItem([true, false, false, false], postNumberSeed * 14)
     if (hasQuote) {
       const lines = postContent.content.split('\n')
       for (const i in lines) {
-        const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+        const lineIsQuote = await getArrayItem([true, false], postNumberSeed * Number(i))
         if (lineIsQuote) {
           lines[i] = '>' + lines[i]
         }
@@ -348,17 +367,18 @@ const getPostContent = async (seed: string) => {
 }
 
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
+  const replyNumberSeed = await getNumberHash(seed)
   const {depth, parentCid, postCid} = getReplyContentOptions
-  const author = await getAuthor(seed + 'author')
-  let content = await getArrayItem(commentContents, seed + 'replycontent')
+  const author = await getAuthor(String(replyNumberSeed))
+  let content = await getArrayItem(commentContents, replyNumberSeed * 2)
 
   // only add quotes if depth is high because otherwise takes too long to load
   if (depth <= 1) {
-    const hasQuote = await getArrayItem([true, false, false, false], seed + 'hasquote')
+    const hasQuote = await getArrayItem([true, false, false, false], replyNumberSeed * 3)
     if (hasQuote) {
       const lines = content.split('\n')
       for (const i in lines) {
-        const lineIsQuote = await getArrayItem([true, false], seed + 'lineisquote' + i)
+        const lineIsQuote = await getArrayItem([true, false], replyNumberSeed * Number(i))
         if (lineIsQuote) {
           lines[i] = '>' + lines[i]
         }
@@ -371,88 +391,89 @@ const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
 }
 
 const getSubplebbitContent = async (seed: string) => {
+  const subplebbitNumberSeed = await getNumberHash(seed)
   const subplebbit: any = {
-    pubsubTopic: await hash(seed + 'pubsub topic'),
+    pubsubTopic: await seedToCid(subplebbitNumberSeed),
   }
 
-  const hasChallengeTypes = await getArrayItem([true, false], seed + 'has challenge types')
+  const hasChallengeTypes = await getArrayItem([true, false], subplebbitNumberSeed * 2)
   if (hasChallengeTypes) {
     subplebbit.challengeTypes = ['image']
   }
 
-  const hasRoles = await getArrayItem([true, false], seed + 'has roles')
+  const hasRoles = await getArrayItem([true, false], subplebbitNumberSeed * 3)
   if (hasRoles) {
     subplebbit.roles = {
-      [(await getAuthor(seed + 'mod address 1')).address]: {role: 'owner'},
-      [(await getAuthor(seed + 'mod address 2')).address]: {role: 'admin'},
-      [(await getAuthor(seed + 'mod address 3')).address]: {role: 'moderator'},
-      [(await getAuthor(seed + 'mod address 4')).address]: {role: 'moderator'},
-      [(await getAuthor(seed + 'mod address 5')).address]: {role: 'moderator'},
-      [(await getAuthor(seed + 'mod address 6')).address]: {role: 'moderator'},
-      [(await getAuthor(seed + 'mod address 7')).address]: {role: 'moderator'},
-      [(await getAuthor(seed + 'mod address 8')).address]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed * 3)]: {role: 'owner'},
+      [await getAuthorAddress(subplebbitNumberSeed * 4)]: {role: 'admin'},
+      [await getAuthorAddress(subplebbitNumberSeed * 5)]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed * 6)]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed * 7)]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed * 8)]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed * 9)]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed * 11)]: {role: 'moderator'},
     }
   }
 
-  const title = await getArrayItem([undefined, ...subplebbitTitles], seed + 'title')
+  const title = await getArrayItem([undefined, ...subplebbitTitles], subplebbitNumberSeed * 11)
   if (title) {
     subplebbit.title = title
   }
-  const description = await getArrayItem([undefined, ...subplebbitDescriptions], seed + 'description')
+  const description = await getArrayItem([undefined, ...subplebbitDescriptions], subplebbitNumberSeed * 12)
   if (description) {
     subplebbit.description = description
   }
 
-  const hasPostFlairs = await getArrayItem([true, false], seed + 'has post flairs')
+  const hasPostFlairs = await getArrayItem([true, false], subplebbitNumberSeed * 13)
   if (hasPostFlairs) {
     subplebbit.flairs = {post: postFlairs}
   }
-  const hasAuthorFlairs = await getArrayItem([true, false], seed + 'has author flairs')
+  const hasAuthorFlairs = await getArrayItem([true, false], subplebbitNumberSeed * 14)
   if (hasAuthorFlairs) {
     subplebbit.flairs = {post: subplebbit.flairs?.post, author: authorFlairs}
   }
 
-  const hasSuggested = await getArrayItem([true, false], seed + 'has suggested')
+  const hasSuggested = await getArrayItem([true, false], subplebbitNumberSeed * 15)
   if (hasSuggested) {
     subplebbit.suggested = {
-      primaryColor: (await getArrayItem(postFlairs, seed + 'suggested primary color')).backgroundColor,
-      secondaryColor: (await getArrayItem(postFlairs, seed + 'suggested secondary color')).backgroundColor,
-      avatarUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested avatar url')], seed + 'suggested avatar url'),
-      bannerUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested banner url')], seed + 'suggested banner url'),
-      backgroundUrl: await getArrayItem([undefined, await getImageUrl(seed + 'suggested background url')], seed + 'suggested background url'),
-      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], seed + 'suggested language'),
+      primaryColor: (await getArrayItem(postFlairs, subplebbitNumberSeed * 16)).backgroundColor,
+      secondaryColor: (await getArrayItem(postFlairs, subplebbitNumberSeed * 17)).backgroundColor,
+      avatarUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed * 18)], subplebbitNumberSeed * 18 * 3),
+      bannerUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed * 19)], subplebbitNumberSeed * 19 * 4),
+      backgroundUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed * 20)], subplebbitNumberSeed * 20 * 5),
+      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], subplebbitNumberSeed * 21),
     }
   }
 
-  const hasFeatures = await getArrayItem([true, false], seed + 'has features')
+  const hasFeatures = await getArrayItem([true, false], subplebbitNumberSeed * 22)
   if (hasFeatures) {
     subplebbit.features = {
-      noVideos: await getArrayItem([undefined, undefined, true, false], seed + 'noVideos'),
-      noSpoilers: await getArrayItem([undefined, undefined, true, false], seed + 'noSpoilers'),
-      noImages: await getArrayItem([undefined, undefined, true, false], seed + 'noImages'),
-      noVideoReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noVideoReplies'),
-      noSpoilerReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noSpoilerReplies'),
-      noImageReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noImageReplies'),
-      noPolls: await getArrayItem([undefined, undefined, true, false], seed + 'noPolls'),
-      noCrossposts: await getArrayItem([undefined, undefined, true, false], seed + 'noCrossposts'),
-      noUpvotes: await getArrayItem([undefined, undefined, true, false], seed + 'noUpvotes'),
-      noDownvotes: await getArrayItem([undefined, undefined, true, false], seed + 'noDownvotes'),
-      noAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'noAuthors'),
-      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], seed + 'anonymousAuthors'),
-      noNestedReplies: await getArrayItem([undefined, undefined, true, false], seed + 'noNestedReplies'),
-      safeForWork: await getArrayItem([undefined, undefined, true, false], seed + 'safeForWork'),
-      authorFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'authorFlairs'),
-      requireAuthorFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'requireAuthorFlairs'),
-      postFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'postFlairs'),
-      requirePostFlairs: await getArrayItem([undefined, undefined, true, false], seed + 'requirePostFlairs'),
-      noMarkdownImages: await getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownImages'),
-      noMarkdownVideos: await getArrayItem([undefined, undefined, true, false], seed + 'noMarkdownVideos'),
-      markdownImageReplies: await getArrayItem([undefined, undefined, true, false], seed + 'markdownImageReplies'),
-      markdownVideoReplies: await getArrayItem([undefined, undefined, true, false], seed + 'markdownVideoReplies'),
+      noVideos: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 23),
+      noSpoilers: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 24),
+      noImages: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 25),
+      noVideoReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 26),
+      noSpoilerReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 27),
+      noImageReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 28),
+      noPolls: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 29),
+      noCrossposts: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 30),
+      noUpvotes: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 31),
+      noDownvotes: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 32),
+      noAuthors: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 33),
+      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 34),
+      noNestedReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 35),
+      safeForWork: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 36),
+      authorFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 37),
+      requireAuthorFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 38),
+      postFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 39),
+      requirePostFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 40),
+      noMarkdownImages: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 41),
+      noMarkdownVideos: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 42),
+      markdownImageReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 43),
+      markdownVideoReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 44),
     }
   }
 
-  const hasRules = await getArrayItem([true, false], seed + 'has rules')
+  const hasRules = await getArrayItem([true, false], subplebbitNumberSeed * 45)
   if (hasRules) {
     subplebbit.rules = [
       'no spam',
@@ -463,15 +484,15 @@ const getSubplebbitContent = async (seed: string) => {
     ]
   }
 
-  const isOnline = await getArrayItem([true, false], seed + 'isOnline')
+  const isOnline = await getArrayItem([true, false], subplebbitNumberSeed * 46)
   if (isOnline) {
     // updated in last 1h
-    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(1, 60 * 60, seed + 'updatedAt isOnline'))
+    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(1, 60 * 60, subplebbitNumberSeed * 47))
   } else {
     // updated in last month
-    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(60 * 60, 60 * 60 * 24 * 30, seed + 'updatedAt'))
+    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(60 * 60, 60 * 60 * 24 * 30, subplebbitNumberSeed * 48))
   }
-  subplebbit.createdAt = subplebbit.updatedAt - (await getNumberBetween(1, 60 * 60 * 24 * 3000, seed + 'updatedAt isOnline'))
+  subplebbit.createdAt = subplebbit.updatedAt - (await getNumberBetween(1, 60 * 60 * 24 * 3000, subplebbitNumberSeed * 49))
 
   return subplebbit
 }
@@ -480,8 +501,9 @@ const getSubplebbitContent = async (seed: string) => {
 let replyLoopCount = 0
 
 const getCommentUpdateContent = async (comment: any) => {
-  const upvotesPerUpdate = await getNumberBetween(1, 1000, comment.cid + 'upvoteupdate')
-  const downvotesPerUpdate = await getNumberBetween(1, 1000, comment.cid + 'downvoteupdate')
+  const commentUpdateSeedNumber = await getNumberHash(comment.cid)
+  const upvotesPerUpdate = await getNumberBetween(1, 1000, commentUpdateSeedNumber * 2)
+  const downvotesPerUpdate = await getNumberBetween(1, 1000, commentUpdateSeedNumber * 3)
 
   const commentUpdateContent: any = {}
   // simulate finding vote counts on an IPNS record
@@ -490,9 +512,9 @@ const getCommentUpdateContent = async (comment: any) => {
 
   // find the number of replies
   commentUpdateContent.replyCount = 0
-  const hasReplies = await getArrayItem([true, false, false, false], comment.cid + 'has replies')
+  const hasReplies = await getArrayItem([true, false, false, false], commentUpdateSeedNumber * 4)
   if (hasReplies) {
-    commentUpdateContent.replyCount = await getNumberBetween(0, 30, comment.cid + 'reply count')
+    commentUpdateContent.replyCount = await getNumberBetween(0, 30, commentUpdateSeedNumber * 5)
     if (comment.depth > 0) {
       commentUpdateContent.replyCount = commentUpdateContent.replyCount / (comment.depth + 1) ** 2
     }
@@ -508,11 +530,11 @@ const getCommentUpdateContent = async (comment: any) => {
   let replyCount = commentUpdateContent.replyCount
   while (replyCount-- > 0) {
     // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
-    const replyContent = await getReplyContent(getReplyContentOptions, comment.cid + 'reply content' + replyCount)
+    const replyContent = await getReplyContent(getReplyContentOptions, String(commentUpdateSeedNumber * replyCount))
     const reply = {
-      cid: await hash(comment.cid + 'reply cid' + replyCount),
-      ipnsName: await hash(comment.cid + 'reply ipns name' + replyCount),
-      timestamp: await getNumberBetween(comment.timestamp, NOW, comment.cid + 'reply timestamp' + replyCount),
+      cid: await seedToCid(commentUpdateSeedNumber * replyCount),
+      ipnsName: await seedToCid(commentUpdateSeedNumber * replyCount * 2),
+      timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber * replyCount),
       subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
       ...replyContent,
     }
@@ -522,21 +544,21 @@ const getCommentUpdateContent = async (comment: any) => {
 
   const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
 
-  const isSpoiler = await getArrayItem(rareTrue, comment.cid + 'is spoiler')
+  const isSpoiler = await getArrayItem(rareTrue, commentUpdateSeedNumber * 8)
   if (isSpoiler) {
     commentUpdateContent.spoiler = true
   }
 
-  const isEdited = await getArrayItem(rareTrue, comment.cid + 'is edited')
+  const isEdited = await getArrayItem(rareTrue, commentUpdateSeedNumber * 9)
   if (isEdited) {
     commentUpdateContent.editTimestamp = comment.timestamp + 60 * 30
     commentUpdateContent.content = comment.content + ' WHY DOWNVOTES!?'
   }
 
-  const isDeleted = await getArrayItem(rareTrue, comment.cid + 'is deleted')
-  const isPinned = await getArrayItem(rareTrue, comment.cid + 'is pinned')
-  const isRemoved = await getArrayItem(rareTrue, comment.cid + 'is removed')
-  const isLocked = await getArrayItem(rareTrue, comment.cid + 'is locked')
+  const isDeleted = await getArrayItem(rareTrue, commentUpdateSeedNumber * 10)
+  const isPinned = await getArrayItem(rareTrue, commentUpdateSeedNumber * 11)
+  const isRemoved = await getArrayItem(rareTrue, commentUpdateSeedNumber * 12)
+  const isLocked = await getArrayItem(rareTrue, commentUpdateSeedNumber * 13)
 
   if (isDeleted) {
     commentUpdateContent.deleted = true
@@ -544,15 +566,15 @@ const getCommentUpdateContent = async (comment: any) => {
     commentUpdateContent.pinned = true
   } else if (isRemoved) {
     commentUpdateContent.removed = true
-    const hasReason = await getArrayItem([true, false], comment.cid + 'is removed reason')
+    const hasReason = await getArrayItem([true, false], commentUpdateSeedNumber * 14)
     if (hasReason) {
-      commentUpdateContent.reason = await getArrayItem(reasons, comment.cid + 'reason removed')
+      commentUpdateContent.reason = await getArrayItem(reasons, commentUpdateSeedNumber * 15)
     }
   } else if (isLocked && comment.depth === 0) {
     commentUpdateContent.locked = true
-    const hasReason = await getArrayItem([true, false], comment.cid + 'is locked reason')
+    const hasReason = await getArrayItem([true, false], commentUpdateSeedNumber * 16)
     if (hasReason) {
-      commentUpdateContent.reason = await getArrayItem(reasons, comment.cid + 'locked removed')
+      commentUpdateContent.reason = await getArrayItem(reasons, commentUpdateSeedNumber * 17)
     }
   }
 
@@ -562,16 +584,17 @@ const getCommentUpdateContent = async (comment: any) => {
 }
 
 const getCommentsPage = async (pageCid: string, subplebbit: any) => {
+  const commentsPageSeedNumber = await getNumberHash(pageCid)
   const page: any = {
-    nextCid: await hash(pageCid + 'next'),
+    nextCid: await seedToCid(commentsPageSeedNumber),
     comments: [],
   }
   const postCount = 100
   let index = 0
   while (index++ < postCount) {
     let comment = {
-      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, pageCid + index),
-      cid: await hash(pageCid + index),
+      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber * index),
+      cid: await seedToCid(commentsPageSeedNumber * index * 2),
       subplebbitAddress: subplebbit.address,
       depth: 0,
     }
@@ -589,7 +612,7 @@ class Plebbit extends EventEmitter {
     return {
       privateKey:
         'private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key',
-      address: await hash('address' + Math.random()),
+      address: await getCidHash(String(Math.random())),
     }
   }
 
@@ -611,12 +634,13 @@ class Plebbit extends EventEmitter {
       address: subplebbitAddress,
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
-    const hotPageCid = await hash(subplebbitAddress + 'hot1')
+    const subplebbitPagesSeedNumber = await getNumberHash(subplebbitAddress + 'pages')
+    const hotPageCid = await seedToCid(subplebbitPagesSeedNumber)
     subplebbit.posts.pages.hot = await getCommentsPage(hotPageCid, subplebbit)
     subplebbit.posts.pageCids = {
-      hot: await hash(subplebbitAddress + 'hot1'),
-      topAll: await hash(subplebbitAddress + 'topAll1'),
-      new: await hash(subplebbitAddress + 'new1'),
+      hot: await seedToCid(subplebbitPagesSeedNumber * 2),
+      topAll: await seedToCid(subplebbitPagesSeedNumber * 3),
+      new: await seedToCid(subplebbitPagesSeedNumber * 4),
     }
 
     const subplebbitContent = await getSubplebbitContent(subplebbitAddress)
@@ -638,19 +662,20 @@ class Plebbit extends EventEmitter {
 
   async getComment(commentCid: string) {
     await simulateLoadingTime()
+    const commentSeedNumber = await getNumberHash(commentCid + 'getcomment')
     let commentContent: any = await getPostContent(commentCid + 'postcontent')
-    const isReply = await getArrayItem([true, false, false, false], commentCid + 'isreply')
+    const isReply = await getArrayItem([true, false, false, false], commentSeedNumber)
     if (isReply) {
-      const depth = await getNumberBetween(1, 10, commentCid + 'reply depth')
-      const parentCid = await hash(commentCid + 'parentcid')
-      const postCid = depth === 1 ? parentCid : await hash(commentCid + 'postCid')
+      const depth = await getNumberBetween(1, 10, commentSeedNumber * 5)
+      const parentCid = await seedToCid(commentSeedNumber * 2)
+      const postCid = depth === 1 ? parentCid : await seedToCid(commentSeedNumber * 3)
       const getReplyContentOptions = {depth, parentCid, postCid}
       commentContent = await getReplyContent(getReplyContentOptions, commentCid + 'replycontent')
     }
     const createCommentOptions = {
       cid: commentCid,
-      ipnsName: await hash(commentCid + 'ipns name'),
-      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentCid + 'timestamp'),
+      ipnsName: await seedToCid(commentSeedNumber * 4),
+      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber * 6),
       subplebbitAddress: 'memes.eth',
       ...commentContent,
     }
@@ -839,7 +864,7 @@ class Publication extends EventEmitter {
   async simulateChallengeEvent() {
     const challenges: any = []
     // @ts-ignore
-    const challengeCount = await getNumberBetween(1, 3, this.challengeRequestId)
+    const challengeCount = await getNumberBetween(1, 3, await getNumberHash(this.challengeRequestId))
     while (challenges.length < challengeCount) {
       challenges.push({type: 'image/png', challenge: captchaImageBase64})
     }
@@ -860,7 +885,7 @@ class Publication extends EventEmitter {
   async simulateChallengeVerificationEvent() {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
     // @ts-ignore
-    this.cid = this.content || this.title || this.link ? await hash(this.content + this.title + this.link + 'cid') : undefined
+    this.cid = this.content || this.title || this.link ? await getCidHash(this.content + this.title + this.link + 'cid') : undefined
     const publication = this.cid && {cid: this.cid}
 
     const challengeVerificationMessage = {

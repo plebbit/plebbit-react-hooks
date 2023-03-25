@@ -155,6 +155,7 @@ describe('mock content', () => {
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
     await waitFor(() => typeof rendered.result.current.plebbit?.createComment === 'function')
+    expect(typeof rendered.result.current.plebbit?.createComment).to.equal('function')
 
     console.log('publishing comment')
     let onChallengeVerificationCalled = false
@@ -175,6 +176,7 @@ describe('mock content', () => {
     })
 
     await waitFor(() => onChallengeVerificationCalled === true)
+    expect(onChallengeVerificationCalled).to.equal(true)
 
     console.log('publishing vote')
     onChallengeVerificationCalled = false
@@ -187,6 +189,7 @@ describe('mock content', () => {
     })
 
     await waitFor(() => onChallengeVerificationCalled === true)
+    expect(onChallengeVerificationCalled).to.equal(true)
   })
 
   it('use account subplebbits', async () => {
