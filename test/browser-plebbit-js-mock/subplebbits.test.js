@@ -28,7 +28,7 @@ describe('subplebbits (plebbit-js mock)', () => {
 
       expect(rendered.result.current?.updatedAt).to.equal(undefined)
       rendered.rerender('subplebbit address 1')
-      await waitFor(() => typeof rendered.result.current.address === 'string')
+      await waitFor(() => typeof rendered.result.current.title === 'string')
       expect(rendered.result.current.address).to.equal('subplebbit address 1')
       expect(rendered.result.current.title).to.equal('subplebbit address 1 title')
       // wait for subplebbit.on('update') to fetch the updated description
@@ -36,7 +36,7 @@ describe('subplebbits (plebbit-js mock)', () => {
       expect(rendered.result.current.description).to.equal('subplebbit address 1 description updated')
 
       rendered.rerender('subplebbit address 2')
-      await waitFor(() => typeof rendered.result.current.address === 'string')
+      await waitFor(() => typeof rendered.result.current.title === 'string')
       expect(rendered.result.current.address).to.equal('subplebbit address 2')
       expect(rendered.result.current.title).to.equal('subplebbit address 2 title')
       // wait for subplebbit.on('update') to fetch the updated description

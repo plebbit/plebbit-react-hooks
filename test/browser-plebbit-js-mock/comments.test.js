@@ -28,8 +28,8 @@ describe('comments (plebbit-js mock)', () => {
       expect(rendered.result.current?.timestamp).to.equal(undefined)
 
       rendered.rerender('comment cid 1')
-      await waitFor(() => typeof rendered.result.current?.cid === 'string')
-
+      await waitFor(() => typeof rendered.result.current?.timestamp === 'number')
+      expect(typeof rendered.result.current?.timestamp).to.equal('number')
       expect(rendered.result.current?.cid).to.equal('comment cid 1')
       // wait for comment.on('update') to fetch the ipns
       await waitFor(() => typeof rendered.result.current?.cid === 'string' && typeof rendered.result.current?.upvoteCount === 'number')
@@ -38,7 +38,8 @@ describe('comments (plebbit-js mock)', () => {
 
       rendered.rerender('comment cid 2')
       // wait for addCommentToStore action
-      await waitFor(() => typeof rendered.result.current?.cid === 'string')
+      await waitFor(() => typeof rendered.result.current?.timestamp === 'number')
+      expect(typeof rendered.result.current?.timestamp).to.equal('number')
       expect(rendered.result.current?.cid).to.equal('comment cid 2')
     })
   })
