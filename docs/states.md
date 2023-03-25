@@ -160,15 +160,23 @@ for (const ipfsClientUrl in ipfsClients) {
 #### Get IPFS and plebbit stats
 
 ```js
-const {ipfsGateways, ipfsClients, pubsubClients, chainProviders} = usePlebbitStats()
+const {ipfsGateways, ipfsClients, pubsubClients, chainProviders} = useStats()
 
 for (const ipfsGatewayUrl in ipfsGateways) {
   const ipfsGateway = ipfsGateways[ipfsGatewayUrl]
   console.log('IPFS gateway URL:', ipfsGatewayUrl)
   console.log('Total downloaded:', ipfsGateway.totalIn)
   console.log('Total uploaded:', ipfsGateway.totalOut)
-  console.log('Download rate:', ipfsGateway.rateIn)
-  console.log('Upload rate:', ipfsGateway.rateOut)
+  console.log('All time download rate:', ipfsGateway.rateIn)
+  console.log('All time Upload rate:', ipfsGateway.rateOut)
+  console.log('Session downloaded:', ipfsGateway.sessionTotalIn)
+  console.log('Session uploaded:', ipfsGateway.sessionTotalOut)
+  console.log('Session download rate:', ipfsGateway.sessionRateIn)
+  console.log('Session upload rate:', ipfsGateway.sessionRateOut)
+  console.log('Succeeded IPFS:', ipfsClient.succeededIpfsCount)
+  console.log('Failed IPFS:', ipfsClient.failedIpfsCount)
+  console.log('Succeeded IPNS:', ipfsClient.succeededIpnsCount)
+  console.log('Failed IPNS:', ipfsClient.failedIpnsCount)
   for (const subplebbitAddress in ipfsGateway.subplebbits) {
     const subplebbit = ipfsGateway.subplebbits[subplebbitAddress]
     console.log('Subplebbit:', subplebbitAddress)
@@ -187,10 +195,18 @@ for (const ipfsClientUrl in ipfsClients) {
   const ipfsClient = ipfsClients[ipfsClientUrl]
   console.log('IPFS Client URL:', ipfsClientUrl)
   console.log('Connected peers:', ipfsClient.peers.length) // IPFS peers https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-swarm-peers
-  console.log('Total downloaded:', ipfsClient.totalIn)
+  console.log('Total downloaded:', ipfsClient.totalIn) // IPFS stats https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-stats-bw
   console.log('Total uploaded:', ipfsClient.totalOut)
   console.log('Download rate:', ipfsClient.rateIn)
   console.log('Upload rate:', ipfsClient.rateOut)
+  console.log('Session downloaded:', ipfsClient.sessionTotalIn)
+  console.log('Session uploaded:', ipfsClient.sessionTotalOut)
+  console.log('Session download rate:', ipfsClient.sessionRateIn)
+  console.log('Session upload rate:', ipfsClient.sessionRateOut)
+  console.log('Succeeded IPFS:', ipfsClient.succeededIpfsCount)
+  console.log('Failed IPFS:', ipfsClient.failedIpfsCount)
+  console.log('Succeeded IPNS:', ipfsClient.succeededIpnsCount)
+  console.log('Failed IPNS:', ipfsClient.failedIpnsCount)
   for (const subplebbitAddress in ipfsClient.subplebbits) {
     const subplebbit = ipfsClient.subplebbits[subplebbitAddress]
     console.log('Subplebbit:', subplebbitAddress)
@@ -208,11 +224,19 @@ for (const ipfsClientUrl in ipfsClients) {
 for (const pubsubClientUrl in pubsubClients) {
   const pubsubClient = pubsubClients[pubsubClientUrl]
   console.log('Pubsub Client URL:', pubsubClientUrl)
-  console.log('Connected peers:', pubsubClientUrl.peers.length) // IPFS peers https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-swarm-peers
+  console.log('Connected peers:', pubsubClientUrl.peers.length)
   console.log('Total downloaded:', pubsubClientUrl.totalIn)
   console.log('Total uploaded:', pubsubClientUrl.totalOut)
   console.log('Download rate:', pubsubClientUrl.rateIn)
   console.log('Upload rate:', pubsubClientUrl.rateOut)
+  console.log('Session downloaded:', pubsubClientUrl.sessionTotalIn)
+  console.log('Session uploaded:', pubsubClientUrl.sessionTotalOut)
+  console.log('Session download rate:', pubsubClientUrl.sessionRateIn)
+  console.log('Session upload rate:', pubsubClientUrl.sessionRateOut)
+  console.log('Succeeded challenge request messages:', pubsubClientUrl.succeededChallengeRequestMessageCount)
+  console.log('Failed challenge request messages:', pubsubClientUrl.failedChallengeRequestMessageCount)
+  console.log('Succeeded challenge answer messages:', pubsubClientUrl.succeededChallengeAnswerMessageCount)
+  console.log('Failed challenge answer messages:', pubsubClientUrl.failedChallengeAnswerMessageCount)
   for (const subplebbitAddress in pubsubClient.subplebbits) {
     const subplebbit = pubsubClient.subplebbits[subplebbitAddress]
     console.log('Subplebbit:', subplebbitAddress)
