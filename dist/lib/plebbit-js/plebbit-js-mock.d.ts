@@ -30,6 +30,7 @@ export declare class Pages {
 export declare class Subplebbit extends EventEmitter {
     updateCalledTimes: number;
     updating: boolean;
+    firstUpdate: boolean;
     address: string | undefined;
     title: string | undefined;
     description: string | undefined;
@@ -42,6 +43,7 @@ export declare class Subplebbit extends EventEmitter {
     update(): Promise<void>;
     delete(): Promise<void>;
     simulateUpdateEvent(): void;
+    simulateFirstUpdateEvent(): Promise<void>;
     get roles(): {};
     rolesToGet(): {};
     edit(editSubplebbitOptions: any): Promise<void>;
@@ -77,6 +79,7 @@ export declare class Comment extends Publication {
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): void;
+    simulateFetchCommentIpfsUpdateEvent(): Promise<void>;
 }
 export declare class Vote extends Publication {
 }

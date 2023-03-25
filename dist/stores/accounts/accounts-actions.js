@@ -367,6 +367,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     delete createCommentOptions.onChallenge;
     delete createCommentOptions.onChallengeVerification;
     delete createCommentOptions.onError;
+    delete createCommentOptions.onPublishingStateChange;
     let accountCommentIndex;
     let comment = yield account.plebbit.createComment(createCommentOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -405,6 +406,8 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 }
             }
         }));
+        comment.on('error', (error) => { var _a; return (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment); });
+        comment.on('publishingstatechange', (publishingState) => { var _a; return (_a = publishCommentOptions.onPublishingStateChange) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, publishingState); });
         listeners.push(comment);
         try {
             // publish will resolve after the challenge request
@@ -445,6 +448,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     delete createVoteOptions.onChallenge;
     delete createVoteOptions.onChallengeVerification;
     delete createVoteOptions.onError;
+    delete createVoteOptions.onPublishingStateChange;
     let vote = yield account.plebbit.createVote(createVoteOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _f;
@@ -460,6 +464,8 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
                 publishAndRetryFailedChallengeVerification();
             }
         }));
+        vote.on('error', (error) => { var _a; return (_a = publishVoteOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishVoteOptions, error, vote); });
+        vote.on('publishingstatechange', (publishingState) => { var _a; return (_a = publishVoteOptions.onPublishingStateChange) === null || _a === void 0 ? void 0 : _a.call(publishVoteOptions, publishingState); });
         listeners.push(vote);
         try {
             // publish will resolve after the challenge request
@@ -490,6 +496,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     delete createCommentEditOptions.onChallenge;
     delete createCommentEditOptions.onChallengeVerification;
     delete createCommentEditOptions.onError;
+    delete createCommentEditOptions.onPublishingStateChange;
     let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _g;
@@ -505,6 +512,8 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
                 publishAndRetryFailedChallengeVerification();
             }
         }));
+        commentEdit.on('error', (error) => { var _a; return (_a = publishCommentEditOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentEditOptions, error, commentEdit); });
+        commentEdit.on('publishingstatechange', (publishingState) => { var _a; return (_a = publishCommentEditOptions.onPublishingStateChange) === null || _a === void 0 ? void 0 : _a.call(publishCommentEditOptions, publishingState); });
         listeners.push(commentEdit);
         try {
             // publish will resolve after the challenge request
@@ -529,6 +538,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     });
 });
 export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
+    var _h;
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
     assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
     let account = accounts[activeAccountId];
@@ -543,6 +553,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         yield subplebbitsStore.getState().editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account);
         // create fake success challenge verification for consistent behavior with remote subplebbit edit
         publishSubplebbitEditOptions.onChallengeVerification({ challengeSuccess: true });
+        (_h = publishSubplebbitEditOptions.onPublishingStateChange) === null || _h === void 0 ? void 0 : _h.call(publishSubplebbitEditOptions, 'succeeded');
         return;
     }
     assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
@@ -552,9 +563,10 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     delete createSubplebbitEditOptions.onChallenge;
     delete createSubplebbitEditOptions.onChallengeVerification;
     delete createSubplebbitEditOptions.onError;
+    delete createSubplebbitEditOptions.onPublishingStateChange;
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _h;
+        var _j;
         subplebbitEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit);
         }));
@@ -567,6 +579,8 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
                 publishAndRetryFailedChallengeVerification();
             }
         }));
+        subplebbitEdit.on('error', (error) => { var _a; return (_a = publishSubplebbitEditOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishSubplebbitEditOptions, error, subplebbitEdit); });
+        subplebbitEdit.on('publishingstatechange', (publishingState) => { var _a; return (_a = publishSubplebbitEditOptions.onPublishingStateChange) === null || _a === void 0 ? void 0 : _a.call(publishSubplebbitEditOptions, publishingState); });
         listeners.push(subplebbitEdit);
         try {
             // publish will resolve after the challenge request
@@ -574,7 +588,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
             yield subplebbitEdit.publish();
         }
         catch (error) {
-            (_h = publishSubplebbitEditOptions.onError) === null || _h === void 0 ? void 0 : _h.call(publishSubplebbitEditOptions, error, subplebbitEdit);
+            (_j = publishSubplebbitEditOptions.onError) === null || _j === void 0 ? void 0 : _j.call(publishSubplebbitEditOptions, error, subplebbitEdit);
         }
     });
     publishAndRetryFailedChallengeVerification();

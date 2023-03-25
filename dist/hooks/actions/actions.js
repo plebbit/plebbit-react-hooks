@@ -21,7 +21,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 import { useMemo, useState } from 'react';
 import useAccountsStore from '../../stores/accounts';
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:accounts:hooks');
+const log = Logger('plebbit-react-hooks:actions:hooks');
 import assert from 'assert';
 import { useAccount, useAccountId } from '../accounts';
 const publishChallengeAnswersNotReady = (challengeAnswers) => __awaiter(void 0, void 0, void 0, function* () {
@@ -46,7 +46,7 @@ export function useSubscribe(options) {
             yield accountsActions.subscribe(subplebbitAddress, accountName);
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             onError === null || onError === void 0 ? void 0 : onError(e);
         }
     });
@@ -55,7 +55,7 @@ export function useSubscribe(options) {
             yield accountsActions.unsubscribe(subplebbitAddress, accountName);
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             onError === null || onError === void 0 ? void 0 : onError(e);
         }
     });
@@ -99,7 +99,7 @@ export function useBlock(options) {
             }
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             onError === null || onError === void 0 ? void 0 : onError(e);
         }
     });
@@ -113,7 +113,7 @@ export function useBlock(options) {
             }
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             onError === null || onError === void 0 ? void 0 : onError(e);
         }
     });
@@ -132,7 +132,7 @@ export function usePublishComment(options) {
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
     const [errors, setErrors] = useState([]);
-    const [state, setState] = useState();
+    const [publishingState, setPublishingState] = useState();
     const [index, setIndex] = useState();
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
@@ -145,15 +145,13 @@ export function usePublishComment(options) {
     // define onError if not defined
     const originalOnError = publishCommentOptions.onError;
     const onError = (error) => __awaiter(this, void 0, void 0, function* () {
-        setState('failed');
-        setErrors([...errors, error]);
+        setErrors((errors) => [...errors, error]);
         originalOnError === null || originalOnError === void 0 ? void 0 : originalOnError(error);
     });
     publishCommentOptions.onError = onError;
     // define onChallenge if not defined
     const originalOnChallenge = publishCommentOptions.onChallenge;
     const onChallenge = (challenge, comment) => __awaiter(this, void 0, void 0, function* () {
-        setState('waiting-challenge-verification');
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => comment === null || comment === void 0 ? void 0 : comment.publishChallengeAnswers.bind(comment));
         setChallenge(challenge);
@@ -163,20 +161,22 @@ export function usePublishComment(options) {
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishCommentOptions.onChallengeVerification;
     const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
-        setState((challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.challengeSuccess) === true ? 'succeeded' : 'failed');
         setChallengeVerification(challengeVerification);
         originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
     });
     publishCommentOptions.onChallengeVerification = onChallengeVerification;
+    // change state on publishing state change
+    publishCommentOptions.onPublishingStateChange = (publishingState) => {
+        setPublishingState(publishingState);
+    };
     const publishComment = () => __awaiter(this, void 0, void 0, function* () {
         var _b;
         try {
             const { index } = yield accountsActions.publishComment(publishCommentOptions, accountName);
-            setState('waiting-challenge');
             setIndex(index);
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             (_b = publishCommentOptions.onError) === null || _b === void 0 ? void 0 : _b.call(publishCommentOptions, e);
         }
     });
@@ -186,10 +186,10 @@ export function usePublishComment(options) {
         challengeVerification,
         publishComment,
         publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-        state: state || initialState,
+        state: publishingState || initialState,
         error: errors[errors.length - 1],
         errors,
-    }), [state, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
+    }), [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function usePublishVote(options) {
     assert(!options || typeof options === 'object', `usePublishVote options argument '${options}' not an object`);
@@ -197,7 +197,7 @@ export function usePublishVote(options) {
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
     const [errors, setErrors] = useState([]);
-    const [state, setState] = useState();
+    const [publishingState, setPublishingState] = useState();
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
@@ -209,15 +209,13 @@ export function usePublishVote(options) {
     // define onError if not defined
     const originalOnError = publishVoteOptions.onError;
     const onError = (error) => __awaiter(this, void 0, void 0, function* () {
-        setState('failed');
-        setErrors([...errors, error]);
+        setErrors((errors) => [...errors, error]);
         originalOnError === null || originalOnError === void 0 ? void 0 : originalOnError(error);
     });
     publishVoteOptions.onError = onError;
     // define onChallenge if not defined
     const originalOnChallenge = publishVoteOptions.onChallenge;
     const onChallenge = (challenge, vote) => __awaiter(this, void 0, void 0, function* () {
-        setState('waiting-challenge-verification');
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => vote === null || vote === void 0 ? void 0 : vote.publishChallengeAnswers.bind(vote));
         setChallenge(challenge);
@@ -227,19 +225,21 @@ export function usePublishVote(options) {
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishVoteOptions.onChallengeVerification;
     const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
-        setState((challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.challengeSuccess) === true ? 'succeeded' : 'failed');
         setChallengeVerification(challengeVerification);
         originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
     });
     publishVoteOptions.onChallengeVerification = onChallengeVerification;
+    // change state on publishing state change
+    publishVoteOptions.onPublishingStateChange = (publishingState) => {
+        setPublishingState(publishingState);
+    };
     const publishVote = () => __awaiter(this, void 0, void 0, function* () {
         var _b;
         try {
             yield accountsActions.publishVote(publishVoteOptions, accountName);
-            setState('waiting-challenge');
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             (_b = publishVoteOptions.onError) === null || _b === void 0 ? void 0 : _b.call(publishVoteOptions, e);
         }
     });
@@ -248,10 +248,10 @@ export function usePublishVote(options) {
         challengeVerification,
         publishVote,
         publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-        state: state || initialState,
+        state: publishingState || initialState,
         error: errors[errors.length - 1],
         errors,
-    }), [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
+    }), [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function usePublishCommentEdit(options) {
     assert(!options || typeof options === 'object', `usePublishCommentEdit options argument '${options}' not an object`);
@@ -259,7 +259,7 @@ export function usePublishCommentEdit(options) {
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
     const [errors, setErrors] = useState([]);
-    const [state, setState] = useState();
+    const [publishingState, setPublishingState] = useState();
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
@@ -271,15 +271,13 @@ export function usePublishCommentEdit(options) {
     // define onError if not defined
     const originalOnError = publishCommentEditOptions.onError;
     const onError = (error) => __awaiter(this, void 0, void 0, function* () {
-        setState('failed');
-        setErrors([...errors, error]);
+        setErrors((errors) => [...errors, error]);
         originalOnError === null || originalOnError === void 0 ? void 0 : originalOnError(error);
     });
     publishCommentEditOptions.onError = onError;
     // define onChallenge if not defined
     const originalOnChallenge = publishCommentEditOptions.onChallenge;
     const onChallenge = (challenge, commentEdit) => __awaiter(this, void 0, void 0, function* () {
-        setState('waiting-challenge-verification');
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => commentEdit === null || commentEdit === void 0 ? void 0 : commentEdit.publishChallengeAnswers.bind(commentEdit));
         setChallenge(challenge);
@@ -289,19 +287,21 @@ export function usePublishCommentEdit(options) {
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishCommentEditOptions.onChallengeVerification;
     const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
-        setState((challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.challengeSuccess) === true ? 'succeeded' : 'failed');
         setChallengeVerification(challengeVerification);
         originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
     });
     publishCommentEditOptions.onChallengeVerification = onChallengeVerification;
+    // change state on publishing state change
+    publishCommentEditOptions.onPublishingStateChange = (publishingState) => {
+        setPublishingState(publishingState);
+    };
     const publishCommentEdit = () => __awaiter(this, void 0, void 0, function* () {
         var _b;
         try {
             yield accountsActions.publishCommentEdit(publishCommentEditOptions, accountName);
-            setState('waiting-challenge');
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             (_b = publishCommentEditOptions.onError) === null || _b === void 0 ? void 0 : _b.call(publishCommentEditOptions, e);
         }
     });
@@ -310,10 +310,10 @@ export function usePublishCommentEdit(options) {
         challengeVerification,
         publishCommentEdit,
         publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-        state: state || initialState,
+        state: publishingState || initialState,
         error: errors[errors.length - 1],
         errors,
-    }), [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
+    }), [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function usePublishSubplebbitEdit(options) {
     assert(!options || typeof options === 'object', `usePublishSubplebbitEdit options argument '${options}' not an object`);
@@ -321,7 +321,7 @@ export function usePublishSubplebbitEdit(options) {
     const accountsActions = useAccountsStore((state) => state.accountsActions);
     const accountId = useAccountId(accountName);
     const [errors, setErrors] = useState([]);
-    const [state, setState] = useState();
+    const [publishingState, setPublishingState] = useState();
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
@@ -333,15 +333,13 @@ export function usePublishSubplebbitEdit(options) {
     // define onError if not defined
     const originalOnError = publishSubplebbitEditOptions.onError;
     const onError = (error) => __awaiter(this, void 0, void 0, function* () {
-        setState('failed');
-        setErrors([...errors, error]);
+        setErrors((errors) => [...errors, error]);
         originalOnError === null || originalOnError === void 0 ? void 0 : originalOnError(error);
     });
     publishSubplebbitEditOptions.onError = onError;
     // define onChallenge if not defined
     const originalOnChallenge = publishSubplebbitEditOptions.onChallenge;
     const onChallenge = (challenge, subplebbitEdit) => __awaiter(this, void 0, void 0, function* () {
-        setState('waiting-challenge-verification');
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => subplebbitEdit === null || subplebbitEdit === void 0 ? void 0 : subplebbitEdit.publishChallengeAnswers.bind(subplebbitEdit));
         setChallenge(challenge);
@@ -351,19 +349,21 @@ export function usePublishSubplebbitEdit(options) {
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishSubplebbitEditOptions.onChallengeVerification;
     const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
-        setState((challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.challengeSuccess) === true ? 'succeeded' : 'failed');
         setChallengeVerification(challengeVerification);
         originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
     });
     publishSubplebbitEditOptions.onChallengeVerification = onChallengeVerification;
+    // change state on publishing state change
+    publishSubplebbitEditOptions.onPublishingStateChange = (publishingState) => {
+        setPublishingState(publishingState);
+    };
     const publishSubplebbitEdit = () => __awaiter(this, void 0, void 0, function* () {
         var _b;
         try {
             yield accountsActions.publishSubplebbitEdit(subplebbitAddress, publishSubplebbitEditOptions, accountName);
-            setState('waiting-challenge');
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             (_b = publishSubplebbitEditOptions.onError) === null || _b === void 0 ? void 0 : _b.call(publishSubplebbitEditOptions, e);
         }
     });
@@ -372,10 +372,10 @@ export function usePublishSubplebbitEdit(options) {
         challengeVerification,
         publishSubplebbitEdit,
         publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
-        state: state || initialState,
+        state: publishingState || initialState,
         error: errors[errors.length - 1],
         errors,
-    }), [state, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
+    }), [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
 export function useCreateSubplebbit(options) {
     assert(!options || typeof options === 'object', `useCreateSubplebbit options argument '${options}' not an object`);
@@ -398,7 +398,7 @@ export function useCreateSubplebbit(options) {
             setState('succeeded');
         }
         catch (e) {
-            setErrors([...errors, e]);
+            setErrors((errors) => [...errors, e]);
             setState('failed');
             onError === null || onError === void 0 ? void 0 : onError(e);
         }
