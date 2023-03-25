@@ -116,7 +116,7 @@ describe('mock content', () => {
     const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
 
     rendered2.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
-    await waitFor(() => typeof rendered2.result.current.subplebbitAddress === 'string')
+    await waitFor(() => typeof rendered2.result.current.updatedAt === 'number')
     console.log(rendered2.result.current)
     expect(rendered2.result.current.address).toBe('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
     expect(typeof rendered2.result.current.updatedAt).toBe('number')

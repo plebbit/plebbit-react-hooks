@@ -648,6 +648,11 @@ class Plebbit extends EventEmitter {
   }
 
   async createSubplebbit(createSubplebbitOptions: any) {
+    // if the only argument is {address}, the user didn't create the sub, it's a fetched sub
+    if (createSubplebbitOptions?.address && Object.keys(createSubplebbitOptions).length === 1) {
+      return new Subplebbit(createSubplebbitOptions)
+    }
+
     const signer = await this.createSigner()
     const subplebbit = new Subplebbit({signer, ...createSubplebbitOptions})
 
@@ -788,6 +793,7 @@ class Subplebbit extends EventEmitter {
   signer: any | undefined
   shortAddress: string | undefined
   statsCid: string | undefined
+  _getSubplebbitOnFirstUpdate = false
 
   constructor(createSubplebbitOptions?: any) {
     super()
@@ -829,6 +835,11 @@ class Subplebbit extends EventEmitter {
     Object.defineProperty(this, 'updating', {enumerable: false, writable: true})
     // @ts-ignore
     this.updating = false
+
+    // if the only argument is {address}, it means the first update should use getSubplebbit()
+    if (createSubplebbitOptions?.address && Object.keys(createSubplebbitOptions).length === 1) {
+      this._getSubplebbitOnFirstUpdate = true
+    }
   }
 
   async edit(editSubplebbitOptions: any) {
@@ -865,7 +876,28 @@ class Subplebbit extends EventEmitter {
   }
 
   simulateUpdateEvent() {
+    if (this._getSubplebbitOnFirstUpdate) {
+      return this.simulateGetSubplebbitOnFirstUpdateEvent()
+    }
     this.emit('update', this)
+  }
+
+  async simulateGetSubplebbitOnFirstUpdateEvent() {
+    this._getSubplebbitOnFirstUpdate = false
+
+    // @ts-ignore
+    const subplebbit = await new Plebbit().getSubplebbit(this.address)
+    const props = JSON.parse(JSON.stringify(subplebbit))
+    for (const prop in props) {
+      if (prop.startsWith('_')) {
+        continue
+      }
+      // @ts-ignore
+      this[prop] = props[prop]
+    }
+    this.emit('update', this)
+
+    this.simulateUpdateEvent()
   }
 }
 
@@ -952,6 +984,7 @@ class Comment extends Publication {
   editTimestamp: number | undefined
   reason: string | undefined
   shortCid: string | undefined
+  _getCommentOnFirstUpdate = false
 
   constructor(createCommentOptions?: any) {
     super()
@@ -987,13 +1020,14 @@ class Comment extends Publication {
       // @ts-ignore
       this[prop] = createCommentOptions[prop]
     }
+
+    // if the only argument is {cid}, it means the first update should use getComment()
+    if (createCommentOptions?.cid && Object.keys(createCommentOptions).length === 1) {
+      this._getCommentOnFirstUpdate = true
+    }
   }
 
   async update() {
-    // is ipnsName is known, look for updates and emit updates immediately after creation
-    if (!this.ipnsName) {
-      throw Error(`can't update without comment.ipnsName`)
-    }
     // don't update twice
     // @ts-ignore
     if (this.updating) {
@@ -1011,12 +1045,32 @@ class Comment extends Publication {
 
   async simulateUpdateEvent() {
     assert(this.cid, `invalid comment.cid '${this.cid}' can't simulateUpdateEvent`)
+    if (this._getCommentOnFirstUpdate) {
+      return this.simulateGetCommentOnFirstUpdateEvent()
+    }
+
     const commentUpdateContent = await getCommentUpdateContent(this)
     for (const prop in commentUpdateContent) {
       // @ts-ignore
       this[prop] = commentUpdateContent[prop]
     }
     this.shortCid = this.cid.substring(2, 14)
+    this.emit('update', this)
+  }
+
+  async simulateGetCommentOnFirstUpdateEvent() {
+    this._getCommentOnFirstUpdate = false
+
+    // @ts-ignore
+    const comment = await new Plebbit().getComment(this.cid)
+    const props = JSON.parse(JSON.stringify(comment))
+    for (const prop in props) {
+      if (prop.startsWith('_')) {
+        continue
+      }
+      // @ts-ignore
+      this[prop] = props[prop]
+    }
     this.emit('update', this)
   }
 }
