@@ -15,11 +15,13 @@ export const listeners: any = []
 
 export type CommentsState = {
   comments: Comments
+  errors: {[commentCid: string]: Error[]}
   addCommentToStore: Function
 }
 
 const commentsStore = createStore<CommentsState>((setState: Function, getState: Function) => ({
   comments: {},
+  errors: {},
 
   async addCommentToStore(commentId: string, account: Account) {
     const {comments} = getState()
@@ -37,13 +39,11 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // comment not in database, fetch from plebbit-js
     try {
       if (!comment) {
-        const onError = (error: any) => log.error(`commentsStore.addCommentToStore failed plebbit.getComment cid '${commentId}':`, error)
-        comment = await utils.retryInfinity(() => account.plebbit.getComment(commentId), {onError})
-        log.trace('commentsStore.addCommentToStore plebbit.getComment', {commentId, comment, account})
+        comment = await account.plebbit.createComment({cid: commentId})
         await commentsDatabase.setItem(commentId, utils.clone(comment))
       }
       log('commentsStore.addCommentToStore', {commentId, comment, account})
-      setState((state: any) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
+      setState((state: CommentsState) => ({comments: {...state.comments, [commentId]: utils.clone(comment)}}))
     } catch (e) {
       throw e
     } finally {
@@ -55,15 +55,42 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       updatedComment = utils.clone(updatedComment)
       await commentsDatabase.setItem(commentId, updatedComment)
       log('commentsStore comment update', {commentId, updatedComment, account})
-      setState((state: any) => ({comments: {...state.comments, [commentId]: updatedComment}}))
+      setState((state: CommentsState) => ({comments: {...state.comments, [commentId]: updatedComment}}))
     })
-    listeners.push(comment)
-    comment?.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
+
+    comment?.on('updatingstatechange', (updatingState: string) => {
+      setState((state: CommentsState) => ({
+        comments: {
+          ...state.comments,
+          [commentId]: {...state.comments[commentId], updatingState},
+        },
+      }))
+    })
+
+    comment?.on('error', (error: Error) => {
+      setState((state: CommentsState) => {
+        let commentErrors = state.errors[commentId] || []
+        commentErrors = [...commentErrors, error]
+        return {...state, errors: {...state.errors, [commentId]: commentErrors}}
+      })
+    })
 
     // when publishing a comment, you don't yet know its CID
     // so when a new comment is fetched, check to see if it's your own
     // comment, and if yes, add the CID to your account comments database
-    await accountsStore.getState().accountsActionsInternal.addCidToAccountComment(comment)
+    // if comment.timestamp isn't defined, it means the next update will contain the timestamp and author
+    // which is used in addCidToAccountComment
+    if (!comment?.timestamp) {
+      comment?.once('update', () =>
+        accountsStore
+          .getState()
+          .accountsActionsInternal.addCidToAccountComment(comment)
+          .catch((error: any) => log.error('accountsActionsInternal.addCidToAccountComment error', {comment, error}))
+      )
+    }
+
+    listeners.push(comment)
+    comment?.update().catch((error: unknown) => log.trace('comment.update error', {comment, error}))
   },
 }))
 

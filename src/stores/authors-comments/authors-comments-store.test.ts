@@ -54,10 +54,10 @@ describe('authors comments store', () => {
 
   test('get multiple pages', async () => {
     // mock plebbit.getComment() result
-    const commentToGet = account.plebbit.commentToGet
+    const commentToGet = Plebbit.prototype.commentToGet
     const totalAuthorCommentCount = 110
     let currentAuthorCommentCount = 0
-    account.plebbit.commentToGet = (commentCid: string) => {
+    Plebbit.prototype.commentToGet = (commentCid: string) => {
       currentAuthorCommentCount++
       const authorCommentIndex = totalAuthorCommentCount - currentAuthorCommentCount
       return {
@@ -153,17 +153,17 @@ describe('authors comments store', () => {
     expect(rendered.result.current.hasMoreBufferedComments[authorCommentsName]).toBe(false)
 
     // restore mock
-    account.plebbit.commentToGet = commentToGet
+    Plebbit.prototype.commentToGet = commentToGet
   })
 
   test('discover new lastCommentCid while scrolling', async () => {
     // mock plebbit.getComment() result
-    const commentToGet = account.plebbit.commentToGet
+    const commentToGet = Plebbit.prototype.commentToGet
     const firstTimestamp = 1000
     const totalAuthorCommentCount = 105
     const totalAuthorCommentCountFromLastCommentCid = 40
     const totalAuthorCommentCountFromLastCommentCid2 = 10
-    account.plebbit.commentToGet = (commentCid: string) => {
+    Plebbit.prototype.commentToGet = (commentCid: string) => {
       let authorCommentIndex = Number(commentCid.match(/\d+$/)?.[0])
       if (commentCid === 'comment cid') {
         authorCommentIndex = totalAuthorCommentCount
@@ -492,7 +492,7 @@ describe('authors comments store', () => {
     expect(rendered.result.current.nextCommentCidsToFetch[differentAuthorAddress]).toBe(undefined)
 
     // restore mock
-    account.plebbit.commentToGet = commentToGet
+    Plebbit.prototype.commentToGet = commentToGet
   })
 
   test('multiple filters and authors at the same time', async () => {
@@ -500,10 +500,10 @@ describe('authors comments store', () => {
     testUtils.silenceOverlappingActWarning()
 
     // mock plebbit.getComment() result
-    const commentToGet = account.plebbit.commentToGet
+    const commentToGet = Plebbit.prototype.commentToGet
     const getAccountCommentCid = (startCommentCid: string, authorCommentIndex: number) => `${startCommentCid.replace(/\d+$/, '')}${authorCommentIndex}`
     const getAccountCommentIndex = (commentCid: string) => Number(commentCid.match(/\d+$/)?.[0])
-    account.plebbit.commentToGet = (commentCid: string) => {
+    Plebbit.prototype.commentToGet = (commentCid: string) => {
       const authorAddress = commentCid.split(' ')[0]
       const authorCommentIndex = getAccountCommentIndex(commentCid)
       const comment = {
@@ -605,7 +605,7 @@ describe('authors comments store', () => {
     )
 
     // restore mock
-    account.plebbit.commentToGet = commentToGet
+    Plebbit.prototype.commentToGet = commentToGet
   })
 })
 

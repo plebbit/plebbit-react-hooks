@@ -22,6 +22,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
+  const errors = useCommentsStore((state: any) => state.errors[commentCid || ''])
 
   // get account comment of the cid if any
   const accountCommentInfo = useAccountsStore((state: any) => state.commentCidsToAccountsComments[commentCid || ''])
@@ -56,16 +57,16 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
     comment = accountComment
   }
 
-  const state = comment ? 'succeeded' : 'fetching-ipfs'
+  const state = comment?.updatingState || 'initializing'
 
   return useMemo(
     () => ({
       ...comment,
       state,
-      error: undefined,
-      errors: [],
+      error: errors?.[errors.length - 1],
+      errors: errors || [],
     }),
-    [comment, commentCid]
+    [comment, commentCid, errors]
   )
 }
 

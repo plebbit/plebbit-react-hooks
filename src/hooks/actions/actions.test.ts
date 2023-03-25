@@ -417,15 +417,25 @@ describe('actions', () => {
         await rendered.result.current.publishComment()
       })
 
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
       // wait for challenge
       await waitFor(() => rendered.result.current.challenge)
       expect(rendered.result.current.error).toBe(undefined)
       expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+      expect(rendered.result.current.state).toBe('waiting-challenge-answers')
 
       // publish challenge verification
-      await act(async () => {
-        await rendered.result.current.publishChallengeAnswers(['4'])
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
       })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
 
       // wait for challenge verification
       await waitFor(() => rendered.result.current.challengeVerification)
@@ -438,7 +448,8 @@ describe('actions', () => {
     test(`can error`, async () => {
       // mock the comment publish to error out
       const commentPublish = Comment.prototype.publish
-      Comment.prototype.publish = async () => {
+      Comment.prototype.publish = async function () {
+        this.emit('error', Error('emit error'))
         throw Error('publish error')
       }
 
@@ -460,9 +471,11 @@ describe('actions', () => {
       })
 
       // wait for error
-      await waitFor(() => rendered.result.current.error)
+      await waitFor(() => rendered.result.current.errors.length === 2)
+      expect(rendered.result.current.errors.length).toBe(2)
       expect(rendered.result.current.error.message).toBe('publish error')
-      expect(rendered.result.current.errors.length).toBe(1)
+      expect(rendered.result.current.errors[0].message).toBe('emit error')
+      expect(rendered.result.current.errors[1].message).toBe('publish error')
 
       // restore mock
       Comment.prototype.publish = commentPublish
@@ -501,15 +514,24 @@ describe('actions', () => {
         await rendered.result.current.publishCommentEdit()
       })
 
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
       // wait for challenge
       await waitFor(() => rendered.result.current.challenge)
       expect(rendered.result.current.error).toBe(undefined)
       expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
 
       // publish challenge verification
-      await act(async () => {
-        await rendered.result.current.publishChallengeAnswers(['4'])
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
       })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
 
       // wait for challenge verification
       await waitFor(() => rendered.result.current.challengeVerification)
@@ -521,7 +543,8 @@ describe('actions', () => {
     test(`can error`, async () => {
       // mock the comment edit publish to error out
       const commentEditPublish = CommentEdit.prototype.publish
-      CommentEdit.prototype.publish = async () => {
+      CommentEdit.prototype.publish = async function () {
+        this.emit('error', Error('emit error'))
         throw Error('publish error')
       }
 
@@ -543,9 +566,11 @@ describe('actions', () => {
       })
 
       // wait for error
-      await waitFor(() => rendered.result.current.error)
+      await waitFor(() => rendered.result.current.errors.length === 2)
+      expect(rendered.result.current.errors.length).toBe(2)
       expect(rendered.result.current.error.message).toBe('publish error')
-      expect(rendered.result.current.errors.length).toBe(1)
+      expect(rendered.result.current.errors[0].message).toBe('emit error')
+      expect(rendered.result.current.errors[1].message).toBe('publish error')
 
       // restore mock
       CommentEdit.prototype.publish = commentEditPublish
@@ -583,15 +608,24 @@ describe('actions', () => {
         await rendered.result.current.publishSubplebbitEdit()
       })
 
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
       // wait for challenge
       await waitFor(() => rendered.result.current.challenge)
       expect(rendered.result.current.error).toBe(undefined)
       expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
 
       // publish challenge verification
-      await act(async () => {
-        await rendered.result.current.publishChallengeAnswers(['4'])
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
       })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
 
       // wait for challenge verification
       await waitFor(() => rendered.result.current.challengeVerification)
@@ -603,7 +637,8 @@ describe('actions', () => {
     test(`can error`, async () => {
       // mock the subplebbit edit publish to error out
       const subplebbitEditPublish = SubplebbitEdit.prototype.publish
-      SubplebbitEdit.prototype.publish = async () => {
+      SubplebbitEdit.prototype.publish = async function () {
+        this.emit('error', Error('emit error'))
         throw Error('publish error')
       }
 
@@ -624,9 +659,11 @@ describe('actions', () => {
       })
 
       // wait for error
-      await waitFor(() => rendered.result.current.error)
+      await waitFor(() => rendered.result.current.errors.length === 2)
+      expect(rendered.result.current.errors.length).toBe(2)
       expect(rendered.result.current.error.message).toBe('publish error')
-      expect(rendered.result.current.errors.length).toBe(1)
+      expect(rendered.result.current.errors[0].message).toBe('emit error')
+      expect(rendered.result.current.errors[1].message).toBe('publish error')
 
       // restore mock
       SubplebbitEdit.prototype.publish = subplebbitEditPublish
@@ -665,15 +702,24 @@ describe('actions', () => {
         await rendered.result.current.publishVote()
       })
 
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
       // wait for challenge
       await waitFor(() => rendered.result.current.challenge)
       expect(rendered.result.current.error).toBe(undefined)
       expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
 
       // publish challenge verification
-      await act(async () => {
-        await rendered.result.current.publishChallengeAnswers(['4'])
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
       })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
 
       // wait for challenge verification
       await waitFor(() => rendered.result.current.challengeVerification)
@@ -685,7 +731,8 @@ describe('actions', () => {
     test(`can error`, async () => {
       // mock the vote publish to error out
       const votePublish = Vote.prototype.publish
-      Vote.prototype.publish = async () => {
+      Vote.prototype.publish = async function () {
+        this.emit('error', Error('emit error'))
         throw Error('publish error')
       }
 
@@ -707,9 +754,10 @@ describe('actions', () => {
       })
 
       // wait for error
-      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.errors.length).toBe(2)
       expect(rendered.result.current.error.message).toBe('publish error')
-      expect(rendered.result.current.errors.length).toBe(1)
+      expect(rendered.result.current.errors[0].message).toBe('emit error')
+      expect(rendered.result.current.errors[1].message).toBe('publish error')
 
       // restore mock
       Vote.prototype.publish = votePublish

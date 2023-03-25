@@ -145,6 +145,7 @@ export class Pages {
 export class Subplebbit extends EventEmitter {
   updateCalledTimes = 0
   updating = false
+  firstUpdate = true
   address: string | undefined
   title: string | undefined
   description: string | undefined
@@ -172,6 +173,11 @@ export class Subplebbit extends EventEmitter {
     if (createSubplebbitOptions?.posts?.pageCids) {
       this.posts.pageCids = createSubplebbitOptions?.posts?.pageCids
     }
+
+    // only trigger a first update if argument is only ({address})
+    if (!createSubplebbitOptions?.address || Object.keys(createSubplebbitOptions).length !== 1) {
+      this.firstUpdate = false
+    }
   }
 
   async update() {
@@ -190,10 +196,12 @@ export class Subplebbit extends EventEmitter {
       return
     }
     this.updating = true
+
     this.state = 'updating'
-    this.emit('statechange', 'updating')
     this.updatingState = 'fetching-ipns'
+    this.emit('statechange', 'updating')
     this.emit('updatingstatechange', 'fetching-ipns')
+
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
@@ -207,12 +215,43 @@ export class Subplebbit extends EventEmitter {
   }
 
   simulateUpdateEvent() {
+    if (this.firstUpdate) {
+      this.simulateFirstUpdateEvent()
+      return
+    }
+
     this.description = this.address + ' description updated'
     this.updatedAt = Math.floor(Date.now() / 1000)
-    this.emit('update', this)
 
     this.updatingState = 'succeeded'
+    this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
+  }
+
+  // the first update event adds all the field from getSubplebbit
+  async simulateFirstUpdateEvent() {
+    this.firstUpdate = false
+
+    this.title = this.address + ' title'
+    const hotPageCid = this.address + ' page cid hot'
+    this.posts.pages.hot = getCommentsPage(hotPageCid, this)
+    this.posts.pageCids = {
+      hot: hotPageCid,
+      topAll: this.address + ' page cid topAll',
+      new: this.address + ' page cid new',
+    }
+
+    // simulate the ipns update
+    this.updatingState = 'succeeded'
+    this.emit('update', this)
+    this.emit('updatingstatechange', 'succeeded')
+
+    // simulate the next update
+    this.updatingState = 'fetching-ipns'
+    this.emit('updatingstatechange', 'fetching-ipns')
+    simulateLoadingTime().then(() => {
+      this.simulateUpdateEvent()
+    })
   }
 
   // use getting to easily mock it
@@ -306,8 +345,8 @@ class Publication extends EventEmitter {
 
   async publish() {
     this.state = 'publishing'
-    this.emit('statechange', 'publishing')
     this.publishingState = 'publishing-challenge-request'
+    this.emit('statechange', 'publishing')
     this.emit('publishingstatechange', 'publishing-challenge-request')
 
     await simulateLoadingTime()
@@ -331,6 +370,7 @@ class Publication extends EventEmitter {
     this.publishingState = 'publishing-challenge-answer'
     this.emit('publishingstatechange', 'publishing-challenge-answer')
 
+    await simulateLoadingTime()
     this.publishingState = 'waiting-challenge-verification'
     this.emit('publishingstatechange', 'waiting-challenge-verification')
 
@@ -397,33 +437,56 @@ export class Comment extends Publication {
         'with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
       )
     }
-    // is ipnsName is known, look for updates and emit updates immediately after creation
-    if (!this.ipnsName) {
-      throw Error(`can't update without comment.ipnsName`)
-    }
     // don't update twice
     if (this.updating) {
       return
     }
     this.updating = true
+
     this.state = 'updating'
+    this.updatingState = 'fetching-ipfs'
     this.emit('statechange', 'updating')
-    this.updatingState = 'fetching-ipns'
-    this.emit('updatingstatechange', 'fetching-ipns')
+    this.emit('updatingstatechange', 'fetching-ipfs')
+
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
   }
 
   simulateUpdateEvent() {
+    // if timestamp isn't defined, simulate fetching the comment ipfs
+    if (!this.timestamp) {
+      this.simulateFetchCommentIpfsUpdateEvent()
+      return
+    }
+
     // simulate finding vote counts on an IPNS record
     this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
     this.updatedAt = Math.floor(Date.now() / 1000)
-    this.emit('update', this)
 
     this.updatingState = 'succeeded'
+    this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
+  }
+
+  async simulateFetchCommentIpfsUpdateEvent() {
+    // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
+    const commentIpfs = await new Plebbit().getComment(this.cid || '')
+    this.ipnsName = commentIpfs.ipnsName
+    this.content = commentIpfs.content
+    this.author = commentIpfs.author
+    this.timestamp = commentIpfs.timestamp
+    this.parentCid = commentIpfs.parentCid
+    this.subplebbitAddress = commentIpfs.subplebbitAddress
+
+    // simulate the ipns update
+    this.updatingState = 'fetching-ipns'
+    this.emit('update', this)
+    this.emit('updatingstatechange', 'fetching-ipns')
+    simulateLoadingTime().then(() => {
+      this.simulateUpdateEvent()
+    })
   }
 }
 

@@ -33,6 +33,7 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
   const account = useAccount({accountName})
   const subplebbit = useSubplebbitsStore((state: any) => state.subplebbits[subplebbitAddress || ''])
   const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
+  const errors = useSubplebbitsStore((state: any) => state.errors[subplebbitAddress || ''])
 
   useEffect(() => {
     if (!subplebbitAddress || !account) {
@@ -49,16 +50,16 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
     log('useSubplebbit', {subplebbitAddress, subplebbit, account})
   }
 
-  const state = subplebbit ? 'succeeded' : 'fetching-ipns'
+  const state = subplebbit?.updatingState || 'initializing'
 
   return useMemo(
     () => ({
       ...subplebbit,
       state,
-      error: undefined,
-      errors: [],
+      error: errors?.[errors.length - 1],
+      errors: errors || [],
     }),
-    [subplebbit, subplebbitAddress]
+    [subplebbit, subplebbitAddress, errors]
   )
 }
 
