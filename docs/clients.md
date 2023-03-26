@@ -1,4 +1,6 @@
-#### Get a comment states
+NOTE: Not implemented yet
+
+#### Get a comment clients states
 
 ```js
 const comment = useComment({commentCid})
@@ -32,7 +34,7 @@ for (const ipfsClientUrl in comment.clients.ipfsClients) {
 }
 ```
 
-#### Get a subplebbit states
+#### Get a subplebbit clients states
 
 ```js
 const subplebbit = useSubplebbit({subplebbitAddress})
@@ -77,7 +79,7 @@ for (const ipfsClientUrl in subplebbit.clients.ipfsClients) {
 }
 ```
 
-#### Publish a comment with states
+#### Publish a comment with clients states
 
 ```js
 const publishCommentOptions = {
@@ -157,7 +159,7 @@ for (const ipfsClientUrl in clients.ipfsClients) {
 }
 ```
 
-#### Get IPFS and plebbit stats
+#### Get IPFS and other clients stats
 
 ```js
 const {ipfsGateways, ipfsClients, pubsubClients, chainProviders} = useClientsStats()
