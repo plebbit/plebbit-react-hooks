@@ -4,8 +4,8 @@
 const comment = useComment({commentCid})
 
 // fetching from gateways
-for (const ipfsGatewayUrl in comment.ipfsGateways) {
-  const ipfsGateway = comment.ipfsGateways[ipfsGatewayUrl]
+for (const ipfsGatewayUrl in comment.clients.ipfsGateways) {
+  const ipfsGateway = comment.clients.ipfsGateways[ipfsGatewayUrl]
   if (ipfsGateway.state === 'fetching-ipfs') {
     console.log(`Fetching IPFS from ${ipfsGatewayUrl}`)
   }
@@ -18,8 +18,8 @@ for (const ipfsGatewayUrl in comment.ipfsGateways) {
 }
 
 // fetching from ipfs clients
-for (const ipfsClientUrl in comment.ipfsClients) {
-  const ipfsClient = comment.ipfsClients[ipfsClientUrl]
+for (const ipfsClientUrl in comment.clients.ipfsClients) {
+  const ipfsClient = comment.clients.ipfsClients[ipfsClientUrl]
   if (ipfsClient.state === 'fetching-ipfs') {
     console.log(`Fetching IPFS from ${ipfsClient.peers.length} peers`)
   }
@@ -38,16 +38,16 @@ for (const ipfsClientUrl in comment.ipfsClients) {
 const subplebbit = useSubplebbit({subplebbitAddress})
 
 // resolving subplebbit address from chain providers
-for (const chainProviderUrl in subplebbit.chainProviders) {
-  const chainProvider = subplebbit.chainProviders[chainProviderUrl]
+for (const chainProviderUrl in subplebbit.clients.chainProviders) {
+  const chainProvider = subplebbit.clients.chainProviders[chainProviderUrl]
   if (chainProvider.state === 'resolving-address') {
     console.log(`Resolving subplebbit address from ${chainProviderUrl}`)
   }
 }
 
 // fetching from gateways
-for (const ipfsGatewayUrl in subplebbit.ipfsGateways) {
-  const ipfsGateway = subplebbit.ipfsGateways[ipfsGatewayUrl]
+for (const ipfsGatewayUrl in subplebbit.clients.ipfsGateways) {
+  const ipfsGateway = subplebbit.clients.ipfsGateways[ipfsGatewayUrl]
   if (ipfsGateway.state === 'fetching-ipns') {
     console.log(`Fetching IPNS from ${ipfsGatewayUrl}`)
   }
@@ -60,8 +60,8 @@ for (const ipfsGatewayUrl in subplebbit.ipfsGateways) {
 }
 
 // fetching from ipfs clients
-for (const ipfsClientUrl in subplebbit.ipfsClients) {
-  const ipfsClient = subplebbit.ipfsClients[ipfsClientUrl]
+for (const ipfsClientUrl in subplebbit.clients.ipfsClients) {
+  const ipfsClient = subplebbit.clients.ipfsClients[ipfsClientUrl]
   if (ipfsClient.state === 'fetching-ipns') {
     console.log(`Fetching IPNS from ${ipfsClient.peers.length} peers`)
   }
@@ -89,30 +89,30 @@ const publishCommentOptions = {
   onError
 }
 
-const {pubsubClients, ipfsClients, ipfsGateways, chainProviders, publishComment} = usePublishComment(publishCommentOptions)
+const {clients, publishComment} = usePublishComment(publishCommentOptions)
 
 // start publishing
 await publishComment()
 
 // resolving subplebbit address from chain providers
-for (const chainProviderUrl in chainProviders) {
-  const chainProvider = chainProviders[chainProviderUrl]
+for (const chainProviderUrl in clients.chainProviders) {
+  const chainProvider = clients.chainProviders[chainProviderUrl]
   if (chainProvider.state === 'resolving-address') {
     console.log(`Resolving subplebbit address from ${chainProviderUrl}`)
   }
 }
 
 // fetching from gateways
-for (const ipfsGatewayUrl in ipfsGateways) {
-  const ipfsGateway = ipfsGateways[ipfsGatewayUrl]
+for (const ipfsGatewayUrl in clients.ipfsGateways) {
+  const ipfsGateway = clients.ipfsGateways[ipfsGatewayUrl]
   if (ipfsGateway.state === 'fetching-subplebbit-ipns') {
     console.log(`Fetching subplebbit IPNS from ${ipfsGatewayUrl}`)
   }
 }
 
 // publishing from pubsub client
-for (const pubsubClientUrl in pubsubClients) {
-  const pubsubClient = pubsubClients[pubsubClientUrl]
+for (const pubsubClientUrl in clients.pubsubClients) {
+  const pubsubClient = clients.pubsubClients[pubsubClientUrl]
   if (pubsubClient.state === 'publishing-challenge-request') {
     console.log(`Publishing challenge request using ${pubsubClientUrl}`)
   }
@@ -131,8 +131,8 @@ for (const pubsubClientUrl in pubsubClients) {
 }
 
 // fetching and publishing from ipfs client
-for (const ipfsClientUrl in ipfsClients) {
-  const ipfsClient = ipfsClients[ipfsClientUrl]
+for (const ipfsClientUrl in clients.ipfsClients) {
+  const ipfsClient = clients.ipfsClients[ipfsClientUrl]
   if (ipfsClient.state === 'fetching-subplebbit-ipns') {
     console.log(`Fetching subplebbit IPNS from ${ipfsClient.peers.length} peers`)
   }
