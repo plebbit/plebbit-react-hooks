@@ -160,7 +160,7 @@ for (const ipfsClientUrl in clients.ipfsClients) {
 #### Get IPFS and plebbit stats
 
 ```js
-const {ipfsGateways, ipfsClients, pubsubClients, chainProviders} = useStats()
+const {ipfsGateways, ipfsClients, pubsubClients, chainProviders} = useClientsStats()
 
 for (const ipfsGatewayUrl in ipfsGateways) {
   const ipfsGateway = ipfsGateways[ipfsGatewayUrl]
