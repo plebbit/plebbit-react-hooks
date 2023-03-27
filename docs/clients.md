@@ -167,29 +167,75 @@ const {ipfsGateways, ipfsClients, pubsubClients, chainProviders} = useClientsSta
 for (const ipfsGatewayUrl in ipfsGateways) {
   const ipfsGateway = ipfsGateways[ipfsGatewayUrl]
   console.log('IPFS gateway URL:', ipfsGatewayUrl)
+
   console.log('Total downloaded:', ipfsGateway.totalIn)
   console.log('Total uploaded:', ipfsGateway.totalOut)
-  console.log('All time download rate:', ipfsGateway.rateIn)
-  console.log('All time Upload rate:', ipfsGateway.rateOut)
   console.log('Session downloaded:', ipfsGateway.sessionTotalIn)
   console.log('Session uploaded:', ipfsGateway.sessionTotalOut)
-  console.log('Session download rate:', ipfsGateway.sessionRateIn)
-  console.log('Session upload rate:', ipfsGateway.sessionRateOut)
-  console.log('Succeeded IPFS:', ipfsClient.succeededIpfsCount)
-  console.log('Failed IPFS:', ipfsClient.failedIpfsCount)
-  console.log('Succeeded IPNS:', ipfsClient.succeededIpnsCount)
-  console.log('Failed IPNS:', ipfsClient.failedIpnsCount)
+
+  console.log('Succeeded IPFS:', ipfsGateway.succeededIpfsCount)
+  console.log('Failed IPFS:', ipfsGateway.failedIpfsCount)
+  console.log('Succeeded IPFS averate time:', ipfsGateway.succeededIpfsAverageTime)
+  console.log('Succeeded IPFS median time:', ipfsGateway.succeededIpfsMedianTime)
+
+  console.log('Session succeeded IPFS:', ipfsGateway.sessionSucceededIpfsCount)
+  console.log('Session failed IPFS:', ipfsGateway.sessionFailedIpfsCount)
+  console.log('Session succeeded IPFS averate time:', ipfsGateway.sessionSucceededIpfsAverageTime)
+  console.log('Session succeeded IPFS median time:', ipfsGateway.sessionSucceededIpfsMedianTime)
+
+  console.log('Succeeded IPNS:', ipfsGateway.succeededIpnsCount)
+  console.log('Failed IPNS:', ipfsGateway.failedIpnsCount)
+  console.log('Succeeded IPNS averate time:', ipfsGateway.succeededIpnsAverageTime)
+  console.log('Succeeded IPNS median time:', ipfsGateway.succeededIpnsMedianTime)
+
+  console.log('Session succeeded IPNS:', ipfsGateway.sessionSucceededIpnsCount)
+  console.log('Session failed IPNS:', ipfsGateway.sessionFailedIpnsCount)
+  console.log('Session succeeded IPNS averate time:', ipfsGateway.sessionSucceededIpnsAverageTime)
+  console.log('Session succeeded IPNS median time:', ipfsGateway.sessionSucceededIpnsMedianTime)
+
   for (const subplebbitAddress in ipfsGateway.subplebbits) {
     const subplebbit = ipfsGateway.subplebbits[subplebbitAddress]
     console.log('Subplebbit:', subplebbitAddress)
+
     console.log('Succeeded subplebbit updates:', subplebbit.succeededSubplebbitUpdateCount)
     console.log('Failed subplebbit updates:', subplebbit.failedSubplebbitUpdateCount)
+    console.log('Succeeded subplebbit updates average time:', subplebbit.succeededSubplebbitUpdateAverageTime)
+    console.log('Succeeded subplebbit updates median time:', subplebbit.succeededSubplebbitUpdateMedianTime)
+
+    console.log('Session succeeded subplebbit updates:', subplebbit.sessionSucceededSubplebbitUpdateCount)
+    console.log('Session failed subplebbit updates:', subplebbit.sessionFailedSubplebbitUpdateCount)
+    console.log('Session succeeded subplebbit updates average time:', subplebbit.sessionSucceededSubplebbitUpdateAverageTime)
+    console.log('Session succeeded subplebbit updates median time:', subplebbit.sessionSucceededSubplebbitUpdateMedianTime)
+
     console.log('Succeeded subplebbit pages:', subplebbit.succeededSubplebbitPageCount)
     console.log('Failed subplebbit pages:', subplebbit.failedSubplebbitPageCount)
+    console.log('Succeeded subplebbit pages average time:', subplebbit.succeededSubplebbitPageAverageTime)
+    console.log('Succeeded subplebbit pages median time:', subplebbit.succeededSubplebbitPageMedianTime)
+
+    console.log('Session succeeded subplebbit pages:', subplebbit.sessionSucceededSubplebbitPageCount)
+    console.log('Session failed subplebbit pages:', subplebbit.sessionFailedSubplebbitPageCount)
+    console.log('Session succeeded subplebbit pages average time:', subplebbit.sessionSucceededSubplebbitPageAverageTime)
+    console.log('Session succeeded subplebbit pages median time:', subplebbit.sessionSucceededSubplebbitPageMedianTime)
+
     console.log('Succeeded comments:', subplebbit.succeededCommentCount)
     console.log('Failed comments:', subplebbit.failedCommentCount)
+    console.log('Succeeded comments average time:', subplebbit.succeededCommentAverageTime)
+    console.log('Succeeded comments median time:', subplebbit.succeededCommentMedianTime)
+
+    console.log('Session succeeded comments:', subplebbit.sessionSucceededCommentCount)
+    console.log('Session failed comments:', subplebbit.sessionFailedCommentCount)
+    console.log('Session succeeded comments average time:', subplebbit.sessionSucceededCommentAverageTime)
+    console.log('Session succeeded comments median time:', subplebbit.sessionSucceededCommentMedianTime)
+
     console.log('Succeeded comment updates:', subplebbit.succeededCommentUpdateCount)
     console.log('Failed comment updates:', subplebbit.failedCommentUpdateCount)
+    console.log('Succeeded comment updates average time:', subplebbit.succeededCommentUpdateAverageTime)
+    console.log('Succeeded comment updates median time:', subplebbit.succeededCommentUpdateMedianTime)
+
+    console.log('Session succeeded comment updates:', subplebbit.sessionSucceededCommentUpdateCount)
+    console.log('Session failed comment updates:', subplebbit.sessionFailedCommentUpdateCount)
+    console.log('Session succeeded comment updates average time:', subplebbit.sessionSucceededCommentUpdateAverageTime)
+    console.log('Session succeeded comment updates median time:', subplebbit.sessionSucceededCommentUpdateMedianTime)
   }
 }
 
@@ -197,55 +243,141 @@ for (const ipfsClientUrl in ipfsClients) {
   const ipfsClient = ipfsClients[ipfsClientUrl]
   console.log('IPFS Client URL:', ipfsClientUrl)
   console.log('Connected peers:', ipfsClient.peers.length) // IPFS peers https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-swarm-peers
+
   console.log('Total downloaded:', ipfsClient.totalIn) // IPFS stats https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-stats-bw
   console.log('Total uploaded:', ipfsClient.totalOut)
   console.log('Download rate:', ipfsClient.rateIn)
   console.log('Upload rate:', ipfsClient.rateOut)
+
   console.log('Session downloaded:', ipfsClient.sessionTotalIn)
   console.log('Session uploaded:', ipfsClient.sessionTotalOut)
   console.log('Session download rate:', ipfsClient.sessionRateIn)
   console.log('Session upload rate:', ipfsClient.sessionRateOut)
+
   console.log('Succeeded IPFS:', ipfsClient.succeededIpfsCount)
   console.log('Failed IPFS:', ipfsClient.failedIpfsCount)
+  console.log('Succeeded IPFS averate time:', ipfsClient.succeededIpfsAverageTime)
+  console.log('Succeeded IPFS median time:', ipfsClient.succeededIpfsMedianTime)
+
+  console.log('Session succeeded IPFS:', ipfsClient.sessionSucceededIpfsCount)
+  console.log('Session failed IPFS:', ipfsClient.sessionFailedIpfsCount)
+  console.log('Session succeeded IPFS averate time:', ipfsClient.sessionSucceededIpfsAverageTime)
+  console.log('Session succeeded IPFS median time:', ipfsClient.sessionSucceededIpfsMedianTime)
+
   console.log('Succeeded IPNS:', ipfsClient.succeededIpnsCount)
   console.log('Failed IPNS:', ipfsClient.failedIpnsCount)
+  console.log('Succeeded IPNS averate time:', ipfsClient.succeededIpnsAverageTime)
+  console.log('Succeeded IPNS median time:', ipfsClient.succeededIpnsMedianTime)
+
+  console.log('Session succeeded IPNS:', ipfsClient.sessionSucceededIpnsCount)
+  console.log('Session failed IPNS:', ipfsClient.sessionFailedIpnsCount)
+  console.log('Session succeeded IPNS averate time:', ipfsClient.sessionSucceededIpnsAverageTime)
+  console.log('Session succeeded IPNS median time:', ipfsClient.sessionSucceededIpnsMedianTime)
+
   for (const subplebbitAddress in ipfsClient.subplebbits) {
     const subplebbit = ipfsClient.subplebbits[subplebbitAddress]
     console.log('Subplebbit:', subplebbitAddress)
+
     console.log('Succeeded subplebbit updates:', subplebbit.succeededSubplebbitUpdateCount)
     console.log('Failed subplebbit updates:', subplebbit.failedSubplebbitUpdateCount)
+    console.log('Succeeded subplebbit updates average time:', subplebbit.succeededSubplebbitUpdateAverageTime)
+    console.log('Succeeded subplebbit updates median time:', subplebbit.succeededSubplebbitUpdateMedianTime)
+
+    console.log('Session succeeded subplebbit updates:', subplebbit.sessionSucceededSubplebbitUpdateCount)
+    console.log('Session failed subplebbit updates:', subplebbit.sessionFailedSubplebbitUpdateCount)
+    console.log('Session succeeded subplebbit updates average time:', subplebbit.sessionSucceededSubplebbitUpdateAverageTime)
+    console.log('Session succeeded subplebbit updates median time:', subplebbit.sessionSucceededSubplebbitUpdateMedianTime)
+
     console.log('Succeeded subplebbit pages:', subplebbit.succeededSubplebbitPageCount)
     console.log('Failed subplebbit pages:', subplebbit.failedSubplebbitPageCount)
+    console.log('Succeeded subplebbit pages average time:', subplebbit.succeededSubplebbitPageAverageTime)
+    console.log('Succeeded subplebbit pages median time:', subplebbit.succeededSubplebbitPageMedianTime)
+
+    console.log('Session succeeded subplebbit pages:', subplebbit.sessionSucceededSubplebbitPageCount)
+    console.log('Session failed subplebbit pages:', subplebbit.sessionFailedSubplebbitPageCount)
+    console.log('Session succeeded subplebbit pages average time:', subplebbit.sessionSucceededSubplebbitPageAverageTime)
+    console.log('Session succeeded subplebbit pages median time:', subplebbit.sessionSucceededSubplebbitPageMedianTime)
+
     console.log('Succeeded comments:', subplebbit.succeededCommentCount)
     console.log('Failed comments:', subplebbit.failedCommentCount)
+    console.log('Succeeded comments average time:', subplebbit.succeededCommentAverageTime)
+    console.log('Succeeded comments median time:', subplebbit.succeededCommentMedianTime)
+
+    console.log('Session succeeded comments:', subplebbit.sessionSucceededCommentCount)
+    console.log('Session failed comments:', subplebbit.sessionFailedCommentCount)
+    console.log('Session succeeded comments average time:', subplebbit.sessionSucceededCommentAverageTime)
+    console.log('Session succeeded comments median time:', subplebbit.sessionSucceededCommentMedianTime)
+
     console.log('Succeeded comment updates:', subplebbit.succeededCommentUpdateCount)
     console.log('Failed comment updates:', subplebbit.failedCommentUpdateCount)
+    console.log('Succeeded comment updates average time:', subplebbit.succeededCommentUpdateAverageTime)
+    console.log('Succeeded comment updates median time:', subplebbit.succeededCommentUpdateMedianTime)
+
+    console.log('Session succeeded comment updates:', subplebbit.sessionSucceededCommentUpdateCount)
+    console.log('Session failed comment updates:', subplebbit.sessionFailedCommentUpdateCount)
+    console.log('Session succeeded comment updates average time:', subplebbit.sessionSucceededCommentUpdateAverageTime)
+    console.log('Session succeeded comment updates median time:', subplebbit.sessionSucceededCommentUpdateMedianTime)
   }
 }
 
 for (const pubsubClientUrl in pubsubClients) {
   const pubsubClient = pubsubClients[pubsubClientUrl]
   console.log('Pubsub Client URL:', pubsubClientUrl)
-  console.log('Connected peers:', pubsubClientUrl.peers.length)
-  console.log('Total downloaded:', pubsubClientUrl.totalIn)
-  console.log('Total uploaded:', pubsubClientUrl.totalOut)
-  console.log('Download rate:', pubsubClientUrl.rateIn)
-  console.log('Upload rate:', pubsubClientUrl.rateOut)
-  console.log('Session downloaded:', pubsubClientUrl.sessionTotalIn)
-  console.log('Session uploaded:', pubsubClientUrl.sessionTotalOut)
-  console.log('Session download rate:', pubsubClientUrl.sessionRateIn)
-  console.log('Session upload rate:', pubsubClientUrl.sessionRateOut)
-  console.log('Succeeded challenge request messages:', pubsubClientUrl.succeededChallengeRequestMessageCount)
-  console.log('Failed challenge request messages:', pubsubClientUrl.failedChallengeRequestMessageCount)
-  console.log('Succeeded challenge answer messages:', pubsubClientUrl.succeededChallengeAnswerMessageCount)
-  console.log('Failed challenge answer messages:', pubsubClientUrl.failedChallengeAnswerMessageCount)
+  console.log('Connected peers:', pubsubClient.peers.length)
+
+  console.log('Total downloaded:', pubsubClient.totalIn)
+  console.log('Total uploaded:', pubsubClient.totalOut)
+  console.log('Download rate:', pubsubClient.rateIn)
+  console.log('Upload rate:', pubsubClient.rateOut)
+
+  console.log('Session downloaded:', pubsubClient.sessionTotalIn)
+  console.log('Session uploaded:', pubsubClient.sessionTotalOut)
+  console.log('Session download rate:', pubsubClient.sessionRateIn)
+  console.log('Session upload rate:', pubsubClient.sessionRateOut)
+
+  console.log('Succeeded challenge request messages:', pubsubClient.succeededChallengeRequestMessageCount)
+  console.log('Failed challenge request messages:', pubsubClient.failedChallengeRequestMessageCount)
+  console.log('Succeeded challenge request messages average time:', pubsubClient.succeededChallengeRequestMessageAverageTime)
+  console.log('Succeeded challenge request messages median time:', pubsubClient.succeededChallengeRequestMessageMedianTime)
+
+  console.log('Succeeded challenge answer messages:', pubsubClient.succeededChallengeAnswerMessageCount)
+  console.log('Failed challenge answer messages:', pubsubClient.failedChallengeAnswerMessageCount)
+  console.log('Succeeded challenge answer messages average time:', pubsubClient.succeededChallengeAnswerMessageAverageTime)
+  console.log('Succeeded challenge answer messages median time:', pubsubClient.succeededChallengeAnswerMessageMedianTime)
+
+  console.log('Session succeeded challenge request messages:', pubsubClient.sessionSucceededChallengeRequestMessageCount)
+  console.log('Session failed challenge request messages:', pubsubClient.sessionFailedChallengeRequestMessageCount)
+  console.log('Session succeeded challenge request messages average time:', pubsubClient.sessionSucceededChallengeRequestMessageAverageTime)
+  console.log('Session succeeded challenge request messages median time:', pubsubClient.sessionSucceededChallengeRequestMessageMedianTime)
+
+  console.log('Session succeeded challenge answer messages:', pubsubClient.sessionSucceededChallengeAnswerMessageCount)
+  console.log('Session failed challenge answer messages:', pubsubClient.sessionFailedChallengeAnswerMessageCount)
+  console.log('Session succeeded challenge answer messages average time:', pubsubClient.sessionSucceededChallengeAnswerMessageAverageTime)
+  console.log('Session succeeded challenge answer messages median time:', pubsubClient.sessionSucceededChallengeAnswerMessageMedianTime)
+
   for (const subplebbitAddress in pubsubClient.subplebbits) {
     const subplebbit = pubsubClient.subplebbits[subplebbitAddress]
     console.log('Subplebbit:', subplebbitAddress)
+
     console.log('Succeeded challenge request messages:', subplebbit.succeededChallengeRequestMessageCount)
     console.log('Failed challenge request messages:', subplebbit.failedChallengeRequestMessageCount)
+    console.log('Succeeded challenge request messages average time:', subplebbit.succeededChallengeRequestMessageAverageTime)
+    console.log('Succeeded challenge request messages median time:', subplebbit.succeededChallengeRequestMessageMedianTime)
+
     console.log('Succeeded challenge answer messages:', subplebbit.succeededChallengeAnswerMessageCount)
     console.log('Failed challenge answer messages:', subplebbit.failedChallengeAnswerMessageCount)
+    console.log('Succeeded challenge answer messages average time:', subplebbit.succeededChallengeAnswerMessageAverageTime)
+    console.log('Succeeded challenge answer messages median time:', subplebbit.succeededChallengeAnswerMessageMedianTime)
+
+    console.log('Session succeeded challenge request messages:', subplebbit.sessionSucceededChallengeRequestMessageCount)
+    console.log('Session failed challenge request messages:', subplebbit.sessionFailedChallengeRequestMessageCount)
+    console.log('Session succeeded challenge request messages average time:', subplebbit.sessionSucceededChallengeRequestMessageAverageTime)
+    console.log('Session succeeded challenge request messages median time:', subplebbit.sessionSucceededChallengeRequestMessageMedianTime)
+
+    console.log('Session succeeded challenge answer messages:', subplebbit.sessionSucceededChallengeAnswerMessageCount)
+    console.log('Session failed challenge answer messages:', subplebbit.sessionFailedChallengeAnswerMessageCount)
+    console.log('Session succeeded challenge answer messages average time:', subplebbit.sessionSucceededChallengeAnswerMessageAverageTime)
+    console.log('Session succeeded challenge answer messages median time:', subplebbit.sessionSucceededChallengeAnswerMessageMedianTime)
   }
 }
 
