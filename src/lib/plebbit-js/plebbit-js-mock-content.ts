@@ -611,8 +611,10 @@ const getCommentUpdateContent = async (comment: any) => {
   const isEdited = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
   if (isEdited && !comment.edit) {
     commentUpdateContent.edit = {
+      commentCid: comment.cid,
       timestamp: comment.timestamp + 60 * 30,
       reason: 'I wanted to know why the downvotes?',
+      author: comment.author,
     }
     commentUpdateContent.original = {
       content: comment.content,
