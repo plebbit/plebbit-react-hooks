@@ -1,5 +1,14 @@
 /// <reference types="node" />
 import EventEmitter from 'events';
+declare class _SeedIncrementer {
+    seed: number;
+    numbers: number[];
+    index: number;
+    constructor(seed: number);
+    increment(): number;
+}
+export declare const SeedIncrementer: (seed: number) => _SeedIncrementer;
+export declare const getImageUrl: (_seed: number) => Promise<any>;
 declare class Plebbit extends EventEmitter {
     createSigner(): Promise<{
         privateKey: string;
