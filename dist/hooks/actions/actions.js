@@ -155,14 +155,14 @@ export function usePublishComment(options) {
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => comment === null || comment === void 0 ? void 0 : comment.publishChallengeAnswers.bind(comment));
         setChallenge(challenge);
-        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge);
+        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge, comment);
     });
     publishCommentOptions.onChallenge = onChallenge;
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishCommentOptions.onChallengeVerification;
-    const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+    const onChallengeVerification = (challengeVerification, comment) => __awaiter(this, void 0, void 0, function* () {
         setChallengeVerification(challengeVerification);
-        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
+        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification, comment);
     });
     publishCommentOptions.onChallengeVerification = onChallengeVerification;
     // change state on publishing state change
@@ -219,14 +219,14 @@ export function usePublishVote(options) {
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => vote === null || vote === void 0 ? void 0 : vote.publishChallengeAnswers.bind(vote));
         setChallenge(challenge);
-        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge);
+        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge, vote);
     });
     publishVoteOptions.onChallenge = onChallenge;
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishVoteOptions.onChallengeVerification;
-    const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+    const onChallengeVerification = (challengeVerification, vote) => __awaiter(this, void 0, void 0, function* () {
         setChallengeVerification(challengeVerification);
-        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
+        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification, vote);
     });
     publishVoteOptions.onChallengeVerification = onChallengeVerification;
     // change state on publishing state change
@@ -281,14 +281,14 @@ export function usePublishCommentEdit(options) {
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => commentEdit === null || commentEdit === void 0 ? void 0 : commentEdit.publishChallengeAnswers.bind(commentEdit));
         setChallenge(challenge);
-        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge);
+        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge, commentEdit);
     });
     publishCommentEditOptions.onChallenge = onChallenge;
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishCommentEditOptions.onChallengeVerification;
-    const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+    const onChallengeVerification = (challengeVerification, commentEdit) => __awaiter(this, void 0, void 0, function* () {
         setChallengeVerification(challengeVerification);
-        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
+        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification, commentEdit);
     });
     publishCommentEditOptions.onChallengeVerification = onChallengeVerification;
     // change state on publishing state change
@@ -343,14 +343,14 @@ export function usePublishSubplebbitEdit(options) {
         // cannot set a function directly with setState
         setPublishChallengeAnswers(() => subplebbitEdit === null || subplebbitEdit === void 0 ? void 0 : subplebbitEdit.publishChallengeAnswers.bind(subplebbitEdit));
         setChallenge(challenge);
-        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge);
+        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge, subplebbitEdit);
     });
     publishSubplebbitEditOptions.onChallenge = onChallenge;
     // define onChallengeVerification if not defined
     const originalOnChallengeVerification = publishSubplebbitEditOptions.onChallengeVerification;
-    const onChallengeVerification = (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+    const onChallengeVerification = (challengeVerification, subplebbitEdit) => __awaiter(this, void 0, void 0, function* () {
         setChallengeVerification(challengeVerification);
-        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification);
+        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification, subplebbitEdit);
     });
     publishSubplebbitEditOptions.onChallengeVerification = onChallengeVerification;
     // change state on publishing state change
