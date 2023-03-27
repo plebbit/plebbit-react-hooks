@@ -5,8 +5,9 @@
 jest.setTimeout(120000)
 
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE = '1'
+// process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_DOUBLE_MEDIA = '1'
 process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT = '1'
-process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
+process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '10'
 
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
@@ -28,9 +29,10 @@ describe('PlebbitJsMockContent', () => {
     }
   })
 
-  test.skip('create comment', async () => {
+  test.only('create comment', async () => {
     const plebbit = await PlebbitJsMockContent()
-    let count = 94
+    let count = 100
+    let linkCount = 0
     while (count--) {
       const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa' + count
       // console.log(cid)
@@ -40,7 +42,8 @@ describe('PlebbitJsMockContent', () => {
       await new Promise((r) =>
         comment.on('update', () => {
           if (comment.updatedAt) {
-            if (comment.link) console.log(comment.link)
+            if (comment.link) linkCount++
+            // console.log(comment.link)
             comment.removeAllListeners()
             r(undefined)
           }
@@ -49,6 +52,7 @@ describe('PlebbitJsMockContent', () => {
       // if (count === 92)
       //   break
     }
+    console.log({linkCount})
   })
 
   test.skip('create comment with replies', async () => {
@@ -134,7 +138,7 @@ describe('mock content', () => {
     expect(typeof rendered2.result.current.upvoteCount).toBe('number')
   })
 
-  test.only('use subplebbits', async () => {
+  test('use subplebbits', async () => {
     const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
