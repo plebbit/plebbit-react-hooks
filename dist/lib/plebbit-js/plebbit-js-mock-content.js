@@ -13,7 +13,7 @@ import assert from 'assert';
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 // changeable with env variable so the frontend can test with different latencies
-const postMediaPercent = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_POST_MEDIA_PERCENT || 40);
+const doubleMedia = Boolean(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_DOUBLE_MEDIA);
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100);
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime));
 const NOW = 1679800000;
@@ -317,10 +317,16 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
     if (hasFlair) {
         postContent.flair = yield getArrayItem(postFlairs, postNumberSeed.increment());
     }
-    const isLinkPost = yield getArrayItem([true, false], postNumberSeed.increment());
+    let isLinkPost = yield getArrayItem([true, false], postNumberSeed.increment());
+    if (doubleMedia && !isLinkPost) {
+        isLinkPost = yield getArrayItem([true, false], postNumberSeed.increment());
+    }
     if (isLinkPost) {
         postContent.link = yield getArrayItem(commentLinks, postNumberSeed.increment());
-        const linkIsImage = yield getArrayItem([true, false], postNumberSeed.increment());
+        let linkIsImage = yield getArrayItem([true, false], postNumberSeed.increment());
+        if (doubleMedia && !linkIsImage) {
+            linkIsImage = yield getArrayItem([true, false], postNumberSeed.increment());
+        }
         if (linkIsImage) {
             postContent.link = yield getImageUrl(postNumberSeed.increment());
             // add video and audio
