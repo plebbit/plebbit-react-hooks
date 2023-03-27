@@ -401,10 +401,14 @@ describe('actions', () => {
     })
 
     test(`can publish comment`, async () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
         content: 'some content acions.test',
+        onChallenge,
+        onChallengeVerification,
       }
       rendered.rerender(publishCommentOptions)
 
@@ -443,6 +447,12 @@ describe('actions', () => {
       expect(typeof rendered.result.current.index).toBe('number')
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
+
+      // check callbacks
+      expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
+      expect(typeof onChallenge.mock.calls[0][1].timestamp).toBe('number')
+      expect(onChallengeVerification.mock.calls[0][0].type).toBe('CHALLENGEVERIFICATION')
+      expect(typeof onChallengeVerification.mock.calls[0][1].timestamp).toBe('number')
     })
 
     test(`can error`, async () => {
@@ -453,10 +463,12 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
+      const onError = jest.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
         content: 'some content acions.test',
+        onError,
       }
       rendered.rerender(publishCommentOptions)
 
@@ -476,6 +488,10 @@ describe('actions', () => {
       expect(rendered.result.current.error.message).toBe('publish error')
       expect(rendered.result.current.errors[0].message).toBe('emit error')
       expect(rendered.result.current.errors[1].message).toBe('publish error')
+
+      // check callbacks
+      expect(onError.mock.calls[0][0].message).toBe('emit error')
+      expect(onError.mock.calls[1][0].message).toBe('publish error')
 
       // restore mock
       Comment.prototype.publish = commentPublish
@@ -498,10 +514,14 @@ describe('actions', () => {
     })
 
     test(`can publish comment edit`, async () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
       const publishCommentEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         removed: true,
+        onChallenge,
+        onChallengeVerification,
       }
       rendered.rerender(publishCommentEditOptions)
 
@@ -538,6 +558,12 @@ describe('actions', () => {
       expect(rendered.result.current.state).toBe('succeeded')
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
+
+      // check callbacks
+      expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
+      expect(typeof onChallenge.mock.calls[0][1]).not.toBe(undefined)
+      expect(onChallengeVerification.mock.calls[0][0].type).toBe('CHALLENGEVERIFICATION')
+      expect(typeof onChallengeVerification.mock.calls[0][1]).not.toBe(undefined)
     })
 
     test(`can error`, async () => {
@@ -548,10 +574,12 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
+      const onError = jest.fn()
       const publishCommentEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         removed: true,
+        onError,
       }
       rendered.rerender(publishCommentEditOptions)
 
@@ -571,6 +599,10 @@ describe('actions', () => {
       expect(rendered.result.current.error.message).toBe('publish error')
       expect(rendered.result.current.errors[0].message).toBe('emit error')
       expect(rendered.result.current.errors[1].message).toBe('publish error')
+
+      // check callbacks
+      expect(onError.mock.calls[0][0].message).toBe('emit error')
+      expect(onError.mock.calls[1][0].message).toBe('publish error')
 
       // restore mock
       CommentEdit.prototype.publish = commentEditPublish
@@ -593,9 +625,13 @@ describe('actions', () => {
     })
 
     test(`can publish subplebbit edit`, async () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
       const publishSubplebbitEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         title: 'new title',
+        onChallenge,
+        onChallengeVerification,
       }
       rendered.rerender(publishSubplebbitEditOptions)
 
@@ -632,6 +668,12 @@ describe('actions', () => {
       expect(rendered.result.current.state).toBe('succeeded')
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
+
+      // check callbacks
+      expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
+      expect(typeof onChallenge.mock.calls[0][1]).not.toBe(undefined)
+      expect(onChallengeVerification.mock.calls[0][0].type).toBe('CHALLENGEVERIFICATION')
+      expect(typeof onChallengeVerification.mock.calls[0][1]).not.toBe(undefined)
     })
 
     test(`can error`, async () => {
@@ -642,9 +684,11 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
+      const onError = jest.fn()
       const publishSubplebbitEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         title: 'new title',
+        onError,
       }
       rendered.rerender(publishSubplebbitEditOptions)
 
@@ -664,6 +708,10 @@ describe('actions', () => {
       expect(rendered.result.current.error.message).toBe('publish error')
       expect(rendered.result.current.errors[0].message).toBe('emit error')
       expect(rendered.result.current.errors[1].message).toBe('publish error')
+
+      // check callbacks
+      expect(onError.mock.calls[0][0].message).toBe('emit error')
+      expect(onError.mock.calls[1][0].message).toBe('publish error')
 
       // restore mock
       SubplebbitEdit.prototype.publish = subplebbitEditPublish
@@ -686,10 +734,14 @@ describe('actions', () => {
     })
 
     test(`can publish vote`, async () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
       const publishVoteOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         vote: 1,
+        onChallenge,
+        onChallengeVerification,
       }
       rendered.rerender(publishVoteOptions)
 
@@ -726,6 +778,12 @@ describe('actions', () => {
       expect(rendered.result.current.state).toBe('succeeded')
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
+
+      // check callbacks
+      expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
+      expect(typeof onChallenge.mock.calls[0][1]).not.toBe(undefined)
+      expect(onChallengeVerification.mock.calls[0][0].type).toBe('CHALLENGEVERIFICATION')
+      expect(typeof onChallengeVerification.mock.calls[0][1]).not.toBe(undefined)
     })
 
     test(`can error`, async () => {
@@ -736,10 +794,12 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
+      const onError = jest.fn()
       const publishVoteOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
         vote: 1,
+        onError,
       }
       rendered.rerender(publishVoteOptions)
 
@@ -758,6 +818,10 @@ describe('actions', () => {
       expect(rendered.result.current.error.message).toBe('publish error')
       expect(rendered.result.current.errors[0].message).toBe('emit error')
       expect(rendered.result.current.errors[1].message).toBe('publish error')
+
+      // check callbacks
+      expect(onError.mock.calls[0][0].message).toBe('emit error')
+      expect(onError.mock.calls[1][0].message).toBe('publish error')
 
       // restore mock
       Vote.prototype.publish = votePublish

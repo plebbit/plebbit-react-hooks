@@ -173,15 +173,15 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => comment?.publishChallengeAnswers.bind(comment))
     setChallenge(challenge)
-    originalOnChallenge?.(challenge)
+    originalOnChallenge?.(challenge, comment)
   }
   publishCommentOptions.onChallenge = onChallenge
 
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishCommentOptions.onChallengeVerification
-  const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification, comment: Comment) => {
     setChallengeVerification(challengeVerification)
-    originalOnChallengeVerification?.(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification, comment)
   }
   publishCommentOptions.onChallengeVerification = onChallengeVerification
 
@@ -246,15 +246,15 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => vote?.publishChallengeAnswers.bind(vote))
     setChallenge(challenge)
-    originalOnChallenge?.(challenge)
+    originalOnChallenge?.(challenge, vote)
   }
   publishVoteOptions.onChallenge = onChallenge
 
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishVoteOptions.onChallengeVerification
-  const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification, vote: Vote) => {
     setChallengeVerification(challengeVerification)
-    originalOnChallengeVerification?.(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification, vote)
   }
   publishVoteOptions.onChallengeVerification = onChallengeVerification
 
@@ -317,15 +317,15 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => commentEdit?.publishChallengeAnswers.bind(commentEdit))
     setChallenge(challenge)
-    originalOnChallenge?.(challenge)
+    originalOnChallenge?.(challenge, commentEdit)
   }
   publishCommentEditOptions.onChallenge = onChallenge
 
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishCommentEditOptions.onChallengeVerification
-  const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification, commentEdit: CommentEdit) => {
     setChallengeVerification(challengeVerification)
-    originalOnChallengeVerification?.(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification, commentEdit)
   }
   publishCommentEditOptions.onChallengeVerification = onChallengeVerification
 
@@ -388,15 +388,15 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
     // cannot set a function directly with setState
     setPublishChallengeAnswers(() => subplebbitEdit?.publishChallengeAnswers.bind(subplebbitEdit))
     setChallenge(challenge)
-    originalOnChallenge?.(challenge)
+    originalOnChallenge?.(challenge, subplebbitEdit)
   }
   publishSubplebbitEditOptions.onChallenge = onChallenge
 
   // define onChallengeVerification if not defined
   const originalOnChallengeVerification = publishSubplebbitEditOptions.onChallengeVerification
-  const onChallengeVerification = async (challengeVerification: ChallengeVerification) => {
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification, subplebbitEdit: SubplebbitEdit) => {
     setChallengeVerification(challengeVerification)
-    originalOnChallengeVerification?.(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification, subplebbitEdit)
   }
   publishSubplebbitEditOptions.onChallengeVerification = onChallengeVerification
 
