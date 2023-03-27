@@ -6,10 +6,10 @@ import {fromString as uint8ArrayFromString} from 'uint8arrays/from-string'
 import {toString as uint8ArrayToString} from 'uint8arrays/to-string'
 
 // changeable with env variable so the frontend can test with different latencies
+const postMediaPercent = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_POST_MEDIA_PERCENT || 40)
 const loadingTime = Number(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME || 100)
 const simulateLoadingTime = () => new Promise((r) => setTimeout(r, loadingTime))
-
-const NOW = 1647600000
+const NOW = 1679800000
 const DAY = 60 * 60 * 24
 
 // TODO: should delete this eventually to reduce npm package size
@@ -225,6 +225,25 @@ const getNumberHash = async (string: string) => {
   return Math.abs(hash)
 }
 
+class _SeedIncrementer {
+  seed: number
+  numbers: number[]
+  index = 0
+  constructor(seed: number) {
+    assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
+    this.seed = seed
+    this.numbers = String(seed)
+      .split('')
+      .map((number) => Number(number))
+  }
+  increment() {
+    this.index++
+    const multiplier = this.numbers[this.index % this.numbers.length] + this.index
+    return Math.round(this.seed / multiplier)
+  }
+}
+export const SeedIncrementer = (seed: number) => new _SeedIncrementer(seed)
+
 const getNumberBetween = async (min: number, max: number, seed: number) => {
   assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
 
@@ -238,23 +257,25 @@ const getNumberBetween = async (min: number, max: number, seed: number) => {
 }
 
 const getArrayItem = async (array: any[], seed: number) => {
-  const index = await getNumberBetween(0, array.length - 1, seed)
+  // const index = await getNumberBetween(0, array.length - 1, seed)
+  const index = seed % array.length
   return array[index]
 }
 
-const getImageUrl = async (seed: number) => {
-  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getImageUrl seed argument must be positive number not '${seed}'`)
-  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed * 2)}/${await getNumberBetween(10, 2000, seed * 3)}/${await getNumberBetween(
+export const getImageUrl = async (_seed: number) => {
+  assert(typeof _seed === 'number' && _seed !== NaN && _seed >= 0, `getImageUrl seed argument must be positive number not '${_seed}'`)
+  const seed = SeedIncrementer(_seed)
+  const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed.increment())}/${await getNumberBetween(
     10,
     2000,
-    seed * 6
-  )}.jpg`
+    seed.increment()
+  )}/${await getNumberBetween(10, 2000, seed.increment())}.jpg`
 
-  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed * 4)}/${await getNumberBetween(10, 2000, seed * 5)}/${await getNumberBetween(
+  const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed.increment())}/${await getNumberBetween(
     10,
     2000,
-    seed * 7
-  )}.webp`
+    seed.increment()
+  )}/${await getNumberBetween(10, 2000, seed.increment())}.webp`
 
   const imageUrls = [
     // jpg & webp
@@ -268,34 +289,35 @@ const getImageUrl = async (seed: number) => {
     'https://brokensite.xyz/images/dog.png', // broken image
     'https://brokensite.xyz/images/dog.jpeg', // broken jpeg
   ]
-  const imageUrl = (await getArrayItem(imageUrls, seed * 8)) + (await getArrayItem(urlSuffixes, seed * 9))
+  const imageUrl = (await getArrayItem(imageUrls, seed.increment())) + (await getArrayItem(urlSuffixes, seed.increment()))
   return imageUrl
 }
 
-const getAuthorAddress = async (seed: number) => {
-  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getAuthorAddress seed argument must be positive number not '${seed}'`)
-  const hasEns = await getArrayItem([true, false, false, false], seed * 2)
+const getAuthorAddress = async (_seed: number) => {
+  assert(typeof _seed === 'number' && _seed !== NaN && _seed >= 0, `getAuthorAddress seed argument must be positive number not '${_seed}'`)
+  const seed = SeedIncrementer(_seed)
+  const hasEns = await getArrayItem([true, false, false, false], seed.increment())
   if (hasEns) {
-    const text = await getArrayItem([...firstNames, ...displayNames], seed * 3)
+    const text = await getArrayItem([...firstNames, ...displayNames], seed.increment())
     return (text.toLowerCase().replace(/[^a-z0-9]/g, '') || 'john') + '.eth'
   } else {
-    const address = await seedToCid(seed)
+    const address = await seedToCid(seed.increment())
     return address
   }
 }
 
 const getAuthor = async (seed: string) => {
-  const authorNumberSeed = await getNumberHash(seed)
+  const authorNumberSeed = SeedIncrementer(await getNumberHash(seed))
   const author: any = {
-    address: await getAuthorAddress(authorNumberSeed),
+    address: await getAuthorAddress(authorNumberSeed.increment()),
   }
   author.shortAddress = author.address.endsWith('.eth') ? author.address : author.address.substring(8, 20)
-  const hasDisplayName = await getArrayItem([true, true, true, false], authorNumberSeed * 4)
+  const hasDisplayName = await getArrayItem([true, true, true, false], authorNumberSeed.increment())
   if (hasDisplayName) {
-    author.displayName = await getArrayItem(displayNames, authorNumberSeed * 5)
+    author.displayName = await getArrayItem(displayNames, authorNumberSeed.increment())
   }
   const rareTrue = [true, false, false, false, false, false, false, false]
-  const hasNftAvatar = await getArrayItem(rareTrue, authorNumberSeed * 6)
+  const hasNftAvatar = await getArrayItem(rareTrue, authorNumberSeed.increment())
   if (hasNftAvatar) {
     author.avatar = {
       chainTicker: 'eth',
@@ -307,56 +329,56 @@ const getAuthor = async (seed: string) => {
           '0x79fcdef22feed20eddacbb2587640e45491b757f',
           '0x0000000000000000000000000000000000000dead',
         ],
-        authorNumberSeed * 11
+        authorNumberSeed.increment()
       ),
-      index: await getNumberBetween(1, 2000, authorNumberSeed * 7),
+      index: await getNumberBetween(1, 2000, authorNumberSeed.increment()),
     }
   }
-  const hasFlair = await getArrayItem(rareTrue, authorNumberSeed * 8)
+  const hasFlair = await getArrayItem(rareTrue, authorNumberSeed.increment())
   if (hasFlair) {
-    author.flair = await getArrayItem(authorFlairs, authorNumberSeed * 9)
+    author.flair = await getArrayItem(authorFlairs, authorNumberSeed.increment())
   }
   return author
 }
 
 const getPostContent = async (seed: string) => {
-  const postNumberSeed = await getNumberHash(seed)
+  const postNumberSeed = SeedIncrementer(await getNumberHash(seed))
   const postContent: any = {
     depth: 0,
     author: await getAuthor(String(postNumberSeed)),
-    title: await getArrayItem(commentTitles, postNumberSeed * 2),
+    title: await getArrayItem(commentTitles, postNumberSeed.increment()),
   }
-  const hasFlair = await getArrayItem([true, false, false, false], postNumberSeed * 3)
+  const hasFlair = await getArrayItem([true, false, false, false], postNumberSeed.increment())
   if (hasFlair) {
-    postContent.flair = await getArrayItem(postFlairs, postNumberSeed * 4)
+    postContent.flair = await getArrayItem(postFlairs, postNumberSeed.increment())
   }
-  const isLinkPost = await getArrayItem([true, false], postNumberSeed * 5)
+  const isLinkPost = await getArrayItem([true, false], postNumberSeed.increment())
   if (isLinkPost) {
-    postContent.link = await getArrayItem(commentLinks, postNumberSeed * 6)
-    const linkIsImage = await getArrayItem([true, false], postNumberSeed * 7)
+    postContent.link = await getArrayItem(commentLinks, postNumberSeed.increment())
+    const linkIsImage = await getArrayItem([true, false], postNumberSeed.increment())
     if (linkIsImage) {
-      postContent.link = await getImageUrl(postNumberSeed * 8)
+      postContent.link = await getImageUrl(postNumberSeed.increment())
 
       // add video and audio
-      const imageIsMedia = await getArrayItem([true, false, false, false], postNumberSeed * 9)
+      const imageIsMedia = await getArrayItem([true, false, false, false], postNumberSeed.increment())
       if (imageIsMedia) {
-        postContent.link = await getArrayItem(mediaLinks, postNumberSeed * 10)
+        postContent.link = await getArrayItem(mediaLinks, postNumberSeed.increment())
       }
     }
-    const hasThumbnail = await getArrayItem([true, true, true, false], postNumberSeed * 11)
+    const hasThumbnail = await getArrayItem([true, true, true, false], postNumberSeed.increment())
     if (!linkIsImage && hasThumbnail) {
-      postContent.thumbnailUrl = await getImageUrl(postNumberSeed * 12)
+      postContent.thumbnailUrl = await getImageUrl(postNumberSeed.increment())
     }
   }
   // else is text post
   else {
-    postContent.content = await getArrayItem(commentContents, postNumberSeed * 13)
-    const hasQuote = await getArrayItem([true, false, false, false], postNumberSeed * 14)
+    postContent.content = await getArrayItem(commentContents, postNumberSeed.increment())
+    const hasQuote = await getArrayItem([true, false, false, false], postNumberSeed.increment())
     if (hasQuote) {
       const max = 7
       const lines = postContent.content.split('\n')
       for (const i in lines) {
-        const lineIsQuote = await getArrayItem([true, false], postNumberSeed * Number(i))
+        const lineIsQuote = await getArrayItem([true, false], postNumberSeed.increment())
         if (lineIsQuote) {
           lines[i] = '>' + lines[i]
         }
@@ -371,17 +393,17 @@ const getPostContent = async (seed: string) => {
 }
 
 const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
-  const replyNumberSeed = await getNumberHash(seed)
+  const replyNumberSeed = SeedIncrementer(await getNumberHash(seed))
   const {depth, parentCid, postCid} = getReplyContentOptions
-  const author = await getAuthor(String(replyNumberSeed))
-  let content = await getArrayItem(commentContents, replyNumberSeed * 2)
+  const author = await getAuthor(String(replyNumberSeed.seed))
+  let content = await getArrayItem(commentContents, replyNumberSeed.increment())
 
-  const hasQuote = await getArrayItem([true, false, false, false], replyNumberSeed * 3)
+  const hasQuote = await getArrayItem([true, false, false, false], replyNumberSeed.increment())
   if (hasQuote) {
     const max = 7
     const lines = content.split('\n')
     for (const i in lines) {
-      const lineIsQuote = await getArrayItem([true, false], replyNumberSeed * Number(i))
+      const lineIsQuote = await getArrayItem([true, false], replyNumberSeed.increment())
       if (lineIsQuote) {
         lines[i] = '>' + lines[i]
       }
@@ -394,117 +416,117 @@ const getReplyContent = async (getReplyContentOptions: any, seed: string) => {
 
   const replyContent: any = {content, author, depth, parentCid, postCid}
 
-  const hasLink = await getArrayItem([true, false, false, false], replyNumberSeed * 5)
+  const hasLink = await getArrayItem([true, false, false, false], replyNumberSeed.increment())
   if (hasLink) {
-    replyContent.link = await getArrayItem(commentLinks, replyNumberSeed * 6)
-    const linkIsImage = await getArrayItem([true, false], replyNumberSeed * 7)
+    replyContent.link = await getArrayItem(commentLinks, replyNumberSeed.increment())
+    const linkIsImage = await getArrayItem([true, false], replyNumberSeed.increment())
     if (linkIsImage) {
-      replyContent.link = await getImageUrl(replyNumberSeed * 8)
+      replyContent.link = await getImageUrl(replyNumberSeed.increment())
 
       // add video and audio
-      const imageIsMedia = await getArrayItem([true, false, false, false], replyNumberSeed * 9)
+      const imageIsMedia = await getArrayItem([true, false, false, false], replyNumberSeed.increment())
       if (imageIsMedia) {
-        replyContent.link = await getArrayItem(mediaLinks, replyNumberSeed * 10)
+        replyContent.link = await getArrayItem(mediaLinks, replyNumberSeed.increment())
       }
     }
-    const hasThumbnail = await getArrayItem([true, true, true, false], replyNumberSeed * 11)
+    const hasThumbnail = await getArrayItem([true, true, true, false], replyNumberSeed.increment())
     if (!linkIsImage && hasThumbnail) {
-      replyContent.thumbnailUrl = await getImageUrl(replyNumberSeed * 12)
+      replyContent.thumbnailUrl = await getImageUrl(replyNumberSeed.increment())
     }
   }
 
-  const hasTitle = await getArrayItem([true, false, false, false, false, false, false], replyNumberSeed * 13)
+  const hasTitle = await getArrayItem([true, false, false, false, false, false, false], replyNumberSeed.increment())
   if (hasTitle) {
-    replyContent.title = await getArrayItem(commentTitles, replyNumberSeed * 14)
+    replyContent.title = await getArrayItem(commentTitles, replyNumberSeed.increment())
   }
 
   return replyContent
 }
 
 const getSubplebbitContent = async (seed: string) => {
-  const subplebbitNumberSeed = await getNumberHash(seed)
+  const subplebbitNumberSeed = SeedIncrementer(await getNumberHash(seed))
   const subplebbit: any = {
-    pubsubTopic: await seedToCid(subplebbitNumberSeed),
+    pubsubTopic: await seedToCid(subplebbitNumberSeed.seed),
   }
 
-  const hasChallengeTypes = await getArrayItem([true, false], subplebbitNumberSeed * 2)
+  const hasChallengeTypes = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasChallengeTypes) {
     subplebbit.challengeTypes = ['image']
   }
 
-  const hasRoles = await getArrayItem([true, false], subplebbitNumberSeed * 3)
+  const hasRoles = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasRoles) {
     subplebbit.roles = {
-      [await getAuthorAddress(subplebbitNumberSeed * 3)]: {role: 'owner'},
-      [await getAuthorAddress(subplebbitNumberSeed * 4)]: {role: 'admin'},
-      [await getAuthorAddress(subplebbitNumberSeed * 5)]: {role: 'moderator'},
-      [await getAuthorAddress(subplebbitNumberSeed * 6)]: {role: 'moderator'},
-      [await getAuthorAddress(subplebbitNumberSeed * 7)]: {role: 'moderator'},
-      [await getAuthorAddress(subplebbitNumberSeed * 8)]: {role: 'moderator'},
-      [await getAuthorAddress(subplebbitNumberSeed * 9)]: {role: 'moderator'},
-      [await getAuthorAddress(subplebbitNumberSeed * 11)]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'owner'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'admin'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'moderator'},
+      [await getAuthorAddress(subplebbitNumberSeed.increment())]: {role: 'moderator'},
     }
   }
 
-  const title = await getArrayItem([undefined, ...subplebbitTitles], subplebbitNumberSeed * 11)
+  const title = await getArrayItem([undefined, ...subplebbitTitles], subplebbitNumberSeed.increment())
   if (title) {
     subplebbit.title = title
   }
-  const description = await getArrayItem([undefined, ...subplebbitDescriptions], subplebbitNumberSeed * 12)
+  const description = await getArrayItem([undefined, ...subplebbitDescriptions], subplebbitNumberSeed.increment())
   if (description) {
     subplebbit.description = description
   }
 
-  const hasPostFlairs = await getArrayItem([true, false], subplebbitNumberSeed * 13)
+  const hasPostFlairs = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasPostFlairs) {
     subplebbit.flairs = {post: postFlairs}
   }
-  const hasAuthorFlairs = await getArrayItem([true, false], subplebbitNumberSeed * 14)
+  const hasAuthorFlairs = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasAuthorFlairs) {
     subplebbit.flairs = {post: subplebbit.flairs?.post, author: authorFlairs}
   }
 
-  const hasSuggested = await getArrayItem([true, false], subplebbitNumberSeed * 15)
+  const hasSuggested = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasSuggested) {
     subplebbit.suggested = {
-      primaryColor: (await getArrayItem(postFlairs, subplebbitNumberSeed * 16)).backgroundColor,
-      secondaryColor: (await getArrayItem(postFlairs, subplebbitNumberSeed * 17)).backgroundColor,
-      avatarUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed * 18)], subplebbitNumberSeed * 18 * 3),
-      bannerUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed * 19)], subplebbitNumberSeed * 19 * 4),
-      backgroundUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed * 20)], subplebbitNumberSeed * 20 * 5),
-      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], subplebbitNumberSeed * 21),
+      primaryColor: (await getArrayItem(postFlairs, subplebbitNumberSeed.increment())).backgroundColor,
+      secondaryColor: (await getArrayItem(postFlairs, subplebbitNumberSeed.increment())).backgroundColor,
+      avatarUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed.increment())], subplebbitNumberSeed.increment()),
+      bannerUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed.increment())], subplebbitNumberSeed.increment()),
+      backgroundUrl: await getArrayItem([undefined, await getImageUrl(subplebbitNumberSeed.increment())], subplebbitNumberSeed.increment()),
+      language: await getArrayItem([undefined, undefined, 'en', 'en', 'es', 'ru'], subplebbitNumberSeed.increment()),
     }
   }
 
-  const hasFeatures = await getArrayItem([true, false], subplebbitNumberSeed * 22)
+  const hasFeatures = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasFeatures) {
     subplebbit.features = {
-      noVideos: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 23),
-      noSpoilers: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 24),
-      noImages: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 25),
-      noVideoReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 26),
-      noSpoilerReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 27),
-      noImageReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 28),
-      noPolls: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 29),
-      noCrossposts: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 30),
-      noUpvotes: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 31),
-      noDownvotes: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 32),
-      noAuthors: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 33),
-      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 34),
-      noNestedReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 35),
-      safeForWork: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 36),
-      authorFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 37),
-      requireAuthorFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 38),
-      postFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 39),
-      requirePostFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 40),
-      noMarkdownImages: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 41),
-      noMarkdownVideos: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 42),
-      markdownImageReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 43),
-      markdownVideoReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed * 44),
+      noVideos: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noSpoilers: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noImages: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noVideoReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noSpoilerReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noImageReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noPolls: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noCrossposts: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noUpvotes: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noDownvotes: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noAuthors: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      anonymousAuthors: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noNestedReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      safeForWork: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      authorFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      requireAuthorFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      postFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      requirePostFlairs: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noMarkdownImages: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      noMarkdownVideos: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      markdownImageReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
+      markdownVideoReplies: await getArrayItem([undefined, undefined, true, false], subplebbitNumberSeed.increment()),
     }
   }
 
-  const hasRules = await getArrayItem([true, false], subplebbitNumberSeed * 45)
+  const hasRules = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (hasRules) {
     subplebbit.rules = [
       'no spam',
@@ -515,15 +537,15 @@ const getSubplebbitContent = async (seed: string) => {
     ]
   }
 
-  const isOnline = await getArrayItem([true, false], subplebbitNumberSeed * 46)
+  const isOnline = await getArrayItem([true, false], subplebbitNumberSeed.increment())
   if (isOnline) {
     // updated in last 1h
-    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(1, 60 * 60, subplebbitNumberSeed * 47))
+    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(1, 60 * 60, subplebbitNumberSeed.increment()))
   } else {
     // updated in last month
-    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(60 * 60, 60 * 60 * 24 * 30, subplebbitNumberSeed * 48))
+    subplebbit.updatedAt = Math.round(Date.now() / 1000) - (await getNumberBetween(60 * 60, 60 * 60 * 24 * 30, subplebbitNumberSeed.increment()))
   }
-  subplebbit.createdAt = subplebbit.updatedAt - (await getNumberBetween(1, 60 * 60 * 24 * 3000, subplebbitNumberSeed * 49))
+  subplebbit.createdAt = subplebbit.updatedAt - (await getNumberBetween(1, 60 * 60 * 24 * 3000, subplebbitNumberSeed.increment()))
 
   return subplebbit
 }
@@ -532,9 +554,9 @@ const getSubplebbitContent = async (seed: string) => {
 let replyLoopCount = 0
 
 const getCommentUpdateContent = async (comment: any) => {
-  const commentUpdateSeedNumber = await getNumberHash(comment.cid)
-  const upvotesPerUpdate = await getNumberBetween(1, 1000, commentUpdateSeedNumber * 2)
-  const downvotesPerUpdate = await getNumberBetween(1, 1000, commentUpdateSeedNumber * 3)
+  const commentUpdateSeedNumber = SeedIncrementer(await getNumberHash(comment.cid))
+  const upvotesPerUpdate = await getNumberBetween(1, 1000, commentUpdateSeedNumber.increment())
+  const downvotesPerUpdate = await getNumberBetween(1, 1000, commentUpdateSeedNumber.increment())
 
   const commentUpdateContent: any = {}
   // simulate finding vote counts on an IPNS record
@@ -543,9 +565,9 @@ const getCommentUpdateContent = async (comment: any) => {
 
   // find the number of replies
   commentUpdateContent.replyCount = 0
-  const hasReplies = await getArrayItem([true, false, false, false], commentUpdateSeedNumber * 4)
+  const hasReplies = await getArrayItem([true, false, false, false], commentUpdateSeedNumber.increment())
   if (hasReplies) {
-    commentUpdateContent.replyCount = await getNumberBetween(0, 30, commentUpdateSeedNumber * 5)
+    commentUpdateContent.replyCount = await getNumberBetween(0, 30, commentUpdateSeedNumber.increment())
     if (comment.depth > 0) {
       commentUpdateContent.replyCount = commentUpdateContent.replyCount / (comment.depth + 1) ** 2
     }
@@ -561,11 +583,11 @@ const getCommentUpdateContent = async (comment: any) => {
   let replyCount = commentUpdateContent.replyCount
   while (replyCount-- > 0) {
     // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
-    const replyContent = await getReplyContent(getReplyContentOptions, String(commentUpdateSeedNumber * replyCount))
+    const replyContent = await getReplyContent(getReplyContentOptions, String(commentUpdateSeedNumber.increment()))
     const reply = {
-      cid: await seedToCid(commentUpdateSeedNumber * replyCount),
-      ipnsName: await seedToCid(commentUpdateSeedNumber * replyCount * 2),
-      timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber * replyCount),
+      cid: await seedToCid(commentUpdateSeedNumber.increment()),
+      ipnsName: await seedToCid(commentUpdateSeedNumber.increment()),
+      timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()),
       subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
       ...replyContent,
     }
@@ -575,21 +597,21 @@ const getCommentUpdateContent = async (comment: any) => {
 
   const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
 
-  const isSpoiler = await getArrayItem(rareTrue, commentUpdateSeedNumber * 8)
+  const isSpoiler = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
   if (isSpoiler) {
     commentUpdateContent.spoiler = true
   }
 
-  const isEdited = await getArrayItem(rareTrue, commentUpdateSeedNumber * 9)
+  const isEdited = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
   if (isEdited) {
     commentUpdateContent.editTimestamp = comment.timestamp + 60 * 30
     commentUpdateContent.content = comment.content + ' WHY DOWNVOTES!?'
   }
 
-  const isDeleted = await getArrayItem(rareTrue, commentUpdateSeedNumber * 10)
-  const isPinned = await getArrayItem(rareTrue, commentUpdateSeedNumber * 11)
-  const isRemoved = await getArrayItem(rareTrue, commentUpdateSeedNumber * 12)
-  const isLocked = await getArrayItem(rareTrue, commentUpdateSeedNumber * 13)
+  const isDeleted = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
+  const isPinned = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
+  const isRemoved = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
+  const isLocked = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
 
   if (isDeleted) {
     commentUpdateContent.deleted = true
@@ -597,15 +619,15 @@ const getCommentUpdateContent = async (comment: any) => {
     commentUpdateContent.pinned = true
   } else if (isRemoved) {
     commentUpdateContent.removed = true
-    const hasReason = await getArrayItem([true, false], commentUpdateSeedNumber * 14)
+    const hasReason = await getArrayItem([true, false], commentUpdateSeedNumber.increment())
     if (hasReason) {
-      commentUpdateContent.reason = await getArrayItem(reasons, commentUpdateSeedNumber * 15)
+      commentUpdateContent.reason = await getArrayItem(reasons, commentUpdateSeedNumber.increment())
     }
   } else if (isLocked && comment.depth === 0) {
     commentUpdateContent.locked = true
-    const hasReason = await getArrayItem([true, false], commentUpdateSeedNumber * 16)
+    const hasReason = await getArrayItem([true, false], commentUpdateSeedNumber.increment())
     if (hasReason) {
-      commentUpdateContent.reason = await getArrayItem(reasons, commentUpdateSeedNumber * 17)
+      commentUpdateContent.reason = await getArrayItem(reasons, commentUpdateSeedNumber.increment())
     }
   }
 
@@ -615,17 +637,17 @@ const getCommentUpdateContent = async (comment: any) => {
 }
 
 const getCommentsPage = async (pageCid: string, subplebbit: any) => {
-  const commentsPageSeedNumber = await getNumberHash(pageCid)
+  const commentsPageSeedNumber = SeedIncrementer(await getNumberHash(pageCid))
   const page: any = {
-    nextCid: await seedToCid(commentsPageSeedNumber),
+    nextCid: await seedToCid(commentsPageSeedNumber.seed),
     comments: [],
   }
   const postCount = 100
   let index = 0
   while (index++ < postCount) {
     let comment = {
-      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber * index),
-      cid: await seedToCid(commentsPageSeedNumber * index * 2),
+      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
+      cid: await seedToCid(commentsPageSeedNumber.increment()),
       subplebbitAddress: subplebbit.address,
       depth: 0,
     }
@@ -670,13 +692,13 @@ class Plebbit extends EventEmitter {
       address: subplebbitAddress,
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
-    const subplebbitPagesSeedNumber = await getNumberHash(subplebbitAddress + 'pages')
-    const hotPageCid = await seedToCid(subplebbitPagesSeedNumber)
+    const subplebbitPagesSeedNumber = SeedIncrementer(await getNumberHash(subplebbitAddress + 'pages'))
+    const hotPageCid = await seedToCid(subplebbitPagesSeedNumber.increment())
     subplebbit.posts.pages.hot = await getCommentsPage(hotPageCid, subplebbit)
     subplebbit.posts.pageCids = {
-      hot: await seedToCid(subplebbitPagesSeedNumber * 2),
-      topAll: await seedToCid(subplebbitPagesSeedNumber * 3),
-      new: await seedToCid(subplebbitPagesSeedNumber * 4),
+      hot: await seedToCid(subplebbitPagesSeedNumber.increment()),
+      topAll: await seedToCid(subplebbitPagesSeedNumber.increment()),
+      new: await seedToCid(subplebbitPagesSeedNumber.increment()),
     }
 
     const subplebbitContent = await getSubplebbitContent(subplebbitAddress)
@@ -698,20 +720,20 @@ class Plebbit extends EventEmitter {
 
   async getComment(commentCid: string) {
     await simulateLoadingTime()
-    const commentSeedNumber = await getNumberHash(commentCid + 'getcomment')
+    const commentSeedNumber = SeedIncrementer(await getNumberHash(commentCid + 'getcomment'))
     let commentContent: any = await getPostContent(commentCid + 'postcontent')
-    const isReply = await getArrayItem([true, false, false, false], commentSeedNumber)
+    const isReply = await getArrayItem([true, false, false, false], commentSeedNumber.increment())
     if (isReply) {
-      const depth = await getNumberBetween(1, 10, commentSeedNumber * 5)
-      const parentCid = await seedToCid(commentSeedNumber * 2)
-      const postCid = depth === 1 ? parentCid : await seedToCid(commentSeedNumber * 3)
+      const depth = await getNumberBetween(1, 10, commentSeedNumber.increment())
+      const parentCid = await seedToCid(commentSeedNumber.increment())
+      const postCid = depth === 1 ? parentCid : await seedToCid(commentSeedNumber.increment())
       const getReplyContentOptions = {depth, parentCid, postCid}
       commentContent = await getReplyContent(getReplyContentOptions, commentCid + 'replycontent')
     }
     const createCommentOptions = {
       cid: commentCid,
-      ipnsName: await seedToCid(commentSeedNumber * 4),
-      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber * 6),
+      ipnsName: await seedToCid(commentSeedNumber.increment()),
+      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()),
       subplebbitAddress: 'memes.eth',
       ...commentContent,
     }

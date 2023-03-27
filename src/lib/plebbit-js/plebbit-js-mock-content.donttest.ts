@@ -12,6 +12,61 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useComment, useSubplebbit, useFeed, useAccountSubplebbits, useAccount} from '../../index'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
+import PlebbitJsMockContent, {getImageUrl, SeedIncrementer} from './plebbit-js-mock-content'
+
+describe('PlebbitJsMockContent', () => {
+  test.skip('SeedIncrementer', async () => {
+    while (true) {
+      const seed = Number(String(Math.random()).replace('0.', '').substring(0, 8))
+      const seedIncrementer = SeedIncrementer(seed)
+      let count = 11
+      while (count--) {
+        seedIncrementer.increment()
+      }
+      const incremented = seedIncrementer.increment()
+      console.log(seed, incremented, incremented % 12)
+    }
+  })
+
+  test.skip('create comment', async () => {
+    const plebbit = await PlebbitJsMockContent()
+    let count = 94
+    while (count--) {
+      const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa' + count
+      // console.log(cid)
+      const random = (Math.random().toString() + Math.random().toString() + Math.random().toString()).replace(/0\./g, '')
+      const comment: any = await plebbit.createComment({cid: random})
+      comment.update()
+      await new Promise((r) =>
+        comment.on('update', () => {
+          if (comment.updatedAt) {
+            if (comment.link) console.log(comment.link)
+            comment.removeAllListeners()
+            r(undefined)
+          }
+        })
+      )
+      // if (count === 92)
+      //   break
+    }
+  })
+
+  test.skip('create comment with replies', async () => {
+    const plebbit = await PlebbitJsMockContent()
+    const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa65'
+    const comment: any = await plebbit.createComment({cid})
+    comment.update()
+    await new Promise((r) =>
+      comment.on('update', () => {
+        if (comment.updatedAt) {
+          console.log(comment.replies.pages.topAll.comments)
+          comment.removeAllListeners()
+          r(undefined)
+        }
+      })
+    )
+  })
+})
 
 describe('mock content', () => {
   beforeAll(() => {
@@ -79,7 +134,7 @@ describe('mock content', () => {
     expect(typeof rendered2.result.current.upvoteCount).toBe('number')
   })
 
-  test('use subplebbits', async () => {
+  test.only('use subplebbits', async () => {
     const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
