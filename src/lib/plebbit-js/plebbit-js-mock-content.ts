@@ -609,9 +609,15 @@ const getCommentUpdateContent = async (comment: any) => {
   }
 
   const isEdited = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
-  if (isEdited) {
-    commentUpdateContent.editTimestamp = comment.timestamp + 60 * 30
-    commentUpdateContent.content = comment.content + ' WHY DOWNVOTES!?'
+  if (isEdited && !comment.edit) {
+    commentUpdateContent.edit = {
+      timestamp: comment.timestamp + 60 * 30,
+      reason: 'I wanted to know why the downvotes?',
+    }
+    commentUpdateContent.original = {
+      content: comment.content,
+    }
+    commentUpdateContent.content = (comment.content || '') + ' WHY DOWNVOTES!?'
   }
 
   const isDeleted = await getArrayItem(rareTrue, commentUpdateSeedNumber.increment())
@@ -1014,7 +1020,8 @@ class Comment extends Publication {
   locked: boolean | undefined
   deleted: boolean | undefined
   removed: boolean | undefined
-  editTimestamp: number | undefined
+  edit: any
+  original: any
   reason: string | undefined
   shortCid: string | undefined
   _getCommentOnFirstUpdate = false
@@ -1039,7 +1046,6 @@ class Comment extends Publication {
     this.locked = createCommentOptions?.locked
     this.deleted = createCommentOptions?.deleted
     this.removed = createCommentOptions?.removed
-    this.editTimestamp = createCommentOptions?.editTimestamp
     this.reason = createCommentOptions?.reason
     if (this.cid) {
       this.shortCid = this.cid.substring(2, 14)

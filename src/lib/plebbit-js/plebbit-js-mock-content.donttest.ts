@@ -29,7 +29,24 @@ describe('PlebbitJsMockContent', () => {
     }
   })
 
-  test.only('create comment', async () => {
+  test.only('comment updates', async () => {
+    const plebbit = await PlebbitJsMockContent()
+    let count = 10
+    const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP7'
+    const comment: any = await plebbit.createComment({cid})
+    comment.update()
+    await new Promise((r) =>
+      comment.on('update', () => {
+        console.log(comment)
+        if (!count--) {
+          comment.removeAllListeners()
+          r(undefined)
+        }
+      })
+    )
+  })
+
+  test.skip('create comment', async () => {
     const plebbit = await PlebbitJsMockContent()
     let count = 100
     let linkCount = 0
