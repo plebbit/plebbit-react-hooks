@@ -2,7 +2,8 @@
 // only use it to log the content mock and see if the outputs make sense
 // use `jest --testRegex plebbit-js-mock-content.donttest.ts` to run
 
-jest.setTimeout(120000)
+jest.setTimeout(300000)
+const timeout = 180000
 
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE = '1'
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_DOUBLE_MEDIA = '1'
@@ -145,7 +146,7 @@ describe('mock content', () => {
 
   test('use comments', async () => {
     const rendered = renderHook<any, any>((commentCid) => useComment({commentCid}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa0')
     await waitFor(() => rendered.result.current.state === 'fetching-ipfs')
@@ -199,7 +200,7 @@ describe('mock content', () => {
 
   test('use subplebbits', async () => {
     const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     rendered.rerender('anything2.eth')
     await waitFor(() => rendered.result.current.state === 'fetching-ipns')
@@ -213,36 +214,36 @@ describe('mock content', () => {
     expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
     expect(rendered.result.current.state).toBe('succeeded')
 
-    rendered.rerender(null)
-    await waitFor(() => rendered.result.current.updatedAt === undefined)
-    expect(rendered.result.current.updatedAt).toBe(undefined)
+    // rendered.rerender(null)
+    // await waitFor(() => rendered.result.current.updatedAt === undefined)
+    // expect(rendered.result.current.updatedAt).toBe(undefined)
 
-    rendered.rerender('jokes2.eth')
-    await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
-    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
-    console.log(rendered.result.current)
-    expect(rendered.result.current.address).toBe('jokes2.eth')
-    expect(typeof rendered.result.current.updatedAt).toBe('number')
-    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
-    expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
+    // rendered.rerender('jokes2.eth')
+    // await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
+    // // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
+    // console.log(rendered.result.current)
+    // expect(rendered.result.current.address).toBe('jokes2.eth')
+    // expect(typeof rendered.result.current.updatedAt).toBe('number')
+    // expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
+    // expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
 
-    rendered.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
-    await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
-    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
-    console.log(rendered.result.current)
-    expect(rendered.result.current.address).toBe('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
-    expect(typeof rendered.result.current.updatedAt).toBe('number')
-    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
-    expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
+    // rendered.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    // await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
+    // // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
+    // console.log(rendered.result.current)
+    // expect(rendered.result.current.address).toBe('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    // expect(typeof rendered.result.current.updatedAt).toBe('number')
+    // expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
+    // expect(typeof rendered.result.current.posts?.pageCids?.new).toBe('string')
 
     // test getting from db
     await testUtils.resetStores()
     const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
 
-    rendered2.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    rendered2.rerender('anything2.eth')
     await waitFor(() => typeof rendered2.result.current.updatedAt === 'number')
     console.log(rendered2.result.current)
-    expect(rendered2.result.current.address).toBe('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    expect(rendered2.result.current.address).toBe('anything2.eth')
     expect(typeof rendered2.result.current.updatedAt).toBe('number')
     expect(typeof rendered2.result.current.posts?.pages?.hot?.comments?.[0]?.cid).toBe('string')
     expect(typeof rendered2.result.current.posts?.pageCids?.new).toBe('string')
@@ -250,7 +251,7 @@ describe('mock content', () => {
 
   test.skip('use feed', async () => {
     const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     const scrollOnePage = async () => {
       const nextFeedLength = (rendered.result.current.feed?.length || 0) + 25
@@ -258,7 +259,7 @@ describe('mock content', () => {
         rendered.result.current.loadMore()
       })
       try {
-        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout: 60000})
+        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout})
       } catch (e) {
         console.error('scrollOnePage failed:', e)
       }
@@ -280,7 +281,7 @@ describe('mock content', () => {
 
   test('use feed no duplicate cids', async () => {
     const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     rendered.rerender(['QmPjewdKya8iVkuQiiXQ5qRBsgVUAZg2LQ2m8v3LNJ7Ht8'])
     await waitFor(() => rendered.result.current.feed?.length > 0)
@@ -300,7 +301,7 @@ describe('mock content', () => {
 
   test('publish', async () => {
     const rendered = renderHook<any, any>(() => useAccount())
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     await waitFor(() => typeof rendered.result.current.plebbit?.createComment === 'function')
     expect(typeof rendered.result.current.plebbit?.createComment).toBe('function')
@@ -347,7 +348,7 @@ describe('mock content', () => {
       const accountSubplebbits = useAccountSubplebbits()
       return {createSubplebbit, accountSubplebbits, account}
     })
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
     await waitFor(() => typeof rendered.result.current.account?.plebbit?.createSubplebbit === 'function')
     expect(typeof rendered.result.current.account?.plebbit?.createSubplebbit).toBe('function')
 

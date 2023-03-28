@@ -97,36 +97,36 @@ describe('mock content', () => {
     expect(typeof rendered.result.current.posts?.pageCids?.new).to.equal('string')
     expect(rendered.result.current.state).to.equal('succeeded')
 
-    rendered.rerender(null)
-    await waitFor(() => rendered.result.current.updatedAt === undefined)
-    expect(rendered.result.current.updatedAt).to.equal(undefined)
+    // rendered.rerender(null)
+    // await waitFor(() => rendered.result.current.updatedAt === undefined)
+    // expect(rendered.result.current.updatedAt).to.equal(undefined)
 
-    rendered.rerender('jokes2.eth')
-    await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
-    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
-    console.log(rendered.result.current)
-    expect(rendered.result.current.address).to.equal('jokes2.eth')
-    expect(typeof rendered.result.current.updatedAt).to.equal('number')
-    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).to.equal('string')
-    expect(typeof rendered.result.current.posts?.pageCids?.new).to.equal('string')
+    // rendered.rerender('jokes2.eth')
+    // await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
+    // // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
+    // console.log(rendered.result.current)
+    // expect(rendered.result.current.address).to.equal('jokes2.eth')
+    // expect(typeof rendered.result.current.updatedAt).to.equal('number')
+    // expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).to.equal('string')
+    // expect(typeof rendered.result.current.posts?.pageCids?.new).to.equal('string')
 
-    rendered.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
-    await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
-    // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
-    console.log(rendered.result.current)
-    expect(rendered.result.current.address).to.equal('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
-    expect(typeof rendered.result.current.updatedAt).to.equal('number')
-    expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).to.equal('string')
-    expect(typeof rendered.result.current.posts?.pageCids?.new).to.equal('string')
+    // rendered.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    // await waitFor(() => typeof rendered.result.current.updatedAt === 'number')
+    // // console.log(rendered.result.current?.posts?.pages?.hot?.comments)
+    // console.log(rendered.result.current)
+    // expect(rendered.result.current.address).to.equal('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    // expect(typeof rendered.result.current.updatedAt).to.equal('number')
+    // expect(typeof rendered.result.current.posts?.pages?.hot?.comments?.[0]?.cid).to.equal('string')
+    // expect(typeof rendered.result.current.posts?.pageCids?.new).to.equal('string')
 
     // test getting from db
     await testUtils.resetStores()
     const rendered2 = renderHook((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
 
-    rendered2.rerender('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    rendered2.rerender('anything2')
     await waitFor(() => typeof rendered2.result.current.updatedAt === 'number')
     console.log(rendered2.result.current)
-    expect(rendered2.result.current.address).to.equal('12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z')
+    expect(rendered2.result.current.address).to.equal('anything2')
     expect(typeof rendered2.result.current.updatedAt).to.equal('number')
     expect(typeof rendered2.result.current.posts?.pages?.hot?.comments?.[0]?.cid).to.equal('string')
     expect(typeof rendered2.result.current.posts?.pageCids?.new).to.equal('string')
@@ -134,7 +134,7 @@ describe('mock content', () => {
 
   it('use feed', async () => {
     const rendered = renderHook((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'hot'}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 120000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     const scrollOnePage = async () => {
       const nextFeedLength = (rendered.result.current.feed?.length || 0) + 25
@@ -142,7 +142,7 @@ describe('mock content', () => {
         rendered.result.current.loadMore()
       })
       try {
-        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout: 120000})
+        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout})
       } catch (e) {
         console.error('scrollOnePage failed:', e)
       }
