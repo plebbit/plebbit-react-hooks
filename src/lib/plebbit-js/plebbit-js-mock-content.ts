@@ -587,6 +587,7 @@ const getCommentUpdateContent = async (comment: any) => {
   commentUpdateContent.replies = {pages: {topAll: {nextCid: undefined, comments: []}}}
   const getReplyContentOptions = {depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid}
   let replyCount = commentUpdateContent.replyCount
+  const replyCids: any = new Set()
   while (replyCount-- > 0) {
     // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
     const cid = await seedToCid(await getNumberHash(comment.cid + replyCount))
@@ -599,10 +600,10 @@ const getCommentUpdateContent = async (comment: any) => {
       subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
       ...replyContent,
     }
-    if (pageCommentCids.has(reply.cid)) {
+    if (replyCids.has(reply.cid)) {
       console.error(`mock content error: duplicate reply cid '${reply.cid}'`)
     }
-    pageCommentCids.add(reply.cid)
+    replyCids.add(reply.cid)
     const replyUpdateContent = await getCommentUpdateContent(reply)
     commentUpdateContent.replies.pages.topAll.comments.push({...reply, ...replyUpdateContent})
   }
@@ -665,21 +666,27 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
   }
   const postCount = 100
   let index = 0
+  const plebbit = new Plebbit()
   while (index++ < postCount) {
     const cid = await seedToCid(await getNumberHash(pageCid + index))
-    let comment = {
-      timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
-      // cid: await seedToCid(commentsPageSeedNumber.increment()),
-      cid,
-      subplebbitAddress: subplebbit.address,
-      depth: 0,
-    }
+    // let comment = {
+    //   timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
+    //   // cid: await seedToCid(commentsPageSeedNumber.increment()),
+    //   cid,
+    //   subplebbitAddress: subplebbit.address,
+    //   depth: 0,
+    // }
     // debug message
-    if (pageCommentCids.has(comment.cid)) {
-      console.error(`mock content error: duplicate page comment cid '${comment.cid}'`)
+    if (pageCommentCids.has(cid)) {
+      console.error(`mock content error: duplicate page comment cid '${cid}'`)
     }
-    pageCommentCids.add(comment.cid)
-    comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
+    pageCommentCids.add(cid)
+    // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
+    const comment: any = await plebbit.getComment(cid)
+    const commentUpdateContent: any = await getCommentUpdateContent(comment)
+    for (const prop in commentUpdateContent) {
+      comment[prop] = commentUpdateContent[prop]
+    }
     page.comments.push(comment)
   }
   return page
@@ -720,13 +727,12 @@ class Plebbit extends EventEmitter {
       address: subplebbitAddress,
     }
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
-    const subplebbitPagesSeedNumber = SeedIncrementer(await getNumberHash(subplebbitAddress + 'pages'))
-    const hotPageCid = await seedToCid(subplebbitPagesSeedNumber.increment())
+    const hotPageCid = await seedToCid(await getNumberHash(subplebbitAddress + 'hotpagecid'))
     subplebbit.posts.pages.hot = await getCommentsPage(hotPageCid, subplebbit)
     subplebbit.posts.pageCids = {
-      hot: await seedToCid(subplebbitPagesSeedNumber.increment()),
-      topAll: await seedToCid(subplebbitPagesSeedNumber.increment()),
-      new: await seedToCid(subplebbitPagesSeedNumber.increment()),
+      hot: await seedToCid(await getNumberHash(subplebbitAddress + 'hotpagecid2')),
+      topAll: await seedToCid(await getNumberHash(subplebbitAddress + 'topallpagecid')),
+      new: await seedToCid(await getNumberHash(subplebbitAddress + 'newpagecid')),
     }
 
     const subplebbitContent = await getSubplebbitContent(subplebbitAddress)
@@ -750,7 +756,7 @@ class Plebbit extends EventEmitter {
     await simulateLoadingTime()
     const commentSeedNumber = SeedIncrementer(await getNumberHash(commentCid + 'getcomment'))
     let commentContent: any = await getPostContent(commentCid + 'postcontent')
-    const isReply = await getArrayItem([true, false, false, false], commentSeedNumber.increment())
+    const isReply = commentCid.endsWith('reply')
     if (isReply) {
       const depth = await getNumberBetween(1, 10, commentSeedNumber.increment())
       const parentCid = await seedToCid(commentSeedNumber.increment())
@@ -948,6 +954,7 @@ class Subplebbit extends EventEmitter {
       // @ts-ignore
       this[prop] = props[prop]
     }
+    this.posts.getPage = subplebbit.posts.getPage
     this.updatingState = 'succeeded'
     this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
@@ -1095,6 +1102,8 @@ class Comment extends Publication {
     this.emit('updatingstatechange', 'fetching-ipfs')
     ;(async () => {
       while (true) {
+        await simulateLoadingTime()
+        await simulateLoadingTime()
         await simulateLoadingTime()
         this.simulateUpdateEvent()
       }

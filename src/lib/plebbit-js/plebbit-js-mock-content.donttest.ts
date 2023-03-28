@@ -7,7 +7,7 @@ jest.setTimeout(120000)
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE = '1'
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_DOUBLE_MEDIA = '1'
 process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT = '1'
-process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '10'
+process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '100'
 
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
@@ -30,6 +30,48 @@ describe('PlebbitJsMockContent', () => {
   })
 
   test.skip('comment updates', async () => {
+    const plebbit = await PlebbitJsMockContent()
+    let count = 10
+    const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP8'
+    const comment: any = await plebbit.createComment({cid})
+    comment.update()
+    await new Promise((r) =>
+      comment.on('update', () => {
+        console.log(comment)
+        if (!count--) {
+          comment.removeAllListeners()
+          r(undefined)
+        }
+      })
+    )
+  })
+
+  test.skip('new page', async () => {
+    const plebbit = await PlebbitJsMockContent()
+    const address = 'news.eth'
+    const subplebbit: any = await plebbit.createSubplebbit({address})
+    console.log(subplebbit)
+    subplebbit.update().catch(console.error)
+    await new Promise((r) =>
+      subplebbit.on('update', async () => {
+        console.log(subplebbit)
+        subplebbit.removeAllListeners()
+        try {
+          const page = await subplebbit.posts.getPage(subplebbit.posts.pageCids.new)
+          // console.log(page)
+          const comment = page.comments[0]
+          console.log({comment})
+          const comment2 = await plebbit.getComment(comment.cid)
+          console.log({comment2})
+        } catch (e) {
+          console.log(e)
+        }
+        r(undefined)
+      })
+    )
+  })
+
+  test.skip('comment edit updates', async () => {
     const plebbit = await PlebbitJsMockContent()
     let count = 10
     const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP7'
@@ -206,7 +248,7 @@ describe('mock content', () => {
     expect(typeof rendered2.result.current.posts?.pageCids?.new).toBe('string')
   })
 
-  test.only('use feed', async () => {
+  test.skip('use feed', async () => {
     const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
