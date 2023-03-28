@@ -86,7 +86,8 @@ declare class Comment extends Publication {
     locked: boolean | undefined;
     deleted: boolean | undefined;
     removed: boolean | undefined;
-    editTimestamp: number | undefined;
+    edit: any;
+    original: any;
     reason: string | undefined;
     shortCid: string | undefined;
     _getCommentOnFirstUpdate: boolean;

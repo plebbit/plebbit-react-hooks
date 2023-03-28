@@ -544,9 +544,17 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         commentUpdateContent.spoiler = true;
     }
     const isEdited = yield getArrayItem(rareTrue, commentUpdateSeedNumber.increment());
-    if (isEdited) {
-        commentUpdateContent.editTimestamp = comment.timestamp + 60 * 30;
-        commentUpdateContent.content = comment.content + ' WHY DOWNVOTES!?';
+    if (isEdited && !comment.edit) {
+        commentUpdateContent.edit = {
+            commentCid: comment.cid,
+            timestamp: comment.timestamp + 60 * 30,
+            reason: 'I wanted to know why the downvotes?',
+            author: comment.author,
+        };
+        commentUpdateContent.original = {
+            content: comment.content,
+        };
+        commentUpdateContent.content = (comment.content || '') + ' WHY DOWNVOTES!?';
     }
     const isDeleted = yield getArrayItem(rareTrue, commentUpdateSeedNumber.increment());
     const isPinned = yield getArrayItem(rareTrue, commentUpdateSeedNumber.increment());
@@ -919,7 +927,6 @@ class Comment extends Publication {
         this.locked = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.locked;
         this.deleted = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.deleted;
         this.removed = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.removed;
-        this.editTimestamp = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.editTimestamp;
         this.reason = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.reason;
         if (this.cid) {
             this.shortCid = this.cid.substring(2, 14);
