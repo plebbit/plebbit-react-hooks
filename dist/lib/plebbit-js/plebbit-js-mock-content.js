@@ -223,8 +223,8 @@ class _SeedIncrementer {
     }
     increment() {
         this.index++;
-        const multiplier = this.numbers[this.index % this.numbers.length] + this.index;
-        return Math.round(this.seed / multiplier);
+        const divider = this.numbers[this.index % this.numbers.length] + this.index;
+        return Math.round(this.seed / divider);
     }
 }
 export const SeedIncrementer = (seed) => new _SeedIncrementer(seed);
@@ -533,8 +533,15 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
     let replyCount = commentUpdateContent.replyCount;
     while (replyCount-- > 0) {
         // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
-        const replyContent = yield getReplyContent(getReplyContentOptions, String(commentUpdateSeedNumber.increment()));
-        const reply = Object.assign({ cid: yield seedToCid(commentUpdateSeedNumber.increment()), ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
+        const cid = yield seedToCid(yield getNumberHash(comment.cid + replyCount));
+        const replyContent = yield getReplyContent(getReplyContentOptions, cid + 'replycontent' + replyCount);
+        const reply = Object.assign({ 
+            // cid: await seedToCid(commentUpdateSeedNumber.increment()),
+            cid, ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
+        if (pageCommentCids.has(reply.cid)) {
+            console.error(`mock content error: duplicate reply cid '${reply.cid}'`);
+        }
+        pageCommentCids.add(reply.cid);
         const replyUpdateContent = yield getCommentUpdateContent(reply);
         commentUpdateContent.replies.pages.topAll.comments.push(Object.assign(Object.assign({}, reply), replyUpdateContent));
     }
@@ -583,21 +590,29 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
     commentUpdateContent.updatedAt = Math.round(Date.now() / 1000);
     return commentUpdateContent;
 });
+const pageCommentCids = new Set();
 const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 0, function* () {
     const commentsPageSeedNumber = SeedIncrementer(yield getNumberHash(pageCid));
     const page = {
-        nextCid: yield seedToCid(commentsPageSeedNumber.seed),
+        nextCid: yield seedToCid(commentsPageSeedNumber.increment()),
         comments: [],
     };
     const postCount = 100;
     let index = 0;
     while (index++ < postCount) {
+        const cid = yield seedToCid(yield getNumberHash(pageCid + index));
         let comment = {
             timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
-            cid: yield seedToCid(commentsPageSeedNumber.increment()),
+            // cid: await seedToCid(commentsPageSeedNumber.increment()),
+            cid,
             subplebbitAddress: subplebbit.address,
             depth: 0,
         };
+        // debug message
+        if (pageCommentCids.has(comment.cid)) {
+            console.error(`mock content error: duplicate page comment cid '${comment.cid}'`);
+        }
+        pageCommentCids.add(comment.cid);
         comment = Object.assign(Object.assign(Object.assign({}, comment), (yield getPostContent(comment.cid))), (yield getCommentUpdateContent(comment)));
         page.comments.push(comment);
     }
