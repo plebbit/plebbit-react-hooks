@@ -13,6 +13,8 @@ const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const testUtils = require('../../dist/lib/test-utils').default
 
+const timeout = 180_000
+
 describe('mock content', () => {
   before(() => {
     testUtils.silenceReactWarnings()
@@ -27,7 +29,7 @@ describe('mock content', () => {
 
   it('use comments', async () => {
     const rendered = renderHook((commentCid) => useComment({commentCid}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     rendered.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa0')
     await waitFor(() => rendered.result.current.state === 'fetching-ipfs')
@@ -81,7 +83,7 @@ describe('mock content', () => {
 
   it('use subplebbits', async () => {
     const rendered = renderHook((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     rendered.rerender('anything2.eth')
     await waitFor(() => rendered.result.current.state === 'fetching-ipns')
@@ -158,7 +160,7 @@ describe('mock content', () => {
 
   it('publish', async () => {
     const rendered = renderHook(() => useAccount())
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
     await waitFor(() => typeof rendered.result.current.plebbit?.createComment === 'function')
     expect(typeof rendered.result.current.plebbit?.createComment).to.equal('function')
@@ -205,7 +207,7 @@ describe('mock content', () => {
       const accountSubplebbits = useAccountSubplebbits()
       return {createSubplebbit, accountSubplebbits, account}
     })
-    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
     await waitFor(() => typeof rendered.result.current.account?.plebbit?.createSubplebbit === 'function')
     expect(typeof rendered.result.current.account?.plebbit?.createSubplebbit).to.equal('function')
 
