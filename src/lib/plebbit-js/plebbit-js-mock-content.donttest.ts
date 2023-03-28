@@ -29,7 +29,7 @@ describe('PlebbitJsMockContent', () => {
     }
   })
 
-  test.only('comment updates', async () => {
+  test.skip('comment updates', async () => {
     const plebbit = await PlebbitJsMockContent()
     let count = 10
     const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP7'
@@ -206,7 +206,7 @@ describe('mock content', () => {
     expect(typeof rendered2.result.current.posts?.pageCids?.new).toBe('string')
   })
 
-  test('use feed', async () => {
+  test.only('use feed', async () => {
     const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
 
@@ -234,6 +234,26 @@ describe('mock content', () => {
     await scrollOnePage()
     console.log(rendered.result.current)
     expect(rendered.result.current.feed?.length).toBeGreaterThan(100)
+  })
+
+  test('use feed no duplicate cids', async () => {
+    const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
+    const waitFor = testUtils.createWaitFor(rendered, {timeout: 60000})
+
+    rendered.rerender(['QmPjewdKya8iVkuQiiXQ5qRBsgVUAZg2LQ2m8v3LNJ7Ht8'])
+    await waitFor(() => rendered.result.current.feed?.length > 0)
+    expect(rendered.result.current.feed?.length).toBeGreaterThan(0)
+    const cids: any = new Set()
+    for (const comment of rendered.result.current.feed) {
+      // if (cids.has(comment.cid)) {
+      //   throw Error(`duplicate cid '${comment.cid}'`)
+      // }
+      // cids.add(comment.cid)
+      // if (comment.replies?.pages?.topAll?.comments) {
+      //   // console.log(comment.replies.pages.topAll.comments)
+      // }
+      // console.log(comment.cid)
+    }
   })
 
   test('publish', async () => {

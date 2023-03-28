@@ -238,8 +238,8 @@ class _SeedIncrementer {
   }
   increment() {
     this.index++
-    const multiplier = this.numbers[this.index % this.numbers.length] + this.index
-    return Math.round(this.seed / multiplier)
+    const divider = this.numbers[this.index % this.numbers.length] + this.index
+    return Math.round(this.seed / divider)
   }
 }
 export const SeedIncrementer = (seed: number) => new _SeedIncrementer(seed)
@@ -589,14 +589,20 @@ const getCommentUpdateContent = async (comment: any) => {
   let replyCount = commentUpdateContent.replyCount
   while (replyCount-- > 0) {
     // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
-    const replyContent = await getReplyContent(getReplyContentOptions, String(commentUpdateSeedNumber.increment()))
+    const cid = await seedToCid(await getNumberHash(comment.cid + replyCount))
+    const replyContent = await getReplyContent(getReplyContentOptions, cid + 'replycontent' + replyCount)
     const reply = {
-      cid: await seedToCid(commentUpdateSeedNumber.increment()),
+      // cid: await seedToCid(commentUpdateSeedNumber.increment()),
+      cid,
       ipnsName: await seedToCid(commentUpdateSeedNumber.increment()),
       timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()),
       subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
       ...replyContent,
     }
+    if (pageCommentCids.has(reply.cid)) {
+      console.error(`mock content error: duplicate reply cid '${reply.cid}'`)
+    }
+    pageCommentCids.add(reply.cid)
     const replyUpdateContent = await getCommentUpdateContent(reply)
     commentUpdateContent.replies.pages.topAll.comments.push({...reply, ...replyUpdateContent})
   }
@@ -650,21 +656,29 @@ const getCommentUpdateContent = async (comment: any) => {
   return commentUpdateContent
 }
 
+const pageCommentCids: any = new Set()
 const getCommentsPage = async (pageCid: string, subplebbit: any) => {
   const commentsPageSeedNumber = SeedIncrementer(await getNumberHash(pageCid))
   const page: any = {
-    nextCid: await seedToCid(commentsPageSeedNumber.seed),
+    nextCid: await seedToCid(commentsPageSeedNumber.increment()),
     comments: [],
   }
   const postCount = 100
   let index = 0
   while (index++ < postCount) {
+    const cid = await seedToCid(await getNumberHash(pageCid + index))
     let comment = {
       timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
-      cid: await seedToCid(commentsPageSeedNumber.increment()),
+      // cid: await seedToCid(commentsPageSeedNumber.increment()),
+      cid,
       subplebbitAddress: subplebbit.address,
       depth: 0,
     }
+    // debug message
+    if (pageCommentCids.has(comment.cid)) {
+      console.error(`mock content error: duplicate page comment cid '${comment.cid}'`)
+    }
+    pageCommentCids.add(comment.cid)
     comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
     page.comments.push(comment)
   }
