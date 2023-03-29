@@ -538,7 +538,7 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         const replyContent = yield getReplyContent(getReplyContentOptions, cid + 'replycontent' + replyCount);
         const reply = Object.assign({ 
             // cid: await seedToCid(commentUpdateSeedNumber.increment()),
-            cid, ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
+            cid, shortCid: cid.substring(2, 14), ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
         if (replyCids.has(reply.cid)) {
             console.error(`mock content error: duplicate reply cid '${reply.cid}'`);
         }
@@ -646,7 +646,6 @@ class Plebbit extends EventEmitter {
     }
     getSubplebbit(subplebbitAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield simulateLoadingTime();
             const createSubplebbitOptions = {
                 address: subplebbitAddress,
             };
@@ -679,7 +678,6 @@ class Plebbit extends EventEmitter {
     }
     getComment(commentCid) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield simulateLoadingTime();
             const commentSeedNumber = SeedIncrementer(yield getNumberHash(commentCid + 'getcomment'));
             let commentContent = yield getPostContent(commentCid + 'postcontent');
             const isReply = commentCid.endsWith('reply');
