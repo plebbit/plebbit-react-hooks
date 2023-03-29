@@ -132,7 +132,7 @@ describe('mock content', () => {
     expect(typeof rendered2.result.current.posts?.pageCids?.new).to.equal('string')
   })
 
-  it('use feed', async () => {
+  it('use feed hot', async () => {
     const rendered = renderHook((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'hot'}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
@@ -158,7 +158,7 @@ describe('mock content', () => {
     expect(rendered.result.current.feed?.length).to.be.greaterThan(50)
   })
 
-  it('use feed', async () => {
+  it('use feed new', async () => {
     const rendered = renderHook((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
