@@ -531,6 +531,7 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
     commentUpdateContent.replies = { pages: { topAll: { nextCid: undefined, comments: [] } } };
     const getReplyContentOptions = { depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid };
     let replyCount = commentUpdateContent.replyCount;
+    const replyCids = new Set();
     while (replyCount-- > 0) {
         // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
         const cid = yield seedToCid(yield getNumberHash(comment.cid + replyCount));
@@ -538,10 +539,10 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         const reply = Object.assign({ 
             // cid: await seedToCid(commentUpdateSeedNumber.increment()),
             cid, ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
-        if (pageCommentCids.has(reply.cid)) {
+        if (replyCids.has(reply.cid)) {
             console.error(`mock content error: duplicate reply cid '${reply.cid}'`);
         }
-        pageCommentCids.add(reply.cid);
+        replyCids.add(reply.cid);
         const replyUpdateContent = yield getCommentUpdateContent(reply);
         commentUpdateContent.replies.pages.topAll.comments.push(Object.assign(Object.assign({}, reply), replyUpdateContent));
     }
@@ -599,21 +600,27 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
     };
     const postCount = 100;
     let index = 0;
+    const plebbit = new Plebbit();
     while (index++ < postCount) {
         const cid = yield seedToCid(yield getNumberHash(pageCid + index));
-        let comment = {
-            timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
-            // cid: await seedToCid(commentsPageSeedNumber.increment()),
-            cid,
-            subplebbitAddress: subplebbit.address,
-            depth: 0,
-        };
+        // let comment = {
+        //   timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
+        //   // cid: await seedToCid(commentsPageSeedNumber.increment()),
+        //   cid,
+        //   subplebbitAddress: subplebbit.address,
+        //   depth: 0,
+        // }
         // debug message
-        if (pageCommentCids.has(comment.cid)) {
-            console.error(`mock content error: duplicate page comment cid '${comment.cid}'`);
+        if (pageCommentCids.has(cid)) {
+            console.error(`mock content error: duplicate page comment cid '${cid}'`);
         }
-        pageCommentCids.add(comment.cid);
-        comment = Object.assign(Object.assign(Object.assign({}, comment), (yield getPostContent(comment.cid))), (yield getCommentUpdateContent(comment)));
+        pageCommentCids.add(cid);
+        // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
+        const comment = yield plebbit.getComment(cid);
+        const commentUpdateContent = yield getCommentUpdateContent(comment);
+        for (const prop in commentUpdateContent) {
+            comment[prop] = commentUpdateContent[prop];
+        }
         page.comments.push(comment);
     }
     return page;
@@ -651,13 +658,12 @@ class Plebbit extends EventEmitter {
                 address: subplebbitAddress,
             };
             const subplebbit = new Subplebbit(createSubplebbitOptions);
-            const subplebbitPagesSeedNumber = SeedIncrementer(yield getNumberHash(subplebbitAddress + 'pages'));
-            const hotPageCid = yield seedToCid(subplebbitPagesSeedNumber.increment());
+            const hotPageCid = yield seedToCid(yield getNumberHash(subplebbitAddress + 'hotpagecid'));
             subplebbit.posts.pages.hot = yield getCommentsPage(hotPageCid, subplebbit);
             subplebbit.posts.pageCids = {
-                hot: yield seedToCid(subplebbitPagesSeedNumber.increment()),
-                topAll: yield seedToCid(subplebbitPagesSeedNumber.increment()),
-                new: yield seedToCid(subplebbitPagesSeedNumber.increment()),
+                hot: yield seedToCid(yield getNumberHash(subplebbitAddress + 'hotpagecid2')),
+                topAll: yield seedToCid(yield getNumberHash(subplebbitAddress + 'topallpagecid')),
+                new: yield seedToCid(yield getNumberHash(subplebbitAddress + 'newpagecid')),
             };
             const subplebbitContent = yield getSubplebbitContent(subplebbitAddress);
             // add extra props
@@ -683,7 +689,7 @@ class Plebbit extends EventEmitter {
             yield simulateLoadingTime();
             const commentSeedNumber = SeedIncrementer(yield getNumberHash(commentCid + 'getcomment'));
             let commentContent = yield getPostContent(commentCid + 'postcontent');
-            const isReply = yield getArrayItem([true, false, false, false], commentSeedNumber.increment());
+            const isReply = commentCid.endsWith('reply');
             if (isReply) {
                 const depth = yield getNumberBetween(1, 10, commentSeedNumber.increment());
                 const parentCid = yield seedToCid(commentSeedNumber.increment());
@@ -854,6 +860,7 @@ class Subplebbit extends EventEmitter {
                 // @ts-ignore
                 this[prop] = props[prop];
             }
+            this.posts.getPage = subplebbit.posts.getPage;
             this.updatingState = 'succeeded';
             this.emit('update', this);
             this.emit('updatingstatechange', 'succeeded');
@@ -972,6 +979,8 @@ class Comment extends Publication {
             this.emit('updatingstatechange', 'fetching-ipfs');
             (() => __awaiter(this, void 0, void 0, function* () {
                 while (true) {
+                    yield simulateLoadingTime();
+                    yield simulateLoadingTime();
                     yield simulateLoadingTime();
                     this.simulateUpdateEvent();
                 }
