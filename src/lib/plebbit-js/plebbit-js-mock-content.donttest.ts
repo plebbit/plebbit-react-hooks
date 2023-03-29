@@ -30,7 +30,7 @@ describe('PlebbitJsMockContent', () => {
     }
   })
 
-  test.skip('comment updates', async () => {
+  test('comment updates', async () => {
     const plebbit = await PlebbitJsMockContent()
     let count = 10
     const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP8'
@@ -38,7 +38,7 @@ describe('PlebbitJsMockContent', () => {
     comment.update()
     await new Promise((r) =>
       comment.on('update', () => {
-        console.log(comment)
+        console.log(comment.replies?.pages?.topAll?.comments)
         if (!count--) {
           comment.removeAllListeners()
           r(undefined)
@@ -47,7 +47,7 @@ describe('PlebbitJsMockContent', () => {
     )
   })
 
-  test.skip('new page', async () => {
+  test.only('new page', async () => {
     const plebbit = await PlebbitJsMockContent()
     const address = 'news.eth'
     const subplebbit: any = await plebbit.createSubplebbit({address})
@@ -56,18 +56,19 @@ describe('PlebbitJsMockContent', () => {
     await new Promise((r) =>
       subplebbit.on('update', async () => {
         console.log(subplebbit)
-        subplebbit.removeAllListeners()
+        console.log(subplebbit.posts.pages)
+        // subplebbit.removeAllListeners()
         try {
-          const page = await subplebbit.posts.getPage(subplebbit.posts.pageCids.new)
+          // const page = await subplebbit.posts.getPage(subplebbit.posts.pageCids.new)
           // console.log(page)
-          const comment = page.comments[0]
-          console.log({comment})
-          const comment2 = await plebbit.getComment(comment.cid)
-          console.log({comment2})
+          // const comment = page.comments[0]
+          // console.log({comment})
+          // const comment2 = await plebbit.getComment(comment.cid)
+          // console.log({comment2})
         } catch (e) {
           console.log(e)
         }
-        r(undefined)
+        // r(undefined)
       })
     )
   })
@@ -249,7 +250,7 @@ describe('mock content', () => {
     expect(typeof rendered2.result.current.posts?.pageCids?.new).toBe('string')
   })
 
-  test.skip('use feed', async () => {
+  test('use feed new', async () => {
     const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
@@ -279,24 +280,34 @@ describe('mock content', () => {
     expect(rendered.result.current.feed?.length).toBeGreaterThan(100)
   })
 
-  test('use feed no duplicate cids', async () => {
-    const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
+  test('use feed hot', async () => {
+    const rendered = renderHook<any, any>((subplebbitAddresses) => useFeed({subplebbitAddresses}))
     const waitFor = testUtils.createWaitFor(rendered, {timeout})
 
-    rendered.rerender(['QmPjewdKya8iVkuQiiXQ5qRBsgVUAZg2LQ2m8v3LNJ7Ht8'])
+    const scrollOnePage = async () => {
+      const nextFeedLength = (rendered.result.current.feed?.length || 0) + 25
+      act(() => {
+        rendered.result.current.loadMore()
+      })
+      try {
+        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout})
+      } catch (e) {
+        console.error('scrollOnePage failed:', e)
+      }
+    }
+
+    rendered.rerender(['jokes.eth', 'news.eth'])
     await waitFor(() => rendered.result.current.feed?.length > 0)
     expect(rendered.result.current.feed?.length).toBeGreaterThan(0)
-    const cids: any = new Set()
-    for (const comment of rendered.result.current.feed) {
-      // if (cids.has(comment.cid)) {
-      //   throw Error(`duplicate cid '${comment.cid}'`)
-      // }
-      // cids.add(comment.cid)
-      // if (comment.replies?.pages?.topAll?.comments) {
-      //   // console.log(comment.replies.pages.topAll.comments)
-      // }
-      // console.log(comment.cid)
-    }
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    console.log(rendered.result.current)
+    expect(rendered.result.current.feed?.length).toBeGreaterThan(100)
   })
 
   test('publish', async () => {

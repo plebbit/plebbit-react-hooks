@@ -158,6 +158,32 @@ describe('mock content', () => {
     expect(rendered.result.current.feed?.length).to.be.greaterThan(50)
   })
 
+  it('use feed', async () => {
+    const rendered = renderHook((subplebbitAddresses) => useFeed({subplebbitAddresses, sortType: 'new'}))
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
+
+    const scrollOnePage = async () => {
+      const nextFeedLength = (rendered.result.current.feed?.length || 0) + 25
+      act(() => {
+        rendered.result.current.loadMore()
+      })
+      try {
+        await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength, {timeout})
+      } catch (e) {
+        console.error('scrollOnePage failed:', e)
+      }
+    }
+
+    rendered.rerender(['jokes.eth', 'news.eth'])
+    await waitFor(() => rendered.result.current.feed?.length > 0)
+    console.log(rendered.result.current)
+    expect(rendered.result.current.feed?.length).to.be.greaterThan(0)
+    await scrollOnePage()
+    await scrollOnePage()
+    console.log(rendered.result.current)
+    expect(rendered.result.current.feed?.length).to.be.greaterThan(50)
+  })
+
   it('publish', async () => {
     const rendered = renderHook(() => useAccount())
     const waitFor = testUtils.createWaitFor(rendered, {timeout})

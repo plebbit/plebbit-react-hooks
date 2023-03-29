@@ -595,6 +595,7 @@ const getCommentUpdateContent = async (comment: any) => {
     const reply = {
       // cid: await seedToCid(commentUpdateSeedNumber.increment()),
       cid,
+      shortCid: cid.substring(2, 14),
       ipnsName: await seedToCid(commentUpdateSeedNumber.increment()),
       timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()),
       subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
@@ -715,7 +716,6 @@ class Plebbit extends EventEmitter {
   }
 
   async getSubplebbit(subplebbitAddress: string) {
-    await simulateLoadingTime()
     const createSubplebbitOptions = {
       address: subplebbitAddress,
     }
@@ -746,7 +746,6 @@ class Plebbit extends EventEmitter {
   }
 
   async getComment(commentCid: string) {
-    await simulateLoadingTime()
     const commentSeedNumber = SeedIncrementer(await getNumberHash(commentCid + 'getcomment'))
     let commentContent: any = await getPostContent(commentCid + 'postcontent')
     const isReply = commentCid.endsWith('reply')
