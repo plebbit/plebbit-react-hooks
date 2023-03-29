@@ -47,7 +47,7 @@ describe('PlebbitJsMockContent', () => {
     )
   })
 
-  test.only('new page', async () => {
+  test.skip('new page', async () => {
     const plebbit = await PlebbitJsMockContent()
     const address = 'news.eth'
     const subplebbit: any = await plebbit.createSubplebbit({address})

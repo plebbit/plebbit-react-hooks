@@ -593,13 +593,12 @@ const getCommentUpdateContent = async (comment: any) => {
     const cid = await seedToCid(await getNumberHash(comment.cid + replyCount))
     const replyContent = await getReplyContent(getReplyContentOptions, cid + 'replycontent' + replyCount)
     const reply = {
-      // cid: await seedToCid(commentUpdateSeedNumber.increment()),
       cid,
       shortCid: cid.substring(2, 14),
       ipnsName: await seedToCid(commentUpdateSeedNumber.increment()),
       timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()),
-      subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
       ...replyContent,
+      subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
     }
     if (replyCids.has(reply.cid)) {
       console.error(`mock content error: duplicate reply cid '${reply.cid}'`)
@@ -677,6 +676,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
     pageCommentCids.add(cid)
     // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
     const comment: any = await plebbit.getComment(cid)
+    comment.subplebbitAddress = subplebbit.address
     const commentUpdateContent: any = await getCommentUpdateContent(comment)
     for (const prop in commentUpdateContent) {
       comment[prop] = commentUpdateContent[prop]
