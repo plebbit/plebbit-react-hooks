@@ -669,13 +669,6 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
   const plebbit = new Plebbit()
   while (index++ < postCount) {
     const cid = await seedToCid(await getNumberHash(pageCid + index))
-    // let comment = {
-    //   timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentsPageSeedNumber.increment()),
-    //   // cid: await seedToCid(commentsPageSeedNumber.increment()),
-    //   cid,
-    //   subplebbitAddress: subplebbit.address,
-    //   depth: 0,
-    // }
     // debug message
     if (pageCommentCids.has(cid)) {
       console.error(`mock content error: duplicate page comment cid '${cid}'`)
