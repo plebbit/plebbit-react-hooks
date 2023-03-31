@@ -733,3 +733,31 @@ const {accountEdits} = useAccountEdits({filter})
 const filter = {subplebbitAddresses: ['news.eth']}
 const {accountEdits} = useAccountEdits({filter})
 ```
+
+#### Get replies to a post flattened (not nested)
+
+```js
+import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
+import {flattenCommentsPages} from '@plebbit/plebbit-react-hooks/dist/lib/utils'
+const comment = useComment({commentCid})
+const {accountComments} = useAccountComments({filter: {postCid: commentCid}})
+
+// the default way to display replies is nested, flatten (unnest) them instead
+const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [comment.replies])
+
+// the account's replies have a delay before getting published, so get them locally from accountComments instead
+const accountRepliesNotYetInCommentReplies = useMemo(() => {
+  const commentReplyCids = new Map(flattenedReplies.map(reply => reply.cid))
+  // filter out the account comments already in comment.replies, so they don't appear twice
+  return accountComments.filter(accountReply => !commentReplyCids.has(accountReply.cid))
+}, [flattenedReplies, accountComments])
+
+// merge the not yet published account replies and published replies, and sort them by timestamp
+const sortedReplies = useMemo(() => [...accountRepliesNotYetInCommentReplies, ...flattenedReplies].sort((a, b) => a.timestamp - b.timestamp), [accountRepliesNotYetInCommentReplies, flattenedReplies])
+
+for (const reply of sortedReplies) {
+  // account replies can have reply.state 'pending' or 'failed' when they are not published yet
+  // it is recommended to add a 'pending' or 'failed' label to these replies
+  console.log(reply)
+}
+```
