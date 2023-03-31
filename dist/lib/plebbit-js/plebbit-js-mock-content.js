@@ -536,9 +536,7 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
         const cid = yield seedToCid(yield getNumberHash(comment.cid + replyCount));
         const replyContent = yield getReplyContent(getReplyContentOptions, cid + 'replycontent' + replyCount);
-        const reply = Object.assign({ 
-            // cid: await seedToCid(commentUpdateSeedNumber.increment()),
-            cid, shortCid: cid.substring(2, 14), ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()), subplebbitAddress: comment.subplebbitAddress || 'memes.eth' }, replyContent);
+        const reply = Object.assign(Object.assign({ cid, shortCid: cid.substring(2, 14), ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()) }, replyContent), { subplebbitAddress: comment.subplebbitAddress || 'memes.eth' });
         if (replyCids.has(reply.cid)) {
             console.error(`mock content error: duplicate reply cid '${reply.cid}'`);
         }
@@ -610,6 +608,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
         pageCommentCids.add(cid);
         // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
         const comment = yield plebbit.getComment(cid);
+        comment.subplebbitAddress = subplebbit.address;
         const commentUpdateContent = yield getCommentUpdateContent(comment);
         for (const prop in commentUpdateContent) {
             comment[prop] = commentUpdateContent[prop];
