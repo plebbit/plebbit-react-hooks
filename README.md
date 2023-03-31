@@ -563,7 +563,12 @@ unblock()
 const createSubplebbitOptions = {title: 'My subplebbit title'}
 const {createdSubplebbit, createSubplebbit} = useCreateSubplebbit(createSubplebbitOptions)
 await createSubplebbit()
-console.log(createdSubplebbit.title)
+
+// it is recommended to redirect to `p/${createdSubplebbit.address}` after creation
+if (createdSubplebbit?.address) {
+  console.log('created subplebbit with title', createdSubplebbit.title)
+  history.push(`p/${createdSubplebbit.address}`)
+}
 
 // after the subplebbit is created, fetch it using
 const {accountSubplebbits} = useAccountSubplebbits()
