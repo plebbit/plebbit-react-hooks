@@ -20,9 +20,14 @@ export const validateAccountsActionsPublishCommentArguments = ({ publishCommentO
     assert(!publishCommentOptions.onError || typeof publishCommentOptions.onError === 'function', 'publishComment publishCommentOptions.onError not a function');
     assert(typeof publishCommentOptions.subplebbitAddress === 'string', 'publishComment publishCommentOptions.subplebbitAddress not a string');
     assert(!publishCommentOptions.parentCid || typeof publishCommentOptions.parentCid === 'string', 'publishComment publishCommentOptions.parentCid not a string');
-    assert(typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string');
-    assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string');
     assert(!publishCommentOptions.timestamp || typeof publishCommentOptions.timestamp === 'number', 'publishComment publishCommentOptions.timestamp is not a number');
+    // validate content
+    assert(!publishCommentOptions.content || typeof publishCommentOptions.content === 'string', 'publishComment publishCommentOptions.content not a string');
+    assert(publishCommentOptions.content !== '', 'publishComment publishCommentOptions.content is an empty string');
+    assert(!publishCommentOptions.link || typeof publishCommentOptions.link === 'string', 'publishComment publishCommentOptions.link not a string');
+    assert(publishCommentOptions.link !== '', 'publishComment publishCommentOptions.link is an empty string');
+    assert(!publishCommentOptions.title || typeof publishCommentOptions.title === 'string', 'publishComment publishCommentOptions.title not a string');
+    assert(publishCommentOptions.title !== '', 'publishComment publishCommentOptions.title is an empty string');
 };
 export const validateAccountsActionsPublishVoteArguments = ({ publishVoteOptions, accountName, account }) => {
     assert(!accountName || typeof accountName === 'string', `publishVote accountName '${accountName}' not a string`);
