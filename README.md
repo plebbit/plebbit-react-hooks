@@ -781,7 +781,7 @@ const Reply = ({reply}) => {
 // it is recommended to add a 'pending' or 'failed' label to these replies
 const comment = useComment({commentCid})
 const replies = useRepliesAndAccountReplies(comment)
-const repliesComponents = replies.map(reply => <Reply reply={reply}/>
+const repliesComponents = replies.map(reply => <Reply reply={reply}/>)
 ```
 
 #### Get replies to a post flattened (not nested)
