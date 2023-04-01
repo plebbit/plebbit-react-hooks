@@ -770,7 +770,7 @@ const Reply = ({reply}) => {
       {reply.state === 'pending' && <div>PENDING</div>}
       {reply.state === 'failed' && <div>FAILED</div>}
       <div>{reply.content}</div>
-      <div style='margin-left: 4px'>
+      <div style={{marginLeft: 4}}>
         {replies.map(reply => <Reply reply={reply}/>))}
       </div>
     </div>
