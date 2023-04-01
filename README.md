@@ -744,8 +744,8 @@ const useRepliesAndAccountReplies = (comment) => {
 
   // the account's replies have a delay before getting published, so get them locally from accountComments instead
   const accountRepliesNotYetPublished = useMap(() => {
-    const replies = (comment?.replies?.pages?.topAll || [])
-    const replyCids = new Map(replies.map(reply => reply.cid))
+    const replies = comment?.replies?.pages?.topAll || []
+    const replyCids = new Set(replies.map(reply => reply.cid))
     // filter out the account comments already in comment.replies, so they don't appear twice
     return accountComments.filter(accountReply => !replyCids.has(accountReply.cid))
   }, [comment?.replies?.pages?.topAll, accountComments])
@@ -753,7 +753,7 @@ const useRepliesAndAccountReplies = (comment) => {
   const repliesAndNotYetPublishedReplies = useMap(() => {
     return [
       // put the author's unpublished replies at the top, latest first (reverse)
-      ...accountRepliesNotYetPublished().reverse(),
+      ...accountRepliesNotYetPublished.reverse(),
       // put the published replies after,
       ...comment?.replies?.pages?.topAll || []
     ]
@@ -797,7 +797,7 @@ const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [c
 
 // the account's replies have a delay before getting published, so get them locally from accountComments instead
 const accountRepliesNotYetInCommentReplies = useMemo(() => {
-  const commentReplyCids = new Map(flattenedReplies.map(reply => reply.cid))
+  const commentReplyCids = new Set(flattenedReplies.map(reply => reply.cid))
   // filter out the account comments already in comment.replies, so they don't appear twice
   return accountComments.filter(accountReply => !commentReplyCids.has(accountReply.cid))
 }, [flattenedReplies, accountComments])
