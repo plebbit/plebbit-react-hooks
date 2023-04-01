@@ -15,6 +15,7 @@ const log = Logger('plebbit-react-hooks:accounts:hooks');
 import assert from 'assert';
 import { useListSubplebbits, useSubplebbits } from '../subplebbits';
 import { filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications } from './utils';
+import useInterval from '../utils/use-interval';
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account id.
@@ -166,11 +167,31 @@ export function useNotifications(options) {
         errors,
     }), [notifications, errors]);
 }
+const getAccountCommentsStates = (accountComments) => {
+    // no longer consider an pending ater an expiry time of 20 minutes, consider failed
+    const now = Math.round(Date.now() / 1000);
+    const expiryTime = now - 60 * 20;
+    const states = [];
+    for (const accountComment of accountComments) {
+        let state = 'succeeded';
+        if (!accountComment.cid) {
+            if (accountComment.timestamp > expiryTime) {
+                state = 'pending';
+            }
+            else {
+                state = 'failed';
+            }
+        }
+        states.push(state);
+    }
+    return states;
+};
 export function useAccountComments(options) {
     assert(!options || typeof options === 'object', `useAccountComments options argument '${options}' not an object`);
     const { accountName, filter } = options || {};
     const accountId = useAccountId(accountName);
     const accountComments = useAccountsStore((state) => state.accountsComments[accountId || '']);
+    const [accountCommentStates, setAccountCommentStates] = useState([]);
     const filteredAccountComments = useMemo(() => {
         if (!accountComments) {
             return [];
@@ -180,16 +201,29 @@ export function useAccountComments(options) {
         }
         return accountComments;
     }, [accountComments, filter]);
+    // recheck the states for changes every 1 minute
+    const delay = 60000;
+    const immediate = false;
+    useInterval(() => {
+        const states = getAccountCommentsStates(filteredAccountComments);
+        if (states.toString() !== accountCommentStates.toString()) {
+            setAccountCommentStates(states);
+        }
+    }, delay, immediate);
+    const filteredAccountCommentsWithStates = useMemo(() => {
+        const states = getAccountCommentsStates(filteredAccountComments);
+        return filteredAccountComments.map((comment, i) => (Object.assign(Object.assign({}, comment), { state: states[i] || 'initializing' })));
+    }, [filteredAccountComments, accountCommentStates]);
     if (accountComments && options) {
-        log('useAccountComments', { accountId, filteredAccountComments, accountComments, filter });
+        log('useAccountComments', { accountId, filteredAccountCommentsWithStates, accountComments, filter });
     }
     const state = accountId ? 'succeeded' : 'initializing';
     return useMemo(() => ({
-        accountComments: filteredAccountComments,
+        accountComments: filteredAccountCommentsWithStates,
         state,
         error: undefined,
         errors: [],
-    }), [filteredAccountComments, state]);
+    }), [filteredAccountCommentsWithStates, state]);
 }
 /**
  * Returns an account's single comment, e.g. a pending comment they published.
@@ -199,7 +233,7 @@ export function useAccountComment(options) {
     const { commentIndex, accountName } = options || {};
     const { accountComments } = useAccountComments({ accountName });
     const accountComment = useMemo(() => (accountComments === null || accountComments === void 0 ? void 0 : accountComments[Number(commentIndex)]) || {}, [accountComments, commentIndex]);
-    const state = accountComments && commentIndex !== undefined ? 'succeeded' : 'initializing';
+    const state = accountComment.state || 'initializing';
     return useMemo(() => (Object.assign(Object.assign({}, accountComment), { state, error: undefined, errors: [] })), [accountComment, state]);
 }
 /**
@@ -227,6 +261,7 @@ export function useAccountVotes(options) {
     if (accountVotes && filter) {
         log('useAccountVotes', { accountId, filteredAccountVotesArray, accountVotes, filter });
     }
+    // TODO: add failed / pending states
     const state = accountId ? 'succeeded' : 'initializing';
     return useMemo(() => ({
         accountVotes: filteredAccountVotesArray,
@@ -245,6 +280,7 @@ export function useAccountVote(options) {
     const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || '']);
     const accountVote = accountVotes === null || accountVotes === void 0 ? void 0 : accountVotes[commentCid || ''];
     const state = accountId && commentCid ? 'succeeded' : 'initializing';
+    // TODO: add failed / pending state
     return useMemo(() => (Object.assign(Object.assign({}, accountVote), { state, error: undefined, errors: [] })), [accountVote, state]);
 }
 /**
@@ -269,6 +305,7 @@ export function useAccountEdits(options) {
         }
         return filterPublications(accountEditsArray, filter);
     }, [accountEditsArray, filter]);
+    // TODO: add failed / pending states
     const state = accountId ? 'succeeded' : 'initializing';
     return useMemo(() => ({
         accountEdits: filteredAccountEditsArray,
