@@ -1161,6 +1161,14 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
     })
 
+    test(`account comments have states`, async () => {
+      expect(rendered.result.current.accountComments.length).toBe(3)
+      // await waitFor(() => rendered.result.current.accountComments[0].state === 'pending')
+      expect(rendered.result.current.accountComments[0].state).toBe('pending')
+      expect(rendered.result.current.accountComments[1].state).toBe('pending')
+      expect(rendered.result.current.accountComments[2].state).toBe('pending')
+    })
+
     test(`get account comment and add cid to it when receive challengeVerification`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
@@ -1184,6 +1192,9 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
       expect(rendered.result.current.accountComments[1].cid).toBe('content 2 cid')
       expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
+      expect(rendered.result.current.accountComments[0].state).toBe('succeeded')
+      expect(rendered.result.current.accountComments[1].state).toBe('succeeded')
+      expect(rendered.result.current.accountComments[2].state).toBe('pending')
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
 
       // check if cids are in database after getting a new store

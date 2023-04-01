@@ -6,6 +6,7 @@ const log = Logger('plebbit-react-hooks:accounts:hooks')
 import assert from 'assert'
 import {useListSubplebbits, useSubplebbits} from '../subplebbits'
 import type {
+  AccountComment,
   AccountComments,
   Account,
   Accounts,
@@ -32,6 +33,7 @@ import type {
   UseAccountResult,
 } from '../../types'
 import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications} from './utils'
+import useInterval from '../utils/use-interval'
 
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -215,11 +217,33 @@ export function useNotifications(options?: UseNotificationsOptions): UseNotifica
   )
 }
 
+const getAccountCommentsStates = (accountComments: AccountComment[]) => {
+  // no longer consider an pending ater an expiry time of 20 minutes, consider failed
+  const now = Math.round(Date.now() / 1000)
+  const expiryTime = now - 60 * 20
+
+  const states: string[] = []
+  for (const accountComment of accountComments) {
+    let state = 'succeeded'
+    if (!accountComment.cid) {
+      if (accountComment.timestamp > expiryTime) {
+        state = 'pending'
+      } else {
+        state = 'failed'
+      }
+    }
+    states.push(state)
+  }
+
+  return states
+}
+
 export function useAccountComments(options?: UseAccountCommentsOptions): UseAccountCommentsResult {
   assert(!options || typeof options === 'object', `useAccountComments options argument '${options}' not an object`)
   const {accountName, filter} = options || {}
   const accountId = useAccountId(accountName)
   const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''])
+  const [accountCommentStates, setAccountCommentStates] = useState<string[]>([])
 
   const filteredAccountComments = useMemo(() => {
     if (!accountComments) {
@@ -231,20 +255,39 @@ export function useAccountComments(options?: UseAccountCommentsOptions): UseAcco
     return accountComments
   }, [accountComments, filter])
 
+  // recheck the states for changes every 1 minute
+  const delay = 60_000
+  const immediate = false
+  useInterval(
+    () => {
+      const states = getAccountCommentsStates(filteredAccountComments)
+      if (states.toString() !== accountCommentStates.toString()) {
+        setAccountCommentStates(states)
+      }
+    },
+    delay,
+    immediate
+  )
+
+  const filteredAccountCommentsWithStates = useMemo(() => {
+    const states = getAccountCommentsStates(filteredAccountComments)
+    return filteredAccountComments.map((comment, i) => ({...comment, state: states[i] || 'initializing'}))
+  }, [filteredAccountComments, accountCommentStates])
+
   if (accountComments && options) {
-    log('useAccountComments', {accountId, filteredAccountComments, accountComments, filter})
+    log('useAccountComments', {accountId, filteredAccountCommentsWithStates, accountComments, filter})
   }
 
   const state = accountId ? 'succeeded' : 'initializing'
 
   return useMemo(
     () => ({
-      accountComments: filteredAccountComments,
+      accountComments: filteredAccountCommentsWithStates,
       state,
       error: undefined,
       errors: [],
     }),
-    [filteredAccountComments, state]
+    [filteredAccountCommentsWithStates, state]
   )
 }
 
