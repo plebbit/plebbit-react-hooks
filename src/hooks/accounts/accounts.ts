@@ -299,7 +299,7 @@ export function useAccountComment(options?: UseAccountCommentOptions): UseAccoun
   const {commentIndex, accountName} = options || {}
   const {accountComments} = useAccountComments({accountName})
   const accountComment = useMemo(() => accountComments?.[Number(commentIndex)] || {}, [accountComments, commentIndex])
-  const state = accountComments && commentIndex !== undefined ? 'succeeded' : 'initializing'
+  const state = accountComment.state || 'initializing'
 
   return useMemo(
     () => ({
@@ -340,6 +340,8 @@ export function useAccountVotes(options?: UseAccountVotesOptions): UseAccountVot
     log('useAccountVotes', {accountId, filteredAccountVotesArray, accountVotes, filter})
   }
 
+  // TODO: add failed / pending states
+
   const state = accountId ? 'succeeded' : 'initializing'
 
   return useMemo(
@@ -363,6 +365,8 @@ export function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteR
   const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
   const accountVote: any = accountVotes?.[commentCid || '']
   const state = accountId && commentCid ? 'succeeded' : 'initializing'
+
+  // TODO: add failed / pending state
 
   return useMemo(
     () => ({
@@ -399,6 +403,8 @@ export function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEdi
     }
     return filterPublications(accountEditsArray, filter)
   }, [accountEditsArray, filter])
+
+  // TODO: add failed / pending states
 
   const state = accountId ? 'succeeded' : 'initializing'
 
