@@ -734,6 +734,56 @@ const filter = {subplebbitAddresses: ['news.eth']}
 const {accountEdits} = useAccountEdits({filter})
 ```
 
+#### Get replies to a post (nested)
+
+```jsx
+import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
+
+const useRepliesAndAccountReplies = (comment) => {
+   const {accountComments} = useAccountComments({filter: {parentCid: comment?.cid}})
+
+  // the account's replies have a delay before getting published, so get them locally from accountComments instead
+  const accountRepliesNotYetPublished = useMap(() => {
+    const replies = (comment?.replies?.pages?.topAll || [])
+    const replyCids = new Map(replies.map(reply => reply.cid))
+    // filter out the account comments already in comment.replies, so they don't appear twice
+    return accountComments.filter(accountReply => !replyCids.has(accountReply.cid))
+  }, [comment?.replies?.pages?.topAll, accountComments])
+
+  const repliesAndNotYetPublishedReplies = useMap(() => {
+    return [
+      // put the author's unpublished replies at the top, latest first (reverse)
+      ...accountRepliesNotYetPublished().reverse(),
+      // put the published replies after,
+      ...comment?.replies?.pages?.topAll || []
+    ]
+  }, [comment?.replies?.pages?.topAll, accountRepliesNotYetPublished])
+
+  return repliesAndNotYetPublishedReplies
+}
+
+const Reply = ({reply}) => {
+  const replies = useRepliesAndAccountReplies(reply)
+  return (
+    <div>
+      <div>{reply.author.address} {reply.timestamp}</div>
+      {reply.state === 'pending' && <div>PENDING</div>}
+      {reply.state === 'failed' && <div>FAILED</div>}
+      <div>{reply.content}</div>
+      <div style='margin-left: 4px'>
+        {replies.map(reply => <Reply reply={reply}/>))}
+      </div>
+    </div>
+  )
+}
+
+// account replies can have reply.state 'pending' or 'failed' when they are not published yet
+// it is recommended to add a 'pending' or 'failed' label to these replies
+const comment = useComment({commentCid})
+const replies = useRepliesAndAccountReplies(comment)
+const repliesComponents = replies.map(reply => <Reply reply={reply}/>
+```
+
 #### Get replies to a post flattened (not nested)
 
 ```js
