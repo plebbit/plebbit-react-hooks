@@ -455,6 +455,62 @@ describe('actions', () => {
       expect(typeof onChallengeVerification.mock.calls[0][1].timestamp).toBe('number')
     })
 
+    test(`can publish post`, async () => {
+      const onChallenge = jest.fn()
+      const onChallengeVerification = jest.fn()
+      const publishCommentOptions = {
+        subplebbitAddress: '12D3KooW... acions.test',
+        parentCid: 'Qm... acions.test',
+        title: 'some title acions.test',
+        link: 'some link acions.test',
+        onChallenge,
+        onChallengeVerification,
+      }
+      rendered.rerender(publishCommentOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishComment()
+      })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
+      // wait for challenge
+      await waitFor(() => rendered.result.current.challenge)
+      expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+      expect(rendered.result.current.state).toBe('waiting-challenge-answers')
+
+      // publish challenge verification
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
+      })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
+
+      // wait for challenge verification
+      await waitFor(() => rendered.result.current.challengeVerification)
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(typeof rendered.result.current.index).toBe('number')
+      expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // check callbacks
+      expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
+      expect(typeof onChallenge.mock.calls[0][1].timestamp).toBe('number')
+      expect(onChallengeVerification.mock.calls[0][0].type).toBe('CHALLENGEVERIFICATION')
+      expect(typeof onChallengeVerification.mock.calls[0][1].timestamp).toBe('number')
+    })
+
     test(`can error`, async () => {
       // mock the comment publish to error out
       const commentPublish = Comment.prototype.publish
