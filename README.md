@@ -305,8 +305,9 @@ await publishComment()
 #### Create a vote
 
 ```js
+const commentCid = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 const publishVoteOptions = {
-  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+  commentCid,
   vote: 1,
   subplebbitAddress: 'news.eth',
   onChallenge,
@@ -318,6 +319,18 @@ const {state, error, publishVote} = usePublishVote(publishVoteOptions)
 await publishVote()
 console.log(state)
 console.log(error)
+
+// display the user's vote
+const {vote} = useAccountVote({commentCid})
+
+if (vote === 1)
+  console.log('user voted 1')
+if (vote === -1)
+  console.log('user voted -1')
+if (vote === 0)
+  console.log('user voted 0')
+if (vote === undefined)
+  console.log(`user didn't vote yet`)
 ```
 
 #### Create a comment edit
