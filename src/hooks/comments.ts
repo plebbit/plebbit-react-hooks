@@ -57,7 +57,13 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
     comment = accountComment
   }
 
-  const state = comment?.updatingState || 'initializing'
+  let state = comment?.updatingState || 'initializing'
+  if (comment?.timestamp) {
+    state = 'fetching-ipns'
+  }
+  if (comment?.updatedAt) {
+    state = 'succeeded'
+  }
 
   return useMemo(
     () => ({

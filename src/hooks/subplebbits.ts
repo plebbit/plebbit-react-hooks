@@ -50,7 +50,10 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
     log('useSubplebbit', {subplebbitAddress, subplebbit, account})
   }
 
-  const state = subplebbit?.updatingState || 'initializing'
+  let state = subplebbit?.updatingState || 'initializing'
+  if (subplebbit?.updatedAt) {
+    state = 'succeeded'
+  }
 
   return useMemo(
     () => ({
