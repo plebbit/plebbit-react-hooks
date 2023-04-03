@@ -48,7 +48,13 @@ export function useComment(options) {
     if (commentCid && commentFromStoreNotLoaded && accountComment) {
         comment = accountComment;
     }
-    const state = (comment === null || comment === void 0 ? void 0 : comment.updatingState) || 'initializing';
+    let state = (comment === null || comment === void 0 ? void 0 : comment.updatingState) || 'initializing';
+    if (comment === null || comment === void 0 ? void 0 : comment.timestamp) {
+        state = 'fetching-ipns';
+    }
+    if (comment === null || comment === void 0 ? void 0 : comment.updatedAt) {
+        state = 'succeeded';
+    }
     return useMemo(() => (Object.assign(Object.assign({}, comment), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [comment, commentCid, errors]);
 }
 /**
