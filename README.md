@@ -456,6 +456,10 @@ await deleteAccount('Account 2')
 ```js
 // all my own comments
 const {accountComments} = useAccountComments()
+for (const accountComment of accountComments) {
+  // it is recommended to show a label in the UI if accountComment.state is 'pending' or 'failed'
+  console.log('comment', accountComment.index, 'is status', accountComment.state)
+}
 
 // all my own votes
 const {accountVotes} = useAccountVotes()
