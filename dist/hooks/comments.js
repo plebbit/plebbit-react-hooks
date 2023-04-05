@@ -49,9 +49,7 @@ export function useComment(options) {
         comment = accountComment;
     }
     let state = (comment === null || comment === void 0 ? void 0 : comment.updatingState) || 'initializing';
-    if (comment === null || comment === void 0 ? void 0 : comment.timestamp) {
-        state = 'fetching-ipns';
-    }
+    // force succeeded even if the commment is fecthing a new update
     if (comment === null || comment === void 0 ? void 0 : comment.updatedAt) {
         state = 'succeeded';
     }
