@@ -58,9 +58,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   }
 
   let state = comment?.updatingState || 'initializing'
-  if (comment?.timestamp) {
-    state = 'fetching-ipns'
-  }
+  // force succeeded even if the commment is fecthing a new update
   if (comment?.updatedAt) {
     state = 'succeeded'
   }

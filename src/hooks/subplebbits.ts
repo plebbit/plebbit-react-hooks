@@ -51,6 +51,7 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
   }
 
   let state = subplebbit?.updatingState || 'initializing'
+  // force succeeded even if the subplebbit is fecthing a new update
   if (subplebbit?.updatedAt) {
     state = 'succeeded'
   }
