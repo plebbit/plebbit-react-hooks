@@ -42,7 +42,10 @@ export function useSubplebbit(options) {
     if (account && subplebbitAddress) {
         log('useSubplebbit', { subplebbitAddress, subplebbit, account });
     }
-    const state = (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) || 'initializing';
+    let state = (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) || 'initializing';
+    if (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatedAt) {
+        state = 'succeeded';
+    }
     return useMemo(() => (Object.assign(Object.assign({}, subplebbit), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [subplebbit, subplebbitAddress, errors]);
 }
 /**
