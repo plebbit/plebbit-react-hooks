@@ -43,6 +43,7 @@ export function useSubplebbit(options) {
         log('useSubplebbit', { subplebbitAddress, subplebbit, account });
     }
     let state = (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) || 'initializing';
+    // force succeeded even if the subplebbit is fecthing a new update
     if (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatedAt) {
         state = 'succeeded';
     }
