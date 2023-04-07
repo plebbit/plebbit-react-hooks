@@ -50,7 +50,7 @@ export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
     })()
   }, getNftMetadataUrlArgs)
 
-  log('useNftMetadataUrl', {nft, ipfsGatewayUrl, nftMetadataUrl, chainProviders})
+  // log('useNftMetadataUrl', {nft, ipfsGatewayUrl, nftMetadataUrl, chainProviders})
   return {metadataUrl: nftMetadataUrl, error}
 }
 
