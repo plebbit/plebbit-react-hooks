@@ -24,7 +24,7 @@ describe('subplebbits', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test.only('get subplebbits one at a time', async () => {
+    test('get subplebbits one at a time', async () => {
       const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
       const waitFor = testUtils.createWaitFor(rendered)
 
