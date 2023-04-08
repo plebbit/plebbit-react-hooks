@@ -98,6 +98,32 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
                 .catch((error) => log.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', { comment, error }));
         }
     }),
+    // subplebbits contain preloaded pages, those page comments must be added separately
+    addSubplebbitPageCommentsToStore: (subplebbit) => {
+        var _a, _b;
+        if (!((_a = subplebbit.posts) === null || _a === void 0 ? void 0 : _a.pages)) {
+            return;
+        }
+        // find new comments in the page
+        const flattenedComments = utils.flattenCommentsPages(subplebbit.posts.pages);
+        const { comments } = getState();
+        let hasNewComments = false;
+        const newComments = {};
+        for (const comment of flattenedComments) {
+            if (comment.cid && (comment.updatedAt || 0) > (((_b = comments[comment.cid]) === null || _b === void 0 ? void 0 : _b.updatedAt) || 0)) {
+                // don't clone the comment to save memory, comments remain a pointer to the page object
+                newComments[comment.cid] = comment;
+                hasNewComments = true;
+            }
+        }
+        if (!hasNewComments) {
+            return;
+        }
+        setState(({ comments }) => {
+            return { comments: Object.assign(Object.assign({}, comments), newComments) };
+        });
+        log('subplebbitsPagesStore.addSubplebbitPageCommentsToStore', { subplebbit, newComments });
+    },
 }));
 let fetchPagePending = {};
 const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {

@@ -303,6 +303,7 @@ const getCommentsPage = (pageCid, subplebbit) => {
             author: {
                 address: pageCid + ' author address ' + index,
             },
+            updatedAt: index,
         });
     }
     return page;

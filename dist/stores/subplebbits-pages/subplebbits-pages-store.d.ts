@@ -4,6 +4,7 @@ export declare type SubplebbitsPagesState = {
     subplebbitsPages: SubplebbitsPages;
     comments: Comments;
     addNextSubplebbitPageToStore: Function;
+    addSubplebbitPageCommentsToStore: Function;
 };
 declare const subplebbitsPagesStore: import("zustand").UseBoundStore<import("zustand").StoreApi<SubplebbitsPagesState>>;
 /**
