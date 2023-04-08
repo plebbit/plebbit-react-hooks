@@ -326,6 +326,7 @@ const getCommentsPage = (pageCid: string, subplebbit: any) => {
       author: {
         address: pageCid + ' author address ' + index,
       },
+      updatedAt: index,
     })
   }
   return page

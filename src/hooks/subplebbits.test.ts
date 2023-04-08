@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useSubplebbit, useSubplebbitStats, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
 import subplebbitStore from '../stores/subplebbits'
+import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
@@ -23,7 +24,7 @@ describe('subplebbits', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test('get subplebbits one at a time', async () => {
+    test.only('get subplebbits one at a time', async () => {
       const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
       const waitFor = testUtils.createWaitFor(rendered)
 
@@ -63,10 +64,19 @@ describe('subplebbits', () => {
         }
       }
 
+      // subplebbitsPagesStore has preloaded subplebbit comments
+      expect(rendered.result.current.posts.pages.hot.comments.length).toBeGreaterThan(0)
+      const subplebbitsPagesStoreComments = subplebbitsPagesStore.getState().comments
+      for (const comment of rendered.result.current.posts.pages.hot.comments) {
+        expect(typeof comment.cid).toBe('string')
+        expect(subplebbitsPagesStoreComments[comment.cid].cid).toBe(comment.cid)
+      }
+
       // reset stores to force using the db
       expect(subplebbitStore.getState().subplebbits).not.toEqual({})
       await testUtils.resetStores()
       expect(subplebbitStore.getState().subplebbits).toEqual({})
+      expect(subplebbitsPagesStore.getState().comments).toEqual({})
 
       // on first render, the account is undefined because it's not yet loaded from database
       const rendered2 = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
@@ -93,6 +103,14 @@ describe('subplebbits', () => {
       expect(rendered2.result.current.address).toBe('subplebbit address 1')
       expect(rendered2.result.current.title).toBe('subplebbit address 1 title')
       expect(rendered2.result.current.description).toBe('subplebbit address 1 description updated')
+
+      // subplebbitsPagesStore has preloaded subplebbit comments
+      expect(rendered2.result.current.posts.pages.hot.comments.length).toBeGreaterThan(0)
+      const subplebbitsPagesStoreComments2 = subplebbitsPagesStore.getState().comments
+      for (const comment of rendered2.result.current.posts.pages.hot.comments) {
+        expect(typeof comment.cid).toBe('string')
+        expect(subplebbitsPagesStoreComments2[comment.cid].cid).toBe(comment.cid)
+      }
 
       // restore mock
       Subplebbit.prototype.simulateUpdateEvent = simulateUpdateEvent

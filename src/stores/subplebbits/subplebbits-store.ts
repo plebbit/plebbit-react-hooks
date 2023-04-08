@@ -7,6 +7,7 @@ import {Subplebbit, Subplebbits, Account, CreateSubplebbitOptions} from '../../t
 import utils from '../../lib/utils'
 import createStore from 'zustand'
 import accountsStore from '../accounts'
+import subplebbitsPagesStore from '../subplebbits-pages'
 
 let plebbitGetSubplebbitPending: {[key: string]: boolean} = {}
 
@@ -52,6 +53,10 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     // try to find subplebbit in database
     if (!subplebbit) {
       subplebbit = await getSubplebbitFromDatabase(subplebbitAddress, account)
+      if (subplebbit) {
+        // add page comments to subplebbitsPagesStore so they can be used in useComment
+        subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(subplebbit)
+      }
     }
 
     // subplebbit not in database, try to fetch from plebbit-js
@@ -85,6 +90,9 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
 
       // if a subplebbit has a role with an account's address add it to the account.subplebbits
       accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit)
+
+      // add page comments to subplebbitsPagesStore so they can be used in useComment
+      subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(updatedSubplebbit)
     })
 
     subplebbit.on('updatingstatechange', (updatingState: string) => {

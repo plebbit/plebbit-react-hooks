@@ -17,6 +17,7 @@ export type SubplebbitsPagesState = {
   subplebbitsPages: SubplebbitsPages
   comments: Comments
   addNextSubplebbitPageToStore: Function
+  addSubplebbitPageCommentsToStore: Function
 }
 
 const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
@@ -108,6 +109,35 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
         .accountsActionsInternal.addCidToAccountComment(comment)
         .catch((error: unknown) => log.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', {comment, error}))
     }
+  },
+
+  // subplebbits contain preloaded pages, those page comments must be added separately
+  addSubplebbitPageCommentsToStore: (subplebbit: Subplebbit) => {
+    if (!subplebbit.posts?.pages) {
+      return
+    }
+
+    // find new comments in the page
+    const flattenedComments = utils.flattenCommentsPages(subplebbit.posts.pages)
+    const {comments} = getState()
+    let hasNewComments = false
+    const newComments: Comments = {}
+    for (const comment of flattenedComments) {
+      if (comment.cid && (comment.updatedAt || 0) > (comments[comment.cid]?.updatedAt || 0)) {
+        // don't clone the comment to save memory, comments remain a pointer to the page object
+        newComments[comment.cid] = comment
+        hasNewComments = true
+      }
+    }
+
+    if (!hasNewComments) {
+      return
+    }
+
+    setState(({comments}: any) => {
+      return {comments: {...comments, ...newComments}}
+    })
+    log('subplebbitsPagesStore.addSubplebbitPageCommentsToStore', {subplebbit, newComments})
   },
 }))
 
