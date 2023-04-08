@@ -15,6 +15,7 @@ const log = Logger('plebbit-react-hooks:subplebbits:stores');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
+import subplebbitsPagesStore from '../subplebbits-pages';
 let plebbitGetSubplebbitPending = {};
 // reset all event listeners in between tests
 export const listeners = [];
@@ -42,6 +43,10 @@ const subplebbitsStore = createStore((setState, getState) => ({
             // try to find subplebbit in database
             if (!subplebbit) {
                 subplebbit = yield getSubplebbitFromDatabase(subplebbitAddress, account);
+                if (subplebbit) {
+                    // add page comments to subplebbitsPagesStore so they can be used in useComment
+                    subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(subplebbit);
+                }
             }
             // subplebbit not in database, try to fetch from plebbit-js
             if (!subplebbit) {
@@ -70,6 +75,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: updatedSubplebbit }) }));
                 // if a subplebbit has a role with an account's address add it to the account.subplebbits
                 accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit);
+                // add page comments to subplebbitsPagesStore so they can be used in useComment
+                subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(updatedSubplebbit);
             }));
             subplebbit.on('updatingstatechange', (updatingState) => {
                 setState((state) => ({
