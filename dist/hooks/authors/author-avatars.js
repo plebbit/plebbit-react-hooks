@@ -55,7 +55,7 @@ export function useNftMetadataUrl(nft, accountName) {
             }
         }))();
     }, getNftMetadataUrlArgs);
-    log('useNftMetadataUrl', { nft, ipfsGatewayUrl, nftMetadataUrl, chainProviders });
+    // log('useNftMetadataUrl', {nft, ipfsGatewayUrl, nftMetadataUrl, chainProviders})
     return { metadataUrl: nftMetadataUrl, error };
 }
 /**
