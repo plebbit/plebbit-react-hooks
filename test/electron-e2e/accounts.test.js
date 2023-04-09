@@ -23,10 +23,10 @@ const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}/api/v0`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
   'http client': {
-    ipfsHttpClientOptions: localIpfsProviderUrl,
-    // define pubsubHttpClientOptions with localPubsubProviderUrl because
+    ipfsHttpClientsOptions: [localIpfsProviderUrl],
+    // define pubsubHttpClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
-    pubsubHttpClientOptions: localPubsubProviderUrl,
+    pubsubHttpClientsOptions: [localPubsubProviderUrl],
     dataPath: window.plebbitDataPath,
   },
 }
@@ -71,9 +71,9 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').to.equal(true)
         expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
         expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').to.equal(true)
-        expect(account.plebbitOptions.ipfsGatewayUrl).to.equal('https://cloudflare-ipfs.com')
-        expect(account.plebbitOptions.ipfsHttpClientOptions).to.equal(undefined)
-        expect(account.plebbitOptions.pubsubHttpClientOptions).to.equal('https://pubsubprovider.xyz/api/v0')
+        expect(account.plebbitOptions.ipfsGatewayUrls).to.deep.equal('https://ipfs.io', 'https://cloudflare-ipfs.com')
+        expect(account.plebbitOptions.ipfsHttpClientsOptions).to.equal(undefined)
+        expect(account.plebbitOptions.pubsubHttpClientsOptions).to.deep.equal(['https://pubsubprovider.xyz/api/v0'])
       })
     })
 

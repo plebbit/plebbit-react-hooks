@@ -16,7 +16,7 @@ import {getNftMetadataUrl, getNftImageUrl, getNftOwner} from '../../lib/chain'
 export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
-  const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
+  const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrls[0]
   const chainProviders = account?.plebbitOptions?.chainProviders
   const [nftMetadataUrl, setNftMetadataUrl] = useState()
   const [error, setError] = useState<Error | undefined>()
@@ -25,7 +25,7 @@ export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
     nft?.address,
     nft?.id,
     nft?.chainTicker,
-    chainProviders?.[nft?.chainTicker]?.url,
+    chainProviders?.[nft?.chainTicker]?.urls?.[0],
     chainProviders?.[nft?.chainTicker]?.chainId,
     ipfsGatewayUrl,
   ]
@@ -64,7 +64,7 @@ export function useNftImageUrl(nftMetadataUrl?: string, accountName?: string) {
   assert(!nftMetadataUrl || typeof nftMetadataUrl === 'string', `useNftImageUrl invalid argument nftMetadataUrl '${nftMetadataUrl}' not a string`)
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
-  const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrl
+  const ipfsGatewayUrl = account?.plebbitOptions?.ipfsGatewayUrls[0]
   const [imageUrl, setImageUrl] = useState()
   const [error, setError] = useState<Error | undefined>()
 
@@ -171,7 +171,7 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
     nft?.address,
     nft?.id,
     nft?.chainTicker,
-    chainProviders?.[nft?.chainTicker]?.url,
+    chainProviders?.[nft?.chainTicker]?.urls?.[0],
     chainProviders?.[nft?.chainTicker]?.chainId
   )
 

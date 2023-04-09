@@ -17,14 +17,14 @@ const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
   'http client': {
-    ipfsHttpClientOptions: localIpfsProviderUrl,
-    // define pubsubHttpClientOptions with localPubsubProviderUrl because
+    ipfsHttpClientsOptions: [localIpfsProviderUrl],
+    // define pubsubHttpClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
-    pubsubHttpClientOptions: localPubsubProviderUrl,
+    pubsubHttpClientsOptions: [localPubsubProviderUrl],
   },
   'gateway and pubsub provider': {
-    ipfsGatewayUrl: localGatewayUrl,
-    pubsubHttpClientOptions: localPubsubProviderUrl,
+    ipfsGatewayUrls: [localGatewayUrl],
+    pubsubHttpClientsOptions: [localPubsubProviderUrl],
   },
 }
 

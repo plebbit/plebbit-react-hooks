@@ -295,7 +295,13 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
 export const resolveSubplebbitAddress = async (subplebbitAddress: string, chainProviders: ChainProviders) => {
   let resolvedSubplebbitAddress
   if (subplebbitAddress.endsWith('.eth')) {
-    resolvedSubplebbitAddress = await resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', 'eth', chainProviders?.['eth']?.url, chainProviders?.['eth']?.chainId)
+    resolvedSubplebbitAddress = await resolveEnsTxtRecord(
+      subplebbitAddress,
+      'subplebbit-address',
+      'eth',
+      chainProviders?.['eth']?.urls?.[0],
+      chainProviders?.['eth']?.chainId
+    )
   } else {
     throw Error(`resolveSubplebbitAddress invalid subplebbitAddress '${subplebbitAddress}'`)
   }

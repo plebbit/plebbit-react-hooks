@@ -540,6 +540,6 @@ export type AccountPublicationsFilter = {
  */
 export type ChainProvider = {
   chainId?: number
-  url?: string
+  urls?: string[]
 }
 export type ChainProviders = {[chainTicker: string]: ChainProvider}

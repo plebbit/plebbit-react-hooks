@@ -36,9 +36,9 @@ describe('accounts (plebbit-js mock)', () => {
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').to.equal(true)
       expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').to.equal(true)
-      expect(account.plebbitOptions.ipfsGatewayUrl).to.equal('https://cloudflare-ipfs.com')
-      expect(account.plebbitOptions.ipfsHttpClientOptions).to.equal(undefined)
-      expect(account.plebbitOptions.pubsubHttpClientOptions).to.equal('https://pubsubprovider.xyz/api/v0')
+      expect(account.plebbitOptions.ipfsGatewayUrls).to.deep.equal(['https://ipfs.io', 'https://cloudflare-ipfs.com'])
+      expect(account.plebbitOptions.ipfsHttpClientsOptions).to.equal(undefined)
+      expect(account.plebbitOptions.pubsubHttpClientsOptions).to.deep.equal(['https://pubsubprovider.xyz/api/v0'])
     })
   })
 

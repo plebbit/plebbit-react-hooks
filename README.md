@@ -149,10 +149,10 @@ if (state === 'failed') {
 
 // pending
 if (state === 'fetching-owner') {
-  console.log('Fetching NFT owner address from chain provider', chainProvider.url)
+  console.log('Fetching NFT owner address from chain provider', chainProvider.urls)
 }
 if (state === 'fetching-uri') {
-  console.log('Fetching NFT URI from chain provider URL', chainProvider.url)
+  console.log('Fetching NFT URI from chain provider URL', chainProvider.urls)
 }
 if (state === 'fetching-metadata') {
   console.log('Fetching NFT URI from', metadataUrl)
@@ -446,7 +446,7 @@ if (state === 'failed') {
 
 // pending
 if (state === 'resolving') {
-  console.log('Resolving address from chain provider URL', chainProvider.url)
+  console.log('Resolving address from chain provider URL', chainProvider.urls)
 }
 ```
 
@@ -660,7 +660,7 @@ if (state === 'failed') {
 
 // pending
 if (state === 'resolving') {
-  console.log('Resolving address from chain provider URL', chainProvider.url)
+  console.log('Resolving address from chain provider URL', chainProvider.urls)
 }
 ```
 

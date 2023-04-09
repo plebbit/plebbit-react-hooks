@@ -337,7 +337,7 @@ export const resolveAuthorAddress = async (authorAddress: string, chainProviders
   let resolvedAuthorAddress
   if (authorAddress.endsWith('.eth')) {
     const resolve = cache ? resolveEnsTxtRecord : resolveEnsTxtRecordNoCache
-    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', chainProviders?.['eth']?.url, chainProviders?.['eth']?.chainId)
+    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', chainProviders?.['eth']?.urls?.[0], chainProviders?.['eth']?.chainId)
   } else {
     throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`)
   }
