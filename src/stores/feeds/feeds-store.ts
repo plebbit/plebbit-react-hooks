@@ -1,6 +1,6 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:stores:feeds')
+const log = Logger('plebbit-react-hooks:feeds:stores')
 import {Feed, Feeds, Subplebbit, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
@@ -18,6 +18,9 @@ import {
   getAccountsBlockedAddresses,
   feedsHaveChangedBlockedAddresses,
   accountsBlockedAddressesChanged,
+  getAccountsBlockedCids,
+  feedsHaveChangedBlockedCids,
+  accountsBlockedCidsChanged,
   feedsSubplebbitsChanged,
   getFeedsSubplebbits,
 } from './utils'
@@ -32,7 +35,7 @@ export const subplebbitPostsLeftBeforeNextPage = 50
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type FeedsState = {
+export type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
   loadedFeeds: Feeds
@@ -94,6 +97,9 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
 
     // subscribe to accounts store change (for blocked addresses)
     accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange)
+
+    // subscribe to accounts store change (for blocked cids)
+    accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange)
 
     // update feeds right away to use the already loaded subplebbits and pages
     // if no new subplebbits are added by the feed, like for a sort type change,
@@ -189,7 +195,43 @@ const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState: any) =>
   previousBlockedAddresses = blockedAddresses
 
   // if changed blocked addresses arent used in the feeds, do nothing
+  // NOTE: because of this, if an author address is unblocked, feeds won't update until some other event causes a feed update
   if (!_feedsHaveChangedBlockedAddresses) {
+    return
+  }
+
+  updateFeeds()
+}
+
+let previousBlockedCids: string[] = []
+let previousAccountsBlockedCids: {[cid: string]: boolean}[] = []
+const updateFeedsOnAccountsBlockedCidsChange = (accountsStoreState: any) => {
+  const {accounts} = accountsStoreState
+
+  // blocked cids haven't changed, do nothing
+  const accountsBlockedCids = []
+  for (const i in accounts) {
+    accountsBlockedCids.push(accounts[i].blockedCids)
+  }
+  if (!accountsBlockedCidsChanged(previousAccountsBlockedCids, accountsBlockedCids)) {
+    return
+  }
+  previousAccountsBlockedCids = accountsBlockedCids
+
+  const blockedCids = getAccountsBlockedCids(accounts)
+
+  // blocked cids haven't changed, do nothing
+  if (blockedCids.toString() === previousBlockedCids.toString()) {
+    return
+  }
+
+  const {feedsOptions, updateFeeds, bufferedFeeds} = feedsStore.getState()
+  const _feedsHaveChangedBlockedCids = feedsHaveChangedBlockedCids(feedsOptions, bufferedFeeds, blockedCids, previousBlockedCids)
+  previousBlockedCids = blockedCids
+
+  // if changed blocked cids arent used in the feeds, do nothing
+  // NOTE: because of this, if a cid is unblocked, feeds won't update until some other event causes a feed update
+  if (!_feedsHaveChangedBlockedCids) {
     return
   }
 
@@ -315,6 +357,8 @@ export const resetFeedsStore = async () => {
   previousBufferedFeedsSubplebbits = new Map()
   previousBlockedAddresses = []
   previousAccountsBlockedAddresses = []
+  previousBlockedCids = []
+  previousAccountsBlockedCids = []
   previousFeedsSubplebbitsFirstPageCids = []
   previousFeedsSubplebbits = new Map()
   previousSubplebbitsPages = {}

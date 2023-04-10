@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import assert from 'assert';
+import QuickLru from 'quick-lru';
 const merge = (...args) => {
     // @ts-ignore
     const clonedArgs = args.map((arg) => {
@@ -109,19 +110,106 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance) => {
     }
     return uniqueFlattened;
 };
-// define for typescript
-const retryInfinityType = (f) => { };
+export const memo = (functionToMemo, memoOptions) => {
+    assert(typeof functionToMemo === 'function', `memo first argument must be a function`);
+    const pendingPromises = new Map();
+    const cache = new QuickLru(memoOptions);
+    // preserve function name
+    const memoedFunctionName = functionToMemo.name || 'memoedFunction';
+    const obj = {
+        [memoedFunctionName]: (...args) => __awaiter(void 0, void 0, void 0, function* () {
+            let cacheKey = args[0];
+            if (args.length > 1) {
+                cacheKey = '';
+                for (const arg of args) {
+                    if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
+                        const argumentIndex = args.indexOf(arg);
+                        throw Error(`memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`);
+                    }
+                    cacheKey += arg;
+                }
+            }
+            // has cached result
+            const cached = cache.get(cacheKey);
+            if (cached) {
+                return cached;
+            }
+            // don't request the same thing twice if fetching is pending
+            let pendingPromise = pendingPromises.get(cacheKey);
+            if (pendingPromise) {
+                return pendingPromise;
+            }
+            // create the pending promise
+            let resolve, reject;
+            pendingPromise = new Promise((_resolve, _reject) => {
+                resolve = _resolve;
+                reject = _reject;
+            });
+            pendingPromises.set(cacheKey, pendingPromise);
+            // execute the function
+            let result;
+            try {
+                result = yield functionToMemo(...args);
+                cache.set(cacheKey, result);
+                pendingPromises.delete(cacheKey);
+                resolve === null || resolve === void 0 ? void 0 : resolve(result);
+                return result;
+            }
+            catch (error) {
+                pendingPromises.delete(cacheKey);
+                reject === null || reject === void 0 ? void 0 : reject(error);
+                throw error;
+            }
+        }),
+    };
+    return obj[memoedFunctionName];
+};
+export const memoSync = (functionToMemo, memoOptions) => {
+    assert(typeof functionToMemo === 'function', `memo first argument must be a function`);
+    const cache = new QuickLru(memoOptions);
+    // preserve function name
+    const memoedFunctionName = functionToMemo.name || 'memoedFunction';
+    const obj = {
+        [memoedFunctionName]: (...args) => {
+            let cacheKey = args[0];
+            if (args.length > 1) {
+                cacheKey = '';
+                for (const arg of args) {
+                    if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
+                        const argumentIndex = args.indexOf(arg);
+                        throw Error(`memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`);
+                    }
+                    cacheKey += arg;
+                }
+            }
+            // has cached result
+            const cached = cache.get(cacheKey);
+            if (cached) {
+                return cached;
+            }
+            // execute the function
+            const result = functionToMemo(...args);
+            if (typeof (result === null || result === void 0 ? void 0 : result.then) === 'function') {
+                throw Error(`memoed function '${memoedFunctionName}' is an async function, cannot be used with memoSync, use memo instead`);
+            }
+            cache.set(cacheKey, result);
+            return result;
+        },
+    };
+    return obj[memoedFunctionName];
+};
 const utils = {
     merge,
     clone,
     flattenCommentsPages,
-    // define for typescript
-    retryInfinity: retryInfinityType,
+    memo,
+    memoSync,
+    retryInfinity: (f, o) => { },
     // export timeout values to mock them in tests
     retryInfinityMinTimeout: 1000,
     retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
 };
-export const retryInfinity = (functionToRetry) => __awaiter(void 0, void 0, void 0, function* () {
+export const retryInfinity = (functionToRetry, options) => __awaiter(void 0, void 0, void 0, function* () {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     let attempt = 0;
     while (true) {
@@ -130,6 +218,7 @@ export const retryInfinity = (functionToRetry) => __awaiter(void 0, void 0, void
             return res;
         }
         catch (e) {
+            options === null || options === void 0 ? void 0 : options.onError(e || Error(`retryInfinity failed attempt ${attempt}`));
             const factor = 2;
             let timeout = Math.round(utils.retryInfinityMinTimeout * Math.pow(factor, attempt++));
             timeout = Math.min(timeout, utils.retryInfinityMaxTimeout);

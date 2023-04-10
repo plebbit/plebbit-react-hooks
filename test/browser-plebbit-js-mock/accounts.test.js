@@ -1,5 +1,6 @@
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useAccountsActions, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
+const {useAccount, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
+const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
 // mock right after importing or sometimes fails to mock
@@ -35,9 +36,9 @@ describe('accounts (plebbit-js mock)', () => {
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').to.equal(true)
       expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').to.equal(true)
-      expect(account.plebbitOptions.ipfsGatewayUrl).to.equal('https://cloudflare-ipfs.com')
-      expect(account.plebbitOptions.ipfsHttpClientOptions).to.equal(undefined)
-      expect(account.plebbitOptions.pubsubHttpClientOptions).to.equal('https://pubsubprovider.xyz/api/v0')
+      expect(account.plebbitOptions.ipfsGatewayUrls).to.deep.equal(['https://ipfs.io', 'https://cloudflare-ipfs.com'])
+      expect(account.plebbitOptions.ipfsHttpClientsOptions).to.equal(undefined)
+      expect(account.plebbitOptions.pubsubHttpClientsOptions).to.deep.equal(['https://pubsubprovider.xyz/api/v0'])
     })
   })
 
@@ -47,9 +48,8 @@ describe('accounts (plebbit-js mock)', () => {
     beforeEach(async () => {
       rendered = renderHook((accountName) => {
         const account = useAccount(accountName)
-        const accountsActions = useAccountsActions()
-        const accountVotes = useAccountVotes()
-        const accountComments = useAccountComments()
+        const {accountVotes} = useAccountVotes()
+        const {accountComments} = useAccountComments()
         return {account, accountVotes, accountComments, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered, {timeout})
@@ -79,7 +79,7 @@ describe('accounts (plebbit-js mock)', () => {
 
       it('publish comment', async () => {
         const publishCommentOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           parentCid: 'Qm...',
           content: 'some content',
           onChallenge,
@@ -136,7 +136,7 @@ describe('accounts (plebbit-js mock)', () => {
 
       it('publish vote', async () => {
         const publishVoteOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           commentCid: 'Qm...',
           vote: 1,
           onChallenge,

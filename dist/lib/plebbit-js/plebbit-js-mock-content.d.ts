@@ -1,5 +1,14 @@
 /// <reference types="node" />
 import EventEmitter from 'events';
+declare class _SeedIncrementer {
+    seed: number;
+    numbers: number[];
+    index: number;
+    constructor(seed: number);
+    increment(): number;
+}
+export declare const SeedIncrementer: (seed: number) => _SeedIncrementer;
+export declare const getImageUrl: (_seed: number) => Promise<any>;
 declare class Plebbit extends EventEmitter {
     createSigner(): Promise<{
         privateKey: string;
@@ -39,12 +48,16 @@ declare class Subplebbit extends EventEmitter {
     features: any | undefined;
     rules: string[] | undefined;
     signer: any | undefined;
-    metricsCid: string;
+    shortAddress: string | undefined;
+    statsCid: string | undefined;
+    _getSubplebbitOnFirstUpdate: boolean;
+    updatingState: string | undefined;
     constructor(createSubplebbitOptions?: any);
     edit(editSubplebbitOptions: any): Promise<void>;
     update(): Promise<void>;
     delete(): Promise<void>;
-    simulateUpdateEvent(): void;
+    simulateUpdateEvent(): Promise<void> | undefined;
+    simulateGetSubplebbitOnFirstUpdateEvent(): Promise<void>;
 }
 declare class Publication extends EventEmitter {
     timestamp: number | undefined;
@@ -52,7 +65,7 @@ declare class Publication extends EventEmitter {
     cid: string | undefined;
     constructor();
     publish(): Promise<void>;
-    simulateChallengeEvent(): void;
+    simulateChallengeEvent(): Promise<void>;
     publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
     simulateChallengeVerificationEvent(): Promise<void>;
 }
@@ -73,11 +86,16 @@ declare class Comment extends Publication {
     locked: boolean | undefined;
     deleted: boolean | undefined;
     removed: boolean | undefined;
-    editTimestamp: number | undefined;
+    edit: any;
+    original: any;
     reason: string | undefined;
+    shortCid: string | undefined;
+    _getCommentOnFirstUpdate: boolean;
+    updatingState: string | undefined;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): Promise<void>;
+    simulateGetCommentOnFirstUpdateEvent(): Promise<void>;
 }
 declare class Vote extends Publication {
 }

@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAccount } from './accounts';
 import validator from '../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:hooks:comments');
+const log = Logger('plebbit-react-hooks:comments:hooks');
+import assert from 'assert';
 import useCommentsStore from '../stores/comments';
+import useAccountsStore from '../stores/accounts';
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages';
 import shallow from 'zustand/shallow';
 /**
@@ -11,40 +13,59 @@ import shallow from 'zustand/shallow';
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComment(commentCid, accountName) {
-    const account = useAccount(accountName);
-    let comment = useCommentsStore((state) => state.comments[commentCid || '']);
+export function useComment(options) {
+    assert(!options || typeof options === 'object', `useComment options argument '${options}' not an object`);
+    const { commentCid, accountName } = options || {};
+    const account = useAccount({ accountName });
+    const commentFromStore = useCommentsStore((state) => state.comments[commentCid || '']);
     const addCommentToStore = useCommentsStore((state) => state.addCommentToStore);
     const subplebbitsPagesComment = useSubplebbitsPagesStore((state) => state.comments[commentCid || '']);
+    const errors = useCommentsStore((state) => state.errors[commentCid || '']);
+    // get account comment of the cid if any
+    const accountCommentInfo = useAccountsStore((state) => state.commentCidsToAccountsComments[commentCid || '']);
+    const accountComment = useAccountsStore((state) => { var _a; return (_a = state.accountsComments[(accountCommentInfo === null || accountCommentInfo === void 0 ? void 0 : accountCommentInfo.accountId) || '']) === null || _a === void 0 ? void 0 : _a[Number(accountCommentInfo === null || accountCommentInfo === void 0 ? void 0 : accountCommentInfo.accountCommentIndex)]; });
     useEffect(() => {
         if (!commentCid || !account) {
             return;
         }
         validator.validateUseCommentArguments(commentCid, account);
-        if (!comment) {
+        if (!commentFromStore) {
             // if comment isn't already in store, add it
             addCommentToStore(commentCid, account).catch((error) => log.error('useComment addCommentToStore error', { commentCid, error }));
         }
     }, [commentCid, account === null || account === void 0 ? void 0 : account.id]);
     if (account && commentCid) {
-        log('useComment', { commentCid, comment, commentsStore: useCommentsStore.getState().comments, account });
+        log('useComment', { commentCid, commentFromStore, subplebbitsPagesComment, accountComment, commentsStore: useCommentsStore.getState().comments, account });
     }
+    let comment = commentFromStore;
     // if comment from subplebbit pages is more recent, use it instead
     if (commentCid && ((subplebbitsPagesComment === null || subplebbitsPagesComment === void 0 ? void 0 : subplebbitsPagesComment.updatedAt) || 0) > ((comment === null || comment === void 0 ? void 0 : comment.updatedAt) || 0)) {
         comment = subplebbitsPagesComment;
     }
-    return comment;
+    // if comment is still not defined, but account comment is, use account comment
+    // check `comment.timestamp` instead of `comment` in case comment exists but in a loading state
+    const commentFromStoreNotLoaded = !(comment === null || comment === void 0 ? void 0 : comment.timestamp);
+    if (commentCid && commentFromStoreNotLoaded && accountComment) {
+        comment = accountComment;
+    }
+    let state = (comment === null || comment === void 0 ? void 0 : comment.updatingState) || 'initializing';
+    // force succeeded even if the commment is fecthing a new update
+    if (comment === null || comment === void 0 ? void 0 : comment.updatedAt) {
+        state = 'succeeded';
+    }
+    return useMemo(() => (Object.assign(Object.assign({}, comment), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [comment, commentCid, errors]);
 }
 /**
  * @param commentCids - The IPFS CIDs of the comments to get
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComments(commentCids = [], accountName) {
-    var _a, _b;
-    const account = useAccount(accountName);
-    let comments = useCommentsStore((state) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow);
-    const subplebbitsPagesComments = useSubplebbitsPagesStore((state) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow);
+export function useComments(options) {
+    assert(!options || typeof options === 'object', `useComments options argument '${options}' not an object`);
+    const { commentCids, accountName } = options || {};
+    const account = useAccount({ accountName });
+    const commentsStoreComments = useCommentsStore((state) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']), shallow);
+    const subplebbitsPagesComments = useSubplebbitsPagesStore((state) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']), shallow);
     const addCommentToStore = useCommentsStore((state) => state.addCommentToStore);
     useEffect(() => {
         if (!commentCids || !account) {
@@ -55,16 +76,27 @@ export function useComments(commentCids = [], accountName) {
         for (const commentCid of uniqueCommentCids) {
             addCommentToStore(commentCid, account).catch((error) => log.error('useComments addCommentToStore error', { commentCid, error }));
         }
-    }, [commentCids.toString(), account === null || account === void 0 ? void 0 : account.id]);
+    }, [commentCids === null || commentCids === void 0 ? void 0 : commentCids.toString(), account === null || account === void 0 ? void 0 : account.id]);
     if (account && (commentCids === null || commentCids === void 0 ? void 0 : commentCids.length)) {
-        log('useComments', { commentCids, comments, commentsStore: useCommentsStore.getState().comments, account });
+        log('useComments', { commentCids, commentsStoreComments, commentsStore: useCommentsStore.getState().comments, account });
     }
     // if comment from subplebbit pages is more recent, use it instead
-    comments = [...comments];
-    for (const i in comments) {
-        if ((((_a = subplebbitsPagesComments[i]) === null || _a === void 0 ? void 0 : _a.updatedAt) || 0) > (((_b = comments[i]) === null || _b === void 0 ? void 0 : _b.updatedAt) || 0)) {
-            comments[i] = subplebbitsPagesComments[i];
+    const comments = useMemo(() => {
+        var _a, _b;
+        const comments = [...commentsStoreComments];
+        for (const i in comments) {
+            if ((((_a = subplebbitsPagesComments[i]) === null || _a === void 0 ? void 0 : _a.updatedAt) || 0) > (((_b = comments[i]) === null || _b === void 0 ? void 0 : _b.updatedAt) || 0)) {
+                comments[i] = subplebbitsPagesComments[i];
+            }
         }
-    }
-    return comments;
+        return comments;
+    }, [commentsStoreComments, subplebbitsPagesComments]);
+    // succeed if no comments are undefined
+    const state = comments.indexOf(undefined) === -1 ? 'succeeded' : 'fetching-ipfs';
+    return useMemo(() => ({
+        comments,
+        state,
+        error: undefined,
+        errors: [],
+    }), [comments, commentCids === null || commentCids === void 0 ? void 0 : commentCids.toString()]);
 }

@@ -2,21 +2,21 @@ import PlebbitJs from '../../lib/plebbit-js'
 import validator from '../../lib/validator'
 import {v4 as uuid} from 'uuid'
 import accountsDatabase from './accounts-database'
-import {Accounts, AccountSubplebbit, BlockchainProviders} from '../../types'
+import {Accounts, AccountSubplebbit, ChainProviders} from '../../types'
 
-// default blockchain providers
-const blockchainProviders: BlockchainProviders = {
+// default chain providers
+const chainProviders: ChainProviders = {
   eth: {
     // default should not use a url, but rather ethers' default provider
-    url: 'ethers.getDefaultProvider()',
+    urls: ['ethers.getDefaultProvider()'],
     chainId: 1,
   },
   avax: {
-    url: 'https://api.avax.network/ext/bc/C/rpc',
+    urls: ['https://api.avax.network/ext/bc/C/rpc'],
     chainId: 43114,
   },
   matic: {
-    url: 'https://polygon-rpc.com',
+    urls: ['https://polygon-rpc.com'],
     chainId: 137,
   },
 }
@@ -26,27 +26,27 @@ export const getDefaultPlebbitOptions = () => {
   // default plebbit options defined by the electron process
   // @ts-ignore
   if (window.defaultPlebbitOptions) {
-    // add missing blockchain providers
+    // add missing chain providers
     // @ts-ignore
     const defaultPlebbitOptions: any = JSON.parse(JSON.stringify(window.defaultPlebbitOptions))
 
-    if (!defaultPlebbitOptions.blockchainProviders) {
-      defaultPlebbitOptions.blockchainProviders = {}
+    if (!defaultPlebbitOptions.chainProviders) {
+      defaultPlebbitOptions.chainProviders = {}
     }
-    // add default blockchain providers if missing
-    for (const chainTicker in blockchainProviders) {
-      if (!defaultPlebbitOptions.blockchainProviders[chainTicker]) {
-        defaultPlebbitOptions.blockchainProviders[chainTicker] = blockchainProviders[chainTicker]
+    // add default chain providers if missing
+    for (const chainTicker in chainProviders) {
+      if (!defaultPlebbitOptions.chainProviders[chainTicker]) {
+        defaultPlebbitOptions.chainProviders[chainTicker] = chainProviders[chainTicker]
       }
     }
     return defaultPlebbitOptions
   }
   // default plebbit options for web client
   return {
-    ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
-    ipfsHttpClientOptions: undefined,
-    pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
-    blockchainProviders,
+    ipfsGatewayUrls: ['https://ipfs.io', 'https://cloudflare-ipfs.com'],
+    ipfsHttpClientsOptions: undefined,
+    pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0'],
+    chainProviders,
   }
 }
 
@@ -76,6 +76,7 @@ export const generateDefaultAccount = async () => {
     plebbit: plebbit,
     subscriptions: [],
     blockedAddresses: {},
+    blockedCids: {},
     subplebbits,
   }
   return account

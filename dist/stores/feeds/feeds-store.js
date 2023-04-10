@@ -9,13 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import assert from 'assert';
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:stores:feeds');
+const log = Logger('plebbit-react-hooks:feeds:stores');
 import createStore from 'zustand';
 import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
-import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, } from './utils';
+import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, getAccountsBlockedCids, feedsHaveChangedBlockedCids, accountsBlockedCidsChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const postsPerPage = 25;
@@ -65,6 +65,8 @@ const feedsStore = createStore((setState, getState) => ({
             subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange);
             // subscribe to accounts store change (for blocked addresses)
             accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange);
+            // subscribe to accounts store change (for blocked cids)
+            accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange);
             // update feeds right away to use the already loaded subplebbits and pages
             // if no new subplebbits are added by the feed, like for a sort type change,
             // a feed update will never be triggered, so must be triggered it manually
@@ -140,7 +142,36 @@ const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState) => {
     const _feedsHaveChangedBlockedAddresses = feedsHaveChangedBlockedAddresses(feedsOptions, bufferedFeeds, blockedAddresses, previousBlockedAddresses);
     previousBlockedAddresses = blockedAddresses;
     // if changed blocked addresses arent used in the feeds, do nothing
+    // NOTE: because of this, if an author address is unblocked, feeds won't update until some other event causes a feed update
     if (!_feedsHaveChangedBlockedAddresses) {
+        return;
+    }
+    updateFeeds();
+};
+let previousBlockedCids = [];
+let previousAccountsBlockedCids = [];
+const updateFeedsOnAccountsBlockedCidsChange = (accountsStoreState) => {
+    const { accounts } = accountsStoreState;
+    // blocked cids haven't changed, do nothing
+    const accountsBlockedCids = [];
+    for (const i in accounts) {
+        accountsBlockedCids.push(accounts[i].blockedCids);
+    }
+    if (!accountsBlockedCidsChanged(previousAccountsBlockedCids, accountsBlockedCids)) {
+        return;
+    }
+    previousAccountsBlockedCids = accountsBlockedCids;
+    const blockedCids = getAccountsBlockedCids(accounts);
+    // blocked cids haven't changed, do nothing
+    if (blockedCids.toString() === previousBlockedCids.toString()) {
+        return;
+    }
+    const { feedsOptions, updateFeeds, bufferedFeeds } = feedsStore.getState();
+    const _feedsHaveChangedBlockedCids = feedsHaveChangedBlockedCids(feedsOptions, bufferedFeeds, blockedCids, previousBlockedCids);
+    previousBlockedCids = blockedCids;
+    // if changed blocked cids arent used in the feeds, do nothing
+    // NOTE: because of this, if a cid is unblocked, feeds won't update until some other event causes a feed update
+    if (!_feedsHaveChangedBlockedCids) {
         return;
     }
     updateFeeds();
@@ -242,6 +273,8 @@ export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function*
     previousBufferedFeedsSubplebbits = new Map();
     previousBlockedAddresses = [];
     previousAccountsBlockedAddresses = [];
+    previousBlockedCids = [];
+    previousAccountsBlockedCids = [];
     previousFeedsSubplebbitsFirstPageCids = [];
     previousFeedsSubplebbits = new Map();
     previousSubplebbitsPages = {};

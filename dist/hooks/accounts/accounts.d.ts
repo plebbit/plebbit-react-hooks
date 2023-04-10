@@ -1,44 +1,53 @@
-import type { UseAccountCommentsOptions, AccountNotifications } from '../../types';
+import type { Account, UseAccountSubplebbitsOptions, UseAccountSubplebbitsResult, UseAccountVoteOptions, UseAccountVoteResult, UseAccountVotesOptions, UseAccountVotesResult, UseAccountCommentsOptions, UseAccountCommentsResult, UseAccountCommentOptions, UseAccountCommentResult, UseNotificationsOptions, UseNotificationsResult, UseAccountEditsOptions, UseAccountEditsResult, UseEditedCommentOptions, UseEditedCommentResult, UseAccountOptions, UseAccountResult } from '../../types';
+/**
+ * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
+ * the active account id.
+ */
+export declare function useAccountId(accountName?: string): string | false | undefined;
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account.
  */
-export declare function useAccount(accountName?: string): any;
+export declare function useAccount(options?: UseAccountOptions): UseAccountResult;
 /**
  * Return all accounts in the order of `accountsStore.accountIds`. To reorder, use `accountsActions.setAccountsOrder(accountNames)`.
  */
-export declare function useAccounts(): any[];
-/**
- * Returns all the accounts related actions, like {createAccount, publishComment, publishVote, etc.}
- */
-export declare function useAccountsActions(): {
-    [key: string]: Function;
+export declare function useAccounts(): {
+    accounts: Account[];
+    state: string;
+    error: undefined;
+    errors: never[];
 };
 /**
  * Returns all subplebbits where the account is a creator or moderator
  */
-export declare function useAccountSubplebbits(accountName?: string): any;
+export declare function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): UseAccountSubplebbitsResult;
 /**
  * Returns an account's notifications in an array. Unread notifications have a field markedAsRead: false.
  *
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account's notifications.
  */
-export declare function useAccountNotifications(accountName?: string): {
-    notifications: AccountNotifications;
-    markAsRead: () => void;
-};
+export declare function useNotifications(options?: UseNotificationsOptions): UseNotificationsResult;
+export declare function useAccountComments(options?: UseAccountCommentsOptions): UseAccountCommentsResult;
 /**
- * Returns the own user's comments stored locally, even those not yet published by the subplebbit owner.
- * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
+ * Returns an account's single comment, e.g. a pending comment they published.
  */
-export declare function useAccountComments(useAccountCommentsOptions?: UseAccountCommentsOptions): any[] | undefined;
+export declare function useAccountComment(options?: UseAccountCommentOptions): UseAccountCommentResult;
 /**
  * Returns the own user's votes stored locally, even those not yet published by the subplebbit owner.
  * Check UseAccountCommentsOptions type in types.tsx to filter them, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
  */
-export declare function useAccountVotes(useAccountVotesOptions?: UseAccountCommentsOptions): any[] | undefined;
+export declare function useAccountVotes(options?: UseAccountVotesOptions): UseAccountVotesResult;
 /**
  * Returns an account's single vote on a comment, e.g. to know if you already voted on a comment.
  */
-export declare function useAccountVote(commentCid?: string, accountName?: string): any;
+export declare function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteResult;
+/**
+ * Returns all the comment and subplebbit edits published by an account.
+ */
+export declare function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEditsResult;
+/**
+ * Returns the comment edited (if has any edits), as well as the pending, succeeded or failed state of the edit.
+ */
+export declare function useEditedComment(options?: UseEditedCommentOptions): UseEditedCommentResult;

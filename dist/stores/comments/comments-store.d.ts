@@ -1,7 +1,10 @@
 import { Comments } from '../../types';
 export declare const listeners: any;
-declare type CommentsState = {
+export declare type CommentsState = {
     comments: Comments;
+    errors: {
+        [commentCid: string]: Error[];
+    };
     addCommentToStore: Function;
 };
 declare const commentsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<CommentsState>>;

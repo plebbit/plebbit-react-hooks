@@ -1,213 +1,75 @@
 *Telegram group for this repo https://t.me/plebbitreact*
 
-### IndexedDb Schema
+### Docs:
 
-> Each top level object is its own key-value store database.
-
-```
-  Accounts {
-    [accountId: string]: Account
-  }
-  AccountsMetadata {
-    accountIds: strings[] // this array sets the order of the accounts
-    activeAccountId: string // the default account to use with all hooks and actions
-    accountNamesToAccountIds: {[accountName: string]: accountId}
-  }
-  AccountsComments (each database named accountComments-[accountId]) {
-    [commentIndex: number]: AccountComment // store in array because cid is still unknown
-  }
-  AccountsCommentsReplies (each database named accountCommentsReplies-[accountId]) {
-    [commentCid: string]: AccountCommentReply // keep replies to own account comments in a separate last recently used database because they should be cached for a different amount of time than regular comments and account comments
-  }
-  AccountsVotes (each database named accountVotes-[accountId]) {
-    [commentCid: string]: AccountVote
-  }
-  Subplebbits {
-    [subplebbitAddress: string]: Subplebbit // last recently used database, delete oldest data
-  }
-  Comments {
-    [commentCid: string]: Comment // last recently used database, delete oldest data, different from AccountsComments that never expire
-  }
-  SubplebbitPages {
-    [pageCid: string]: SubplebbitPage // last recently used database, delete oldest data
-  }
-```
-
-### Stores
-
-```
-accountsStore (store in indexeddb permanently) {
-  accounts: {[accountName: string]: Account}
-  accountNames: string[]
-  activeAccountName: string
-  accountNamesToAccountIds: {[accountName: string]: accountId}
-  accountsComments: {[accountName: string]: AccountComment[]} // cid of comment unknown at time of posting, so store it in array
-  accountsVotes: {[accountName: string]: {[commentCid: string]: AccountVote}}
-  accountsCommentsReplies: {[accountName: string]: {[replyCid: string]: AccountCommentReply}}
-  accountsActions: AccountsActions
-  // internal
-  addCidToAccountComment(comment: Comment)
-  // internal
-  markAccountNotificationsAsRead(account: Account)
-}
-commentsStore (store in indexeddb last recently used) {
-  comments: {[commentCid: string]: Comment}
-  // internal
-  addCommentToStore(commentCid)
-}
-subplebbitsStore (store in indexeddb last recently used) {
-  subplebbits: {[subplebbitAddress: string]: Subplebbit}
-  // internal
-  addSubplebbitToStore(subplebbitAddress)
-}
-feedsStore (no persistant storage, can be rebuilt from Subplebbits and SubplebbitPages databases) {
-  bufferedFeeds: {[feedName: string]: Comment[]}
-  loadedFeeds: {[feedName: string]: Comment[]}
-  feedsHaveMore: {[feedName: string]: boolean}
-  // internal
-  addFeedToStore(feedName, subplebbitAddresses, sortType, account)
-}
-```
+- [Hooks API](#hooks)
+- [Getting started](#getting-started)
+- Install, testing and building: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/testing.md
+- Mock content (for UI development): https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/mock-content.md
+- Algorithms: https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/algorithms.md
+- Schema (Types, IndexedDb and state management): https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/schema.md
+- Types: https://github.com/plebbit/plebbit-react-hooks/blob/master/src/types.ts
 
 ### Hooks
 
 #### Accounts Hooks
 ```
-useAccount(accountName?: string): Account | undefined
-useAccountComments(accountCommentsOptions: AccountsCommentsOptions): Comment[] // export or display list of own comments
-useAccountVotes(accountVotesOptions: AccountsCommentsOptions): Vote[]  // export or display list of own votes
-useAccountVote(commentCid: string, accountName?: string): Vote // know if you already voted on some comment
+useAccount(): Account | undefined
+useAccountComment({commentIndex: string}): Comment // get a pending published comment by its index
+useAccountComments({filter: AccountPublicationsFilter}): {accountComments: Comment[]} // export or display list of own comments
+useAccountVotes({filter: AccountPublicationsFilter}): {accountVotes: Vote[]}  // export or display list of own votes
+useAccountVote({commentCid: string}): Vote // know if you already voted on some comment
+useAccountSubplebbits(): {accountSubplebbits: {[subplebbitAddress: string]: AccountSubplebbit}}
 useAccounts(): Account[]
-useAccountsActions(): AccountsActions
-useAccountNotifications(accountName?: string): Notification[]
+useNotifications(): {notifications: Notification[], markAsRead: Function}
 ```
 #### Comments Hooks
 ```
-useComment(commentCid: string, accountName?: string): Comment | undefined // should contain not yet publish replies from your own account unless they are older than X hours
-useComments(commentCid[], accountName?: string): Comment[]
+useComment({commentCid: string}): Comment
+useComments({commentCids: string[]}): {comments: Comment[]}
 ```
 #### Subplebbits Hooks
 ```
-useSubplebbit(subplebbitAddress: string, accountName?: string): Subplebbit | undefined // should contain not yet published posts from your own account unless they are older than X hours
-useSubplebbits(subplebbitAddress[]: string[], accountName?: string): Subplebbits[]
-useSubplebbitMetrics(subplebbitAddress: string, accountName?: string): SubplebbitMetrics | undefined
-useResolvedSubplebbitAddress(subplebbitAddress: string, accountName?: string): string | undefined
+useSubplebbit({subplebbitAddress: string}): Subplebbit
+useSubplebbits({subplebbitAddresses: string[]}): {subplebbits: Subplebbits[]}
+useSubplebbitStats({subplebbitAddress: string}): SubplebbitStats
+useResolvedSubplebbitAddress({subplebbitAddress: string, cache: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own subplebbit address
 ```
 #### Feeds Hooks
 ```
-useFeed(subplebbitAddresses: string[], sortType?: string): {feed: Feed, loadMore: function, hasMore: boolean}
-useBufferedFeeds(feedsOptions: UseBufferedFeedOptions[]) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
-useAuthorComments(authorAddress): string | undefined // there are no way to fetch all comments from an author, you need to build it from your own cache
+useFeed({subplebbitAddresses: string[], sortType?: string}): {feed: Feed, loadMore: function, hasMore: boolean}
+useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 ```
 #### Authors Hooks
 ```
-useResolvedAuthorAddress(authorAddress?: string, accountName?: string): string | undefined
-useAuthorAvatarImageUrl(author?: Author, accountName?: string): string | undefined
+useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
+useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
 ```
-
+#### Actions Hooks
+```
+useSubscribe({subplebbitAddress: string}): {subscribed: boolean | undefined, subscribe: Function, unsubscribe: Function}
+useBlock({address?: string, cid?: string}): {blocked: boolean | undefined, block: Function, unblock: Function}
+usePublishComment(options: UsePublishCommentOptions): {index: number, ...UsePublishCommentResult}
+usePublishVote(options: UsePublishVoteOptions): UsePublishVoteResult
+usePublishCommentEdit(options: UsePublishCommentEditOptions): UsePublishCommentEditResult
+usePublishSubplebbitEdit(options: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult
+useCreateSubplebbit(options: CreateSubplebbitOptions): {createdSubplebbit: Subplebbit | undefined, createSubplebbit: Function}
+```
+#### Actions with no hooks implementations yet
+```
+createAccount(account: Account)
+deleteAccount(accountName: string)
+setAccount(account: Account)
+setActiveAccount(accountName: string)
+setAccountsOrder(accountNames: string[])
+importAccount(serializedAccount: string)
+exportAccount(accountName: string): string // don't allow undefined to prevent catastrophic bugs
+```
 #### Util functions
 ```
 setPlebbitJs(PlebbitJs) // set which plebbit-js version to use, e.g. to mock content for frontend dev or to use the node version in Electron
-debugUtils // reset the databases and other dev utils
-```
-
-### Schema
-
-> For full schema see https://github.com/plebbit/plebbit-js#schema
-
-```
-AccountsActions {
-  createAccount(account: Account)
-  deleteAccount(accountName: string)
-  setAccount(account: Account)
-  setActiveAccount(accountName: string)
-  setAccountsOrder(accountNames: string[])
-  importAccount(serializedAccount: string | buffer)
-  exportAccount(accountName: string) // don't allow undefined to prevent catastrophic bugs
-  publishComment(comment: Comment, accountName?: string)
-  publishCommentEdit(commentEdit: CommentEdit, accountName?: string)
-  publishVote(vote: Vote, accountName?: string)
-  publishSubplebbitEdit(subplebbitAddress: string, subplebbitEdit: SubplebbitEdit, accountName?: string)
-  publishReport(report: Report, accountName?: string)
-  deleteComment(commentCidOrAccountCommentIndex: string | number, accountName?: string)
-  subscribe(subplebbitAddress: string, , accountName?: string) // subscribe to a subplebbit or multisub
-  unsubscribe(subplebbitAddress: string, , accountName?: string)
-  blockAddress(address: string, accountName?: string) // block a subplebbit address or author address from showing on your feed
-  unblockAddress(address: string, accountName?: string)
-  limitAddress(address: string | number, limitPercent: number, accountName?: string) // instead of blocking, limit the percent of your feed an address can take
-  unlimitAddress(address: string | number, limitPercent: number, accountName?: string)
-  saveComment(commentCid: string, accountName?: string) // like https://www.reddit.com/saved
-  unsaveComment(commentCid: string, accountName?: string)
-  followComment(commentCid: string, accountName?: string) // get notifications for comments that aren't your own
-  unfollowComment(commentCid: string, accountName?: string)
-  hideComment(commentCid: string, accountName?: string) // hide a comment from showing up anywhere
-  unhideComment(commentCid: string, accountName?: string)
-  followAuthor(authorAddress: string, accountName?: string) // no method to do this in the backend yet, could use IPNS
-  unfollowAuthor(authorAddress: string, accountName?: string)
-}
-Account {
-  id: string // random immutable string
-  name: string // the nickname of the account, eg "Account 1"
-  author: Author,
-  signer: Signer,
-  plebbit: Plebbit,
-  plebbitOptions: PlebbitOptions,
-  subscriptions: SubplebbitAddress[],
-  blockedAddresses: {[address: Address]: boolean}, // hide address from feed and notifications
-  limitedAddresses: {[address: Address]: number}, // limit how many times per feed page an address can appear, e.g. 1 = 100%, 0.1 = 10%, 0.001 = 0.1%
-  karma: Karma
-  unreadNotificationCount: number
-  subplebbits: {[subplebbitAddress: Address]: AccountSubplebbit} // the subplebbits moderated or created by the user
-}
-Karma {
-  replyUpvoteCount
-  replyDownvoteCount
-  replyScore
-  postUpvoteCount
-  postDownvoteCount
-  postScore
-  upvoteCount
-  downvoteCount
-  score
-}
-AccountSubplebbit { // the subplebbits moderated or created by the user
-  role: Role
-  autoStart: boolean // default true, the subplebbit should start publishing (subplebbit.start()) when the app is launched
-}
-AccountComment extends Comment {
-  index: number // the index of the comment in the AccountComments array and database
-  accountId: string
-  upvoteCountMarkedAsRead: number // upvote count the last time the user read it, needed for upvote notifications
-}
-AccountCommentReply extends Comment {
-  markedAsRead: boolean // has the user read this reply, needed for reply notifications
-}
-UseAccountsCommentsOptions {
-  accountName?: string
-  filter: UseAccountCommentsFilter
-}
-UseAccountCommentsFilter { // only get your own account's comments/votes on a certain subplebbit, thread, etc useful for certain UI pages
-  subplebbitAddresses?: string[]
-  postCids?: string[]
-  commentCids?: string[]
-  parentCommentCids?: string[]
-  hasParentCommentCid?: boolean // get only posts, no comments
-}
-AccountVote extends Vote {
-  previousAccountVoteCid: string // needed to scroll to every vote an account has published
-}
-Author {
-  displayName: string
-  address: string
-}
-Signer {
-  privateKey?: string | buffer
-  type: 'rsa'
-}
-Challenge {
-  type: 'image' | 'text' | 'audio' | 'video' | 'html' // tells the client how to display the challenge, start with implementing image and text only first
-  challenge: string // data required to complete the challenge, could be html, png, etc.
-}
+deleteDatabases() // delete all databases, including all caches and accounts data
+deleteCaches() // delete the cached comments, cached subplebbits and cached pages only, no accounts data
 ```
 
 #### Getting started
@@ -216,7 +78,7 @@ Challenge {
 import {useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
 
 const account = useAccount()
-const comment = useComment(commentCid)
+const comment = useComment({commentCid})
 ```
 
 #### Get the active account, if none exist in browser database, a default account is generated
@@ -228,9 +90,10 @@ const account = useAccount()
 #### Create accounts and change active account
 
 ```js
+import {useAccount, useAccounts, createAccount, setActiveAccount} from '@plebbit/plebbit-react-hooks'
+
 const account = useAccount()
-const accounts = useAccounts()
-const {createAccount, setActiveAccount, publishComment} = useAccountsActions()
+const {accounts} = useAccounts()
 
 // on first render
 console.log(accounts.length) // 1
@@ -242,37 +105,113 @@ await setActiveAccount('Account 3')
 
 // on render after updates
 console.log(accounts.length) // 3
-console.log(account.name) // 'Account 1'
+console.log(account.name) // 'Account 3'
 
 // you are now publishing from 'Account 3' because it is the active one
-await publishComment(comment)
+const {publishComment} = usePublishComment(publishCommentOptions)
+await publishComment()
 ```
 
 #### Get a post
 
 ```js
-const post = useComment(commentCid)
+const post = useComment({commentCid})
 ```
 
 #### Get a comment
 
 ```js
-const comment = useComment(commentCid)
-const comments = useComments([commentCid1, commentCid2, commentCid3])
+const comment = useComment({commentCid})
+const {comments} = useComments({commentCids: [commentCid1, commentCid2, commentCid3]})
+
+// content
+console.log(comment.content || comment.link || comment.title)
+
+// author address
+console.log(comment.author.address)
+```
+
+#### Get author avatar
+
+```js
+const comment = useComment({commentCid})
 
 // get the nft avatar image url of the comment author
-const authorAvatarImageUrl = useAuthorAvatarImageUrl(comment.author)
+const {imageUrl, state, error, chainProvider, metadataUrl} = useAuthorAvatar({author: comment.author})
+
+// result
+if (state === 'succeeded') {
+  console.log('Succeeded getting avatar image URL', imageUrl)
+}
+if (state === 'failed') {
+  console.log('Failed getting avatar image URL', error.message)
+}
+
+// pending
+if (state === 'fetching-owner') {
+  console.log('Fetching NFT owner address from chain provider', chainProvider.urls)
+}
+if (state === 'fetching-uri') {
+  console.log('Fetching NFT URI from chain provider URL', chainProvider.urls)
+}
+if (state === 'fetching-metadata') {
+  console.log('Fetching NFT URI from', metadataUrl)
+}
+```
+
+#### Get author profile page
+
+```js
+// NOTE: you must have a comment cid from the author to load his profile page
+// e.g. the page url would be /#/u/<authorAddress>/c/<commentCid>
+const authorResult = useAuthor({commentCid, authorAddress})
+const {imageUrl} = useAuthorAvatar({author: authorResult.author})
+const {authorComments, lastCommentCid, hasMore, loadMore} = useAuthorComments({commentCid, authorAddress})
+
+// result
+if (authorResult.state === 'succeeded') {
+  console.log('Succeeded getting author', authorResult.author)
+}
+if (state === 'failed') {
+  console.log('Failed getting author', authorResult.error.message)
+}
+
+// listing the author comments with infinite scroll
+import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
+
+const comments = authorComments.map(comment => <Comment comment={comment} />)
+
+<InfiniteScroll
+  pageStart={0}
+  loadMore={loadMore}
+  hasMore={hasMore}
+  loader={<div>Loading...</div>}
+>
+  {comments}
+</InfiniteScroll>
+
+// it is recommended to always redirect the user to the last known comment cid
+// in case they want to share the url with someone, the author's comments
+// will load faster when using the last comment cid
+import {useParams} from 'react-router-dom'
+const params = useParams()
+
+useEffect(() => {
+  if (lastCommentCid && params.comentCid !== lastCommentCid) {
+    history.push(`/u/${params.authorAddress}/c/${lastCommentCid}`);
+  }
+}, [lastCommentCid])
 ```
 
 #### Get a subplebbit
 
 ```js
-const subplebbit = useSubplebbit(subplebbitAddress)
-const subplebbitMetrics = useSubplebbitMetrics(subplebbitAddress)
-const subplebbits = useSubplebbits([subplebbitAddress, subplebbitAddress2, subplebbitAddress3])
+const subplebbit = useSubplebbit({subplebbitAddress})
+const subplebbitStats = useSubplebbitStats({subplebbitAddress})
+const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3]})
 ```
 
-#### Create a post or comment
+#### Create a post or comment using callbacks
 
 ```js
 const onChallenge = async (challenges: Challenge[], comment: Comment) => {
@@ -304,74 +243,130 @@ const onChallengeVerification = (challengeVerification, comment) => {
 
 const onError = (error, comment) => console.error(error)
 
-const {publishComment} = useAccountsActions()
-
-// create post
-const pendingComment = await publishComment({
+const publishCommentOptions = {
   content: 'hello',
   title: 'hello',
-  subplebbitAddress: 'Qm...',
+  subplebbitAddress: '12D3KooW...',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+
+const {index, state, publishComment} = usePublishComment(publishCommentOptions)
+
+// create post
+await publishComment()
 // pending comment index
-console.log(pendingComment.index)
+console.log(index)
+// pending comment state
+console.log(state)
 
 // reply to a post or comment
-publishComment({
+const publishReplyOptions = {
   content: 'hello',
   parentCid: 'Qm...', // the cid of the comment to reply to
-  subplebbitAddress: 'Qm...',
+  subplebbitAddress: '12D3KooW...',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {publishComment} = usePublishComment(publishReplyOptions)
+await publishComment()
+```
+
+#### Create a post or comment using hooks
+
+```js
+const publishCommentOptions = {
+  content: 'hello',
+  title: 'hello',
+  subplebbitAddress: '12D3KooW...',
+}
+
+const {index, state, publishComment, challenge, challengeVerification, publishChallengeAnswers, error} = usePublishComment(publishCommentOptions)
+
+if (challenge) {
+  // display challenges to user and call publishChallengeAnswers(challengeAnswers)
+}
+
+if (challengeVerification) {
+  // display challengeVerification.challengeSuccess to user
+  // redirect to challengeVerification.publication.cid
+}
+
+if (error) {
+  // display error to user
+}
+
+// create post
+await publishComment()
 ```
 
 #### Create a vote
 
 ```js
-const {publishVote} = useAccountsActions()
-
-publishVote({
-  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+const commentCid = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
+const publishVoteOptions = {
+  commentCid,
   vote: 1,
   subplebbitAddress: 'news.eth',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {state, error, publishVote} = usePublishVote(publishVoteOptions)
+
+await publishVote()
+console.log(state)
+console.log(error)
+
+// display the user's vote
+const {vote} = useAccountVote({commentCid})
+
+if (vote === 1)
+  console.log('user voted 1')
+if (vote === -1)
+  console.log('user voted -1')
+if (vote === 0)
+  console.log('user voted 0')
+if (vote === undefined)
+  console.log(`user didn't vote yet`)
 ```
 
 #### Create a comment edit
 
 ```js
-const {publishCommentEdit} = useAccountsActions()
-
-publishCommentEdit({
+const publishCommentEditOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   content: 'edited content',
   subplebbitAddress: 'news.eth',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {state, error, publishCommentEdit} = usePublishCommentEdit(publishCommentEditOptions)
+
+await publishCommentEdit()
+console.log(state)
+console.log(error)
 ```
 
 #### Delete a comment
 
 ```js
-const {publishCommentEdit} = useAccountsActions()
-
-publishCommentEdit({
+const publishCommentEditOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   removed: true,
   subplebbitAddress: 'news.eth',
   onChallenge,
   onChallengeVerification,
   onError
-})
+}
+const {state, error, publishCommentEdit} = usePublishCommentEdit(publishCommentEditOptions)
+
+await publishCommentEdit()
+console.log(state)
+console.log(error)
 
 // TODO: implement accountActions.deleteComment to remove your comment from your local accountComments database
 ```
@@ -379,20 +374,22 @@ publishCommentEdit({
 #### Subscribe to a subplebbit
 
 ```js
-const {subscribe, unsubscribe} = useAccountsActions()
-await subscribe('news.eth')
-await subscribe('QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui')
-await subscribe('tech.eth')
+let subplebbitAddress = 'news.eth'
+subplebbitAddress = '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z'
+subplebbitAddress = 'tech.eth'
+const {subscribed, subscribe, unsubscribe} = useSubscribe({subplebbitAddress})
+await subscribe()
+console.log(subscribed) // true
 
 // view subscriptions
 const account = useAccount()
-console.log(account.subscriptions) // ['news.eth', 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui', 'tech.eth']
+console.log(account.subscriptions) // ['news.eth', '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z', 'tech.eth']
 
 // unsubscribe
-await unsubscribe('news.eth')
+await unsubscribe()
 
 // get a feed of subscriptions
-const {feed, hasMore, loadMore} = useFeed(account.subscriptions, 'topAll')
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: account.subscriptions, sortType: 'topAll'})
 console.log(feed)
 ```
 
@@ -400,7 +397,7 @@ console.log(feed)
 
 ```js
 import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
-const {feed, hasMore, loadMore} = useFeed(['memes.eth', 'Qm...', 'Qm...'], 'topAll')
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['memes.eth', '12D3KooW...', '12D3KooW...'], sortType: 'topAll'})
 const posts = feed.map(post => <Post post={post} />)
 
 <InfiniteScroll
@@ -414,17 +411,19 @@ const posts = feed.map(post => <Post post={post} />)
 
 // you probably will want to buffer some feeds in the background so they are already loaded
 // when you need them
-useBufferedFeeds([
-  {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
-  {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
-  {subplebbitAddresses: ['Qm...', 'Qm...', 'Qm...', 'Qm...'], sortType: 'hot'}
-])
+useBufferedFeeds({
+  feedsOptions: [
+    {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
+    {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
+    {subplebbitAddresses: ['12D3KooW...', '12D3KooW...', '12D3KooW...', '12D3KooW...'], sortType: 'hot'}
+  ]
+})
 ```
 
 #### Edit an account
 
 ```js
-const {setAccount} = useAccountsActions()
+import {useAccount, setAccount, useResolvedAuthorAddress} from '@plebbit/plebbit-react-hooks'
 const account = useAccount() // or useAccount('Account 2') to use an account other than the active one
 
 const author: {...account.author, displayName: 'John'}
@@ -432,9 +431,23 @@ const editedAccount = {...account, author}
 
 await setAccount(editedAccount)
 
-// check if the user has set his ENS name properly
-const resolvedAuthorAddress = useResolvedAuthorAddress('username.eth')
-// resolvedAuthorAddress should equal to account.signer.address
+// check if the user has set his ENS name properly, use {cache: false} or it won't update
+const author = {...account.author, address: 'username.eth'}
+// authorAddress should equal to account.signer.address
+const {resolvedAddress, state, error, chainProvider} = useResolvedAuthorAddress({author, cache: false}) 
+
+// result
+if (state === 'succeeded') {
+  console.log('Succeeded resolving address', resolvedAddress)
+}
+if (state === 'failed') {
+  console.log('Failed resolving address', error.message)
+}
+
+// pending
+if (state === 'resolving') {
+  console.log('Resolving address from chain provider URL', chainProvider.urls)
+}
 ```
 
 #### Delete account
@@ -442,7 +455,7 @@ const resolvedAuthorAddress = useResolvedAuthorAddress('username.eth')
 > Note: deleting account is unrecoverable, warn the user to export/backup his account before deleting
 
 ```js
-const {deleteAccount} = useAccountsActions()
+import {deleteAccount} from '@plebbit/plebbit-react-hooks'
 
 // delete active account
 await deleteAccount()
@@ -454,81 +467,140 @@ await deleteAccount('Account 2')
 #### Get your own comments and votes
 
 ```js
-const myComments = useAccountComments()
-const myVotes = useAccountVotes()
-const subplebbitAddress = 'memes.eth'
+// all my own comments
+const {accountComments} = useAccountComments()
+for (const accountComment of accountComments) {
+  // it is recommended to show a label in the UI if accountComment.state is 'pending' or 'failed'
+  console.log('comment', accountComment.index, 'is status', accountComment.state)
+}
+
+// all my own votes
+const {accountVotes} = useAccountVotes()
+
+// my own comments in memes.eth
 const myCommentsInMemesEth = useAccountComments({
-  filter: {subplebbitAddresses: [subplebbitAddress]}
+  filter: {subplebbitAddresses: ['memes.eth']}
 })
+
+// my own posts in memes.eth
 const myPostsInMemesEth = useAccountComments({
   filter: {
     hasParentCommentCid: false, 
-    subplebbitAddresses: [subplebbitAddress]
+    subplebbitAddresses: ['memes.eth']
   }
 })
+
+// my own replies in a post with cid 'Qm...'
 const postCid = 'Qm...'
 const myCommentsInSomePost = useAccountComments({
   filter: {postCids: [postCid]}
 })
+
+// my own replies to a comment with cid 'Qm...'
 const parentCommentCid = 'Qm...'
 const myRepliesToSomeComment = useAccountComments({
   filter: {parentCommentCids: [parentCommentCid]}
 })
 
-// know if you upvoted a comment already or not
-const myVoteOnSomePost = useAccountVote(postCid)
-const myVoteOnSomeComment = useAccountVote(commentCid, 'Account 2') // to get account that isn't active use the account name
+// know if you upvoted a comment already with cid 'Qm...'
+const {vote} = useAccountVote({commentCid: 'Qm...'})
+console.log(vote) // 1, -1 or 0
 ```
 
 #### Determine if a comment is your own
 
 ```js
 const account = useAccount()
-const comment = useComment(commentCid)
+const comment = useComment({commentCid})
 const isMyOwnComment = account?.author.address === comment?.author.address
 ```
 
 #### Get account notifications
 
 ```js
-const {notifications, markAsRead} = useAccountNotifications()
+const {notifications, markAsRead} = useNotifications()
 for (const notification of notifications) {
   console.log(notification)
 }
 await markAsRead()
 
-const johnsNotifications = useAccountNotifications('John')
+const johnsNotifications = useNotifications({accountName: 'John'})
 for (const notification of johnsNotifications.notifications) {
   console.log(notification)
 }
 await johnsNotifications.markAsRead()
 
 // get the unread notification counts for all accounts
-const accounts = useAccounts()
+const {accounts} = useAccounts()
 const accountsUnreadNotificationsCounts = accounts?.map(account => account.unreadNotificationCount)
+```
+
+#### Block an address (author, subplebbit or multisub)
+
+```js
+const address: 'subplebbit-address.eth' // or 'author-address.eth' or '12D3KooW...'
+const {blocked, unblock, block} = useBlock({address})
+
+if (blocked) {
+  console.log(`'${address}' is blocked`)
+}
+else {
+  console.log(`'${address}' is not blocked`)
+}
+
+// to block
+block()
+
+// to unblock
+unblock()
+```
+
+#### Block a cid (hide a comment)
+
+```js
+const {blocked, unblock, block} = useBlock({cid: 'Qm...'})
+
+if (blocked) {
+  console.log(`'${cid}' is blocked`)
+}
+else {
+  console.log(`'${cid}' is not blocked`)
+}
+
+// to block
+block()
+
+// to unblock
+unblock()
 ```
 
 #### (Desktop only) Create a subplebbit
 
 ```js
-const {createSubplebbit} = useAccountsActions()
 const createSubplebbitOptions = {title: 'My subplebbit title'}
-const subplebbit = await createSubplebbit(createSubplebbitOptions)
+const {createdSubplebbit, createSubplebbit} = useCreateSubplebbit(createSubplebbitOptions)
+await createSubplebbit()
+
+// it is recommended to redirect to `p/${createdSubplebbit.address}` after creation
+if (createdSubplebbit?.address) {
+  console.log('created subplebbit with title', createdSubplebbit.title)
+  history.push(`p/${createdSubplebbit.address}`)
+}
 
 // after the subplebbit is created, fetch it using
-const accountSubplebbits = useAccountSubplebbits()
+const {accountSubplebbits} = useAccountSubplebbits()
 const accountSubplebbitAddresses = Object.keys(accountSubplebbits)
-const subplebbits = useSubplebbits(accountSubplebbitAddresses)
+const subplebbits = useSubplebbits({subplebbitAddresses: accountSubplebbitAddresses})
 // or
-const _subplebbit = useSubplebbit(subplebbit.address)
+const _subplebbit = useSubplebbit({subplebbitAddress: createdSubplebbit.address})
 ```
 
 #### (Desktop only) List the subplebbits you created
 
 ```js
-const accountSubplebbits = useAccountSubplebbits()
+const {accountSubplebbits} = useAccountSubplebbits()
 const ownerSubplebbitAddresses = Object.keys(accountSubplebbits).map(subplebbitAddress => accountSubplebbits[subplebbitAddress].role === 'owner')
-const subplebbits = useSubplebbits(ownerSubplebbitAddresses)
+const subplebbits = useSubplebbits({subplebbitAddresses: ownerSubplebbitAddresses})
 ```
 
 #### (Desktop only) Edit your subplebbit settings
@@ -551,38 +623,51 @@ const onChallengeVerification = (challengeVerification, subplebbitEdit) => {
 
 const onError = (error, subplebbitEdit) => console.error(error)
 
-const {publishSubplebbitEdit} = useAccountsActions()
-
 // add ENS to your subplebbit
-const subplebbitAddress = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 const editSubplebbitOptions = {
-  address: 'your-subplebbit-address.eth', 
+  subplebbitAddress: '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z', // the previous address before changing it
+  address: 'your-subplebbit-address.eth', // the new address to change to
   onChallenge, 
   onChallengeVerification,
   onError
 }
-await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
+
+await publishSubplebbitEdit()
 
 // edit other subplebbit settings
-const subplebbitAddress = 'your-subplebbit-address.eth'
 const editSubplebbitOptions = {
+  subplebbitAddress: 'your-subplebbit-address.eth', // the address of the subplebbit to change
   title: 'Your title', 
   description: 'Your description',
   onChallenge, 
   onChallengeVerification,
   onError
 }
-await publishSubplebbitEdit(subplebbitAddress, editSubplebbitOptions)
+const {publishSubplebbitEdit} = usePublishSubplebbitEdit(editSubplebbitOptions)
+await publishSubplebbitEdit()
 
-// verify if ENS was set correctly
-const resolvedSubplebbitAddress = useResolvedSubplebbitAddress('your-subplebbit-address.eth')
-console.log('ENS set correctly', resolvedSubplebbitAddress === subplebbit.signer.address)
+// verify if ENS was set correctly, use {cache: false} or it won't update
+const {resolvedAddress} = useResolvedSubplebbitAddress({subplebbitAddress: 'your-subplebbit-address.eth', cache: false})
+
+// result
+if (state === 'succeeded') {
+  console.log('Succeeded resolving address', resolvedAddress)
+  console.log('ENS set correctly', resolvedAddress === subplebbit.signer.address)
+}
+if (state === 'failed') {
+  console.log('Failed resolving address', error.message)
+}
+
+// pending
+if (state === 'resolving') {
+  console.log('Resolving address from chain provider URL', chainProvider.urls)
+}
 ```
 
 #### Export and import account
 
 ```js
-const {exportAccount, importAccount, setActiveAccount, setAccountsOrder} = useAccountsActions()
+import {exportAccount, importAccount, setActiveAccount, setAccountsOrder} from '@plebbit/plebbit-react-hooks'
 
 // get active account 'Account 1'
 const activeAccount = useAccount()
@@ -603,89 +688,143 @@ await setActiveAccount('Account 1 2')
 await setAccountsOrder(['Account 1 2', 'Account 1'])
 ```
 
-### Algorithms
+#### View the status of a comment edit
 
-#### Account notifications and own comment updates
+```js
+let comment = useComment({commentCid})
+const {state: editedCommentState, editedComment} = useEditedComment({comment})
 
-On startup, and every time a comment is created, it is added to the AccountsComments store and database. On the comment challengeverification event, the comment CID is received from the subplebbit owner, and we can start listening to comment update events, and update the store and database every time. Sometimes the user closes the page and the challengeverification event is never received, so every time a comment, subplebbit or subplebbit page is fetched, we awkwardly check to see if it has one of our own comment with a missing CID, and update it if found. 
-
-AccountsCommentsReplies are found on the comment update events and are stored in a last rencently used database and have the field "markedAsRead" once read. `useAccountNotifications` uses the AccountsCommentsReplies to compile the read/unread notifications. TODO: add notifications for upvotes e.g. "Your comment has 10 upvotes".
-
-#### Feed pages and infinite scrolling
-
-A "feed" is a combination of a list of subplebbits to fetch, a sort type (hot/top/new/etc) and an account (for its IPFS settings). After using `useFeed(useFeedOptions)`, a feed with those options is added to the feedsStore. After a feed is added to store, its subplebbits are fetched, then the first page of the subplebbit.posts `Pages` are fetched (if needed, usually the 'hot' sort is included with `plebbit.getSubplebbit()`). Each feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a list of `SubplebbitsPostsInfo` which keep track of `SubplebbitPostsInfo.bufferedPostCount` for each combination of subplebbit and sort type. When `SubplebbitPostsInfo.bufferedPostCount` gets below 50, the next page for the subplebbit and sort type is fetched.
-
-When a new post page is received from IPFS, the `feedsStore.bufferedFeeds` are recalculated, but the `feedsStore.loadedFeeds` (which are displayed to the user) are not, new posts fetched will only be displayed to the user the next time he calls `loadMore`. If we detect that a `loadedFeed` is stale, we can prompt the user to load more posts, like Reddit/Facebook/Twitter do. 
-
-Post pages are cached in IndexedDb for a short time, in case the user reloads the app.
-
-When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies. Emptying the buffered feed needs testing in production, it might be too slow and need some caching.
-
-#### Feeds stores
-
-```
-feedsStore {
-  feedsOptions: FeedsOptions
-  bufferedFeeds: Feeds
-  bufferedPostsCounts: {[subplebbitAddress+sortType: string]: number}
-  loadedFeeds: Feeds
-  feedsHaveMore: {[feedName: string]: boolean}
-  // actions
-  addFeedToStore: (feedName: string, ...feedOptions: FeedOptions) => void
-  incrementFeedPageNumber: (feedName: string) => void
-  // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
-  updateFeeds: () => void
+// if the comment has a succeeded, failed or pending edit, use the edited comment
+if (editedComment) {
+  comment = editedComment
 }
-subplebbitsStore {
-  subplebbits: Subplebbits
-  // actions
-  addSubplebbitToStore: (subplebbitAddress: string) => void
+
+let editLabel
+if (editedCommentState === 'succeeded') {
+  editLabel = {text: 'EDITED', color: 'green'}
 }
-subplebbitsPagesStore {
-  subplebbitsPages
-  // actions
-  // a subplebbit instance only knows its first page CID, so take the first page CID as an argument
-  // and scroll through every subplebbit next page in the store until you find the last page, then add it
-  addNextSubplebbitPageToStore: (subplebbitFirstPageCid: string) => void
+if (editedCommentState === 'pending') {
+  editLabel = {text: 'PENDING EDIT', color: 'orange'}
+}
+if (editedCommentState === 'failed') {
+  editLabel = {text: 'FAILED EDIT', color: 'red'}
 }
 ```
 
-#### Flow of adding a new feed
+### View the status of a specific comment edit property
 
-1. user calls useFeed(subplebbitAddresses, sortType) and feed gets added to feeds store
-2. feed subplebbits are added to subplebbitsStore
-  - in parallel:
-    3. each feed subplebbit+sortType subscribes to its subplebbit.posts.pages and firstPageCids (subplebbit.posts.pageCids[sortType]) value changing (a subplebbit update)
-    4. on each subplebbit.posts.pages and firstPageCids change, updateFeeds and bufferedFeedsSubplebbitsPostCounts
-  - in parallel:
-    3. each feed subplebbit subscribes to its bufferedFeedsSubplebbitsPostCounts value changing
-    4. on each bufferedFeedsSubplebbitsPostCounts change, if the bufferedFeedsSubplebbitsPostCounts is below threshold for the subplebbit, add the next subplebbit+sortType page to the subplebbitsPagesStore
-  - in parallel:
-    3. each feed subscribes to subplebbitsPagesStore changing
-      - on each subplebbitsPagesStore change, if any new pages are relevant to the feed:
-        5. the feed's buffered feeds is rebuilt and bufferedFeedsSubplebbitsPostCounts updated
-        6. if the loaded feeds is missing posts and buffered feeds has them, rebuild the loaded feeds
-  - in parallel:
-    3. each feed subscribes to accountsStore changing
-    4. on each accounts change, like a blockedAddress added for example, updateFeeds
-3. update feeds to rebuild the feeds using the already preloaded subplebbits and pages if any
+```js
+const comment = useComment({commentCid})
+const editedComment = useEditedComment({comment})
+if (editedComment.failedEdits.removed !== undefined) {
+  console.log('failed editing comment.removed property')
+}
+if (editedComment.succeededEdits.removed !== undefined) {
+  console.log('succeeded editing comment.removed property')
+}
+if (editedCommentResult.pendingEdits.removed !== undefined) {
+  console.log('pending editing comment.removed property')
+}
 
-#### Flow of incrementing a feed's page
+// view the full comment with all edited properties (both succeeded and pending)
+console.log(editedComment.editedComment)
 
-1. the feeds store gets updated with the new page number and loadedFeeds, bufferedFeeds and bufferedFeedsSubplebbitsPostCounts are partially recalculated and updated
+// view the state of all edits of the comment
+console.log(editedComment.state) // 'unedited' | 'succeeded' | 'pending' | 'failed'
+```
 
-#### Comments trees and infinite scrolling
+#### List all comment and subplebbit edits the account has performed
 
-Currently not implemented. Only uses the preloaded replies to a post.
+```js
+const {accountEdits} = useAccountEdits()
+for (const accountEdit of accountEdits) {
+  console.log(accountEdit)
+}
+console.log(`there's ${accountEdits.length} account edits`)
 
-#### Accounts settings persistance, export, import and caching
+// get only the account edits of a specific comment
+const filter = {commentCids: ['Qm...']}
+const {accountEdits} = useAccountEdits({filter})
 
-All accounts settings, accounts comments and accounts votes are stored permanently in the various IndexedDb databases. Import from file and export to file are possible but not yet implemented. Ephemeral data like random subplebbits, comments and feeds are stored in last recently used IndexedDb databases, and eventually erased.
+// only get account edits in a specific subplebbit
+const filter = {subplebbitAddresses: ['news.eth']}
+const {accountEdits} = useAccountEdits({filter})
+```
 
-#### Editing account.plebbitOptions and replacing the account.plebbit instance
+#### Get replies to a post (nested)
 
-Not implemented, but the easiest method would be to force a page reload, which will reset setting up all the comments and subplebbit listeners.
+```jsx
+import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 
-### Install, testing and building
+const useRepliesAndAccountReplies = (comment) => {
+   const {accountComments} = useAccountComments({filter: {parentCid: comment?.cid}})
 
-- Read /docs/testing.md
+  // the account's replies have a delay before getting published, so get them locally from accountComments instead
+  const accountRepliesNotYetPublished = useMap(() => {
+    const replies = comment?.replies?.pages?.topAll || []
+    const replyCids = new Set(replies.map(reply => reply.cid))
+    // filter out the account comments already in comment.replies, so they don't appear twice
+    return accountComments.filter(accountReply => !replyCids.has(accountReply.cid))
+  }, [comment?.replies?.pages?.topAll, accountComments])
+
+  const repliesAndNotYetPublishedReplies = useMap(() => {
+    return [
+      // put the author's unpublished replies at the top, latest first (reverse)
+      ...accountRepliesNotYetPublished.reverse(),
+      // put the published replies after,
+      ...comment?.replies?.pages?.topAll || []
+    ]
+  }, [comment?.replies?.pages?.topAll, accountRepliesNotYetPublished])
+
+  return repliesAndNotYetPublishedReplies
+}
+
+const Reply = ({reply}) => {
+  const replies = useRepliesAndAccountReplies(reply)
+  return (
+    <div>
+      <div>{reply.author.address} {reply.timestamp}</div>
+      {reply.state === 'pending' && <div>PENDING</div>}
+      {reply.state === 'failed' && <div>FAILED</div>}
+      <div>{reply.content}</div>
+      <div style={{marginLeft: 4}}>
+        {replies.map(reply => <Reply reply={reply}/>))}
+      </div>
+    </div>
+  )
+}
+
+// account replies can have reply.state 'pending' or 'failed' when they are not published yet
+// it is recommended to add a 'pending' or 'failed' label to these replies
+const comment = useComment({commentCid})
+const replies = useRepliesAndAccountReplies(comment)
+const repliesComponents = replies.map(reply => <Reply reply={reply}/>)
+```
+
+#### Get replies to a post flattened (not nested)
+
+```js
+import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
+import {flattenCommentsPages} from '@plebbit/plebbit-react-hooks/dist/lib/utils'
+const comment = useComment({commentCid})
+const {accountComments} = useAccountComments({filter: {postCid: commentCid}})
+
+// the default way to display replies is nested, flatten (unnest) them instead
+const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [comment.replies])
+
+// the account's replies have a delay before getting published, so get them locally from accountComments instead
+const accountRepliesNotYetInCommentReplies = useMemo(() => {
+  const commentReplyCids = new Set(flattenedReplies.map(reply => reply.cid))
+  // filter out the account comments already in comment.replies, so they don't appear twice
+  return accountComments.filter(accountReply => !commentReplyCids.has(accountReply.cid))
+}, [flattenedReplies, accountComments])
+
+// merge the not yet published account replies and published replies, and sort them by timestamp
+const sortedReplies = useMemo(() => [...accountRepliesNotYetInCommentReplies, ...flattenedReplies].sort((a, b) => a.timestamp - b.timestamp), [accountRepliesNotYetInCommentReplies, flattenedReplies])
+
+for (const reply of sortedReplies) {
+  // account replies can have reply.state 'pending' or 'failed' when they are not published yet
+  // it is recommended to add a 'pending' or 'failed' label to these replies
+  console.log(reply)
+}
+```

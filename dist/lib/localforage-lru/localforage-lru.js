@@ -51,7 +51,13 @@ function createLocalForageInstance(localForageLruOptions) {
                 yield initialization();
                 const databaseValue = yield database1.getItem(key);
                 if (databaseValue !== null && databaseValue !== undefined) {
-                    yield database1.setItem(key, value);
+                    try {
+                        yield database1.setItem(key, value);
+                    }
+                    catch (error) {
+                        console.error('localforageLru.setItem setItem error', { error, errorMessage: error === null || error === void 0 ? void 0 : error.message, key, value });
+                        throw error;
+                    }
                 }
                 else {
                     yield updateDatabases(key, value);
@@ -90,12 +96,18 @@ function createLocalForageInstance(localForageLruOptions) {
         },
     };
     function updateDatabases(key, value) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield database1.setItem(key, value);
             }
             catch (error) {
-                console.error('localforageLru.updateDatabases', { error });
+                console.error('localforageLru updateDatabases setItem error', { error, errorMessage: error === null || error === void 0 ? void 0 : error.message, key, value });
+                // ignore this error, don't know why it happens
+                if ((_b = (_a = error === null || error === void 0 ? void 0 : error.message) === null || _a === void 0 ? void 0 : _a.includes) === null || _b === void 0 ? void 0 : _b.call(_a, 'unit storage quota has been exceeded')) {
+                    return;
+                }
+                throw error;
             }
             databaseSize++;
             if (databaseSize >= localForageLruOptions.size) {

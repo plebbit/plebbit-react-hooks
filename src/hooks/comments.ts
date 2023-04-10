@@ -1,11 +1,12 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useState, useMemo} from 'react'
 import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:hooks:comments')
+const log = Logger('plebbit-react-hooks:comments:hooks')
 import assert from 'assert'
-import {Comment} from '../types'
+import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types'
 import useCommentsStore from '../stores/comments'
+import useAccountsStore from '../stores/accounts'
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
 import shallow from 'zustand/shallow'
 
@@ -14,33 +15,63 @@ import shallow from 'zustand/shallow'
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComment(commentCid?: string, accountName?: string) {
-  const account = useAccount(accountName)
-  let comment = useCommentsStore((state: any) => state.comments[commentCid || ''])
+export function useComment(options?: UseCommentOptions): UseCommentResult {
+  assert(!options || typeof options === 'object', `useComment options argument '${options}' not an object`)
+  const {commentCid, accountName} = options || {}
+  const account = useAccount({accountName})
+  const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
+  const errors = useCommentsStore((state: any) => state.errors[commentCid || ''])
+
+  // get account comment of the cid if any
+  const accountCommentInfo = useAccountsStore((state: any) => state.commentCidsToAccountsComments[commentCid || ''])
+  const accountComment = useAccountsStore((state: any) => state.accountsComments[accountCommentInfo?.accountId || '']?.[Number(accountCommentInfo?.accountCommentIndex)])
 
   useEffect(() => {
     if (!commentCid || !account) {
       return
     }
     validator.validateUseCommentArguments(commentCid, account)
-    if (!comment) {
+    if (!commentFromStore) {
       // if comment isn't already in store, add it
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComment addCommentToStore error', {commentCid, error}))
     }
   }, [commentCid, account?.id])
 
   if (account && commentCid) {
-    log('useComment', {commentCid, comment, commentsStore: useCommentsStore.getState().comments, account})
+    log('useComment', {commentCid, commentFromStore, subplebbitsPagesComment, accountComment, commentsStore: useCommentsStore.getState().comments, account})
   }
+
+  let comment = commentFromStore
 
   // if comment from subplebbit pages is more recent, use it instead
   if (commentCid && (subplebbitsPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
     comment = subplebbitsPagesComment
   }
 
-  return comment
+  // if comment is still not defined, but account comment is, use account comment
+  // check `comment.timestamp` instead of `comment` in case comment exists but in a loading state
+  const commentFromStoreNotLoaded = !comment?.timestamp
+  if (commentCid && commentFromStoreNotLoaded && accountComment) {
+    comment = accountComment
+  }
+
+  let state = comment?.updatingState || 'initializing'
+  // force succeeded even if the commment is fecthing a new update
+  if (comment?.updatedAt) {
+    state = 'succeeded'
+  }
+
+  return useMemo(
+    () => ({
+      ...comment,
+      state,
+      error: errors?.[errors.length - 1],
+      errors: errors || [],
+    }),
+    [comment, commentCid, errors]
+  )
 }
 
 /**
@@ -48,10 +79,18 @@ export function useComment(commentCid?: string, accountName?: string) {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export function useComments(commentCids: string[] = [], accountName?: string) {
-  const account = useAccount(accountName)
-  let comments: Comment[] = useCommentsStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
-  const subplebbitsPagesComments: Comment[] = useSubplebbitsPagesStore((state: any) => commentCids.map((commentCid) => state.comments[commentCid || '']), shallow)
+export function useComments(options?: UseCommentsOptions): UseCommentsResult {
+  assert(!options || typeof options === 'object', `useComments options argument '${options}' not an object`)
+  const {commentCids, accountName} = options || {}
+  const account = useAccount({accountName})
+  const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(
+    (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
+    shallow
+  )
+  const subplebbitsPagesComments: (Comment | undefined)[] = useSubplebbitsPagesStore(
+    (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
+    shallow
+  )
 
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
 
@@ -64,19 +103,33 @@ export function useComments(commentCids: string[] = [], accountName?: string) {
     for (const commentCid of uniqueCommentCids) {
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComments addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCids.toString(), account?.id])
+  }, [commentCids?.toString(), account?.id])
 
   if (account && commentCids?.length) {
-    log('useComments', {commentCids, comments, commentsStore: useCommentsStore.getState().comments, account})
+    log('useComments', {commentCids, commentsStoreComments, commentsStore: useCommentsStore.getState().comments, account})
   }
 
   // if comment from subplebbit pages is more recent, use it instead
-  comments = [...comments]
-  for (const i in comments) {
-    if ((subplebbitsPagesComments[i]?.updatedAt || 0) > (comments[i]?.updatedAt || 0)) {
-      comments[i] = subplebbitsPagesComments[i]
+  const comments = useMemo(() => {
+    const comments = [...commentsStoreComments]
+    for (const i in comments) {
+      if ((subplebbitsPagesComments[i]?.updatedAt || 0) > (comments[i]?.updatedAt || 0)) {
+        comments[i] = subplebbitsPagesComments[i]
+      }
     }
-  }
+    return comments
+  }, [commentsStoreComments, subplebbitsPagesComments])
 
-  return comments
+  // succeed if no comments are undefined
+  const state = comments.indexOf(undefined) === -1 ? 'succeeded' : 'fetching-ipfs'
+
+  return useMemo(
+    () => ({
+      comments,
+      state,
+      error: undefined,
+      errors: [],
+    }),
+    [comments, commentCids?.toString()]
+  )
 }

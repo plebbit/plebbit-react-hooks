@@ -3,19 +3,22 @@ import testUtils from '../../lib/test-utils'
 import {
   useAccount,
   useAccounts,
-  useAccountsActions,
+  useAccountComment,
   useAccountComments,
   useAccountVotes,
   useAccountVote,
+  useAccountEdits,
+  useEditedComment,
   useAccountSubplebbits,
   UseAccountCommentsOptions,
   useComment,
-  useAccountNotifications,
+  useNotifications,
   useFeed,
   useSubplebbit,
   setPlebbitJs,
 } from '../..'
-import localForage from 'localforage'
+import commentsStore from '../../stores/comments'
+import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
 setPlebbitJs(PlebbitJsMock)
@@ -46,15 +49,16 @@ describe('accounts', () => {
       expect(typeof account.author.address).toBe('string')
       expect(Array.isArray(account.subscriptions)).toBe(true)
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').toBe(true)
+      expect(account.blockedCids && typeof account.blockedCids === 'object').toBe(true)
       expect(account.plebbit && typeof account.plebbit === 'object').toBe(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').toBe(true)
-      expect(account.plebbitOptions.ipfsGatewayUrl).toBe('https://cloudflare-ipfs.com')
-      expect(account.plebbitOptions.ipfsHttpClientOptions).toBe(undefined)
-      expect(account.plebbitOptions.pubsubHttpClientOptions).toBe('https://pubsubprovider.xyz/api/v0')
+      expect(account.plebbitOptions.ipfsGatewayUrls).toEqual(['https://ipfs.io', 'https://cloudflare-ipfs.com'])
+      expect(account.plebbitOptions.ipfsHttpClientsOptions).toBe(undefined)
+      expect(account.plebbitOptions.pubsubHttpClientsOptions).toEqual(['https://pubsubprovider.xyz/api/v0'])
     })
 
     test(`default plebbit options are not saved to database`, async () => {
-      const plebbitOptions = {ipfsHttpClientOptions: 'http://one:5001/api/v0'}
+      const plebbitOptions = {ipfsHttpClientsOptions: ['http://one:5001/api/v0']}
       // @ts-ignore
       window.defaultPlebbitOptions = plebbitOptions
 
@@ -63,14 +67,14 @@ describe('accounts', () => {
 
       const rendered = renderHook(() => {
         const account = useAccount()
-        const {setAccount} = useAccountsActions()
+        const {setAccount} = accountsActions
         return {account, setAccount}
       })
       const waitFor = testUtils.createWaitFor(rendered)
 
       // reloaded accounts have new default plebbit options
-      await waitFor(() => rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions === plebbitOptions.ipfsHttpClientOptions)
-      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
+      await waitFor(() => rendered.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0] === plebbitOptions.ipfsHttpClientsOptions[0])
+      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0]).toBe(plebbitOptions.ipfsHttpClientsOptions[0])
 
       // set account with new default plebbit options
       await act(async () => {
@@ -82,10 +86,10 @@ describe('accounts', () => {
       // account has new default plebbit options
       await waitFor(() => rendered.result.current.account.author.displayName === 'john')
       expect(rendered.result.current.account.author.displayName).toBe('john')
-      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
+      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0]).toBe(plebbitOptions.ipfsHttpClientsOptions[0])
 
       // change default plebbit options and reload accounts
-      plebbitOptions.ipfsHttpClientOptions = 'http://two:5001/api/v0'
+      plebbitOptions.ipfsHttpClientsOptions = ['http://two:5001/api/v0']
       await testUtils.resetStores()
 
       // on second render get the account from database
@@ -97,7 +101,7 @@ describe('accounts', () => {
       await waitFor2(() => rendered2.result.current.account)
 
       // account plebbit options were not saved, has new default plebbit options
-      expect(rendered2.result.current.account.plebbitOptions.ipfsHttpClientOptions).toBe(plebbitOptions.ipfsHttpClientOptions)
+      expect(rendered2.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0]).toBe(plebbitOptions.ipfsHttpClientsOptions[0])
       expect(rendered2.result.current.account.author.displayName).toBe('john')
 
       // @ts-ignore
@@ -108,8 +112,8 @@ describe('accounts', () => {
 
     test('create new accounts', async () => {
       const rendered = renderHook<any, any>((accountName) => {
-        const account = useAccount(accountName)
-        const {createAccount} = useAccountsActions()
+        const account = useAccount({accountName})
+        const {createAccount} = accountsActions
         return {account, createAccount}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -144,7 +148,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if accounts saved to database
-      const rendered2 = renderHook<any, any>((accountName) => useAccount(accountName))
+      const rendered2 = renderHook<any, any>((accountName) => useAccount({accountName}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -172,10 +176,12 @@ describe('accounts', () => {
     beforeEach(async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>((accountName) => {
-        const account = useAccount(accountName)
-        const accounts = useAccounts()
-        const accountsActions = useAccountsActions()
-        return {account, accounts, ...accountsActions}
+        const account = useAccount({accountName})
+        const {accounts} = useAccounts()
+        const {accountComments} = useAccountComments()
+        const {accountVotes} = useAccountVotes()
+        const {accountEdits} = useAccountEdits()
+        return {account, accounts, accountComments, accountVotes, accountEdits, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
 
@@ -261,7 +267,7 @@ describe('accounts', () => {
       await testUtils.resetStores()
 
       // render second store with empty state to check if account change saved to database
-      const rendered2 = renderHook<any, any>(() => useAccount('Account 2'))
+      const rendered2 = renderHook<any, any>(() => useAccount({accountName: 'Account 2'}))
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
       // accounts not yet loaded from database
@@ -312,109 +318,199 @@ describe('accounts', () => {
 
     test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
 
-    test('export account', async () => {
-      let exportedAccountJson: any, exportedAccount: any
-      await act(async () => {
-        exportedAccountJson = await rendered.result.current.exportAccount()
-      })
-      try {
-        exportedAccount = JSON.parse(exportedAccountJson)
-      } catch (e) {
-        console.error(e)
-      }
-      expect(typeof exportedAccountJson).toBe('string')
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
-      // account.plebbit has been removed
-      expect(exportedAccount.plebbit).toBe(undefined)
-    })
+    describe('account comments, account votes, account edits in database', () => {
+      const subplebbitAddress = 'subplebbit address'
 
-    test('import account', async () => {
-      let exportedAccount: any
-      await act(async () => {
+      beforeEach(async () => {
+        let challengeVerificationCount = 0
+        const publishCommentEditOptions = {
+          subplebbitAddress,
+          locked: true,
+          onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => challengeVerificationCount++,
+        }
+        const publishCommentOptions = {
+          subplebbitAddress,
+          onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => challengeVerificationCount++,
+        }
+        const publishVoteOptions = {
+          subplebbitAddress,
+          vote: 1,
+          onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+          onChallengeVerification: () => challengeVerificationCount++,
+        }
+        await act(async () => {
+          await accountsActions.publishComment({...publishCommentOptions, content: 'content 1'})
+          // wait for account comment to have cid, for comment.author.previousCommentCid tests
+          await waitFor(() => rendered.result.current.accountComments[0]?.cid)
+
+          await accountsActions.publishComment({...publishCommentOptions, content: 'content 2'})
+          await accountsActions.publishVote({...publishVoteOptions, commentCid: 'comment cid 1'})
+          await accountsActions.publishVote({...publishVoteOptions, commentCid: 'comment cid 2'})
+          await accountsActions.publishCommentEdit({...publishCommentEditOptions, commentCid: 'comment cid 1'})
+          await accountsActions.publishCommentEdit({...publishCommentEditOptions, commentCid: 'comment cid 2'})
+        })
+        await waitFor(() => challengeVerificationCount === 6)
+        expect(challengeVerificationCount).toBe(6)
+      })
+
+      afterEach(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
+      test('published comment has comment.author.previousCommentCid', async () => {
+        await waitFor(() => rendered.result.current.accountComments.length >= 2)
+        expect(rendered.result.current.accountComments[0].author.previousCommentCid).toBe(undefined)
+        expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
+        expect(rendered.result.current.accountComments[1].author.previousCommentCid).toBe('content 1 cid')
+      })
+
+      test('export account', async () => {
+        let exportedJson: any, exported: any
+        await act(async () => {
+          exportedJson = await rendered.result.current.exportAccount()
+        })
         try {
-          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
-        } catch (e) {}
+          exported = JSON.parse(exportedJson)
+        } catch (e) {
+          console.error(e)
+        }
+        expect(typeof exportedJson).toBe('string')
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
+
+        // account.plebbit has been removed
+        expect(exported?.account.plebbit).toBe(undefined)
+
+        // exported account comments
+        expect(exported?.accountComments?.[0]?.content).toBe('content 1')
+        expect(exported?.accountComments?.[1]?.content).toBe('content 2')
+
+        // exported account votes
+        expect(exported?.accountVotes?.[0]?.commentCid).toBe('comment cid 1')
+        expect(exported?.accountVotes?.[1]?.commentCid).toBe('comment cid 2')
+
+        // exported account edits
+        expect(exported?.accountEdits?.[0]?.commentCid).toBe('comment cid 1')
+        expect(exported?.accountEdits?.[1]?.commentCid).toBe('comment cid 2')
       })
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
-      // account.plebbit has been removed
-      expect(exportedAccount.plebbit).toBe(undefined)
 
-      exportedAccount.author.name = 'imported author name'
-      exportedAccount.name = 'imported account name'
-      exportedAccount.id = 'imported account id' // this should get reset
-      await act(async () => {
-        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      test('import account', async () => {
+        let exported: any
+        await act(async () => {
+          try {
+            exported = JSON.parse(await rendered.result.current.exportAccount())
+          } catch (e) {}
+        })
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
+        // account.plebbit has been removed
+        expect(exported?.account.plebbit).toBe(undefined)
+
+        exported.account.author.name = 'imported author name'
+        exported.account.name = 'imported account name'
+        exported.account.id = 'imported account id' // this should get reset
+        await act(async () => {
+          await rendered.result.current.importAccount(JSON.stringify(exported))
+        })
+        rendered.rerender(exported?.account.name)
+
+        await waitFor(() => rendered.result.current.account.author.name === exported?.account.author.name)
+        expect(rendered.result.current.account?.author?.name).toBe(exported?.account.author.name)
+        expect(rendered.result.current.account?.name).toBe(exported?.account.name)
+        // account.id has been reset
+        expect(typeof rendered.result.current.account?.id).toBe('string')
+        expect(rendered.result.current.account?.id).not.toBe(exported?.account.id)
+        // account.plebbit has been initialized
+        expect(typeof rendered.result.current.account?.plebbit?.getSubplebbit).toBe('function')
+
+        // has account comments, votes, edits
+        await waitFor(() => rendered.result.current.accountComments?.[0]?.content === 'content 1')
+        expect(rendered.result.current.accountComments?.[0]?.content).toBe('content 1')
+        expect(rendered.result.current.accountComments?.[1]?.content).toBe('content 2')
+        await waitFor(() => rendered.result.current.accountVotes?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered.result.current.accountVotes?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered.result.current.accountVotes?.[1]?.commentCid).toBe('comment cid 2')
+        await waitFor(() => rendered.result.current.accountEdits?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered.result.current.accountEdits?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered.result.current.accountEdits?.[1]?.commentCid).toBe('comment cid 2')
+
+        // reset stores to force using the db
+        await testUtils.resetStores()
+
+        // imported account persists in database after store reset
+        const rendered2 = renderHook<any, any>(() => {
+          const account = useAccount({accountName: exported?.account.name})
+          const {accountComments} = useAccountComments({accountName: exported?.account.name})
+          const {accountVotes} = useAccountVotes({accountName: exported?.account.name})
+          const {accountEdits} = useAccountEdits({accountName: exported?.account.name})
+          return {account, accountComments, accountVotes, accountEdits}
+        })
+        const waitFor2 = testUtils.createWaitFor(rendered2)
+        await waitFor2(() => (rendered2.result.current.account.name = exported?.account.name))
+        expect(rendered2.result.current.account.author?.name).toBe(exported?.account.author.name)
+        expect(rendered2.result.current.account.name).toBe(exported?.account.name)
+        // account.id has been reset
+        expect(typeof rendered2.result.current.account.id).toBe('string')
+        expect(rendered2.result.current.account.id).not.toBe(exported?.account.id)
+        // account.plebbit has been initialized
+        expect(typeof rendered2.result.current.account.plebbit?.getSubplebbit).toBe('function')
+
+        // has account comments, votes, edits
+        await waitFor2(() => rendered2.result.current.accountComments?.[0]?.content === 'content 1')
+        expect(rendered2.result.current.accountComments?.[0]?.content).toBe('content 1')
+        expect(rendered2.result.current.accountComments?.[1]?.content).toBe('content 2')
+        await waitFor2(() => rendered2.result.current.accountVotes?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered2.result.current.accountVotes?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered2.result.current.accountVotes?.[1]?.commentCid).toBe('comment cid 2')
+        await waitFor2(() => rendered2.result.current.accountEdits?.[0]?.commentCid === 'comment cid 1')
+        expect(rendered2.result.current.accountEdits?.[0]?.commentCid).toBe('comment cid 1')
+        expect(rendered2.result.current.accountEdits?.[1]?.commentCid).toBe('comment cid 2')
       })
-      rendered.rerender(exportedAccount.name)
 
-      await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
-      expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
-      expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
-      // account.id has been reset
-      expect(typeof rendered.result.current.account?.id).toBe('string')
-      expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
-      // account.plebbit has been initialized
-      expect(typeof rendered.result.current.account?.plebbit?.getSubplebbit).toBe('function')
+      test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
+        let exported: any
+        await act(async () => {
+          try {
+            exported = JSON.parse(await rendered.result.current.exportAccount())
+          } catch (e) {}
+        })
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
 
-      // reset stores to force using the db
-      await testUtils.resetStores()
+        exported.account.author.name = 'imported author name'
+        exported.account.id = 'imported account id' // this should get reset
+        await act(async () => {
+          await rendered.result.current.importAccount(JSON.stringify(exported))
+        })
+        // if the imported account name already exists, ' 2' get added to the name
+        rendered.rerender(exported?.account.name + ' 2')
 
-      // imported account persists in database after store reset
-      const rendered2 = renderHook<any, any>(() => useAccount(exportedAccount.name))
-      const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => (rendered2.result.current.name = exportedAccount.name))
-      expect(rendered2.result.current.author?.name).toBe(exportedAccount.author.name)
-      expect(rendered2.result.current.name).toBe(exportedAccount.name)
-      // account.id has been reset
-      expect(typeof rendered2.result.current.id).toBe('string')
-      expect(rendered2.result.current.id).not.toBe(exportedAccount.id)
-      // account.plebbit has been initialized
-      expect(typeof rendered2.result.current.plebbit?.getSubplebbit).toBe('function')
-    })
-
-    test(`import account with duplicate account name succeeds by adding ' 2' to account name`, async () => {
-      let exportedAccount: any
-      await act(async () => {
-        try {
-          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
-        } catch (e) {}
+        await waitFor(() => rendered.result.current.account.author.name === exported?.account.author.name)
+        expect(rendered.result.current.account?.author?.name).toBe(exported?.account.author.name)
       })
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
 
-      exportedAccount.author.name = 'imported author name'
-      exportedAccount.id = 'imported account id' // this should get reset
-      await act(async () => {
-        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
+      test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
+        let exported: any
+        await act(async () => {
+          try {
+            exported = JSON.parse(await rendered.result.current.exportAccount())
+          } catch (e) {}
+        })
+        expect(typeof exported?.account?.id).toBe('string')
+        expect(typeof exported?.account?.signer?.privateKey).toBe('string')
+
+        exported.account.name = 'imported account name'
+        await act(async () => {
+          await rendered.result.current.importAccount(JSON.stringify(exported))
+        })
+        rendered.rerender(exported?.account.name)
+
+        await waitFor(() => rendered.result.current.account.id)
+        expect(rendered.result.current.account?.name).toBe(exported?.account.name)
+        expect(rendered.result.current.account?.id).not.toBe(exported?.account.id)
       })
-      // if the imported account name already exists, ' 2' get added to the name
-      rendered.rerender(exportedAccount.name + ' 2')
-
-      await waitFor(() => rendered.result.current.account.author.name === exportedAccount.author.name)
-      expect(rendered.result.current.account?.author?.name).toBe(exportedAccount.author.name)
-    })
-
-    test(`import account with duplicate account id succeeds because account id is reset on import`, async () => {
-      let exportedAccount: any
-      await act(async () => {
-        try {
-          exportedAccount = JSON.parse(await rendered.result.current.exportAccount())
-        } catch (e) {}
-      })
-      expect(typeof exportedAccount?.id).toBe('string')
-      expect(typeof exportedAccount?.signer?.privateKey).toBe('string')
-
-      exportedAccount.name = 'imported account name'
-      await act(async () => {
-        await rendered.result.current.importAccount(JSON.stringify(exportedAccount))
-      })
-      rendered.rerender(exportedAccount.name)
-
-      await waitFor(() => rendered.result.current.account.id)
-      expect(rendered.result.current.account?.name).toBe(exportedAccount.name)
-      expect(rendered.result.current.account?.id).not.toBe(exportedAccount.id)
     })
 
     test(`change account order`, async () => {
@@ -437,12 +533,12 @@ describe('accounts', () => {
       // render second store with empty state to check if saved to database
       const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current[0].name)
+      await waitFor2(() => rendered2.result.current.accounts[0].name)
 
-      expect(rendered2.result.current[0].name).toBe('custom name')
-      expect(rendered2.result.current[1].name).toBe('Account 3')
-      expect(rendered2.result.current[2].name).toBe('Account 2')
-      expect(rendered2.result.current[3].name).toBe('Account 1')
+      expect(rendered2.result.current.accounts[0].name).toBe('custom name')
+      expect(rendered2.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered2.result.current.accounts[2].name).toBe('Account 2')
+      expect(rendered2.result.current.accounts[3].name).toBe('Account 1')
     })
 
     test(`delete account non-active account`, async () => {
@@ -472,11 +568,11 @@ describe('accounts', () => {
       // account deleted persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length > 0)
-      expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
-      expect(rendered2.result.current[0].name).toBe('Account 1')
-      expect(rendered2.result.current[1].name).toBe('Account 3')
-      expect(rendered2.result.current[2].name).toBe('custom name')
+      await waitFor2(() => rendered2.result.current.accounts.length > 0)
+      expect(rendered2.result.current.accounts.length).toBe(accountCountBefore - 1)
+      expect(rendered2.result.current.accounts[0].name).toBe('Account 1')
+      expect(rendered2.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered2.result.current.accounts[2].name).toBe('custom name')
     })
 
     test(`delete active account, active account switches to second account in accountNames`, async () => {
@@ -508,11 +604,11 @@ describe('accounts', () => {
       // account deleted persists in database after store reset
       const rendered2 = renderHook<any, any>(() => useAccounts())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length > 0)
-      expect(rendered2.result.current.length).toBe(accountCountBefore - 1)
-      expect(rendered2.result.current[0].name).toBe('Account 2')
-      expect(rendered2.result.current[1].name).toBe('Account 3')
-      expect(rendered2.result.current[2].name).toBe('custom name')
+      await waitFor2(() => rendered2.result.current.accounts.length > 0)
+      expect(rendered2.result.current.accounts.length).toBe(accountCountBefore - 1)
+      expect(rendered2.result.current.accounts[0].name).toBe('Account 2')
+      expect(rendered2.result.current.accounts[1].name).toBe('Account 3')
+      expect(rendered2.result.current.accounts[2].name).toBe('custom name')
     })
 
     test(`delete all accounts and create a new one, which becomes active`, async () => {
@@ -655,9 +751,9 @@ describe('accounts', () => {
     const render = async () => {
       // on first render, the account is undefined because it's not yet loaded from database
       rendered = renderHook<any, any>((accountName) => {
-        const account = useAccount(accountName)
-        const accountsActions = useAccountsActions()
-        return {account, ...accountsActions}
+        const account = useAccount({accountName})
+        const {accountEdits} = useAccountEdits({accountName})
+        return {account, accountEdits, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
 
@@ -681,7 +777,7 @@ describe('accounts', () => {
 
       test('publish comment', async () => {
         const publishCommentOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           parentCid: 'Qm...',
           content: 'some content',
           onChallenge,
@@ -719,6 +815,43 @@ describe('accounts', () => {
         const commentVerified = onChallengeVerification.mock.calls[0][1]
         expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
         expect(commentVerified.constructor.name).toBe('Comment')
+
+        // commentCidsToAccountsComments is set after challenge verification
+        const {commentCidsToAccountsComments} = accountsStore.getState()
+        expect(commentCidsToAccountsComments['some content cid'].accountId).toBe(rendered.result.current.account.id)
+        expect(commentCidsToAccountsComments['some content cid'].accountCommentIndex).toBe(0)
+      })
+
+      test('useComment can use the published account comment', async () => {
+        // make sure we use the account comment and not get comment
+        const getComment = Plebbit.prototype.getComment
+        Plebbit.prototype.getComment = async () => {
+          throw Error('failed getting comment')
+        }
+
+        const rendered2 = renderHook<any, any>((commentCid) => useComment({commentCid}))
+        rendered2.rerender('some content cid')
+        await waitFor(() => rendered2.result.current.content === 'some content')
+        expect(rendered2.result.current.content).toBe('some content')
+        // account comment should already have cid
+        expect(rendered2.result.current.cid).toBe('some content cid')
+        // account comment should have index
+        expect(rendered2.result.current.index).toBe(0)
+
+        // retry with reset store to see if can use account comment from db
+        await testUtils.resetStores()
+
+        const rendered3 = renderHook<any, any>((commentCid) => useComment({commentCid}))
+        rendered3.rerender('some content cid')
+        await waitFor(() => rendered3.result.current.content === 'some content')
+        expect(rendered3.result.current.content).toBe('some content')
+        // account comment should already have cid
+        expect(rendered3.result.current.cid).toBe('some content cid')
+        // account comment should have index
+        expect(rendered3.result.current.index).toBe(0)
+
+        // restore mock
+        Plebbit.prototype.getComment = getComment
       })
     })
 
@@ -735,7 +868,7 @@ describe('accounts', () => {
 
       test('publish vote', async () => {
         const publishVoteOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           commentCid: 'Qm...',
           vote: 1,
           onChallenge,
@@ -787,7 +920,7 @@ describe('accounts', () => {
 
       test('publish comment edit', async () => {
         const commentEditOptions = {
-          subplebbitAddress: 'Qm...',
+          subplebbitAddress: '12D3KooW...',
           commentCid: 'Qm...',
           locked: true,
           onChallenge,
@@ -824,6 +957,33 @@ describe('accounts', () => {
         expect(challengeVerification.type).toBe('CHALLENGEVERIFICATION')
         expect(commentEditVerified.constructor.name).toBe('CommentEdit')
       })
+
+      test('account edits has comment edit', async () => {
+        await waitFor(() => rendered.result.current.accountEdits.length === 1)
+        expect(rendered.result.current.accountEdits.length).toBe(1)
+        expect(rendered.result.current.accountEdits[0].locked).toBe(true)
+        expect(typeof rendered.result.current.accountEdits[0].timestamp).toBe('number')
+
+        // reset stores to force using the db
+        await testUtils.resetStores()
+        const rendered2 = renderHook<any, any>(() => useAccountEdits())
+        await waitFor(() => rendered2.result.current.accountEdits.length === 1)
+        expect(rendered2.result.current.accountEdits.length).toBe(1)
+        expect(rendered2.result.current.accountEdits[0].locked).toBe(true)
+        expect(typeof rendered2.result.current.accountEdits[0].timestamp).toBe('number')
+      })
+
+      test('useEditedComment has edited comment', async () => {
+        const rendered2 = renderHook<any, any>(() => {
+          const comment = useComment({commentCid: 'Qm...'})
+          const editedComment = useEditedComment({comment})
+          return editedComment
+        })
+        await waitFor(() => rendered2.result.current.editedComment)
+        expect(rendered2.result.current.editedComment).not.toBe(undefined)
+        expect(rendered2.result.current.pendingEdits.locked || rendered2.result.current.succeededEdits.locked).toBe(true)
+        expect(rendered2.result.current.state).toMatch(/pending|succeeded/)
+      })
     })
 
     describe(`create subplebbit edit`, () => {
@@ -838,7 +998,7 @@ describe('accounts', () => {
       const onChallengeVerification = jest.fn()
 
       test('publish subplebbit edit', async () => {
-        const subplebbitAddress = 'Qm...'
+        const subplebbitAddress = '12D3KooW...'
         const publishSubplebbitEditOptions = {
           title: 'edited title',
           onChallenge,
@@ -900,11 +1060,10 @@ describe('accounts', () => {
             hasParentCid: props?.hasParentCid,
           },
         }
-        const account = useAccount(props?.accountName)
-        const accountsActions = useAccountsActions()
-        const accountComments = useAccountComments(useAccountCommentsOptions)
-        const accountVotes = useAccountVotes(useAccountCommentsOptions)
-        const accountVote = useAccountVote(props?.commentCid, props?.accountName)
+        const account = useAccount(props)
+        const {accountComments} = useAccountComments(useAccountCommentsOptions)
+        const {accountVotes} = useAccountVotes(useAccountCommentsOptions)
+        const accountVote = useAccountVote(props)
         return {account, accountComments, accountVotes, accountVote, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -971,12 +1130,43 @@ describe('accounts', () => {
       }
     }
 
+    test(`useAccountComment single comment`, async () => {
+      const rendered2 = renderHook<any, any>((props) => useAccountComment(props))
+      rendered2.rerender({commentIndex: 0})
+      await waitFor(() => rendered2.result.current.content === 'content 1')
+      expect(rendered2.result.current.content).toBe('content 1')
+      expect(rendered2.result.current.index).toBe(0)
+
+      rendered2.rerender({commentIndex: 10})
+      await waitFor(() => rendered2.result.current.content === undefined)
+      expect(rendered2.result.current.content).toBe(undefined)
+      expect(rendered2.result.current.index).toBe(undefined)
+
+      rendered2.rerender({commentIndex: 2})
+      await waitFor(() => rendered2.result.current.content === 'content 3')
+      expect(rendered2.result.current.content).toBe('content 3')
+      expect(rendered2.result.current.index).toBe(2)
+
+      rendered2.rerender({})
+      await waitFor(() => rendered2.result.current.content === undefined)
+      expect(rendered2.result.current.content).toBe(undefined)
+      expect(rendered2.result.current.index).toBe(undefined)
+    })
+
     test(`get all account comments`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       expect(rendered.result.current.accountComments[0].content).toBe('content 1')
       expect(rendered.result.current.accountComments[1].content).toBe('content 2')
       expect(rendered.result.current.accountComments[2].content).toBe('content 3')
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
+    })
+
+    test(`account comments have states`, async () => {
+      expect(rendered.result.current.accountComments.length).toBe(3)
+      // await waitFor(() => rendered.result.current.accountComments[0].state === 'pending')
+      expect(rendered.result.current.accountComments[0].state).toBe('pending')
+      expect(rendered.result.current.accountComments[1].state).toBe('pending')
+      expect(rendered.result.current.accountComments[2].state).toBe('pending')
     })
 
     test(`get account comment and add cid to it when receive challengeVerification`, async () => {
@@ -1002,6 +1192,9 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[0].cid).toBe('content 1 cid')
       expect(rendered.result.current.accountComments[1].cid).toBe('content 2 cid')
       expect(rendered.result.current.accountComments[2].cid).toBe(undefined)
+      expect(rendered.result.current.accountComments[0].state).toBe('succeeded')
+      expect(rendered.result.current.accountComments[1].state).toBe('succeeded')
+      expect(rendered.result.current.accountComments[2].state).toBe('pending')
       expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current.accountComments, rendered.result.current.account.id)
 
       // check if cids are in database after getting a new store
@@ -1010,16 +1203,16 @@ describe('accounts', () => {
       await testUtils.resetStores()
       const rendered2 = renderHook<any, any>(() => useAccountComments())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length)
+      await waitFor2(() => rendered2.result.current.accountComments.length)
 
-      expect(rendered2.result.current.length).toBe(3)
-      expect(rendered2.result.current[0].content).toBe('content 1')
-      expect(rendered2.result.current[1].content).toBe('content 2')
-      expect(rendered2.result.current[2].content).toBe('content 3')
-      expect(rendered2.result.current[0].cid).toBe('content 1 cid')
-      expect(rendered2.result.current[1].cid).toBe('content 2 cid')
-      expect(rendered2.result.current[2].cid).toBe(undefined)
-      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current, activeAccountId)
+      expect(rendered2.result.current.accountComments.length).toBe(3)
+      expect(rendered2.result.current.accountComments[0].content).toBe('content 1')
+      expect(rendered2.result.current.accountComments[1].content).toBe('content 2')
+      expect(rendered2.result.current.accountComments[2].content).toBe('content 3')
+      expect(rendered2.result.current.accountComments[0].cid).toBe('content 1 cid')
+      expect(rendered2.result.current.accountComments[1].cid).toBe('content 2 cid')
+      expect(rendered2.result.current.accountComments[2].cid).toBe(undefined)
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments, activeAccountId)
     })
 
     describe('retry on fail', () => {
@@ -1027,14 +1220,16 @@ describe('accounts', () => {
         // this test seems to depend on a race condition and must be retried
         // most likely not a bug with the hook
         jest.retryTimes(10)
+        testUtils.silenceWaitForWarning = true
       })
       afterAll(() => {
         jest.retryTimes(0)
+        testUtils.silenceWaitForWarning = false
       })
       test(`cid gets added to account comment after fetched in useComment`, async () => {
         const rendered = renderHook<any, any>((commentCid) => {
-          const accountComments = useAccountComments()
-          const comment = useComment(commentCid)
+          const {accountComments} = useAccountComments()
+          const comment = useComment({commentCid})
           return accountComments
         })
         await waitFor(() => rendered.result.current[0].content)
@@ -1094,10 +1289,10 @@ describe('accounts', () => {
         const waitFor2 = testUtils.createWaitFor(rendered2)
         await waitFor2(() => rendered2.result.current[0].cid)
 
-        expect(rendered2.result.current[0].cid).toBe('content 1 cid')
-        expect(rendered2.result.current[1].cid).toBe('content 2 cid')
-        expect(rendered2.result.current[2].cid).toBe(undefined)
-        expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+        expect(rendered2.result.current.accountComments[0].cid).toBe('content 1 cid')
+        expect(rendered2.result.current.accountComments[1].cid).toBe('content 2 cid')
+        expect(rendered2.result.current.accountComments[2].cid).toBe(undefined)
+        expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments)
       })
     })
 
@@ -1105,8 +1300,8 @@ describe('accounts', () => {
       const getPage = Pages.prototype.getPage
 
       const rendered = renderHook<any, any>((props?) => {
-        const {feed} = useFeed(props?.subplebbitAddresses, 'new')
-        const accountComments = useAccountComments()
+        const {feed} = useFeed({subplebbitAddresses: props?.subplebbitAddresses, sortType: 'new'})
+        const {accountComments} = useAccountComments()
         return {accountComments, feed}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -1149,13 +1344,13 @@ describe('accounts', () => {
       // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => useAccountComments())
       const waitFor2 = testUtils.createWaitFor(rendered2)
-      await waitFor2(() => rendered2.result.current.length)
+      await waitFor2(() => rendered2.result.current.accountComments.length)
 
-      expect(rendered2.result.current.length).toBe(3)
-      expect(rendered2.result.current[0].content).toBe('content 1')
-      expect(rendered2.result.current[1].content).toBe('content 2')
-      expect(rendered2.result.current[2].content).toBe('content 3')
-      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current)
+      expect(rendered2.result.current.accountComments.length).toBe(3)
+      expect(rendered2.result.current.accountComments[0].content).toBe('content 1')
+      expect(rendered2.result.current.accountComments[1].content).toBe('content 2')
+      expect(rendered2.result.current.accountComments[2].content).toBe('content 3')
+      expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments)
     })
 
     test(`account has no karma before comments are published`, async () => {
@@ -1195,7 +1390,7 @@ describe('accounts', () => {
       // get the karma from database by creating new store
       const rendered2 = renderHook<any, any>(() => {
         const account = useAccount()
-        const accountComments = useAccountComments()
+        const {accountComments} = useAccountComments()
         return {account, accountComments}
       })
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1227,11 +1422,11 @@ describe('accounts', () => {
       const rendered2 = renderHook<any, any>(() => useAccountVotes())
       const waitFor2 = testUtils.createWaitFor(rendered2)
 
-      await waitFor2(() => rendered2.result.current.length)
-      expect(rendered2.result.current.length).toBe(3)
-      expect(rendered2.result.current[0].commentCid).toBe('comment cid 1')
-      expect(rendered2.result.current[1].commentCid).toBe('comment cid 2')
-      expect(rendered2.result.current[2].commentCid).toBe('comment cid 3')
+      await waitFor2(() => rendered2.result.current.accountVotes.length)
+      expect(rendered2.result.current.accountVotes.length).toBe(3)
+      expect(rendered2.result.current.accountVotes[0].commentCid).toBe('comment cid 1')
+      expect(rendered2.result.current.accountVotes[1].commentCid).toBe('comment cid 2')
+      expect(rendered2.result.current.accountVotes[2].commentCid).toBe('comment cid 3')
     })
 
     test(`get all comments and votes from different account name`, async () => {
@@ -1268,8 +1463,8 @@ describe('accounts', () => {
 
       // render with new store to see if still in database
       const rendered2 = renderHook<any, any>(() => {
-        const accountComments = useAccountComments({accountName: 'Account 2'})
-        const accountVotes = useAccountVotes({accountName: 'Account 2'})
+        const {accountComments} = useAccountComments({accountName: 'Account 2'})
+        const {accountVotes} = useAccountVotes({accountName: 'Account 2'})
         return {accountComments, accountVotes}
       })
       const waitFor2 = testUtils.createWaitFor(rendered2)
@@ -1323,6 +1518,12 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments.length).toBe(0)
       expect(rendered.result.current.accountVotes.length).toBe(1)
       expect(rendered.result.current.accountVotes[0].commentCid).toBe('comment cid 3')
+      expect(typeof rendered.result.current.accountVotes[0].timestamp).toBe('number')
+
+      // useAccountVote
+      expect(rendered.result.current.accountVote.commentCid).toBe('comment cid 3')
+      expect(rendered.result.current.accountVote.vote).toBe(1)
+      expect(typeof rendered.result.current.accountVote.timestamp).toBe('number')
     })
   })
 
@@ -1339,10 +1540,11 @@ describe('accounts', () => {
       }
 
       rendered = renderHook<any, any>((props?: any) => {
-        const account = useAccount(props?.accountName)
-        const {notifications, markAsRead} = useAccountNotifications(props?.accountName)
-        const {publishComment} = useAccountsActions()
-        return {account, notifications, markAsRead, publishComment}
+        const account = useAccount(props)
+        const accounts = useAccounts()
+        const {notifications, markAsRead} = useNotifications(props)
+        const {publishComment} = accountsActions
+        return {account, accounts, notifications, markAsRead, publishComment}
       })
       waitFor = testUtils.createWaitFor(rendered)
 
@@ -1378,6 +1580,7 @@ describe('accounts', () => {
       const comment = updatingComments[0]
       expect(rendered.result.current.notifications).toEqual([])
       expect(rendered.result.current.account.unreadNotificationCount).toBe(0)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
 
       act(() => {
         // update the comment with replies to see get notifications
@@ -1407,10 +1610,11 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[1].markedAsRead).toBe(false)
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(false)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(3)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(3)
 
-      act(() => {
+      await act(async () => {
         // mark the notifications as read
-        rendered.result.current.markAsRead()
+        await rendered.result.current.markAsRead()
       })
 
       // should be marked as read
@@ -1424,6 +1628,7 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[1].markedAsRead).toBe(true)
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(0)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
 
       act(() => {
         // update the comment with one unread reply and one read reply
@@ -1432,8 +1637,8 @@ describe('accounts', () => {
             topAll: {
               nextCid: undefined,
               comments: [
-                {cid: 'reply cid 3', timestamp: 3},
-                {cid: 'reply cid 4', timestamp: 4},
+                {cid: 'reply cid 3', timestamp: 3, subplebbitAddress: 'blocked subplebbit address', postCid: 'blocked post cid'},
+                {cid: 'reply cid 4', timestamp: 4, author: {address: 'blocked author address'}, parentCid: 'blocked parent cid'},
               ],
             },
           },
@@ -1454,12 +1659,62 @@ describe('accounts', () => {
       expect(rendered.result.current.notifications[2].markedAsRead).toBe(true)
       expect(rendered.result.current.notifications[3].markedAsRead).toBe(true)
       expect(rendered.result.current.account.unreadNotificationCount).toBe(1)
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(1)
+
+      // block addresses
+      await act(async () => {
+        await accountsActions.blockAddress('blocked subplebbit address')
+        await accountsActions.blockAddress('blocked author address')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 2)
+      expect(rendered.result.current.notifications.length).toBe(2)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
+
+      // unblock addresses
+      await act(async () => {
+        await accountsActions.unblockAddress('blocked subplebbit address')
+        await accountsActions.unblockAddress('blocked author address')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 4)
+      expect(rendered.result.current.notifications.length).toBe(4)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[3].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(1)
+
+      // block cids
+      await act(async () => {
+        await accountsActions.blockCid('blocked parent cid')
+        await accountsActions.blockCid('blocked post cid')
+        await accountsActions.blockCid('reply cid 2')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 1)
+      expect(rendered.result.current.notifications.length).toBe(1)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(0)
+
+      // unblock cids
+      await act(async () => {
+        await accountsActions.unblockCid('blocked parent cid')
+        await accountsActions.unblockCid('blocked post cid')
+        await accountsActions.unblockCid('reply cid 2')
+      })
+      await waitFor(() => rendered.result.current.notifications.length === 4)
+      expect(rendered.result.current.notifications.length).toBe(4)
+      expect(rendered.result.current.notifications[0].cid).toBe('reply cid 4')
+      expect(rendered.result.current.notifications[1].cid).toBe('reply cid 3')
+      expect(rendered.result.current.notifications[2].cid).toBe('reply cid 2')
+      expect(rendered.result.current.notifications[3].cid).toBe('reply cid 1')
+      expect(rendered.result.current.accounts.accounts[0].unreadNotificationCount).toBe(1)
 
       // reset stores to force using the db
       await testUtils.resetStores()
 
       // check to see if in database after refreshing with a new store
-      const rendered2 = renderHook<any, any>(() => useAccountNotifications())
+      const rendered2 = renderHook<any, any>(() => useNotifications())
       const waitFor2 = testUtils.createWaitFor(rendered2)
       await waitFor2(() => rendered2.result.current.notifications.length >= 4)
 
@@ -1481,10 +1736,12 @@ describe('accounts', () => {
         // roles tests depend on race conditions as part of the test
         // so not possible to make them deterministic, add a retry
         // the hooks don't have the race condition, only the tests do
-        jest.retryTimes(10)
+        jest.retryTimes(20)
+        testUtils.silenceWaitForWarning = true
       })
       afterAll(() => {
         jest.retryTimes(0)
+        testUtils.silenceWaitForWarning = false
       })
       afterEach(async () => {
         await testUtils.resetDatabasesAndStores()
@@ -1495,9 +1752,9 @@ describe('accounts', () => {
 
       beforeEach(async () => {
         rendered = renderHook<any, any>(() => {
-          const accountSubplebbits = useAccountSubplebbits()
+          const {accountSubplebbits} = useAccountSubplebbits()
           const account = useAccount()
-          const {setAccount} = useAccountsActions()
+          const {setAccount} = accountsActions
           return {accountSubplebbits, setAccount, account}
         })
         waitFor = testUtils.createWaitFor(rendered)
@@ -1553,10 +1810,10 @@ describe('accounts', () => {
       })
 
       const rendered = renderHook<any, any>((subplebbitAddress) => {
-        const accountSubplebbits = useAccountSubplebbits()
+        const {accountSubplebbits} = useAccountSubplebbits()
         const account = useAccount()
-        const {setAccount} = useAccountsActions()
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const {setAccount} = accountsActions
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {accountSubplebbits, setAccount, account}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -1590,9 +1847,8 @@ describe('accounts', () => {
     beforeEach(async () => {
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const account = useAccount()
-        const accountsActions = useAccountsActions()
-        const accountSubplebbits = useAccountSubplebbits()
-        const subplebbit = useSubplebbit(subplebbitAddress)
+        const {accountSubplebbits} = useAccountSubplebbits()
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {account, subplebbit, accountSubplebbits, ...accountsActions}
       })
       waitFor = testUtils.createWaitFor(rendered)
@@ -1651,8 +1907,9 @@ describe('accounts', () => {
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
 
       // useSubplebbit(currentAddress) address is edited
-      rendered.rerender(undefined)
-      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      rendered.rerender(`doesnt exist`)
+      await waitFor(() => rendered.result.current.subplebbit.address === undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
       rendered.rerender(editedAddress)
       await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
       expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
@@ -1679,8 +1936,8 @@ describe('accounts', () => {
       })
 
       // useSubplebbit is edited
-      await waitFor(() => rendered.result.current.subplebbit === undefined)
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      await waitFor(() => rendered.result.current.subplebbit.address === undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
     })
 
     test('create and edit owner subplebbit useSubplebbit persists after reload', async () => {
@@ -1701,15 +1958,14 @@ describe('accounts', () => {
       // render again with new context and store
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
-        const subplebbit = useSubplebbit(subplebbitAddress)
-        const accountsActions = useAccountsActions()
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {subplebbit, ...accountsActions}
       })
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
 
       // can useSubplebbit after reload
       rendered.rerender(createdSubplebbitAddress)
-      await waitFor(() => rendered.result.current.subplebbit)
+      await waitFor(() => rendered.result.current.subplebbit.address)
       expect(rendered.result.current.subplebbit.address).toBe(createdSubplebbitAddress)
       expect(rendered.result.current.subplebbit.title).toBe(createdSubplebbitTitle)
 
@@ -1729,11 +1985,10 @@ describe('accounts', () => {
       // render again with new context and store
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
-        const subplebbit = useSubplebbit(subplebbitAddress)
-        const accountsActions = useAccountsActions()
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {subplebbit, ...accountsActions}
       })
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
 
       // can useSubplebbit after reload
       rendered.rerender(createdSubplebbitAddress)
@@ -1750,11 +2005,10 @@ describe('accounts', () => {
       // render again with new context and store
       await testUtils.resetStores()
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
-        const subplebbit = useSubplebbit(subplebbitAddress)
-        const accountsActions = useAccountsActions()
+        const subplebbit = useSubplebbit({subplebbitAddress})
         return {subplebbit, ...accountsActions}
       })
-      expect(rendered.result.current.subplebbit).toBe(undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
 
       // useSubplebbit(previousAddress) address is edited
       rendered.rerender(createdSubplebbitAddress)
@@ -1763,12 +2017,229 @@ describe('accounts', () => {
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
 
       // useSubplebbit(currentAddress) address is edited
-      rendered.rerender(undefined)
-      await waitFor(() => rendered.result.current.subplebbit === undefined)
+      rendered.rerender(`doesnt exist`)
+      await waitFor(() => rendered.result.current.subplebbit.address === undefined)
+      expect(rendered.result.current.subplebbit.address).toBe(undefined)
+
       rendered.rerender(editedAddress)
       await waitFor(() => rendered.result.current.subplebbit.address === editedAddress)
       expect(rendered.result.current.subplebbit.address).toBe(editedAddress)
       expect(rendered.result.current.subplebbit.title).toBe(editedTitle)
+    })
+  })
+
+  describe('useEditedComment', () => {
+    let rendered: any, waitFor: any
+    const publishedComments: any = []
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((commentCid?: any) => {
+        const account = useAccount()
+        const {accountComments} = useAccountComments()
+        const comment = useComment({commentCid})
+        const editedComment = useEditedComment({comment})
+        const {accountEdits} = useAccountEdits()
+        return {comment, editedComment, accountComments, account, accountEdits}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+
+      let challengeVerificationCount = 0
+      const getPublishCommentOptions = (number: number) => ({
+        title: 'title ' + String(number),
+        content: 'content ' + String(number),
+        parentCid: 'parent comment cid ' + String(number),
+        subplebbitAddress: 'subplebbit address',
+        // @ts-ignore
+        onChallenge: (challenge, comment) => {
+          publishedComments.push(comment)
+          comment.publishChallengeAnswers()
+        },
+        onChallengeVerification: () => challengeVerificationCount++,
+      })
+
+      // publish 3 comments in the same sub
+      await waitFor(() => rendered.result.current.account)
+      await act(async () => {
+        let amount = 3,
+          number = 0
+        while (number++ < amount) {
+          await accountsActions.publishComment(getPublishCommentOptions(number))
+        }
+      })
+      await waitFor(() => challengeVerificationCount === 3)
+      expect(challengeVerificationCount).toBe(3)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('useComment adds comment to comments store even if the comment is an account comment', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      // trigger useComment to add comment to store
+      rendered.rerender(commentCid)
+      // wait for comment to be added to store
+      await waitFor(() => commentsStore.getState().comments[commentCid])
+      expect(commentsStore.getState().comments[commentCid]).not.toBe(undefined)
+      expect(commentsStore.getState().comments[commentCid].cid).toBe(commentCid)
+
+      await waitFor(() => rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      expect(typeof rendered.result.current.comment?.timestamp).toBe('number')
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+    })
+
+    test('edited comment succeeded', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      expect(subplebbitAddress).not.toBe(undefined)
+
+      rendered.rerender(commentCid)
+
+      // wait for useComment to load comment from store
+      await waitFor(() => rendered.result.current.comment?.cid && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // publish edit options
+      let challengeVerificationCount = 0
+      const commentEditTimestamp = Math.ceil(Date.now() / 1000)
+      const publishCommentEditOptions = {
+        timestamp: commentEditTimestamp,
+        commentCid,
+        subplebbitAddress,
+        locked: true,
+        onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+        onChallengeVerification: () => challengeVerificationCount++,
+      }
+
+      // publish edit
+      expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('unedited')
+      await act(async () => {
+        await accountsActions.publishCommentEdit(publishCommentEditOptions)
+      })
+
+      // edit is pending because the comment from store doesn't yet have locked: true
+      await waitFor(() => rendered.result.current.editedComment.editedComment)
+      expect(rendered.result.current.comment.locked).toBe(undefined)
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('pending')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+      expect(rendered.result.current.editedComment.pendingEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+
+      // update comment with edited prop in store
+      const updatedComment = {...commentsStore.getState().comments[commentCid]}
+      updatedComment.locked = true
+      updatedComment.updatedAt = commentEditTimestamp + 1
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // wait for comment to become updated and to not be account comment (not have comment.index)
+      await waitFor(() => rendered.result.current.comment.locked === true && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment.locked).toBe(true)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // wait for edit to become succeeded
+      await waitFor(() => rendered.result.current.editedComment.state === 'succeeded')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('succeeded')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+      expect(rendered.result.current.editedComment.succeededEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+    })
+
+    test('edited comment failed', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      expect(subplebbitAddress).not.toBe(undefined)
+
+      rendered.rerender(commentCid)
+
+      // wait for useComment to load comment from store
+      await waitFor(() => rendered.result.current.comment?.cid && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // publish edit options
+      let challengeVerificationCount = 0
+      const commentEditTimestamp = Math.ceil(Date.now() / 1000) - 60 * 60 // 1 hour ago to make the edit not pending
+      const publishCommentEditOptions = {
+        timestamp: commentEditTimestamp,
+        commentCid,
+        subplebbitAddress,
+        locked: true,
+        onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+        onChallengeVerification: () => challengeVerificationCount++,
+      }
+
+      // publish edit
+      expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('unedited')
+      await act(async () => {
+        await accountsActions.publishCommentEdit(publishCommentEditOptions)
+      })
+
+      // edit failed (not pending) because is already 1 hour old
+      await waitFor(() => rendered.result.current.editedComment.editedComment)
+      expect(rendered.result.current.comment.locked).toBe(undefined)
+      // updatedAt is required to evaluate the status of a CommentEdit
+      await waitFor(() => rendered.result.current.comment.updatedAt)
+      expect(rendered.result.current.comment.updatedAt).toBeGreaterThan(commentEditTimestamp)
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('failed')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(undefined)
+      expect(rendered.result.current.editedComment.failedEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(1)
+
+      // edit becomes pending if comment.updatedAt is too old
+      let updatedComment = {...commentsStore.getState().comments[commentCid]}
+      // make updatedAt 1 hour ago but still newer than edit time
+      updatedComment.updatedAt = commentEditTimestamp + 1
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // edit is pending because the comment from store updatedAt is too old
+      await waitFor(() => rendered.result.current.editedComment?.state === 'pending')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('pending')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+      expect(rendered.result.current.editedComment.pendingEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+
+      // add locked: true to comment
+      updatedComment = {...commentsStore.getState().comments[commentCid]}
+      // make updatedAt 1 hour ago but still newer than edit time
+      updatedComment.locked = true
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // edit is succeeded even if updatedAt is old because is newer than the edit
+      await waitFor(() => rendered.result.current.editedComment?.state === 'succeeded')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('succeeded')
+      expect(rendered.result.current.editedComment.editedComment.locked).toBe(true)
+      expect(rendered.result.current.editedComment.succeededEdits.locked).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
     })
   })
 })

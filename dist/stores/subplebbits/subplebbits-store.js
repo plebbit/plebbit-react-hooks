@@ -11,15 +11,17 @@ import assert from 'assert';
 import localForageLru from '../../lib/localforage-lru';
 const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 });
 import Logger from '@plebbit/plebbit-logger';
-const log = Logger('plebbit-react-hooks:stores:subplebbits');
+const log = Logger('plebbit-react-hooks:subplebbits:stores');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
+import subplebbitsPagesStore from '../subplebbits-pages';
 let plebbitGetSubplebbitPending = {};
 // reset all event listeners in between tests
 export const listeners = [];
 const subplebbitsStore = createStore((setState, getState) => ({
     subplebbits: {},
+    errors: {},
     addSubplebbitToStore(subplebbitAddress, account) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -41,14 +43,15 @@ const subplebbitsStore = createStore((setState, getState) => ({
             // try to find subplebbit in database
             if (!subplebbit) {
                 subplebbit = yield getSubplebbitFromDatabase(subplebbitAddress, account);
+                if (subplebbit) {
+                    // add page comments to subplebbitsPagesStore so they can be used in useComment
+                    subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(subplebbit);
+                }
             }
             // subplebbit not in database, try to fetch from plebbit-js
             if (!subplebbit) {
                 try {
-                    subplebbit = yield utils.retryInfinity(() => account.plebbit.getSubplebbit(subplebbitAddress));
-                    log.trace('subplebbitsStore.addSubplebbitToStore plebbit.getSubplebbit', { subplebbitAddress, subplebbit, account });
-                    // if a subplebbit has a role with an account's address add it to the account.subplebbits
-                    accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(subplebbit);
+                    subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
                 }
                 catch (e) {
                     errorGettingSubplebbit = e;
@@ -72,7 +75,21 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: updatedSubplebbit }) }));
                 // if a subplebbit has a role with an account's address add it to the account.subplebbits
                 accountsStore.getState().accountsActionsInternal.addSubplebbitRoleToAccountsSubplebbits(updatedSubplebbit);
+                // add page comments to subplebbitsPagesStore so they can be used in useComment
+                subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(updatedSubplebbit);
             }));
+            subplebbit.on('updatingstatechange', (updatingState) => {
+                setState((state) => ({
+                    subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { updatingState }) }),
+                }));
+            });
+            subplebbit.on('error', (error) => {
+                setState((state) => {
+                    let subplebbitErrors = state.errors[subplebbitAddress] || [];
+                    subplebbitErrors = [...subplebbitErrors, error];
+                    return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [subplebbitAddress]: subplebbitErrors }) });
+                });
+            });
             listeners.push(subplebbit);
             subplebbit.update().catch((error) => log.trace('subplebbit.update error', { subplebbit, error }));
         });
@@ -130,26 +147,11 @@ const subplebbitsStore = createStore((setState, getState) => ({
     },
 }));
 const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
     const subplebbitData = yield subplebbitsDatabase.getItem(subplebbitAddress);
     if (!subplebbitData) {
         return;
     }
     const subplebbit = yield account.plebbit.createSubplebbit(subplebbitData);
-    // add potential missing data from the database onto the subplebbit instance
-    for (const prop in subplebbitData) {
-        if (subplebbit[prop] === undefined || subplebbit[prop] === null) {
-            if (subplebbitData[prop] !== undefined && subplebbitData[prop] !== null)
-                subplebbit[prop] = subplebbitData[prop];
-        }
-    }
-    // add potential missing data from the Pages API
-    if (subplebbit.posts) {
-        subplebbit.posts.pages = utils.merge(((_a = subplebbitData === null || subplebbitData === void 0 ? void 0 : subplebbitData.posts) === null || _a === void 0 ? void 0 : _a.pages) || {}, ((_b = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _b === void 0 ? void 0 : _b.pages) || {});
-        subplebbit.posts.pageCids = utils.merge(((_c = subplebbitData === null || subplebbitData === void 0 ? void 0 : subplebbitData.posts) === null || _c === void 0 ? void 0 : _c.pageCids) || {}, ((_d = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _d === void 0 ? void 0 : _d.pageCids) || {});
-    }
-    // NOTE: adding missing data is probably not needed with a full implementation of plebbit-js with no bugs
-    // but the plebbit mock is barely implemented
     return subplebbit;
 });
 // reset store in between tests

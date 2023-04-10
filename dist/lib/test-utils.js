@@ -12,6 +12,7 @@ import { resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore } from '../stor
 import { resetAccountsStore, resetAccountsDatabaseAndStore } from '../stores/accounts';
 import { resetFeedsStore, resetFeedsDatabaseAndStore } from '../stores/feeds';
 import { resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore } from '../stores/subplebbits-pages';
+import { resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore } from '../stores/authors-comments';
 const restorables = [];
 export const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
@@ -31,6 +32,21 @@ export const silenceTestWasNotWrappedInActWarning = () => {
     const originalError = console.error;
     console.error = (...args) => {
         if (/inside a test was not wrapped in act/.test(args[0])) {
+            return;
+        }
+        originalError.call(console, ...args);
+    };
+    const restore = () => {
+        console.error = originalError;
+    };
+    restorables.push(restore);
+    return restore;
+};
+// this warning is usually good to have, so don't include it in silenceReactWarnings
+export const silenceOverlappingActWarning = () => {
+    const originalError = console.error;
+    console.error = (...args) => {
+        if (/overlapping act\(\) calls/.test(args[0])) {
             return;
         }
         originalError.call(console, ...args);
@@ -73,12 +89,16 @@ const createWaitFor = (rendered, waitForOptions) => {
         catch (e) {
             // @ts-ignore
             errorWithUsefulStackTrace.message = `${e.message} ${waitForFunction.toString()}`;
-            console.warn(errorWithUsefulStackTrace);
+            if (!testUtils.silenceWaitForWarning) {
+                console.warn(errorWithUsefulStackTrace);
+            }
         }
     });
     return waitFor;
 };
+// always reset the least important store first, because a store even can affect another store
 export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetAuthorsCommentsStore();
     yield resetSubplebbitsPagesStore();
     yield resetFeedsStore();
     yield resetSubplebbitsStore();
@@ -87,6 +107,7 @@ export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () 
     yield resetAccountsStore();
 });
 export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetAuthorsCommentsDatabaseAndStore();
     yield resetSubplebbitsPagesDatabaseAndStore();
     yield resetFeedsDatabaseAndStore();
     yield resetSubplebbitsDatabaseAndStore();
@@ -97,10 +118,13 @@ export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, f
 const testUtils = {
     silenceTestWasNotWrappedInActWarning,
     silenceUpdateUnmountedComponentWarning,
+    silenceOverlappingActWarning,
     silenceReactWarnings,
     restoreAll,
-    createWaitFor,
     resetStores,
     resetDatabasesAndStores,
+    createWaitFor,
+    // can be useful to silence warnings in tests that use retry
+    silenceWaitForWarning: false,
 };
 export default testUtils;

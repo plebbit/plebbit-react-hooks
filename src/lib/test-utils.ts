@@ -3,6 +3,7 @@ import {resetSubplebbitsStore, resetSubplebbitsDatabaseAndStore} from '../stores
 import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accounts'
 import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
 import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../stores/subplebbits-pages'
+import {resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore} from '../stores/authors-comments'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -27,6 +28,22 @@ export const silenceTestWasNotWrappedInActWarning = () => {
   const originalError = console.error
   console.error = (...args) => {
     if (/inside a test was not wrapped in act/.test(args[0])) {
+      return
+    }
+    originalError.call(console, ...args)
+  }
+  const restore = () => {
+    console.error = originalError
+  }
+  restorables.push(restore)
+  return restore
+}
+
+// this warning is usually good to have, so don't include it in silenceReactWarnings
+export const silenceOverlappingActWarning = () => {
+  const originalError = console.error
+  console.error = (...args) => {
+    if (/overlapping act\(\) calls/.test(args[0])) {
       return
     }
     originalError.call(console, ...args)
@@ -76,13 +93,17 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
     } catch (e) {
       // @ts-ignore
       errorWithUsefulStackTrace.message = `${e.message} ${waitForFunction.toString()}`
-      console.warn(errorWithUsefulStackTrace)
+      if (!testUtils.silenceWaitForWarning) {
+        console.warn(errorWithUsefulStackTrace)
+      }
     }
   }
   return waitFor
 }
 
+// always reset the least important store first, because a store even can affect another store
 export const resetStores = async () => {
+  await resetAuthorsCommentsStore()
   await resetSubplebbitsPagesStore()
   await resetFeedsStore()
   await resetSubplebbitsStore()
@@ -92,6 +113,7 @@ export const resetStores = async () => {
 }
 
 export const resetDatabasesAndStores = async () => {
+  await resetAuthorsCommentsDatabaseAndStore()
   await resetSubplebbitsPagesDatabaseAndStore()
   await resetFeedsDatabaseAndStore()
   await resetSubplebbitsDatabaseAndStore()
@@ -103,11 +125,14 @@ export const resetDatabasesAndStores = async () => {
 const testUtils = {
   silenceTestWasNotWrappedInActWarning,
   silenceUpdateUnmountedComponentWarning,
+  silenceOverlappingActWarning,
   silenceReactWarnings,
   restoreAll,
-  createWaitFor,
   resetStores,
   resetDatabasesAndStores,
+  createWaitFor,
+  // can be useful to silence warnings in tests that use retry
+  silenceWaitForWarning: false,
 }
 
 export default testUtils

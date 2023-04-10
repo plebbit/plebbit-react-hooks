@@ -23,13 +23,13 @@ describe('comments (plebbit-js mock)', () => {
   describe('no comments in database', () => {
     it('get comments one at a time', async () => {
       console.log('starting comments tests')
-      const rendered = renderHook((commentCid) => useComment(commentCid))
+      const rendered = renderHook((commentCid) => useComment({commentCid}))
       const waitFor = testUtils.createWaitFor(rendered, {timeout})
-      expect(rendered.result.current).to.equal(undefined)
+      expect(rendered.result.current?.timestamp).to.equal(undefined)
 
       rendered.rerender('comment cid 1')
-      await waitFor(() => typeof rendered.result.current?.cid === 'string')
-
+      await waitFor(() => typeof rendered.result.current?.timestamp === 'number')
+      expect(typeof rendered.result.current?.timestamp).to.equal('number')
       expect(rendered.result.current?.cid).to.equal('comment cid 1')
       // wait for comment.on('update') to fetch the ipns
       await waitFor(() => typeof rendered.result.current?.cid === 'string' && typeof rendered.result.current?.upvoteCount === 'number')
@@ -38,7 +38,8 @@ describe('comments (plebbit-js mock)', () => {
 
       rendered.rerender('comment cid 2')
       // wait for addCommentToStore action
-      await waitFor(() => typeof rendered.result.current?.cid === 'string')
+      await waitFor(() => typeof rendered.result.current?.timestamp === 'number')
+      expect(typeof rendered.result.current?.timestamp).to.equal('number')
       expect(rendered.result.current?.cid).to.equal('comment cid 2')
     })
   })

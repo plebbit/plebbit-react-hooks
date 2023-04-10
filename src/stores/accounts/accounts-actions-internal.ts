@@ -4,8 +4,8 @@ import accountsStore, {listeners} from './accounts-store'
 import accountsDatabase from './accounts-database'
 import Logger from '@plebbit/plebbit-logger'
 import assert from 'assert'
-const log = Logger('plebbit-react-hooks:stores:accounts')
-import {Account, PublishCommentOptions, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
+const log = Logger('plebbit-react-hooks:accounts:stores')
+import {Account, PublishCommentOptions, AccountCommentReply, Comment, AccountsComments, AccountCommentsReplies, Subplebbit} from '../../types'
 import utils from '../../lib/utils'
 
 // TODO: we currently subscribe to updates for every single comment
@@ -85,7 +85,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
         }
 
         // check which replies are read or not
-        const updatedAccountCommentsReplies: {[replyCid: string]: Comment} = {}
+        const updatedAccountCommentsReplies: {[replyCid: string]: AccountCommentReply} = {}
         for (const replyPage of replyPageArray) {
           for (const reply of replyPage?.comments || []) {
             const markedAsRead = accountsCommentsReplies[account.id]?.[reply.cid]?.markedAsRead === true ? true : false
@@ -186,9 +186,9 @@ const getAccountsCommentsWithoutCids = () => {
 }
 
 // internal accounts action: mark an account's notifications as read
-export const markAccountNotificationsAsRead = async (account: Account) => {
+export const markNotificationsAsRead = async (account: Account) => {
   const {accountsCommentsReplies} = accountsStore.getState()
-  assert(typeof account?.id === 'string', `accountsStore.markAccountNotificationsAsRead invalid account argument '${account}'`)
+  assert(typeof account?.id === 'string', `accountsStore.markNotificationsAsRead invalid account argument '${account}'`)
 
   // find all unread replies
   const repliesToMarkAsRead: AccountCommentsReplies = {}
@@ -206,7 +206,7 @@ export const markAccountNotificationsAsRead = async (account: Account) => {
   await Promise.all(promises)
 
   // add all to react store
-  log('accountsActions.markAccountNotificationsAsRead', {account, repliesToMarkAsRead})
+  log('accountsActions.markNotificationsAsRead', {account, repliesToMarkAsRead})
   accountsStore.setState(({accountsCommentsReplies}) => {
     const updatedAccountCommentsReplies = {...accountsCommentsReplies[account.id], ...repliesToMarkAsRead}
     return {accountsCommentsReplies: {...accountsCommentsReplies, [account.id]: updatedAccountCommentsReplies}}

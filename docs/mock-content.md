@@ -19,7 +19,7 @@ REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME=1000
 import {useFeed} from '@plebbit/plebbit-react-hooks'
 
 function App() {
-  const {feed, hasMore, loadMore} = useFeed(['news.eth'], 'new')
+  const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['news.eth'], sortType: 'new'})
   console.log({feed})
   return <div className="App"></div>
 }
@@ -36,10 +36,11 @@ REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE=1
 #### Delete databases and caches
 
 ```js
-import {debugUtils} from '@plebbit/plebbit-react-hooks'
+import {deleteCaches, deleteDatabases} from '@plebbit/plebbit-react-hooks'
 
-await debugUtils.deleteDatabases()
-await debugUtils.deleteCaches()
-await debugUtils.deleteAccountsDatabases()
-await debugUtils.deleteNonAccountsDatabases()
+// delete all databases, including all caches and accounts data
+await deleteDatabases()
+
+// delete the cached comments, cached subplebbits and cached pages only, no accounts data
+await deleteCaches()
 ```

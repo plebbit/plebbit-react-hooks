@@ -10,11 +10,14 @@ declare const database: {
     addAccountComment: (accountId: string, comment: CreateCommentOptions | Comment, accountCommentIndex?: number | undefined) => Promise<void>;
     addAccount: (account: Account) => Promise<void>;
     removeAccount: (account: Account) => Promise<void>;
-    getAccountJson: (accountId: string) => Promise<string>;
+    getExportedAccountJson: (accountId: string) => Promise<string>;
     getAccounts: (accountIds: string[]) => Promise<Accounts>;
-    getAccount: (accountId: string) => Promise<any>;
+    getAccount: (accountId: string) => Promise<Account>;
     addAccountCommentReply: (accountId: string, reply: AccountCommentReply) => Promise<void>;
     getAccountCommentsReplies: (accountId: string) => Promise<{}>;
     getAccountsCommentsReplies: (accountIds: string[]) => Promise<AccountsCommentsReplies>;
+    getAccountsEdits: (accountIds: string[]) => Promise<any>;
+    getAccountEdits: (accountId: string) => Promise<any>;
+    addAccountEdit: (accountId: string, createEditOptions: CreateCommentOptions) => Promise<void>;
 };
 export default database;

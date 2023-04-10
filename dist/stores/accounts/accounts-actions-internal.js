@@ -12,7 +12,7 @@ import accountsStore, { listeners } from './accounts-store';
 import accountsDatabase from './accounts-database';
 import Logger from '@plebbit/plebbit-logger';
 import assert from 'assert';
-const log = Logger('plebbit-react-hooks:stores:accounts');
+const log = Logger('plebbit-react-hooks:accounts:stores');
 import utils from '../../lib/utils';
 // TODO: we currently subscribe to updates for every single comment
 // in the user's account history. This probably does not scale, we
@@ -28,7 +28,8 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
             // and doesn't have a cid, so has no way to know the ipns name
             return;
         }
-        comment = yield utils.retryInfinity(() => account.plebbit.getComment(comment.cid));
+        const onError = (error) => log.error(`startUpdatingAccountCommentOnCommentUpdateEvents failed plebbit.getComment cid '${comment === null || comment === void 0 ? void 0 : comment.cid}' index '${accountCommentIndex}':`, error);
+        comment = yield utils.retryInfinity(() => account.plebbit.getComment(comment.cid, { onError }));
     }
     // account comment already updating
     if (accountsStore.getState().accountsCommentsUpdating[comment.cid]) {
@@ -164,9 +165,9 @@ const getAccountsCommentsWithoutCids = () => {
     return accountsCommentsWithoutCids;
 };
 // internal accounts action: mark an account's notifications as read
-export const markAccountNotificationsAsRead = (account) => __awaiter(void 0, void 0, void 0, function* () {
+export const markNotificationsAsRead = (account) => __awaiter(void 0, void 0, void 0, function* () {
     const { accountsCommentsReplies } = accountsStore.getState();
-    assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `accountsStore.markAccountNotificationsAsRead invalid account argument '${account}'`);
+    assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `accountsStore.markNotificationsAsRead invalid account argument '${account}'`);
     // find all unread replies
     const repliesToMarkAsRead = {};
     for (const replyCid in accountsCommentsReplies[account.id]) {
@@ -181,7 +182,7 @@ export const markAccountNotificationsAsRead = (account) => __awaiter(void 0, voi
     }
     yield Promise.all(promises);
     // add all to react store
-    log('accountsActions.markAccountNotificationsAsRead', { account, repliesToMarkAsRead });
+    log('accountsActions.markNotificationsAsRead', { account, repliesToMarkAsRead });
     accountsStore.setState(({ accountsCommentsReplies }) => {
         const updatedAccountCommentsReplies = Object.assign(Object.assign({}, accountsCommentsReplies[account.id]), repliesToMarkAsRead);
         return { accountsCommentsReplies: Object.assign(Object.assign({}, accountsCommentsReplies), { [account.id]: updatedAccountCommentsReplies }) };

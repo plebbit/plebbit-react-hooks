@@ -7,11 +7,11 @@ require('dotenv').config()
 // same as .mocharc.js
 const mochaConfig = {
   // set large value for manual debugging
-  timeout: 600000,
+  timeout: 600_000,
 }
 if (process.env.CI) {
   // set small value for timing out CI
-  mochaConfig.timeout = 120000
+  mochaConfig.timeout = 300_000
 }
 
 // possible to add flags when launching the browser
@@ -62,10 +62,16 @@ let files = [
   'test-karma-webpack/test/browser-e2e/**/*.test.js',
 ]
 
-// test the plebbit-js mock files
+// test the plebbit-js-mock files
 // launch the mock tests separately because it sometimes wrongly mocks all files
 if (process.argv.includes('plebbit-js-mock') || process.argv.includes('--plebbit-js-mock')) {
   files = ['test-karma-webpack/test/browser-plebbit-js-mock/**/*.test.js']
+}
+
+// test the plebbit-js-mock-content files
+// launch the mock tests separately because it sometimes wrongly mocks all files
+if (process.argv.includes('plebbit-js-mock-content') || process.argv.includes('--plebbit-js-mock-content')) {
+  files = ['test-karma-webpack/test/browser-plebbit-js-mock-content/**/*.test.js']
 }
 
 module.exports = function (config) {

@@ -1,7 +1,7 @@
 import utils from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 // include subplebbits pages store with feeds for debugging
-const log = Logger('plebbit-react-hooks:stores:feeds')
+const log = Logger('plebbit-react-hooks:feeds:stores')
 import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
 import localForageLru from '../../lib/localforage-lru'
@@ -13,10 +13,11 @@ const subplebbitsPagesDatabase = localForageLru.createInstance({name: 'subplebbi
 // reset all event listeners in between tests
 export const listeners: any = []
 
-type SubplebbitsPagesState = {
+export type SubplebbitsPagesState = {
   subplebbitsPages: SubplebbitsPages
   comments: Comments
   addNextSubplebbitPageToStore: Function
+  addSubplebbitPageCommentsToStore: Function
 }
 
 const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Function, getState: Function) => ({
@@ -108,6 +109,35 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
         .accountsActionsInternal.addCidToAccountComment(comment)
         .catch((error: unknown) => log.error('subplebbitsPagesStore.addNextSubplebbitPageToStore addCidToAccountComment error', {comment, error}))
     }
+  },
+
+  // subplebbits contain preloaded pages, those page comments must be added separately
+  addSubplebbitPageCommentsToStore: (subplebbit: Subplebbit) => {
+    if (!subplebbit.posts?.pages) {
+      return
+    }
+
+    // find new comments in the page
+    const flattenedComments = utils.flattenCommentsPages(subplebbit.posts.pages)
+    const {comments} = getState()
+    let hasNewComments = false
+    const newComments: Comments = {}
+    for (const comment of flattenedComments) {
+      if (comment.cid && (comment.updatedAt || 0) > (comments[comment.cid]?.updatedAt || 0)) {
+        // don't clone the comment to save memory, comments remain a pointer to the page object
+        newComments[comment.cid] = comment
+        hasNewComments = true
+      }
+    }
+
+    if (!hasNewComments) {
+      return
+    }
+
+    setState(({comments}: any) => {
+      return {comments: {...comments, ...newComments}}
+    })
+    log('subplebbitsPagesStore.addSubplebbitPageCommentsToStore', {subplebbit, newComments})
   },
 }))
 

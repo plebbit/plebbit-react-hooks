@@ -16,7 +16,7 @@ const getAccounts = async (accountIds: string[]) => {
   for (const accountId of accountIds) {
     promises.push(accountsDatabase.getItem(accountId))
   }
-  const accountsArray = await Promise.all(promises)
+  const accountsArray: any = await Promise.all(promises)
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
     accounts[accountId] = accountsArray[i]
@@ -34,14 +34,35 @@ const getAccount = async (accountId: string) => {
   return accounts[accountId]
 }
 
-const getAccountJson = async (accountId: string) => {
+const getExportedAccountJson = async (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountJson argument accountId '${accountId}' invalid`)
   // do not serialize or instantiate anything (unlike getAccount)
   const account = await accountsDatabase.getItem(accountId)
   if (!account) {
     throw Error(`getAccountJson no account in database with accountId '${accountId}'`)
   }
-  return JSON.stringify(account)
+  const accountCommentsDatabase = getAccountCommentsDatabase(accountId)
+  const accountVotesDatabase = getAccountVotesDatabase(accountId)
+  const accountEditsDatabase = getAccountEditsDatabase(accountId)
+  const [accountComments, accountVotes, accountEdits] = await Promise.all([
+    getDatabaseAsArray(accountCommentsDatabase),
+    getDatabaseAsArray(accountVotesDatabase),
+    getDatabaseAsArray(accountEditsDatabase),
+  ])
+  return JSON.stringify({account, accountComments, accountVotes, accountEdits})
+}
+
+// accountVotes, accountComments and accountEdits are indexeddb
+// databases formed like an array (keys are numbers)
+const getDatabaseAsArray = async (database: any) => {
+  const length = (await database.getItem('length')) || 0
+  let promises = []
+  let i = 0
+  while (i < length) {
+    promises.push(database.getItem(String(i++)))
+  }
+  const items = await Promise.all(promises)
+  return items
 }
 
 const addAccount = async (account: Account) => {
@@ -59,7 +80,7 @@ const addAccount = async (account: Account) => {
   }
 
   // handle updating accounts database
-  const accountToPutInDatabase = {...account, plebbit: undefined}
+  const accountToPutInDatabase: any = {...account, plebbit: undefined}
   // don't save default plebbit options in database in case they change
   if (JSON.stringify(accountToPutInDatabase.plebbitOptions) === JSON.stringify(getDefaultPlebbitOptions())) {
     delete accountToPutInDatabase.plebbitOptions
@@ -171,6 +192,7 @@ const getAccountComments = async (accountId: string) => {
 }
 
 const getAccountsComments = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsComments invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountComments(accountId))
@@ -235,6 +257,7 @@ const getAccountVotes = async (accountId: string) => {
 }
 
 const getAccountsVotes = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsVotes invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountVotes(accountId))
@@ -281,6 +304,7 @@ const getAccountCommentsReplies = async (accountId: string) => {
 }
 
 const getAccountsCommentsReplies = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsCommentsReplies invalid accountIds '${accountIds}' not an array`)
   const promises = []
   for (const accountId of accountIds) {
     promises.push(getAccountCommentsReplies(accountId))
@@ -291,6 +315,80 @@ const getAccountsCommentsReplies = async (accountIds: string[]) => {
     accountsCommentsReplies[accountId] = accountsCommentsRepliesArray[i]
   }
   return accountsCommentsReplies
+}
+
+const accountsEditsDatabases: any = {}
+const getAccountEditsDatabase = (accountId: string) => {
+  assert(accountId && typeof accountId === 'string', `getAccountEditsDatabase '${accountId}' not a string`)
+  if (!accountsEditsDatabases[accountId]) {
+    accountsEditsDatabases[accountId] = localForage.createInstance({name: `accountEdits-${accountId}`})
+  }
+  return accountsEditsDatabases[accountId]
+}
+
+const addAccountEdit = async (accountId: string, createEditOptions: CreateCommentOptions) => {
+  assert(
+    createEditOptions?.commentCid && typeof createEditOptions?.commentCid === 'string',
+    `addAccountEdit createEditOptions.commentCid '${createEditOptions?.commentCid}' not a string`
+  )
+  const accountEditsDatabase = getAccountEditsDatabase(accountId)
+  const length = (await accountEditsDatabase.getItem('length')) || 0
+  const edit = {...createEditOptions}
+  delete edit.signer
+  delete edit.author
+  // delete all functions because they can't be added to indexeddb
+  for (const i in edit) {
+    if (typeof edit[i] === 'function') {
+      delete edit[i]
+    }
+  }
+
+  // edits are an array because you can edit the same comment multiple times
+  const edits = (await accountEditsDatabase.getItem(edit.commentCid)) || []
+  edits.push(edit)
+
+  await Promise.all([
+    accountEditsDatabase.setItem(edit.commentCid, edits),
+    accountEditsDatabase.setItem(String(length), edit),
+    accountEditsDatabase.setItem('length', length + 1),
+  ])
+}
+
+const getAccountEdits = async (accountId: string) => {
+  const accountEditsDatabase = getAccountEditsDatabase(accountId)
+  const length = (await accountEditsDatabase.getItem('length')) || 0
+  const edits: any = {}
+  if (length === 0) {
+    return edits
+  }
+  let promises = []
+  let i = 0
+  while (i < length) {
+    promises.push(accountEditsDatabase.getItem(String(i++)))
+  }
+  const editsArray = await Promise.all(promises)
+  for (const edit of editsArray) {
+    // TODO: must change this logic for subplebbit edits
+    if (!edits[edit?.commentCid]) {
+      edits[edit?.commentCid] = []
+    }
+    edits[edit?.commentCid].push(edit)
+  }
+  return edits
+}
+
+const getAccountsEdits = async (accountIds: string[]) => {
+  assert(Array.isArray(accountIds), `getAccountsEdits invalid accountIds '${accountIds}' not an array`)
+  const promises = []
+  for (const accountId of accountIds) {
+    promises.push(getAccountEdits(accountId))
+  }
+  const accountsEditsArray = await Promise.all(promises)
+  const accountsEdits: any = {}
+  for (const [i, accountId] of accountIds.entries()) {
+    accountsEdits[accountId] = accountsEditsArray[i]
+  }
+  return accountsEdits
 }
 
 const database = {
@@ -304,12 +402,15 @@ const database = {
   addAccountComment,
   addAccount,
   removeAccount,
-  getAccountJson,
+  getExportedAccountJson,
   getAccounts,
   getAccount,
   addAccountCommentReply,
   getAccountCommentsReplies,
   getAccountsCommentsReplies,
+  getAccountsEdits,
+  getAccountEdits,
+  addAccountEdit,
 }
 
 export default database

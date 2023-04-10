@@ -1,6 +1,7 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useSubplebbit, useAccountsActions, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {useAccount, useSubplebbit, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
@@ -16,14 +17,14 @@ const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
   'http client': {
-    ipfsHttpClientOptions: localIpfsProviderUrl,
-    // define pubsubHttpClientOptions with localPubsubProviderUrl because
+    ipfsHttpClientsOptions: [localIpfsProviderUrl],
+    // define pubsubHttpClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
-    pubsubHttpClientOptions: localPubsubProviderUrl,
+    pubsubHttpClientsOptions: [localPubsubProviderUrl],
   },
   'gateway and pubsub provider': {
-    ipfsGatewayUrl: localGatewayUrl,
-    pubsubHttpClientOptions: localPubsubProviderUrl,
+    ipfsGatewayUrls: [localGatewayUrl],
+    pubsubHttpClientsOptions: [localPubsubProviderUrl],
   },
 }
 
@@ -53,10 +54,9 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       before(async () => {
         rendered = renderHook(({subplebbitAddress, commentCid} = {}) => {
           const account = useAccount()
-          const accountsActions = useAccountsActions()
-          const subplebbit = useSubplebbit(subplebbitAddress)
-          const accountVotes = useAccountVotes()
-          const comment = useComment(commentCid)
+          const subplebbit = useSubplebbit({subplebbitAddress})
+          const {accountVotes} = useAccountVotes()
+          const comment = useComment({commentCid})
           return {account, subplebbit, comment, accountVotes, ...accountsActions}
         })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
@@ -81,14 +81,14 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
 
       it(`get subplebbits one at a time (${plebbitOptionsType})`, async () => {
-        console.log(`starting subplebbits tests (${plebbitOptionsType})`)
-
         rendered.rerender({subplebbitAddress})
-        await waitFor(() => typeof rendered.result.current.subplebbit.address === 'string')
+        await waitFor(() => typeof rendered.result.current.subplebbit.updatedAt === 'number')
+        expect(typeof rendered.result.current.subplebbit.updatedAt).to.equal('number')
         expect(rendered.result.current.subplebbit.address).to.equal(subplebbitAddress)
         await waitFor(() => rendered.result.current.subplebbit.posts.pages.hot.comments[0])
         expect(typeof rendered.result.current.subplebbit.posts.pages.hot.comments[0].cid).to.equal('string')
         commentCid = rendered.result.current.subplebbit.posts.pages.hot.comments[0].cid
+        expect(rendered.result.current.subplebbit.state).to.equal('succeeded')
         console.log('comment cid', commentCid)
       })
 
@@ -169,6 +169,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         )
         console.log('after getting comment update')
         expect(rendered.result.current.comment?.cid).to.equal(commentCid)
+        expect(rendered.result.current.comment.state).to.equal('succeeded')
         // could be greater than 1 if code is ran several times with the same test server
         expect(rendered.result.current.comment?.upvoteCount).to.be.greaterThan(0)
       })

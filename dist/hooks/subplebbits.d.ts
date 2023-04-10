@@ -1,30 +1,30 @@
-import { BlockchainProviders } from '../types';
+import { ChainProviders, UseResolvedSubplebbitAddressOptions, UseResolvedSubplebbitAddressResult, UseSubplebbitOptions, UseSubplebbitResult, UseSubplebbitsOptions, UseSubplebbitsResult, UseSubplebbitStatsOptions, UseSubplebbitStatsResult } from '../types';
 /**
- * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useSubplebbit(subplebbitAddress?: string, accountName?: string): any;
+export declare function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResult;
 /**
- * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', 'Qm...', etc
+ * @param subplebbitAddress - The address of the subplebbit, e.g. 'memes.eth', '12D3KooW...', etc
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useSubplebbitMetrics(subplebbitAddress?: string, accountName?: string): undefined;
+export declare function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubplebbitStatsResult;
 /**
- * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', 'Qm...']
+ * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', '12D3KooWA...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useSubplebbits(subplebbitAddresses?: string[], accountName?: string): any[];
+export declare function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsResult;
 /**
  * Returns all the owner subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
  */
 export declare function useListSubplebbits(): string[];
 /**
- * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to 'Qm...'.
+ * @param subplebbitAddress - The subplebbit address to resolve to a public key, e.g. 'news.eth' resolves to '12D3KooW...'.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-export declare function useResolvedSubplebbitAddress(subplebbitAddress?: string, accountName?: string): string | undefined;
-export declare const resolveSubplebbitAddress: (subplebbitAddress: string, blockchainProviders: BlockchainProviders) => Promise<any>;
+export declare function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddressOptions): UseResolvedSubplebbitAddressResult;
+export declare const resolveSubplebbitAddress: (subplebbitAddress: string, chainProviders: ChainProviders) => Promise<any>;

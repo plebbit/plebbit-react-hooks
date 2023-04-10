@@ -1,4 +1,4 @@
-import {Account, Role, Subplebbits} from '../../types'
+import {Account, Role, Subplebbits, AccountsComments, CommentCidsToAccountsComments} from '../../types'
 import assert from 'assert'
 
 const getAuthorAddressRolesFromSubplebbits = (authorAddress: string, subplebbits: Subplebbits) => {
@@ -28,8 +28,21 @@ export const getAccountSubplebbits = (account: Account, subplebbits: Subplebbits
   return accountSubplebbits
 }
 
+export const getCommentCidsToAccountsComments = (accountsComments: AccountsComments) => {
+  const commentCidsToAccountsComments: CommentCidsToAccountsComments = {}
+  for (const accountId in accountsComments) {
+    for (const accountComment of accountsComments[accountId]) {
+      if (accountComment.cid) {
+        commentCidsToAccountsComments[accountComment.cid] = {accountId, accountCommentIndex: accountComment.index}
+      }
+    }
+  }
+  return commentCidsToAccountsComments
+}
+
 const utils = {
   getAccountSubplebbits,
+  getCommentCidsToAccountsComments,
 }
 
 export default utils
