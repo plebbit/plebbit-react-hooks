@@ -21,10 +21,10 @@ import { getNftMetadataUrl, getNftImageUrl, getNftOwner } from '../../lib/chain'
  */
 // NOTE: useNftMetadataUrl tests are skipped, if changes are made they must be tested manually
 export function useNftMetadataUrl(nft, accountName) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
-    const ipfsGatewayUrl = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsGatewayUrl;
+    const ipfsGatewayUrl = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsGatewayUrls[0];
     const chainProviders = (_b = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _b === void 0 ? void 0 : _b.chainProviders;
     const [nftMetadataUrl, setNftMetadataUrl] = useState();
     const [error, setError] = useState();
@@ -32,8 +32,8 @@ export function useNftMetadataUrl(nft, accountName) {
         nft === null || nft === void 0 ? void 0 : nft.address,
         nft === null || nft === void 0 ? void 0 : nft.id,
         nft === null || nft === void 0 ? void 0 : nft.chainTicker,
-        (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _c === void 0 ? void 0 : _c.url,
-        (_d = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _d === void 0 ? void 0 : _d.chainId,
+        (_d = (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _c === void 0 ? void 0 : _c.urls) === null || _d === void 0 ? void 0 : _d[0],
+        (_e = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _e === void 0 ? void 0 : _e.chainId,
         ipfsGatewayUrl,
     ];
     useEffect(() => {
@@ -69,7 +69,7 @@ export function useNftImageUrl(nftMetadataUrl, accountName) {
     assert(!nftMetadataUrl || typeof nftMetadataUrl === 'string', `useNftImageUrl invalid argument nftMetadataUrl '${nftMetadataUrl}' not a string`);
     const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
-    const ipfsGatewayUrl = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsGatewayUrl;
+    const ipfsGatewayUrl = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsGatewayUrls[0];
     const [imageUrl, setImageUrl] = useState();
     const [error, setError] = useState();
     useEffect(() => {
@@ -155,7 +155,7 @@ export function useAuthorAvatarIsWhitelisted(nft) {
 }
 // NOTE: verifyAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
 export const verifyAuthorAvatarSignature = (nft, authorAddress, chainProviders) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     assert(nft && typeof nft === 'object', `verifyAuthorAvatarSignature invalid nft argument '${nft}'`);
     assert(nft === null || nft === void 0 ? void 0 : nft.address, `verifyAuthorAvatarSignature invalid nft.address '${nft === null || nft === void 0 ? void 0 : nft.address}'`);
     assert((nft === null || nft === void 0 ? void 0 : nft.id) && typeof (nft === null || nft === void 0 ? void 0 : nft.id) === 'string', `verifyAuthorAvatarSignature invalid nft.tokenAddress '${nft === null || nft === void 0 ? void 0 : nft.id}' not a string`);
@@ -164,7 +164,7 @@ export const verifyAuthorAvatarSignature = (nft, authorAddress, chainProviders) 
     assert((_a = nft === null || nft === void 0 ? void 0 : nft.signature) === null || _a === void 0 ? void 0 : _a.signature, `verifyAuthorAvatarSignature invalid nft.signature.signature '${(_b = nft === null || nft === void 0 ? void 0 : nft.signature) === null || _b === void 0 ? void 0 : _b.signature}'`);
     assert(authorAddress, `verifyAuthorAvatarSignature invalid authorAddress '${authorAddress}'`);
     // get the owner of the nft at nft.id
-    const currentNftOwnerAddress = yield getNftOwner(nft === null || nft === void 0 ? void 0 : nft.address, nft === null || nft === void 0 ? void 0 : nft.id, nft === null || nft === void 0 ? void 0 : nft.chainTicker, (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _c === void 0 ? void 0 : _c.url, (_d = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _d === void 0 ? void 0 : _d.chainId);
+    const currentNftOwnerAddress = yield getNftOwner(nft === null || nft === void 0 ? void 0 : nft.address, nft === null || nft === void 0 ? void 0 : nft.id, nft === null || nft === void 0 ? void 0 : nft.chainTicker, (_d = (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _c === void 0 ? void 0 : _c.urls) === null || _d === void 0 ? void 0 : _d[0], (_e = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _e === void 0 ? void 0 : _e.chainId);
     let messageThatShouldBeSigned = {};
     // the property names must be in this order for the signature to match
     // insert props one at a time otherwise babel/webpack will reorder

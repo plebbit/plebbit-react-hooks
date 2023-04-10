@@ -428,7 +428,7 @@ export declare type AccountPublicationsFilter = {
  */
 export declare type ChainProvider = {
     chainId?: number;
-    url?: string;
+    urls?: string[];
 };
 export declare type ChainProviders = {
     [chainTicker: string]: ChainProvider;

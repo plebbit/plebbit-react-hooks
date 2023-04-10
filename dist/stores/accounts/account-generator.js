@@ -15,15 +15,15 @@ import accountsDatabase from './accounts-database';
 const chainProviders = {
     eth: {
         // default should not use a url, but rather ethers' default provider
-        url: 'ethers.getDefaultProvider()',
+        urls: ['ethers.getDefaultProvider()'],
         chainId: 1,
     },
     avax: {
-        url: 'https://api.avax.network/ext/bc/C/rpc',
+        urls: ['https://api.avax.network/ext/bc/C/rpc'],
         chainId: 43114,
     },
     matic: {
-        url: 'https://polygon-rpc.com',
+        urls: ['https://polygon-rpc.com'],
         chainId: 137,
     },
 };
@@ -48,9 +48,9 @@ export const getDefaultPlebbitOptions = () => {
     }
     // default plebbit options for web client
     return {
-        ipfsGatewayUrl: 'https://cloudflare-ipfs.com',
-        ipfsHttpClientOptions: undefined,
-        pubsubHttpClientOptions: 'https://pubsubprovider.xyz/api/v0',
+        ipfsGatewayUrls: ['https://ipfs.io', 'https://cloudflare-ipfs.com'],
+        ipfsHttpClientsOptions: undefined,
+        pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0'],
         chainProviders,
     };
 };
