@@ -261,6 +261,17 @@ console.log(index)
 // pending comment state
 console.log(state)
 
+// after publishComment is called, the account comment index gets defined
+// it is recommended to immediately redirect the user to a page displaying
+// the user's comment with a "pending" label
+if (index !== undefined) {
+  history.push(`/profile/c/${index}`)
+  // on the "pending" comment page, you can get the pending comment by doing
+  // const accountComment = useAccountComment({commentIndex: index})
+  // after accountComment.cid gets defined, it means the comment was published successfully
+  // it is recommended to immediately redirect to `/p/${accountComment.subplebbitAddress}/c/${useAccountComment.cid}`
+}
+
 // reply to a post or comment
 const publishReplyOptions = {
   content: 'hello',
@@ -272,6 +283,10 @@ const publishReplyOptions = {
 }
 const {publishComment} = usePublishComment(publishReplyOptions)
 await publishComment()
+
+// when displaying replies, it is recommended to include the user's pending replies
+// https://github.com/plebbit/plebbit-react-hooks/#get-replies-to-a-post-nested (nested)
+// https://github.com/plebbit/plebbit-react-hooks/#get-replies-to-a-post-flattened-not-nested (not nested)
 ```
 
 #### Create a post or comment using hooks
@@ -296,6 +311,17 @@ if (challengeVerification) {
 
 if (error) {
   // display error to user
+}
+
+// after publishComment is called, the account comment index gets defined
+// it is recommended to immediately redirect the user to a page displaying
+// the user's comment with a "pending" label
+if (index !== undefined) {
+  history.push(`/profile/c/${index}`)
+  // on the "pending" comment page, you can get the pending comment by doing
+  // const accountComment = useAccountComment({commentIndex: index})
+  // after accountComment.cid gets defined, it means the comment was published successfully
+  // it is recommended to immediately redirect to `/p/${accountComment.subplebbitAddress}/c/${useAccountComment.cid}`
 }
 
 // create post
@@ -584,7 +610,7 @@ await createSubplebbit()
 // it is recommended to redirect to `p/${createdSubplebbit.address}` after creation
 if (createdSubplebbit?.address) {
   console.log('created subplebbit with title', createdSubplebbit.title)
-  history.push(`p/${createdSubplebbit.address}`)
+  history.push(`/p/${createdSubplebbit.address}`)
 }
 
 // after the subplebbit is created, fetch it using
