@@ -58,6 +58,13 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   }
 
   let state = comment?.updatingState || 'initializing'
+  // force 'fetching-ipns' even if could be something else, so the frontend can use
+  // the correct loading skeleton
+  // TODO: find a more accurate way to display state, like maybe 'fetching-comment', 'fetching-update'
+  // that can be used by loading skeleton, and for more advanced state use comment.updatingState
+  if (comment?.timestamp) {
+    state = 'fetching-ipns'
+  }
   // force succeeded even if the commment is fecthing a new update
   if (comment?.updatedAt) {
     state = 'succeeded'
