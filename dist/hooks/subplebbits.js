@@ -233,10 +233,10 @@ export function useResolvedSubplebbitAddress(options) {
 }
 // NOTE: resolveSubplebbitAddress tests are skipped, if changes are made they must be tested manually
 export const resolveSubplebbitAddress = (subplebbitAddress, chainProviders) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
     let resolvedSubplebbitAddress;
     if (subplebbitAddress.endsWith('.eth')) {
-        resolvedSubplebbitAddress = yield resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', 'eth', (_a = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth']) === null || _a === void 0 ? void 0 : _a.url, (_b = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth']) === null || _b === void 0 ? void 0 : _b.chainId);
+        resolvedSubplebbitAddress = yield resolveEnsTxtRecord(subplebbitAddress, 'subplebbit-address', 'eth', (_b = (_a = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth']) === null || _a === void 0 ? void 0 : _a.urls) === null || _b === void 0 ? void 0 : _b[0], (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth']) === null || _c === void 0 ? void 0 : _c.chainId);
     }
     else {
         throw Error(`resolveSubplebbitAddress invalid subplebbitAddress '${subplebbitAddress}'`);
