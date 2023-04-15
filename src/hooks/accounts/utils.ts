@@ -16,6 +16,8 @@ import {useMemo, useState, useEffect} from 'react'
 import memoize from 'memoizee'
 import utils from '../../lib/utils'
 import PlebbitJs from '../../lib/plebbit-js'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:accounts:hooks')
 
 /**
  * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
@@ -289,10 +291,19 @@ const useAccountsAuthorShortAddresses = (accounts?: Accounts) => {
 
 let plebbit: any
 const getAuthorShortAddressNoCache = async (authorAddress: string | undefined) => {
+  if (!authorAddress) {
+    return
+  }
   if (!plebbit) {
     plebbit = await PlebbitJs.Plebbit()
   }
-  const comment = await plebbit.createComment({author: {address: authorAddress}})
-  return comment.author.shortAddress
+  try {
+    const comment = await plebbit.createComment({author: {address: authorAddress}})
+    console.log({comment})
+    return comment.author.shortAddress
+  } catch (error) {
+    console.log({error})
+    log.error('useAccount plebbit.createComment({author: {address: authorAddress} error', {authorAddress, error})
+  }
 }
 const getAuthorShortAddress = utils.memo(getAuthorShortAddressNoCache, {maxSize: 200})
