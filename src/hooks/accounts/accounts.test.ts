@@ -47,6 +47,7 @@ describe('accounts', () => {
       expect(account.name).toBe('Account 1')
       expect(account.author.displayName).toBe(undefined)
       expect(typeof account.author.address).toBe('string')
+      expect(typeof account.author.shortAddress).toBe('string')
       expect(Array.isArray(account.subscriptions)).toBe(true)
       expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').toBe(true)
       expect(account.blockedCids && typeof account.blockedCids === 'object').toBe(true)
@@ -241,6 +242,11 @@ describe('accounts', () => {
       expect(rendered.result.current.account).toBe(undefined)
       rendered.rerender('Account 1')
       expect(rendered.result.current.account.name).toBe('Account 1')
+    })
+
+    test(`useAccounts have shortAddresses`, async () => {
+      expect(typeof rendered.result.current.accounts[0].author.shortAddress).toBe('string')
+      expect(typeof rendered.result.current.accounts[1].author.shortAddress).toBe('string')
     })
 
     test(`fail to create account with name that already exists`, async () => {

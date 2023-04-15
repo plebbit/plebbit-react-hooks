@@ -11,9 +11,11 @@ import type {
   Notification,
   AccountCommentReply,
 } from '../../types'
-import {useMemo} from 'react'
+import {useMemo, useState, useEffect} from 'react'
 // @ts-ignore
 import memoize from 'memoizee'
+import utils from '../../lib/utils'
+import PlebbitJs from '../../lib/plebbit-js'
 
 /**
  * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
@@ -154,7 +156,7 @@ const getReplyNotificationsFromAccountCommentsReplies = (
 }
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
-const useAccountCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
+const useAccountCalculatedProperties = (account?: Account, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
   const notifications = useCalculatedNotifications(account, accountCommentsReplies)
   return useMemo(() => {
     return getAccountCalculatedProperties(accountComments, notifications)
@@ -163,17 +165,24 @@ const useAccountCalculatedProperties = (account?: Accounts, accountComments?: Ac
 
 export const useAccountWithCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
   const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies)
+  const shortAddress = useAccountAuthorShortAddress(account)
   return useMemo(() => {
     if (!account) {
       return
     }
+
+    if (shortAddress) {
+      account = {...account, author: {...account.author, shortAddress}}
+    }
+
     return {...account, ...accountCalculatedProperties}
-  }, [account, accountCalculatedProperties])
+  }, [account, accountCalculatedProperties, shortAddress])
 }
 
 // add calculated properties to accounts, like karma and unreadNotificationCount
 export const useAccountsWithCalculatedProperties = (accounts?: Accounts, accountsComments?: AccountsComments, accountsCommentsReplies?: AccountsCommentsReplies) => {
   const accountsNotifications = useCalculatedAccountsNotifications(accounts, accountsCommentsReplies)
+  const accountsShortAuthorAddresses = useAccountsAuthorShortAddresses(accounts)
 
   return useMemo(() => {
     if (!accounts) {
@@ -186,10 +195,14 @@ export const useAccountsWithCalculatedProperties = (accounts?: Accounts, account
     for (const accountId in accounts) {
       // must cache getAccountCalculatedProperties() or it recalculates every account, instead of only the one changed
       const accountCalculatedProperties = getAccountCalculatedProperties(accountsComments[accountId], accountsNotifications[accountId])
-      accountsWithCalculatedProperties[accountId] = {...accounts[accountId], ...accountCalculatedProperties}
+      const account = {...accounts[accountId], ...accountCalculatedProperties}
+      if (accountsShortAuthorAddresses[accountId] && account.author) {
+        account.author.shortAddress = accountsShortAuthorAddresses[accountId]
+      }
+      accountsWithCalculatedProperties[accountId] = account
     }
     return accountsWithCalculatedProperties
-  }, [accounts, accountsComments, accountsCommentsReplies])
+  }, [accounts, accountsComments, accountsCommentsReplies, accountsShortAuthorAddresses])
 }
 
 const getAccountCalculatedPropertiesNoCache = (accountComments?: AccountComments, notifications?: Notification[]) => {
@@ -240,3 +253,46 @@ const getAccountCalculatedPropertiesNoCache = (accountComments?: AccountComments
   return accountCalculatedProperties
 }
 const getAccountCalculatedProperties = memoize(getAccountCalculatedPropertiesNoCache, {max: 100})
+
+const useAccountAuthorShortAddress = (account?: Account) => {
+  const [shortAddress, setShortAddress] = useState<string | undefined>()
+  useEffect(() => {
+    getAuthorShortAddress(account?.author?.address).then((_shortAddress: string | undefined) => {
+      if (_shortAddress !== shortAddress) {
+        setShortAddress(_shortAddress)
+      }
+    })
+  }, [account?.author?.address])
+  return shortAddress
+}
+
+const useAccountsAuthorShortAddresses = (accounts?: Accounts) => {
+  const [shortAddresses, setShortAddresses] = useState<{[accountId: string]: string}>({})
+  useEffect(() => {
+    ;(async () => {
+      const newShortAddresses: {[accountId: string]: string} = {}
+      let shouldUpdate = false
+      for (const accountId in accounts || {}) {
+        const address: string | undefined = accounts?.[accountId]?.author?.address
+        newShortAddresses[accountId] = await getAuthorShortAddress(address)
+        if (shortAddresses[accountId] !== newShortAddresses[accountId]) {
+          shouldUpdate = true
+        }
+      }
+      if (shouldUpdate) {
+        setShortAddresses(newShortAddresses)
+      }
+    })()
+  }, [accounts])
+  return shortAddresses
+}
+
+let plebbit: any
+const getAuthorShortAddressNoCache = async (authorAddress: string | undefined) => {
+  if (!plebbit) {
+    plebbit = await PlebbitJs.Plebbit()
+  }
+  const comment = await plebbit.createComment({author: {address: authorAddress}})
+  return comment.author.shortAddress
+}
+const getAuthorShortAddress = utils.memo(getAuthorShortAddressNoCache, {maxSize: 200})

@@ -429,6 +429,10 @@ export class Comment extends Publication {
     this.state = 'stopped'
     this.updatingState = 'stopped'
     this.publishingState = 'stopped'
+
+    if (createCommentOptions?.author?.address) {
+      this.author.shortAddress = `short ${createCommentOptions.author.address}`
+    }
   }
 
   async update() {
