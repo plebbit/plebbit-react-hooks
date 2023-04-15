@@ -64,6 +64,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(isBase64(account.signer.privateKey)).to.be.true
         expect(account.signer.address).to.equal(account.author.address)
         expect(typeof account.author.address).to.equal('string')
+        expect(typeof account.author.shortAddress).to.equal('string')
         expect(Array.isArray(account.subscriptions)).to.equal(true)
         expect(account.blockedAddresses && typeof account.blockedAddresses === 'object').to.equal(true)
         expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
