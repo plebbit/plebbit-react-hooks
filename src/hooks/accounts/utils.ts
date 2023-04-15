@@ -299,10 +299,8 @@ const getAuthorShortAddressNoCache = async (authorAddress: string | undefined) =
   }
   try {
     const comment = await plebbit.createComment({author: {address: authorAddress}})
-    console.log({comment})
     return comment.author.shortAddress
   } catch (error) {
-    console.log({error})
     log.error('useAccount plebbit.createComment({author: {address: authorAddress} error', {authorAddress, error})
   }
 }
