@@ -1,7 +1,20 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import assert from 'assert';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
 import memoize from 'memoizee';
+import utils from '../../lib/utils';
+import PlebbitJs from '../../lib/plebbit-js';
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:accounts:hooks');
 /**
  * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
  * Check AccountPublicationsFilter type in types.tsx for more information, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
@@ -136,16 +149,21 @@ const useAccountCalculatedProperties = (account, accountComments, accountComment
 };
 export const useAccountWithCalculatedProperties = (account, accountComments, accountCommentsReplies) => {
     const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies);
+    const shortAddress = useAccountAuthorShortAddress(account);
     return useMemo(() => {
         if (!account) {
             return;
         }
+        if (shortAddress) {
+            account = Object.assign(Object.assign({}, account), { author: Object.assign(Object.assign({}, account.author), { shortAddress }) });
+        }
         return Object.assign(Object.assign({}, account), accountCalculatedProperties);
-    }, [account, accountCalculatedProperties]);
+    }, [account, accountCalculatedProperties, shortAddress]);
 };
 // add calculated properties to accounts, like karma and unreadNotificationCount
 export const useAccountsWithCalculatedProperties = (accounts, accountsComments, accountsCommentsReplies) => {
     const accountsNotifications = useCalculatedAccountsNotifications(accounts, accountsCommentsReplies);
+    const accountsShortAuthorAddresses = useAccountsAuthorShortAddresses(accounts);
     return useMemo(() => {
         if (!accounts) {
             return;
@@ -157,10 +175,14 @@ export const useAccountsWithCalculatedProperties = (accounts, accountsComments, 
         for (const accountId in accounts) {
             // must cache getAccountCalculatedProperties() or it recalculates every account, instead of only the one changed
             const accountCalculatedProperties = getAccountCalculatedProperties(accountsComments[accountId], accountsNotifications[accountId]);
-            accountsWithCalculatedProperties[accountId] = Object.assign(Object.assign({}, accounts[accountId]), accountCalculatedProperties);
+            const account = Object.assign(Object.assign({}, accounts[accountId]), accountCalculatedProperties);
+            if (accountsShortAuthorAddresses[accountId] && account.author) {
+                account.author.shortAddress = accountsShortAuthorAddresses[accountId];
+            }
+            accountsWithCalculatedProperties[accountId] = account;
         }
         return accountsWithCalculatedProperties;
-    }, [accounts, accountsComments, accountsCommentsReplies]);
+    }, [accounts, accountsComments, accountsCommentsReplies, accountsShortAuthorAddresses]);
 };
 const getAccountCalculatedPropertiesNoCache = (accountComments, notifications) => {
     const accountCalculatedProperties = {};
@@ -207,3 +229,55 @@ const getAccountCalculatedPropertiesNoCache = (accountComments, notifications) =
     return accountCalculatedProperties;
 };
 const getAccountCalculatedProperties = memoize(getAccountCalculatedPropertiesNoCache, { max: 100 });
+const useAccountAuthorShortAddress = (account) => {
+    var _a;
+    const [shortAddress, setShortAddress] = useState();
+    useEffect(() => {
+        var _a;
+        getAuthorShortAddress((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address).then((_shortAddress) => {
+            if (_shortAddress !== shortAddress) {
+                setShortAddress(_shortAddress);
+            }
+        });
+    }, [(_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address]);
+    return shortAddress;
+};
+const useAccountsAuthorShortAddresses = (accounts) => {
+    const [shortAddresses, setShortAddresses] = useState({});
+    useEffect(() => {
+        ;
+        (() => __awaiter(void 0, void 0, void 0, function* () {
+            var _a, _b;
+            const newShortAddresses = {};
+            let shouldUpdate = false;
+            for (const accountId in accounts || {}) {
+                const address = (_b = (_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.author) === null || _b === void 0 ? void 0 : _b.address;
+                newShortAddresses[accountId] = yield getAuthorShortAddress(address);
+                if (shortAddresses[accountId] !== newShortAddresses[accountId]) {
+                    shouldUpdate = true;
+                }
+            }
+            if (shouldUpdate) {
+                setShortAddresses(newShortAddresses);
+            }
+        }))();
+    }, [accounts]);
+    return shortAddresses;
+};
+let plebbit;
+const getAuthorShortAddressNoCache = (authorAddress) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!authorAddress) {
+        return;
+    }
+    if (!plebbit) {
+        plebbit = yield PlebbitJs.Plebbit();
+    }
+    try {
+        const comment = yield plebbit.createComment({ author: { address: authorAddress } });
+        return comment.author.shortAddress;
+    }
+    catch (error) {
+        log.error('useAccount plebbit.createComment({author: {address: authorAddress} error', { authorAddress, error });
+    }
+});
+const getAuthorShortAddress = utils.memo(getAuthorShortAddressNoCache, { maxSize: 200 });
