@@ -366,6 +366,7 @@ class Publication extends EventEmitter {
 }
 export class Comment extends Publication {
     constructor(createCommentOptions) {
+        var _a;
         super();
         this.updateCalledTimes = 0;
         this.updating = false;
@@ -382,6 +383,9 @@ export class Comment extends Publication {
         this.state = 'stopped';
         this.updatingState = 'stopped';
         this.publishingState = 'stopped';
+        if ((_a = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.author) === null || _a === void 0 ? void 0 : _a.address) {
+            this.author.shortAddress = `short ${createCommentOptions.author.address}`;
+        }
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
