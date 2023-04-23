@@ -34,9 +34,6 @@ export function useComment(options) {
             addCommentToStore(commentCid, account).catch((error) => log.error('useComment addCommentToStore error', { commentCid, error }));
         }
     }, [commentCid, account === null || account === void 0 ? void 0 : account.id]);
-    if (account && commentCid) {
-        log('useComment', { commentCid, commentFromStore, subplebbitsPagesComment, accountComment, commentsStore: useCommentsStore.getState().comments, account });
-    }
     let comment = commentFromStore;
     // if comment from subplebbit pages is more recent, use it instead
     if (commentCid && ((subplebbitsPagesComment === null || subplebbitsPagesComment === void 0 ? void 0 : subplebbitsPagesComment.updatedAt) || 0) > ((comment === null || comment === void 0 ? void 0 : comment.updatedAt) || 0)) {
@@ -59,6 +56,18 @@ export function useComment(options) {
     // force succeeded even if the commment is fecthing a new update
     if (comment === null || comment === void 0 ? void 0 : comment.updatedAt) {
         state = 'succeeded';
+    }
+    if (account && commentCid) {
+        log('useComment', {
+            commentCid,
+            comment,
+            state,
+            commentFromStore,
+            subplebbitsPagesComment,
+            accountComment,
+            commentsStore: useCommentsStore.getState().comments,
+            account,
+        });
     }
     return useMemo(() => (Object.assign(Object.assign({}, comment), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [comment, commentCid, errors]);
 }
