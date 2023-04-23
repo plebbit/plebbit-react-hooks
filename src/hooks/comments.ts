@@ -39,10 +39,6 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
     }
   }, [commentCid, account?.id])
 
-  if (account && commentCid) {
-    log('useComment', {commentCid, commentFromStore, subplebbitsPagesComment, accountComment, commentsStore: useCommentsStore.getState().comments, account})
-  }
-
   let comment = commentFromStore
 
   // if comment from subplebbit pages is more recent, use it instead
@@ -68,6 +64,19 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   // force succeeded even if the commment is fecthing a new update
   if (comment?.updatedAt) {
     state = 'succeeded'
+  }
+
+  if (account && commentCid) {
+    log('useComment', {
+      commentCid,
+      comment,
+      state,
+      commentFromStore,
+      subplebbitsPagesComment,
+      accountComment,
+      commentsStore: useCommentsStore.getState().comments,
+      account,
+    })
   }
 
   return useMemo(
