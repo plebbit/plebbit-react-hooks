@@ -783,7 +783,9 @@ const {accountEdits} = useAccountEdits({filter})
 import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 
 const useRepliesAndAccountReplies = (comment) => {
-   const {accountComments} = useAccountComments({filter: {parentCids: [comment?.cid]}})
+  // filter only the parent cid
+  const filter = useMemo(() => comment?.cid && {filter: {parentCids: [comment?.cid]}}, [comment?.cid])
+  const {accountComments} = useAccountComments({filter})
 
   // the account's replies have a delay before getting published, so get them locally from accountComments instead
   const accountRepliesNotYetPublished = useMap(() => {
@@ -832,11 +834,16 @@ const repliesComponents = replies.map(reply => <Reply reply={reply}/>)
 ```js
 import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 import {flattenCommentsPages} from '@plebbit/plebbit-react-hooks/dist/lib/utils'
+
+// the post
 const comment = useComment({commentCid})
-const {accountComments} = useAccountComments({filter: {postCids: [commentCid]}})
 
 // the default way to display replies is nested, flatten (unnest) them instead
 const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [comment.replies])
+
+// the account replies to the post (commentCid) and account replies to all the replies
+const filter = useMemo(() => commentCid && {parentCids: [commentCid, ...flattenedReplies.map(reply => reply.cid)]}, [flattenedReplies])
+const {accountComments} = useAccountComments({filter})
 
 // the account's replies have a delay before getting published, so get them locally from accountComments instead
 const accountRepliesNotYetInCommentReplies = useMemo(() => {
