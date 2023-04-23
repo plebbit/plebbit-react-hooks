@@ -1169,10 +1169,20 @@ describe('accounts', () => {
 
     test(`account comments have states`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
-      // await waitFor(() => rendered.result.current.accountComments[0].state === 'pending')
       expect(rendered.result.current.accountComments[0].state).toBe('pending')
       expect(rendered.result.current.accountComments[1].state).toBe('pending')
       expect(rendered.result.current.accountComments[2].state).toBe('pending')
+    })
+
+    test(`account comments have publishing states`, async () => {
+      expect(rendered.result.current.accountComments.length).toBe(3)
+      // state is 'waiting-challenge-answers' because the test setup doesn't call publishChallengeAnswers
+      await waitFor(() => rendered.result.current.accountComments[0].publishingState === 'waiting-challenge-answers')
+      expect(rendered.result.current.accountComments[0].publishingState).toBe('waiting-challenge-answers')
+      await waitFor(() => rendered.result.current.accountComments[1].publishingState === 'waiting-challenge-answers')
+      expect(rendered.result.current.accountComments[1].publishingState).toBe('waiting-challenge-answers')
+      await waitFor(() => rendered.result.current.accountComments[2].publishingState === 'waiting-challenge-answers')
+      expect(rendered.result.current.accountComments[2].publishingState).toBe('waiting-challenge-answers')
     })
 
     test(`get account comment and add cid to it when receive challengeVerification`, async () => {

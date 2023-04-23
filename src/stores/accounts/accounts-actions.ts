@@ -465,7 +465,20 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     })
 
     comment.on('error', (error: Error) => publishCommentOptions.onError?.(error, comment))
-    comment.on('publishingstatechange', (publishingState: string) => publishCommentOptions.onPublishingStateChange?.(publishingState))
+    comment.on('publishingstatechange', async (publishingState: string) => {
+      // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
+      accountsStore.setState(({accountsComments}) => {
+        const accountComments = [...accountsComments[account.id]]
+        const accountComment = accountComments[accountCommentIndex]
+        if (!accountComment) {
+          return {}
+        }
+        accountComments[accountCommentIndex] = {...accountComment, publishingState}
+        return {accountsComments: {...accountsComments, [account.id]: accountComments}}
+      })
+
+      publishCommentOptions.onPublishingStateChange?.(publishingState)
+    })
 
     listeners.push(comment)
     try {
@@ -536,6 +549,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
       }
     })
     vote.on('error', (error: Error) => publishVoteOptions.onError?.(error, vote))
+    // TODO: add publishingState to account votes
     vote.on('publishingstatechange', (publishingState: string) => publishVoteOptions.onPublishingStateChange?.(publishingState))
     listeners.push(vote)
     try {
@@ -599,6 +613,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
       }
     })
     commentEdit.on('error', (error: Error) => publishCommentEditOptions.onError?.(error, commentEdit))
+    // TODO: add publishingState to account edits
     commentEdit.on('publishingstatechange', (publishingState: string) => publishCommentEditOptions.onPublishingStateChange?.(publishingState))
     listeners.push(commentEdit)
     try {
@@ -680,6 +695,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
       }
     })
     subplebbitEdit.on('error', (error: Error) => publishSubplebbitEditOptions.onError?.(error, subplebbitEdit))
+    // TODO: add publishingState to account edits
     subplebbitEdit.on('publishingstatechange', (publishingState: string) => publishSubplebbitEditOptions.onPublishingStateChange?.(publishingState))
     listeners.push(subplebbitEdit)
     try {
