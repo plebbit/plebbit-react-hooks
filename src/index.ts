@@ -23,6 +23,7 @@ import {
   useEditedComment,
   useNotifications,
   useAccountSubplebbits,
+  usePubsubSubscribe,
 } from './hooks/accounts'
 
 // comments
@@ -71,6 +72,7 @@ export {
   useAccountEdits,
   useAccountSubplebbits,
   useNotifications,
+  usePubsubSubscribe,
   // comments
   useComment,
   useComments,
@@ -124,6 +126,7 @@ const hooks = {
   useAccountEdits,
   useAccountSubplebbits,
   useNotifications,
+  usePubsubSubscribe,
   // comments
   useComment,
   useComments,

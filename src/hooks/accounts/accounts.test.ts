@@ -15,6 +15,7 @@ import {
   useNotifications,
   useFeed,
   useSubplebbit,
+  usePubsubSubscribe,
   setPlebbitJs,
 } from '../..'
 import commentsStore from '../../stores/comments'
@@ -168,6 +169,18 @@ describe('accounts', () => {
       expect(rendered2.result.current).toBe(undefined)
       rendered2.rerender('custom name')
       expect(rendered2.result.current.name).toBe('custom name')
+    })
+
+    test('usePubsubSubscribe', async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => {
+        const result = usePubsubSubscribe({subplebbitAddress})
+        return {result}
+      })
+      const waitFor = testUtils.createWaitFor(rendered)
+
+      rendered.rerender('subplebbit-address.eth')
+      await waitFor(() => rendered.result.current.result.state === 'succeeded')
+      expect(rendered.result.current.result.state).toBe('succeeded')
     })
   })
 

@@ -803,6 +803,9 @@ class Plebbit extends EventEmitter {
     }
     throw Error(`plebbit.fetchCid not implemented in mock content for cid '${cid}'`)
   }
+
+  async pubsubSubscribe(subplebbitAddress: string) {}
+  async pubsubUnsubscribe(subplebbitAddress: string) {}
 }
 
 class Pages {

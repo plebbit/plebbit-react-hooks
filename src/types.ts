@@ -77,6 +77,12 @@ export interface UseAccountSubplebbitsResult extends Result {
   accountSubplebbits: AccountSubplebbit[]
 }
 
+// usePubsubSubscribe(options): result
+export interface UsePubsubSubscribeOptions extends Options {
+  subplebbitAddress?: string
+}
+export interface UsePubsubSubscribeResult extends Result {}
+
 // useComment(options): result
 export interface UseCommentOptions extends Options {
   commentCid?: string

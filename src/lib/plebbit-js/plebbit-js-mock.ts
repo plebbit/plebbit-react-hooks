@@ -122,6 +122,9 @@ export class Plebbit extends EventEmitter {
     }
     throw Error(`plebbit.fetchCid not implemented in plebbit-js mock for cid '${cid}'`)
   }
+
+  async pubsubSubscribe(subplebbitAddress: string) {}
+  async pubsubUnsubscribe(subplebbitAddress: string) {}
 }
 
 export class Pages {
