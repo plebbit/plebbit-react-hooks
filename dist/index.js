@@ -11,7 +11,7 @@ try {
 }
 catch (e) { }
 // accounts
-import { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useEditedComment, useNotifications, useAccountSubplebbits, } from './hooks/accounts';
+import { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useEditedComment, useNotifications, useAccountSubplebbits, usePubsubSubscribe, } from './hooks/accounts';
 // comments
 import { useComment, useComments } from './hooks/comments';
 // subplebbits
@@ -32,7 +32,7 @@ export * from './types';
 // IMPORTANT: should be the same as 'export default hooks'
 export { 
 // accounts
-useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, 
+useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, 
 // comments
 useComment, useComments, useEditedComment, 
 // subplebbits
@@ -59,6 +59,7 @@ const hooks = {
     useAccountEdits,
     useAccountSubplebbits,
     useNotifications,
+    usePubsubSubscribe,
     // comments
     useComment,
     useComments,

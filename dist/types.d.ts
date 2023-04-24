@@ -60,6 +60,11 @@ export interface UseAccountSubplebbitsOptions extends Options {
 export interface UseAccountSubplebbitsResult extends Result {
     accountSubplebbits: AccountSubplebbit[];
 }
+export interface UsePubsubSubscribeOptions extends Options {
+    subplebbitAddress?: string;
+}
+export interface UsePubsubSubscribeResult extends Result {
+}
 export interface UseCommentOptions extends Options {
     commentCid?: string;
 }
