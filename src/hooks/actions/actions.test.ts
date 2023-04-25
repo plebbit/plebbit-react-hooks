@@ -10,6 +10,7 @@ import {
   useAccount,
   useCreateSubplebbit,
   setPlebbitJs,
+  useAccountVote,
 } from '../..'
 import PlebbitJsMock, {
   Plebbit,
@@ -780,7 +781,8 @@ describe('actions', () => {
     beforeEach(async () => {
       rendered = renderHook<any, any>((options) => {
         const result = usePublishVote(options)
-        return result
+        const accountVote = useAccountVote({commentCid: options?.commentCid})
+        return {...result, accountVote}
       })
       waitFor = testUtils.createWaitFor(rendered)
     })
@@ -804,6 +806,7 @@ describe('actions', () => {
       // wait for ready
       await waitFor(() => rendered.result.current.state === 'ready')
       expect(rendered.result.current.state).toBe('ready')
+      expect(rendered.result.current.accountVote.vote).toBe(undefined)
 
       // publish
       await act(async () => {
@@ -812,6 +815,7 @@ describe('actions', () => {
 
       await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
       expect(rendered.result.current.state).toBe('publishing-challenge-request')
+      expect(rendered.result.current.accountVote.vote).toBe(1)
 
       // wait for challenge
       await waitFor(() => rendered.result.current.challenge)
@@ -834,6 +838,7 @@ describe('actions', () => {
       expect(rendered.result.current.state).toBe('succeeded')
       expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.accountVote.vote).toBe(1)
 
       // check callbacks
       expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
