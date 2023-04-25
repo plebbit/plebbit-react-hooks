@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import isEqual from 'lodash.isequal';
 import useAccountsStore from '../../stores/accounts';
 import Logger from '@plebbit/plebbit-logger';
@@ -447,4 +447,47 @@ export function useEditedComment(options) {
         return editedResult;
     }, [comment, commentEdits]);
     return useMemo(() => (Object.assign(Object.assign({}, editedResult), { state: editedResult.state || initialState, error: undefined, errors: [] })), [editedResult, initialState]);
+}
+/**
+ * This hook should be added to pages where the user is likely to publish something, i,e. the
+ * submit page and the /c/<commentCid> page, it improves the speed of publishing to the pubsub
+ * by subscribing to the pubsub right away.
+ *
+ * @param accountName - The nickname of the account, e.g. 'Account 1'.
+ * @param subplebbitAddress - The subplebbit address to subscribe to, e.g. 'news.eth'.
+ */
+export function usePubsubSubscribe(options) {
+    assert(!options || typeof options === 'object', `usePubsubSubscribe options argument '${options}' not an object`);
+    const { accountName, subplebbitAddress } = options || {};
+    // get state
+    const accountId = useAccountId(accountName);
+    const account = useAccountsStore((state) => state.accounts[accountId || '']);
+    const [state, setState] = useState('initializing');
+    const [errors, setErrors] = useState([]);
+    useEffect(() => {
+        if (!(account === null || account === void 0 ? void 0 : account.plebbit) || !subplebbitAddress) {
+            return;
+        }
+        setState('subscribing');
+        account.plebbit
+            .pubsubSubscribe(subplebbitAddress)
+            .then(() => setState('succeeded'))
+            .catch((error) => {
+            setErrors([...errors, error]);
+            setState('failed');
+            log.error('usePubsubSubscribe plebbit.pubsubSubscribe error', { subplebbitAddress, error });
+        });
+        // unsub on component unmount
+        return function () {
+            account.plebbit.pubsubUnsubscribe(subplebbitAddress).catch((error) => {
+                setErrors([...errors, error]);
+                log.error('usePubsubSubscribe plebbit.pubsubUnsubscribe error', { subplebbitAddress, error });
+            });
+        };
+    }, [account === null || account === void 0 ? void 0 : account.plebbit, subplebbitAddress]);
+    return useMemo(() => ({
+        state,
+        error: errors[errors.length - 1],
+        errors,
+    }), [state, errors]);
 }

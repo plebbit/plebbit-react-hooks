@@ -130,6 +130,12 @@ export class Plebbit extends EventEmitter {
             throw Error(`plebbit.fetchCid not implemented in plebbit-js mock for cid '${cid}'`);
         });
     }
+    pubsubSubscribe(subplebbitAddress) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
+    pubsubUnsubscribe(subplebbitAddress) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
 }
 export class Pages {
     constructor(pagesOptions) {

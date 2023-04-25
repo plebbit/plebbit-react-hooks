@@ -18,6 +18,8 @@ export declare class Plebbit extends EventEmitter {
     createCommentEdit(createCommentEditOptions: any): Promise<CommentEdit>;
     createSubplebbitEdit(createSubplebbitEditOptions: any): Promise<SubplebbitEdit>;
     fetchCid(cid: string): Promise<string>;
+    pubsubSubscribe(subplebbitAddress: string): Promise<void>;
+    pubsubUnsubscribe(subplebbitAddress: string): Promise<void>;
 }
 export declare class Pages {
     pageCids: any;

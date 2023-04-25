@@ -1,4 +1,4 @@
-import type { Account, UseAccountSubplebbitsOptions, UseAccountSubplebbitsResult, UseAccountVoteOptions, UseAccountVoteResult, UseAccountVotesOptions, UseAccountVotesResult, UseAccountCommentsOptions, UseAccountCommentsResult, UseAccountCommentOptions, UseAccountCommentResult, UseNotificationsOptions, UseNotificationsResult, UseAccountEditsOptions, UseAccountEditsResult, UseEditedCommentOptions, UseEditedCommentResult, UseAccountOptions, UseAccountResult } from '../../types';
+import type { Account, UseAccountSubplebbitsOptions, UseAccountSubplebbitsResult, UseAccountVoteOptions, UseAccountVoteResult, UseAccountVotesOptions, UseAccountVotesResult, UseAccountCommentsOptions, UseAccountCommentsResult, UseAccountCommentOptions, UseAccountCommentResult, UseNotificationsOptions, UseNotificationsResult, UseAccountEditsOptions, UseAccountEditsResult, UseEditedCommentOptions, UseEditedCommentResult, UseAccountOptions, UseAccountResult, UsePubsubSubscribeOptions, UsePubsubSubscribeResult } from '../../types';
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
  * the active account id.
@@ -51,3 +51,12 @@ export declare function useAccountEdits(options?: UseAccountEditsOptions): UseAc
  * Returns the comment edited (if has any edits), as well as the pending, succeeded or failed state of the edit.
  */
 export declare function useEditedComment(options?: UseEditedCommentOptions): UseEditedCommentResult;
+/**
+ * This hook should be added to pages where the user is likely to publish something, i,e. the
+ * submit page and the /c/<commentCid> page, it improves the speed of publishing to the pubsub
+ * by subscribing to the pubsub right away.
+ *
+ * @param accountName - The nickname of the account, e.g. 'Account 1'.
+ * @param subplebbitAddress - The subplebbit address to subscribe to, e.g. 'news.eth'.
+ */
+export declare function usePubsubSubscribe(options?: UsePubsubSubscribeOptions): UsePubsubSubscribeResult;
