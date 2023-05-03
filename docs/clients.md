@@ -1,4 +1,119 @@
-NOTE: Not implemented yet
+#### Get state string (e.g. 'Fetching IPFS from cloudflare-ipfs.com, ipfs.io')
+
+```js
+const useStateString = (clients) => {
+  const stateString = useMemo(() => {
+    if (!clients) {
+      return
+    }
+    const states = {}
+    for (const clientType in clients) {
+      for (const clientUrl in clients[clientType]) {
+        const state = clients[clientType][clientUrl].state
+        if (state === 'stopped') {
+          continue
+        }
+        if (!states[state]) {
+          states[state] = []
+        }
+        states[state].push(clientUrl)
+      }
+    }
+
+    let stateString = ''
+    for (const state in states) {
+      const clientUrls = states[state]
+      const clientHosts = clientUrls.map(clientUrl => new URL(clientUrl).hostname)
+
+      // separate 2 different states using ', '
+      if (stateString) {
+        stateString += ', '
+      }
+
+      // e.g. 'fetching IPFS from cloudflare-ipfs.com, ipfs.io'
+      const formattedState = state.replaceAll('-', ' ').replace('ipfs', 'IPFS').replace('ipns', 'IPNS')
+      stateString += `${formattedState} from ${clientHosts.join(', ')}`
+    }
+
+    // capitalize first letter
+    stateString = stateString.charAt(0).toUpperCase() + stateString.slice(1)
+
+    // if string is empty, return undefined instead
+    return stateString || undefined
+  }, [clients])
+
+  return stateString
+}
+```
+
+#### Get comment with state string
+
+```js
+const comment = useComment({commentCid})
+const stateString = useStateString(comment?.clients)
+const errorString = useMemo(() => {
+  if (comment?.state === 'failed') {
+    let errorString = 'Failed fetching comment'
+    if (comment.error) {
+      errorString += `: ${error.toString()}`
+    }
+    return errorString
+  }
+}, comment?.state)
+
+if (stateString) {
+  console.log(stateString)
+}
+if (errorString) {
+  console.log(errorString)
+}
+```
+
+#### Get subplebbit with state string
+
+```js
+const subplebbit = useSubplebbit({subplebbitAddress})
+const stateString = useStateString(subplebbit?.clients)
+const errorString = useMemo(() => {
+  if (subplebbit?.state === 'failed') {
+    let errorString = 'Failed fetching subplebbit'
+    if (subplebbit.error) {
+      errorString += `: ${error.toString()}`
+    }
+    return errorString
+  }
+}, subplebbit?.state)
+
+if (stateString) {
+  console.log(stateString)
+}
+if (errorString) {
+  console.log(errorString)
+}
+```
+
+#### Publish comment with state string
+
+```js
+const {state, error, clients} = usePublishComment(publishCommentOptions)
+const stateString = useStateString(clients)
+const errorString = useMemo(() => {
+  if (state === 'failed') {
+    let errorString = 'Failed publishing comment'
+    if (error) {
+      errorString += `: ${error.toString()}`
+    }
+    return errorString
+  }
+}, state)
+
+if (stateString) {
+  console.log(stateString)
+}
+if (errorString) {
+  console.log(errorString)
+}
+```
 
 #### Get a comment clients states
 
@@ -11,7 +126,7 @@ for (const ipfsGatewayUrl in comment.clients.ipfsGateways) {
   if (ipfsGateway.state === 'fetching-ipfs') {
     console.log(`Fetching IPFS from ${ipfsGatewayUrl}`)
   }
-  if (ipfsGateway.state === 'fetching-ipns') {
+  if (ipfsGateway.state === 'fetching-ipns-update') {
     console.log(`Fetching IPNS from ${ipfsGatewayUrl}`)
   }
   if (ipfsGateway.state === 'succeeded') {
@@ -25,7 +140,7 @@ for (const ipfsClientUrl in comment.clients.ipfsClients) {
   if (ipfsClient.state === 'fetching-ipfs') {
     console.log(`Fetching IPFS from ${ipfsClient.peers.length} peers`)
   }
-  if (ipfsClient.state === 'fetching-ipns') {
+  if (ipfsClient.state === 'fetching-ipns-update') {
     console.log(`Fetching IPNS from ${ipfsClient.peers.length} peers`)
   }
   if (ipfsClient.state === 'succeeded') {
