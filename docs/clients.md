@@ -95,7 +95,8 @@ if (errorString) {
 #### Publish comment with state string
 
 ```js
-const {state, error, clients} = usePublishComment(publishCommentOptions)
+const {index} = usePublishComment(publishCommentOptions)
+const {state, error, clients} = useAccountComment({commentIndex: index})
 const stateString = useStateString(clients)
 const errorString = useMemo(() => {
   if (state === 'failed') {
