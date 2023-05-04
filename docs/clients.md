@@ -59,7 +59,7 @@ const errorString = useMemo(() => {
     }
     return errorString
   }
-}, comment?.state)
+}, [comment?.state])
 
 if (stateString) {
   console.log(stateString)
@@ -82,7 +82,7 @@ const errorString = useMemo(() => {
     }
     return errorString
   }
-}, subplebbit?.state)
+}, [subplebbit?.state])
 
 if (stateString) {
   console.log(stateString)
@@ -106,7 +106,7 @@ const errorString = useMemo(() => {
     }
     return errorString
   }
-}, publishingState)
+}, [publishingState])
 
 if (stateString) {
   console.log(stateString)
