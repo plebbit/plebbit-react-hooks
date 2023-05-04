@@ -307,8 +307,8 @@ export function useAccountComment(options?: UseAccountCommentOptions): UseAccoun
     () => ({
       ...accountComment,
       state,
-      error: undefined,
-      errors: [],
+      error: accountComment?.error,
+      errors: accountComment?.errors || [],
     }),
     [accountComment, state]
   )

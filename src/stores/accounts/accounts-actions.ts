@@ -464,7 +464,19 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       }
     })
 
-    comment.on('error', (error: Error) => publishCommentOptions.onError?.(error, comment))
+    comment.on('error', (error: Error) => {
+      accountsStore.setState(({accountsComments}) => {
+        const accountComments = [...accountsComments[account.id]]
+        const accountComment = accountComments[accountCommentIndex]
+        if (!accountComment) {
+          return {}
+        }
+        const errors = [...accountComment.errors, error]
+        accountComments[accountCommentIndex] = {...accountComment, errors, error}
+        return {accountsComments: {...accountsComments, [account.id]: accountComments}}
+      })
+      publishCommentOptions.onError?.(error, comment)
+    })
     comment.on('publishingstatechange', async (publishingState: string) => {
       // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
       accountsStore.setState(({accountsComments}) => {

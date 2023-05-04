@@ -96,17 +96,17 @@ if (errorString) {
 
 ```js
 const {index} = usePublishComment(publishCommentOptions)
-const {state, error, clients} = useAccountComment({commentIndex: index})
+const {publishingState, error, clients} = useAccountComment({commentIndex: index})
 const stateString = useStateString(clients)
 const errorString = useMemo(() => {
-  if (state === 'failed') {
+  if (publishingState === 'failed') {
     let errorString = 'Failed publishing comment'
     if (error) {
       errorString += `: ${error.toString()}`
     }
     return errorString
   }
-}, state)
+}, publishingState)
 
 if (stateString) {
   console.log(stateString)
