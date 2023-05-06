@@ -406,7 +406,20 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 }
             }
         }));
-        comment.on('error', (error) => { var _a; return (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment); });
+        comment.on('error', (error) => {
+            var _a;
+            accountsStore.setState(({ accountsComments }) => {
+                const accountComments = [...accountsComments[account.id]];
+                const accountComment = accountComments[accountCommentIndex];
+                if (!accountComment) {
+                    return {};
+                }
+                const errors = [...accountComment.errors, error];
+                accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { errors, error });
+                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+            });
+            (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment);
+        });
         comment.on('publishingstatechange', (publishingState) => __awaiter(void 0, void 0, void 0, function* () {
             var _f;
             // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing

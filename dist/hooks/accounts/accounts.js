@@ -234,7 +234,7 @@ export function useAccountComment(options) {
     const { accountComments } = useAccountComments({ accountName });
     const accountComment = useMemo(() => (accountComments === null || accountComments === void 0 ? void 0 : accountComments[Number(commentIndex)]) || {}, [accountComments, commentIndex]);
     const state = accountComment.state || 'initializing';
-    return useMemo(() => (Object.assign(Object.assign({}, accountComment), { state, error: undefined, errors: [] })), [accountComment, state]);
+    return useMemo(() => (Object.assign(Object.assign({}, accountComment), { state, error: accountComment === null || accountComment === void 0 ? void 0 : accountComment.error, errors: (accountComment === null || accountComment === void 0 ? void 0 : accountComment.errors) || [] })), [accountComment, state]);
 }
 /**
  * Returns the own user's votes stored locally, even those not yet published by the subplebbit owner.
