@@ -116,6 +116,125 @@ if (errorString) {
 }
 ```
 
+#### Get feed with single sub with state string
+
+```js
+const subplebbitAddress = 'memes.eth'
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: [subplebbitAddress], sortType: 'topAll'})
+const subplebbit = useSubplebbit({subplebbitAddress})
+const stateString = useStateString(subplebbit?.clients)
+const errorString = useMemo(() => {
+  if (subplebbit?.state === 'failed') {
+    let errorString = 'Failed fetching subplebbit'
+    if (subplebbit.error) {
+      errorString += `: ${error.toString()}`
+    }
+    return errorString
+  }
+}, [subplebbit?.state])
+
+if (stateString) {
+  console.log(stateString)
+}
+if (errorString) {
+  console.log(errorString)
+}
+
+```
+
+#### Get feed with multiple subs with state string
+
+```js
+const useFeedStateString = (subplebbits) => {
+  if (!subplebbits) {
+    return
+  }
+
+  const getClientUrls = (regex) => {
+    const clientUrls new Set()
+    for (const clientType in subplebbits.clients) {
+      for (const clientUrl in subplebbits.clients[clientType]) {
+        const client = subplebbits.clients[clientType][clientUrl]
+        if (client.state.match(regex)) {
+          clientUrls.add(clientUrl)
+        }
+      }
+    }
+    return [...clientUrls]
+  }
+
+  return useMemo(() => {
+    const states = {}
+    const clientUrls = {}
+    for (const subplebbit of subplebbits) {
+      states[subplebbit.updatingState] = (states[subplebbit.updatingState] || 0) + 1
+    }
+
+    // e.g. Resolving 2 addresses from infura.io, fetching 2 IPNS, 1 IPFS from cloudflare-ipfs.com, ipfs.io
+    let stateString = ''
+    if (states['resolving-address']) {
+      stateString += `resolving ${states['resolving-address']} addresses`
+      const clientUrls = getClientUrls(/address/)
+      if (clientUrls.length) {
+        stateString += ` from ${clientUrls.join(', ')}`
+      }
+    }
+    if (states['fetching-ipns'] || states['fetching-ipfs']) {
+      if (stateString) {
+        stateString += ', '
+      }
+      stateString += `fetching `
+      if (states['fetching-ipns']) {
+        stateString += `${states['fetching-ipns']} IPNS`
+      }
+      if (states['fetching-ipfs']) {
+        if (states['fetching-ipns']) {
+          stateString += ', '
+        }
+        stateString += `${states['fetching-ipfs']} IPNS`
+      }
+      const clientUrls = getClientUrls(/ipfs|ipns/)
+      if (clientUrls.length) {
+        stateString += ` from ${clientUrls.join(', ')}`
+      }
+    }
+
+    // capitalize first letter
+    stateString = stateString.charAt(0).toUpperCase() + stateString.slice(1)
+
+    // if string is empty, return undefined instead
+    return stateString || undefined
+  }, [subplebbits])
+}
+
+const subplebbitAddresses = ['memes.eth', '12D3KooW...', '12D3KooW...']
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, sortType: 'topAll'})
+const {subplebbits} = useSubplebbits({subplebbitAddresses})
+const stateString = useFeedStateString(subplebbits)
+
+const errorString = useMemo(() => {
+  // only show error string if all subplebbits updating state are failed
+  for (const subplebbit of subplebbits) {
+    if (subplebbit.updatingState !== 'failed') {
+      return
+    }
+  }
+  // only show the first error found because not possible to show all of them
+  for (const subplebbit of subplebbits) {
+    if (subplebbit.error) {
+      return `Failed fetching subplebbit: ${error.toString().slice(0, 300)}`
+    }
+  }
+}, [subplebbits])
+
+if (stateString) {
+  console.log(stateString)
+}
+if (errorString) {
+  console.log(errorString)
+}
+```
+
 #### Get a comment clients states
 
 ```js
