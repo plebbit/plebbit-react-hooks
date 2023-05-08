@@ -438,9 +438,9 @@ export class Comment extends Publication {
             this.parentCid = commentIpfs.parentCid;
             this.subplebbitAddress = commentIpfs.subplebbitAddress;
             // simulate the ipns update
-            this.updatingState = 'fetching-ipns';
+            this.updatingState = 'fetching-update-ipns';
             this.emit('update', this);
-            this.emit('updatingstatechange', 'fetching-ipns');
+            this.emit('updatingstatechange', 'fetching-update-ipns');
             simulateLoadingTime().then(() => {
                 this.simulateUpdateEvent();
             });
