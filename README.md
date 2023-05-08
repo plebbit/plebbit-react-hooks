@@ -74,7 +74,7 @@ deleteCaches() // delete the cached comments, cached subplebbits and cached page
 
 #### Getting started
 
-```js
+```jsx
 import {useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
 
 const account = useAccount()
@@ -83,13 +83,13 @@ const comment = useComment({commentCid})
 
 #### Get the active account, if none exist in browser database, a default account is generated
 
-```js
+```jsx
 const account = useAccount()
 ```
 
 #### Create accounts and change active account
 
-```js
+```jsx
 import {useAccount, useAccounts, createAccount, setActiveAccount} from '@plebbit/plebbit-react-hooks'
 
 const account = useAccount()
@@ -114,13 +114,13 @@ await publishComment()
 
 #### Get a post
 
-```js
+```jsx
 const post = useComment({commentCid})
 ```
 
 #### Get a comment
 
-```js
+```jsx
 const comment = useComment({commentCid})
 const {comments} = useComments({commentCids: [commentCid1, commentCid2, commentCid3]})
 
@@ -133,7 +133,7 @@ console.log(comment.author.address)
 
 #### Get author avatar
 
-```js
+```jsx
 const comment = useComment({commentCid})
 
 // get the nft avatar image url of the comment author
@@ -161,7 +161,7 @@ if (state === 'fetching-metadata') {
 
 #### Get author profile page
 
-```js
+```jsx
 // NOTE: you must have a comment cid from the author to load his profile page
 // e.g. the page url would be /#/u/<authorAddress>/c/<commentCid>
 const authorResult = useAuthor({commentCid, authorAddress})
@@ -177,18 +177,16 @@ if (state === 'failed') {
 }
 
 // listing the author comments with infinite scroll
-import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
+import {Virtuoso} from 'react-virtuoso'
 
-const comments = authorComments.map(comment => <Comment comment={comment} />)
-
-<InfiniteScroll
-  pageStart={0}
-  loadMore={loadMore}
-  hasMore={hasMore}
-  loader={<div>Loading...</div>}
->
-  {comments}
-</InfiniteScroll>
+<Virtuoso
+  data={authorComments}
+  itemContent={(index, comment) => <Comment index={index} comment={comment}/>}
+  useWindowScroll={true}
+  components={{Footer: hasMore ? () => <Loading/> : undefined}}
+  endReached={loadMore}
+  increaseViewportBy={{bottom: 600, top: 200}}
+/>
 
 // it is recommended to always redirect the user to the last known comment cid
 // in case they want to share the url with someone, the author's comments
@@ -205,7 +203,7 @@ useEffect(() => {
 
 #### Get a subplebbit
 
-```js
+```jsx
 const subplebbit = useSubplebbit({subplebbitAddress})
 const subplebbitStats = useSubplebbitStats({subplebbitAddress})
 const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3]})
@@ -213,7 +211,7 @@ const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, s
 
 #### Create a post or comment using callbacks
 
-```js
+```jsx
 const onChallenge = async (challenges: Challenge[], comment: Comment) => {
   let challengeAnswers: string[]
   try {
@@ -291,7 +289,7 @@ await publishComment()
 
 #### Create a post or comment using hooks
 
-```js
+```jsx
 const publishCommentOptions = {
   content: 'hello',
   title: 'hello',
@@ -330,7 +328,7 @@ await publishComment()
 
 #### Create a vote
 
-```js
+```jsx
 const commentCid = 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui'
 const publishVoteOptions = {
   commentCid,
@@ -361,7 +359,7 @@ if (vote === undefined)
 
 #### Create a comment edit
 
-```js
+```jsx
 const publishCommentEditOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   content: 'edited content',
@@ -379,7 +377,7 @@ console.log(error)
 
 #### Delete a comment
 
-```js
+```jsx
 const publishCommentEditOptions = {
   commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
   removed: true,
@@ -399,7 +397,7 @@ console.log(error)
 
 #### Subscribe to a subplebbit
 
-```js
+```jsx
 let subplebbitAddress = 'news.eth'
 subplebbitAddress = '12D3KooWANwdyPERMQaCgiMnTT1t3Lr4XLFbK1z4ptFVhW2ozg1z'
 subplebbitAddress = 'tech.eth'
@@ -421,19 +419,18 @@ console.log(feed)
 
 #### Get feed
 
-```js
-import InfiniteScroll from 'react-infinite-scroller' // or 'react-infinite-scroll-component'
+```jsx
+import {Virtuoso} from 'react-virtuoso'
 const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['memes.eth', '12D3KooW...', '12D3KooW...'], sortType: 'topAll'})
-const posts = feed.map(post => <Post post={post} />)
 
-<InfiniteScroll
-  pageStart={0}
-  loadMore={loadMore}
-  hasMore={hasMore}
-  loader={<div>Loading...</div>}
->
-  {posts}
-</InfiniteScroll>
+<Virtuoso
+  data={feed}
+  itemContent={(index, post) => <Post index={index} post={post}/>}
+  useWindowScroll={true}
+  components={{Footer: hasMore ? () => <Loading/> : undefined}}
+  endReached={loadMore}
+  increaseViewportBy={{bottom: 600, top: 200}}
+/>
 
 // you probably will want to buffer some feeds in the background so they are already loaded
 // when you need them
@@ -448,7 +445,7 @@ useBufferedFeeds({
 
 #### Edit an account
 
-```js
+```jsx
 import {useAccount, setAccount, useResolvedAuthorAddress} from '@plebbit/plebbit-react-hooks'
 const account = useAccount() // or useAccount('Account 2') to use an account other than the active one
 
@@ -480,7 +477,7 @@ if (state === 'resolving') {
 
 > Note: deleting account is unrecoverable, warn the user to export/backup his account before deleting
 
-```js
+```jsx
 import {deleteAccount} from '@plebbit/plebbit-react-hooks'
 
 // delete active account
@@ -492,7 +489,7 @@ await deleteAccount('Account 2')
 
 #### Get your own comments and votes
 
-```js
+```jsx
 // all my own comments
 const {accountComments} = useAccountComments()
 for (const accountComment of accountComments) {
@@ -535,7 +532,7 @@ console.log(vote) // 1, -1 or 0
 
 #### Determine if a comment is your own
 
-```js
+```jsx
 const account = useAccount()
 const comment = useComment({commentCid})
 const isMyOwnComment = account?.author.address === comment?.author.address
@@ -543,7 +540,7 @@ const isMyOwnComment = account?.author.address === comment?.author.address
 
 #### Get account notifications
 
-```js
+```jsx
 const {notifications, markAsRead} = useNotifications()
 for (const notification of notifications) {
   console.log(notification)
@@ -563,7 +560,7 @@ const accountsUnreadNotificationsCounts = accounts?.map(account => account.unrea
 
 #### Block an address (author, subplebbit or multisub)
 
-```js
+```jsx
 const address: 'subplebbit-address.eth' // or 'author-address.eth' or '12D3KooW...'
 const {blocked, unblock, block} = useBlock({address})
 
@@ -583,7 +580,7 @@ unblock()
 
 #### Block a cid (hide a comment)
 
-```js
+```jsx
 const {blocked, unblock, block} = useBlock({cid: 'Qm...'})
 
 if (blocked) {
@@ -602,7 +599,7 @@ unblock()
 
 #### (Desktop only) Create a subplebbit
 
-```js
+```jsx
 const createSubplebbitOptions = {title: 'My subplebbit title'}
 const {createdSubplebbit, createSubplebbit} = useCreateSubplebbit(createSubplebbitOptions)
 await createSubplebbit()
@@ -623,7 +620,7 @@ const _subplebbit = useSubplebbit({subplebbitAddress: createdSubplebbit.address}
 
 #### (Desktop only) List the subplebbits you created
 
-```js
+```jsx
 const {accountSubplebbits} = useAccountSubplebbits()
 const ownerSubplebbitAddresses = Object.keys(accountSubplebbits).map(subplebbitAddress => accountSubplebbits[subplebbitAddress].role === 'owner')
 const subplebbits = useSubplebbits({subplebbitAddresses: ownerSubplebbitAddresses})
@@ -631,7 +628,7 @@ const subplebbits = useSubplebbits({subplebbitAddresses: ownerSubplebbitAddresse
 
 #### (Desktop only) Edit your subplebbit settings
 
-```js
+```jsx
 const onChallenge = async (challenges: Challenge[], subplebbitEdit: SubplebbitEdit) => {
   let challengeAnswers: string[]
   try {
@@ -692,7 +689,7 @@ if (state === 'resolving') {
 
 #### Export and import account
 
-```js
+```jsx
 import {exportAccount, importAccount, setActiveAccount, setAccountsOrder} from '@plebbit/plebbit-react-hooks'
 
 // get active account 'Account 1'
@@ -716,7 +713,7 @@ await setAccountsOrder(['Account 1 2', 'Account 1'])
 
 #### View the status of a comment edit
 
-```js
+```jsx
 let comment = useComment({commentCid})
 const {state: editedCommentState, editedComment} = useEditedComment({comment})
 
@@ -739,7 +736,7 @@ if (editedCommentState === 'failed') {
 
 ### View the status of a specific comment edit property
 
-```js
+```jsx
 const comment = useComment({commentCid})
 const editedComment = useEditedComment({comment})
 if (editedComment.failedEdits.removed !== undefined) {
@@ -761,7 +758,7 @@ console.log(editedComment.state) // 'unedited' | 'succeeded' | 'pending' | 'fail
 
 #### List all comment and subplebbit edits the account has performed
 
-```js
+```jsx
 const {accountEdits} = useAccountEdits()
 for (const accountEdit of accountEdits) {
   console.log(accountEdit)
@@ -831,7 +828,7 @@ const repliesComponents = replies.map(reply => <Reply reply={reply}/>)
 
 #### Get replies to a post flattened (not nested)
 
-```js
+```jsx
 import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 import {flattenCommentsPages} from '@plebbit/plebbit-react-hooks/dist/lib/utils'
 
