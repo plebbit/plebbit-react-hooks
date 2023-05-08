@@ -157,6 +157,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       it(`get comment with updated vote count (${plebbitOptionsType})`, async () => {
         console.log('before getting comment')
         rendered.rerender({subplebbitAddress, commentCid})
+
         await waitFor(() => typeof rendered.result.current.comment.cid === 'string')
         console.log('after getting comment')
         expect(rendered.result.current.comment?.cid).to.equal(commentCid)

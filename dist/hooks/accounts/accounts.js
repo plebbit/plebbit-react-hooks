@@ -201,7 +201,7 @@ export function useAccountComments(options) {
         }
         return accountComments;
     }, [accountComments, filter]);
-    // recheck the states for changes every 1 minute
+    // recheck the states for changes every 1 minute because succeeded / failed / pending aren't events, they are time elapsed
     const delay = 60000;
     const immediate = false;
     useInterval(() => {

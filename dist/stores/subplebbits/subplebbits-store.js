@@ -23,7 +23,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
     subplebbits: {},
     errors: {},
     addSubplebbitToStore(subplebbitAddress, account) {
-        var _a;
+        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             assert(subplebbitAddress !== '' && typeof subplebbitAddress === 'string', `subplebbitsStore.addSubplebbitToStore invalid subplebbitAddress argument '${subplebbitAddress}'`);
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `subplebbitsStore.addSubplebbitToStore invalid account argument '${account}'`);
@@ -90,6 +90,16 @@ const subplebbitsStore = createStore((setState, getState) => ({
                     return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [subplebbitAddress]: subplebbitErrors }) });
                 });
             });
+            // set clients on subplebbit so the frontend can display it, dont persist in db because a reload cancels updating
+            for (const clientType in subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) {
+                for (const clientUrl in (_b = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) === null || _b === void 0 ? void 0 : _b[clientType]) {
+                    (_e = (_d = (_c = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) === null || _c === void 0 ? void 0 : _c[clientType]) === null || _d === void 0 ? void 0 : _d[clientUrl]) === null || _e === void 0 ? void 0 : _e.on('statechange', (state) => {
+                        setState((state) => ({
+                            subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { clients: subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients }) }),
+                        }));
+                    });
+                }
+            }
             listeners.push(subplebbit);
             subplebbit.update().catch((error) => log.trace('subplebbit.update error', { subplebbit, error }));
         });

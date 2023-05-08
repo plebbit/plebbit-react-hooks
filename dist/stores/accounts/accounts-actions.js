@@ -434,18 +434,22 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             });
             (_f = publishCommentOptions.onPublishingStateChange) === null || _f === void 0 ? void 0 : _f.call(publishCommentOptions, publishingState);
         }));
-        comment.on('clientschange', (clients) => __awaiter(void 0, void 0, void 0, function* () {
-            // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
-            accountsStore.setState(({ accountsComments }) => {
-                const accountComments = [...accountsComments[account.id]];
-                const accountComment = accountComments[accountCommentIndex];
-                if (!accountComment) {
-                    return {};
-                }
-                accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients });
-                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
-            });
-        }));
+        // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
+        for (const clientType in comment.clients) {
+            for (const clientUrl in comment.clients[clientType]) {
+                comment.clients[clientType][clientUrl].on('statechange', (state) => {
+                    accountsStore.setState(({ accountsComments }) => {
+                        const accountComments = [...accountsComments[account.id]];
+                        const accountComment = accountComments[accountCommentIndex];
+                        if (!accountComment) {
+                            return {};
+                        }
+                        accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients: comment.clients });
+                        return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+                    });
+                });
+            }
+        }
         listeners.push(comment);
         try {
             // publish will resolve after the challenge request

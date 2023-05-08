@@ -20,51 +20,62 @@ export const listeners = [];
 const commentsStore = createStore((setState, getState) => ({
     comments: {},
     errors: {},
-    addCommentToStore(commentId, account) {
+    addCommentToStore(commentCid, account) {
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             const { comments } = getState();
             // comment is in store already, do nothing
-            let comment = comments[commentId];
-            if (comment || plebbitGetCommentPending[commentId + account.id]) {
+            let comment = comments[commentCid];
+            if (comment || plebbitGetCommentPending[commentCid + account.id]) {
                 return;
             }
-            plebbitGetCommentPending[commentId + account.id] = true;
+            plebbitGetCommentPending[commentCid + account.id] = true;
             // try to find comment in database
-            comment = yield getCommentFromDatabase(commentId, account);
+            comment = yield getCommentFromDatabase(commentCid, account);
             // comment not in database, fetch from plebbit-js
             try {
                 if (!comment) {
-                    comment = yield account.plebbit.createComment({ cid: commentId });
-                    yield commentsDatabase.setItem(commentId, utils.clone(comment));
+                    comment = yield account.plebbit.createComment({ cid: commentCid });
+                    yield commentsDatabase.setItem(commentCid, utils.clone(comment));
                 }
-                log('commentsStore.addCommentToStore', { commentId, comment, account });
-                setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: utils.clone(comment) }) }));
+                log('commentsStore.addCommentToStore', { commentCid, comment, account });
+                setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: utils.clone(comment) }) }));
             }
             catch (e) {
                 throw e;
             }
             finally {
-                plebbitGetCommentPending[commentId + account.id] = false;
+                plebbitGetCommentPending[commentCid + account.id] = false;
             }
             // the comment is still missing up to date mutable data like upvotes, edits, replies, etc
             comment === null || comment === void 0 ? void 0 : comment.on('update', (updatedComment) => __awaiter(this, void 0, void 0, function* () {
                 updatedComment = utils.clone(updatedComment);
-                yield commentsDatabase.setItem(commentId, updatedComment);
-                log('commentsStore comment update', { commentId, updatedComment, account });
-                setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentId]: updatedComment }) }));
+                yield commentsDatabase.setItem(commentCid, updatedComment);
+                log('commentsStore comment update', { commentCid, updatedComment, account });
+                setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: updatedComment }) }));
             }));
             comment === null || comment === void 0 ? void 0 : comment.on('updatingstatechange', (updatingState) => {
                 setState((state) => ({
-                    comments: Object.assign(Object.assign({}, state.comments), { [commentId]: Object.assign(Object.assign({}, state.comments[commentId]), { updatingState }) }),
+                    comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { updatingState }) }),
                 }));
             });
             comment === null || comment === void 0 ? void 0 : comment.on('error', (error) => {
                 setState((state) => {
-                    let commentErrors = state.errors[commentId] || [];
+                    let commentErrors = state.errors[commentCid] || [];
                     commentErrors = [...commentErrors, error];
-                    return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [commentId]: commentErrors }) });
+                    return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [commentCid]: commentErrors }) });
                 });
             });
+            // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
+            for (const clientType in comment === null || comment === void 0 ? void 0 : comment.clients) {
+                for (const clientUrl in (_a = comment === null || comment === void 0 ? void 0 : comment.clients) === null || _a === void 0 ? void 0 : _a[clientType]) {
+                    (_d = (_c = (_b = comment === null || comment === void 0 ? void 0 : comment.clients) === null || _b === void 0 ? void 0 : _b[clientType]) === null || _c === void 0 ? void 0 : _c[clientUrl]) === null || _d === void 0 ? void 0 : _d.on('statechange', (state) => {
+                        setState((state) => ({
+                            comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients: comment === null || comment === void 0 ? void 0 : comment.clients }) }),
+                        }));
+                    });
+                }
+            }
             // when publishing a comment, you don't yet know its CID
             // so when a new comment is fetched, check to see if it's your own
             // comment, and if yes, add the CID to your account comments database
@@ -81,8 +92,8 @@ const commentsStore = createStore((setState, getState) => ({
         });
     },
 }));
-const getCommentFromDatabase = (commentId, account) => __awaiter(void 0, void 0, void 0, function* () {
-    const commentData = yield commentsDatabase.getItem(commentId);
+const getCommentFromDatabase = (commentCid, account) => __awaiter(void 0, void 0, void 0, function* () {
+    const commentData = yield commentsDatabase.getItem(commentCid);
     if (!commentData) {
         return;
     }
