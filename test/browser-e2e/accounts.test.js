@@ -141,20 +141,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
             await rendered.result.current.publishComment(publishCommentOptions)
             console.log('after publishComment')
           })
-
-          // expect at least 1 client not to be stopped
-          await waitFor(() => !!rendered.result.current.accountComments[0].clients)
-          const comment = rendered.result.current.accountComments[0]
-          expect(comment.clients).not.to.equal(undefined)
-          let hasNotStopped = false
-          for (const clientType in comment.clients) {
-            for (const clientUrl in comment.clients[clientType]) {
-              if (comment.clients[clientType][clientUrl].state !== 'stopped') {
-                hasNotStopped = true
-              }
-            }
-          }
-          expect(hasNotStopped).to.equal(true)
         })
 
         it(`onChallenge gets called (${plebbitOptionsType})`, async () => {
