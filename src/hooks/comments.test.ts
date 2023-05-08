@@ -192,8 +192,8 @@ describe('comments', () => {
       await waitFor(() => rendered.result.current.state === 'fetching-ipfs')
       expect(rendered.result.current.state).toBe('fetching-ipfs')
 
-      await waitFor(() => rendered.result.current.state === 'fetching-ipns')
-      expect(rendered.result.current.state).toBe('fetching-ipns')
+      await waitFor(() => rendered.result.current.state === 'fetching-update-ipns')
+      expect(rendered.result.current.state).toBe('fetching-update-ipns')
 
       await waitFor(() => rendered.result.current.state === 'succeeded')
       expect(rendered.result.current.state).toBe('succeeded')

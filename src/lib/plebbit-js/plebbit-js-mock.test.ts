@@ -31,11 +31,11 @@ describe('PlebbitJsMock', () => {
     expect(onStatechange.mock.results[0].value).toEqual('updating')
     expect(onStatechange.mock.calls.length).toBe(1)
     expect(onUpdatingstatechange.mock.calls[0]).toEqual(['fetching-ipfs'])
-    expect(onUpdatingstatechange.mock.calls[1]).toEqual(['fetching-ipns'])
+    expect(onUpdatingstatechange.mock.calls[1]).toEqual(['fetching-update-ipns'])
     expect(onUpdatingstatechange.mock.calls[2]).toEqual(['succeeded'])
     expect(onUpdatingstatechange.mock.calls.length).toBe(3)
     expect(onUpdatingstatechange.mock.results[0].value).toEqual('fetching-ipfs')
-    expect(onUpdatingstatechange.mock.results[1].value).toEqual('fetching-ipns')
+    expect(onUpdatingstatechange.mock.results[1].value).toEqual('fetching-update-ipns')
     expect(onUpdatingstatechange.mock.results[2].value).toEqual('succeeded')
   })
 
