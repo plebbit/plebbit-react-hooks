@@ -55,7 +55,7 @@ const errorString = useMemo(() => {
   if (comment?.state === 'failed') {
     let errorString = 'Failed fetching comment'
     if (comment.error) {
-      errorString += `: ${error.toString()}`
+      errorString += `: ${error.toString().slice(0, 300)}`
     }
     return errorString
   }
@@ -78,7 +78,7 @@ const errorString = useMemo(() => {
   if (subplebbit?.state === 'failed') {
     let errorString = 'Failed fetching subplebbit'
     if (subplebbit.error) {
-      errorString += `: ${error.toString()}`
+      errorString += `: ${error.toString().slice(0, 300)}`
     }
     return errorString
   }
@@ -102,7 +102,7 @@ const errorString = useMemo(() => {
   if (publishingState === 'failed') {
     let errorString = 'Failed publishing comment'
     if (error) {
-      errorString += `: ${error.toString()}`
+      errorString += `: ${error.toString().slice(0, 300)}`
     }
     return errorString
   }
@@ -127,7 +127,7 @@ const errorString = useMemo(() => {
   if (subplebbit?.state === 'failed') {
     let errorString = 'Failed fetching subplebbit'
     if (subplebbit.error) {
-      errorString += `: ${error.toString()}`
+      errorString += `: ${error.toString().slice(0, 300)}`
     }
     return errorString
   }
