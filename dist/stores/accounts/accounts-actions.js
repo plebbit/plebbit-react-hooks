@@ -18,6 +18,7 @@ import assert from 'assert';
 const log = Logger('plebbit-react-hooks:accounts:stores');
 import * as accountsActionsInternal from './accounts-actions-internal';
 import { getAccountSubplebbits, getCommentCidsToAccountsComments } from './utils';
+import utils from '../../lib/utils';
 const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(void 0, void 0, void 0, function* () {
     // add to database first to init the account
     yield accountsDatabase.addAccount(newAccount);
@@ -444,7 +445,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                         if (!accountComment) {
                             return {};
                         }
-                        accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients: comment.clients });
+                        accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients: utils.clone(comment.clients) });
                         return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
                     });
                 });

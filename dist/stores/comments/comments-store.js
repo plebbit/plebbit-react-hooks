@@ -71,7 +71,7 @@ const commentsStore = createStore((setState, getState) => ({
                 for (const clientUrl in (_a = comment === null || comment === void 0 ? void 0 : comment.clients) === null || _a === void 0 ? void 0 : _a[clientType]) {
                     (_d = (_c = (_b = comment === null || comment === void 0 ? void 0 : comment.clients) === null || _b === void 0 ? void 0 : _b[clientType]) === null || _c === void 0 ? void 0 : _c[clientUrl]) === null || _d === void 0 ? void 0 : _d.on('statechange', (state) => {
                         setState((state) => ({
-                            comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients: comment === null || comment === void 0 ? void 0 : comment.clients }) }),
+                            comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients: utils.clone(comment === null || comment === void 0 ? void 0 : comment.clients) }) }),
                         }));
                     });
                 }

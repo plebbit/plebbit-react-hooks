@@ -95,7 +95,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 for (const clientUrl in (_b = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) === null || _b === void 0 ? void 0 : _b[clientType]) {
                     (_e = (_d = (_c = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) === null || _c === void 0 ? void 0 : _c[clientType]) === null || _d === void 0 ? void 0 : _d[clientUrl]) === null || _e === void 0 ? void 0 : _e.on('statechange', (state) => {
                         setState((state) => ({
-                            subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { clients: subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients }) }),
+                            subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { clients: utils.clone(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) }) }),
                         }));
                     });
                 }
