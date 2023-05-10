@@ -117,7 +117,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
       for (const clientUrl in subplebbit?.clients?.[clientType]) {
         subplebbit?.clients?.[clientType]?.[clientUrl]?.on('statechange', (state: string) => {
           setState((state: SubplebbitsState) => ({
-            subplebbits: {...state.subplebbits, [subplebbitAddress]: {...state.subplebbits[subplebbitAddress], clients: subplebbit?.clients}},
+            subplebbits: {...state.subplebbits, [subplebbitAddress]: {...state.subplebbits[subplebbitAddress], clients: utils.clone(subplebbit?.clients)}},
           }))
         })
       }

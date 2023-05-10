@@ -80,7 +80,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       for (const clientUrl in comment?.clients?.[clientType]) {
         comment?.clients?.[clientType]?.[clientUrl]?.on('statechange', (state: string) => {
           setState((state: CommentsState) => ({
-            comments: {...state.comments, [commentCid]: {...state.comments[commentCid], clients: comment?.clients}},
+            comments: {...state.comments, [commentCid]: {...state.comments[commentCid], clients: utils.clone(comment?.clients)}},
           }))
         })
       }

@@ -23,6 +23,7 @@ import {
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
 import {getAccountSubplebbits, getCommentCidsToAccountsComments} from './utils'
+import utils from '../../lib/utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
   // add to database first to init the account
@@ -502,7 +503,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
             if (!accountComment) {
               return {}
             }
-            accountComments[accountCommentIndex] = {...accountComment, clients: comment.clients}
+            accountComments[accountCommentIndex] = {...accountComment, clients: utils.clone(comment.clients)}
             return {accountsComments: {...accountsComments, [account.id]: accountComments}}
           })
         })
