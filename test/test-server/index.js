@@ -20,6 +20,7 @@ const privateKey = signers[0].privateKey
     pubsubHttpClientsOptions: [`http://localhost:${pubsubIpfs.apiPort}/api/v0`],
     // pubsubHttpClientsOptions: [`https://pubsubprovider.xyz/api/v0`],
     dataPath: plebbitDataPath,
+    noData: true,
   }
 
   const plebbit = await Plebbit(plebbitOptions)
