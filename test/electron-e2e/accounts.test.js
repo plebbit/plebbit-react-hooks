@@ -30,7 +30,6 @@ const plebbitOptionsTypes = {
     dataPath: window.plebbitDataPath,
     publishInterval: 1000,
     updateInterval: 1000,
-    noData: true,
   },
 }
 
