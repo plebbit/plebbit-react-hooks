@@ -22,7 +22,6 @@ const privateKey = signers[0].privateKey
     dataPath: plebbitDataPath,
     publishInterval: 1000,
     updateInterval: 1000,
-    noData: true,
   }
 
   const plebbit = await Plebbit(plebbitOptions)
