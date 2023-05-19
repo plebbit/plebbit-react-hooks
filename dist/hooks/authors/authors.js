@@ -69,7 +69,7 @@ export function useAuthorComments(options) {
             authorAddress,
             commentCid,
             // authorComments,
-            authorCommentsSize: authorComments.length,
+            authorCommentsSize: (authorComments === null || authorComments === void 0 ? void 0 : authorComments.length) || 0,
             lastCommentCid,
             hasMoreBufferedComments,
             hasNextCommentCidToFetch,
@@ -81,7 +81,7 @@ export function useAuthorComments(options) {
         });
     }
     return useMemo(() => ({
-        authorComments,
+        authorComments: authorComments || [],
         lastCommentCid,
         hasMore,
         loadMore,
