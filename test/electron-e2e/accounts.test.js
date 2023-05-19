@@ -28,6 +28,8 @@ const plebbitOptionsTypes = {
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubHttpClientsOptions: [localPubsubProviderUrl],
     dataPath: window.plebbitDataPath,
+    publishInterval: 1000,
+    updateInterval: 1000,
   },
 }
 
