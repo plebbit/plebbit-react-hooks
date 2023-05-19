@@ -76,7 +76,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
       authorAddress,
       commentCid,
       // authorComments,
-      authorCommentsSize: authorComments.length,
+      authorCommentsSize: authorComments?.length || 0,
       lastCommentCid,
       hasMoreBufferedComments,
       hasNextCommentCidToFetch,
@@ -90,7 +90,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
 
   return useMemo(
     () => ({
-      authorComments,
+      authorComments: authorComments || [],
       lastCommentCid,
       hasMore,
       loadMore,
