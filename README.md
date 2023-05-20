@@ -373,6 +373,26 @@ const {state, error, publishCommentEdit} = usePublishCommentEdit(publishCommentE
 await publishCommentEdit()
 console.log(state)
 console.log(error)
+
+// view the status of a comment edit instantly
+let comment = useComment({commentCid: publishCommentEditOptions.commentCid})
+const {state: editedCommentState, editedComment} = useEditedComment({comment})
+
+// if the comment has a succeeded, failed or pending edit, use the edited comment
+if (editedComment) {
+  comment = editedComment
+}
+
+let editLabel
+if (editedCommentState === 'succeeded') {
+  editLabel = {text: 'EDITED', color: 'green'}
+}
+if (editedCommentState === 'pending') {
+  editLabel = {text: 'PENDING EDIT', color: 'orange'}
+}
+if (editedCommentState === 'failed') {
+  editLabel = {text: 'FAILED EDIT', color: 'red'}
+}
 ```
 
 #### Delete a comment
