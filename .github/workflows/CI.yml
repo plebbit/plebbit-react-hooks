@@ -31,17 +31,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - macOS-latest
-        node_version:
-          # - 14
-          - 16
 
     steps:
       - run: sudo apt install -y xvfb
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version: 16
 
       - run: yarn install --frozen-lockfile
       - run: yarn test
@@ -54,7 +50,7 @@ jobs:
 
       - run: yarn test:server & yarn test:server:wait-on
       - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:mock
-      - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
+      - run: DEBUG="plebbit-js:*" CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
       # electron cannot run headless needs virtual display xvfb
       - run: DEBUG="plebbit-js:*" xvfb-run yarn test:e2e:electron
       - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:mock-content
