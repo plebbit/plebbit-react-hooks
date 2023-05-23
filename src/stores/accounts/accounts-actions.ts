@@ -408,7 +408,10 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   validator.validateAccountsActionsPublishCommentArguments({publishCommentOptions, accountName, account})
 
   // find author.previousCommentCid if any
-  const accountCommentsWithCids = accountsComments[account.id].filter((comment: AccountComment) => comment.cid)
+  const accountCommentsWithCids = accountsComments[account.id]
+    .filter((comment: AccountComment) => comment.cid)
+    // author can change his address, his previousCommentCid becomes invalid
+    .filter((comment: AccountComment) => comment.author.address === account.author.address)
   const previousCommentCid = accountCommentsWithCids[accountCommentsWithCids.length - 1]?.cid
   const author = {...account.author}
   if (previousCommentCid) {
