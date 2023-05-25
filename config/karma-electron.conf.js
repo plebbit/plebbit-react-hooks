@@ -44,7 +44,7 @@ console.log('before electron preload.js contextBridge.exposeInMainWorld plebbitJ
 const {contextBridge} = require('electron')
 const path = require ('path')
 contextBridge.exposeInMainWorld('plebbitJsNativeFunctions', require('@plebbit/plebbit-js').nativeFunctions.node)
-contextBridge.exposeInMainWorld('plebbitDataPath', /tmp/.plebbit)
+contextBridge.exposeInMainWorld('plebbitDataPath', path.join(process.cwd(), '.plebbit'))
 console.log('after electron preload.js contextBridge.exposeInMainWorld plebbitJsNativeFunctions')
 `
 const preloadJsPath = path.resolve(__dirname, '..', 'karma-electron-preload.js')
