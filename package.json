@@ -26,14 +26,14 @@
     "test:e2e:mock": "karma start config/karma.conf.js --plebbit-js-mock",
     "test:e2e:mock-content": "karma start config/karma.conf.js --plebbit-js-mock-content",
     "test:e2e:browser": "karma start config/karma.conf.js",
-    "test:e2e:electron": "rm -rf .plebbit/ && karma start config/karma-electron.conf.js",
+    "test:e2e:electron": "rm -rf /tmp/.plebbit-electron && karma start config/karma-electron.conf.js",
     "test:server": "rm -rf .plebbit/ && node test/test-server",
     "test:server:wait-on": "wait-on http://localhost:59281 --timeout 120000",
     "test:mock-content": "jest --config config/jest.config.cjs --testRegex plebbit-js-mock-content.donttest.ts",
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#2e33610eeb278f35ce841e2c9a38fbc224e1ace2",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#c0e9428e6e8c44876bd5165961d9ee2dabba7397",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
     "assert": "2.0.0",
     "ethers": "5.6.9",

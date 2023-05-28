@@ -358,7 +358,10 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     }
     validator.validateAccountsActionsPublishCommentArguments({ publishCommentOptions, accountName, account });
     // find author.previousCommentCid if any
-    const accountCommentsWithCids = accountsComments[account.id].filter((comment) => comment.cid);
+    const accountCommentsWithCids = accountsComments[account.id]
+        .filter((comment) => comment.cid)
+        // author can change his address, his previousCommentCid becomes invalid
+        .filter((comment) => { var _a, _b; return ((_a = comment.author) === null || _a === void 0 ? void 0 : _a.address) === ((_b = account.author) === null || _b === void 0 ? void 0 : _b.address); });
     const previousCommentCid = (_c = accountCommentsWithCids[accountCommentsWithCids.length - 1]) === null || _c === void 0 ? void 0 : _c.cid;
     const author = Object.assign({}, account.author);
     if (previousCommentCid) {
