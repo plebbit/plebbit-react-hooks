@@ -326,6 +326,29 @@ if (index !== undefined) {
 await publishComment()
 ```
 
+#### Create a post or comment anonymously (without account.signer or account.author)
+
+```jsx
+const account = useAccount()
+const signer = await account.plebbit.createSigner()
+
+const publishCommentOptions = {
+  content: 'hello',
+  title: 'hello',
+  subplebbitAddress: '12D3KooW...',
+  // use a newly generated author address (optional)
+  signer,
+  // use a different display name (optional)
+  author: {
+    displayName: 'Esteban',
+    address: signer.address
+  }
+}
+
+const {publishComment} = usePublishComment(publishCommentOptions)
+await publishComment()
+```
+
 #### Create a vote
 
 ```jsx
