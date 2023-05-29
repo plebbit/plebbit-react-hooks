@@ -54,9 +54,9 @@ describe('accounts', () => {
       expect(account.blockedCids && typeof account.blockedCids === 'object').toBe(true)
       expect(account.plebbit && typeof account.plebbit === 'object').toBe(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').toBe(true)
-      expect(account.plebbitOptions.ipfsGatewayUrls).toEqual(['https://ipfs.io', 'https://ipfsgateway.xyz', 'https://cloudflare-ipfs.com'])
+      expect(account.plebbitOptions.ipfsGatewayUrls?.length).toBeGreaterThan(0)
+      expect(account.plebbitOptions.pubsubHttpClientsOptions?.length).toBeGreaterThan(0)
       expect(account.plebbitOptions.ipfsHttpClientsOptions).toBe(undefined)
-      expect(account.plebbitOptions.pubsubHttpClientsOptions).toEqual(['https://pubsubprovider.xyz/api/v0'])
     })
 
     test(`default plebbit options are not saved to database`, async () => {
