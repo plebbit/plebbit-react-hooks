@@ -152,77 +152,65 @@ if (errorString) {
 #### Get feed with multiple subs with state string
 
 ```js
-const useStateString = (commentOrSubplebbit) => {
+const useFeedStateString = (subplebbits) => {
   return useMemo(() => {
-    if (!commentOrSubplebbit?.clients) {
-      return
+    const getClientUrls = (regex) => {
+      const clientUrls = new Set()
+      for (const clientType in subplebbits.clients) {
+        for (const clientUrl in subplebbits.clients[clientType]) {
+          const client = subplebbits.clients[clientType][clientUrl]
+          if (client.state.match(regex)) {
+            clientUrls.add(clientUrl)
+          }
+        }
+      }
+      return [...clientUrls]
     }
-    const clients = commentOrSubplebbit?.clients
 
+    if (!subplebbits) {
+      return undefined
+    }
+    
     const states = {}
-    for (const clientType in clients) {
-      for (const clientUrl in clients[clientType]) {
-        const state = clients[clientType][clientUrl].state
-        if (state === 'stopped') {
-          continue
-        }
-        if (!states[state]) {
-          states[state] = []
-        }
-        states[state].push(clientUrl)
-      }
+    for (const subplebbit of subplebbits) {
+      states[subplebbit?.updatingState] = (states[subplebbit?.updatingState] || 0) + 1
     }
 
-    const getClientHost = (clientUrl) => {
-      try {
-        return new URL(clientUrl).hostname || clientUrl
-      }
-      catch (e) {
-        return clientUrl
-      }
-    }
-
+    // e.g. Resolving 2 addresses from infura.io, fetching 2 IPNS, 1 IPFS from cloudflare-ipfs.com, ipfs.io
     let stateString = ''
-    for (const state in states) {
-      const clientUrls = states[state]
-      const clientHosts = clientUrls.map(clientUrl => getClientHost(clientUrl))
-
-      // if there are no valid hosts, skip this state
-      if (clientHosts.length === 0) {
-        continue
+    if (states['resolving-address']) {
+      stateString += `resolving ${states['resolving-address']} addresses`
+      const clientUrls = getClientUrls(/address/)
+      if (clientUrls.length) {
+        stateString += ` from ${clientUrls.join(', ')}`
       }
-
-      // separate 2 different states using ', '
+    }
+    if (states['fetching-ipns'] || states['fetching-ipfs']) {
       if (stateString) {
         stateString += ', '
       }
-
-      // e.g. 'fetching IPFS from cloudflare-ipfs.com, ipfs.io'
-      const formattedState = state.replaceAll('-', ' ').replace('ipfs', 'IPFS').replace('ipns', 'IPNS')
-      stateString += `${formattedState} from ${clientHosts.join(', ')}`
-    }
-
-    // fallback to comment or subplebbit state when possible
-    if (!stateString) {
-      if (commentOrSubplebbit?.publishingState !== 'stopped') {
-        stateString = commentOrSubplebbit.publishingState
+      stateString += `fetching `
+      if (states['fetching-ipns']) {
+        stateString += `${states['fetching-ipns']} IPNS`
       }
-      else if (commentOrSubplebbit?.updatingState !== 'stopped') {
-        stateString = commentOrSubplebbit.updatingState
+      if (states['fetching-ipfs']) {
+        if (states['fetching-ipns']) {
+          stateString += ', '
+        }
+        stateString += `${states['fetching-ipfs']} IPNS`
       }
-      if (stateString) {
-        stateString = stateString.replaceAll('-', ' ').replace('ipfs', 'IPFS').replace('ipns', 'IPNS')
+      const clientUrls = getClientUrls(/ipfs|ipns/)
+      if (clientUrls.length) {
+        stateString += ` from ${clientUrls.join(', ')}`
       }
     }
 
     // capitalize first letter
-    if (stateString) {
-      stateString = stateString.charAt(0).toUpperCase() + stateString.slice(1)
-    }
+    stateString = stateString.charAt(0).toUpperCase() + stateString.slice(1)
 
     // if string is empty, return undefined instead
-    return stateString === '' ? undefined : stateString
-  }, [commentOrSubplebbit])
+    return stateString || undefined
+  }, [subplebbits])
 }
 
 const subplebbitAddresses = ['memes.eth', '12D3KooW...', '12D3KooW...']
