@@ -188,7 +188,7 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
 
       const subplebbit = subplebbits[subplebbitAddress]
       // if at least 1 subplebbit hasn't loaded yet, then the feed still has more
-      if (!subplebbit) {
+      if (!subplebbit?.updatedAt) {
         feedsHaveMore[feedName] = true
         continue feedsLoop
       }
