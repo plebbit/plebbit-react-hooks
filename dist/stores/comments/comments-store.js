@@ -21,7 +21,6 @@ const commentsStore = createStore((setState, getState) => ({
     comments: {},
     errors: {},
     addCommentToStore(commentCid, account) {
-        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             const { comments } = getState();
             // comment is in store already, do nothing
@@ -67,15 +66,11 @@ const commentsStore = createStore((setState, getState) => ({
                 });
             });
             // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
-            for (const clientType in comment === null || comment === void 0 ? void 0 : comment.clients) {
-                for (const clientUrl in (_a = comment === null || comment === void 0 ? void 0 : comment.clients) === null || _a === void 0 ? void 0 : _a[clientType]) {
-                    (_d = (_c = (_b = comment === null || comment === void 0 ? void 0 : comment.clients) === null || _b === void 0 ? void 0 : _b[clientType]) === null || _c === void 0 ? void 0 : _c[clientUrl]) === null || _d === void 0 ? void 0 : _d.on('statechange', (state) => {
-                        setState((state) => ({
-                            comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients: utils.clone(comment === null || comment === void 0 ? void 0 : comment.clients) }) }),
-                        }));
-                    });
-                }
-            }
+            utils.clientsOnStateChange(comment === null || comment === void 0 ? void 0 : comment.clients, (state) => {
+                setState((state) => ({
+                    comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients: utils.clone(comment === null || comment === void 0 ? void 0 : comment.clients) }) }),
+                }));
+            });
             // when publishing a comment, you don't yet know its CID
             // so when a new comment is fetched, check to see if it's your own
             // comment, and if yes, add the CID to your account comments database
