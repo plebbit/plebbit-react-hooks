@@ -4,6 +4,7 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:feeds:stores')
 import {Subplebbit, SubplebbitPage, SubplebbitsPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
+import subplebbitsStore, {SubplebbitsState} from '../subplebbits'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
@@ -149,6 +150,25 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
     return cachedSubplebbitPage
   }
   const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+
+  // set clients states on subplebbit so the frontend can display it, dont persist in db because a reload cancels updating
+  utils.clientsOnStateChange(subplebbit?.posts?.clients, (state: string) => {
+    subplebbitsStore.setState((state: SubplebbitsState) => ({
+      // copy subplebbits state
+      ...state.subplebbits,
+      [subplebbitAddress]: {
+        // copy subplebbit state
+        ...state.subplebbits[subplebbitAddress],
+        // copy subplebbit.posts state
+        posts: {
+          ...state.subplebbits[subplebbitAddress]?.posts,
+          // copy subplebbit.posts.clients state
+          clients: utils.clone(state.subplebbits[subplebbitAddress]?.posts?.clients || {}),
+        },
+      },
+    }))
+  })
+
   const onError = (error: any) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error)
   const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), {onError})
   await subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage))
