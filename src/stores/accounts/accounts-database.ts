@@ -8,6 +8,8 @@ const accountsMetadataDatabase = localForage.createInstance({name: 'accountsMeta
 import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
 import {getDefaultPlebbitOptions} from './account-generator'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:accounts:stores')
 
 const getAccounts = async (accountIds: string[]) => {
   validator.validateAccountsDatabaseGetAccountsArguments(accountIds)
@@ -27,7 +29,7 @@ const getAccounts = async (accountIds: string[]) => {
     accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
     // handle errors or error events are uncaught
     // no need to log them because plebbit-js already logs them
-    accounts[accountId].plebbit.on('error', () => {})
+    accounts[accountId].plebbit.on('error', (error: any) => log.error('uncaught plebbit instance error, should never happen', {error}))
   }
   return accounts
 }
