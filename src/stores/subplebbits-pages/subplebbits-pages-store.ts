@@ -142,6 +142,36 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
   },
 }))
 
+// set clients states on subplebbit so the frontend can display it, dont persist in db because a reload cancels updating
+const onSubplebbitPostsClientsStateChange = (subplebbitAddress: string) => (state: string) => {
+  subplebbitsStore.setState((state: SubplebbitsState) => ({
+    // copy subplebbits state
+    ...state.subplebbits,
+    [subplebbitAddress]: {
+      // copy subplebbit state
+      ...state.subplebbits[subplebbitAddress],
+      // copy subplebbit.posts state
+      posts: {
+        ...state.subplebbits[subplebbitAddress]?.posts,
+        // copy subplebbit.posts.clients state
+        clients: utils.clone(state.subplebbits[subplebbitAddress]?.posts?.clients || {}),
+      },
+    },
+  }))
+}
+const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Function) => {
+  for (const sortType in clients?.ipfsGateways) {
+    for (const clientUrl in clients?.ipfsGateways?.[sortType]) {
+      clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', onStateChange)
+    }
+  }
+  for (const sortType in clients?.ipfsClients) {
+    for (const clientUrl in clients?.ipfsClients?.[sortType]) {
+      clients?.ipfsClients?.[sortType]?.[clientUrl].on('statechange', onStateChange)
+    }
+  }
+}
+
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
   // subplebbit page is cached
@@ -151,23 +181,8 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
   }
   const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
 
-  // set clients states on subplebbit so the frontend can display it, dont persist in db because a reload cancels updating
-  utils.clientsOnStateChange(subplebbit?.posts?.clients, (state: string) => {
-    subplebbitsStore.setState((state: SubplebbitsState) => ({
-      // copy subplebbits state
-      ...state.subplebbits,
-      [subplebbitAddress]: {
-        // copy subplebbit state
-        ...state.subplebbits[subplebbitAddress],
-        // copy subplebbit.posts state
-        posts: {
-          ...state.subplebbits[subplebbitAddress]?.posts,
-          // copy subplebbit.posts.clients state
-          clients: utils.clone(state.subplebbits[subplebbitAddress]?.posts?.clients || {}),
-        },
-      },
-    }))
-  })
+  // set clients states on subplebbit so the frontend can display it
+  subplebbitPostsClientsOnStateChange(subplebbit?.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress))
 
   const onError = (error: any) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error)
   const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), {onError})
