@@ -12,6 +12,7 @@ import Logger from '@plebbit/plebbit-logger';
 // include subplebbits pages store with feeds for debugging
 const log = Logger('plebbit-react-hooks:feeds:stores');
 import accountsStore from '../accounts';
+import subplebbitsStore from '../subplebbits';
 import localForageLru from '../../lib/localforage-lru';
 import createStore from 'zustand';
 import assert from 'assert';
@@ -125,14 +126,41 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         log('subplebbitsPagesStore.addSubplebbitPageCommentsToStore', { subplebbit, newComments });
     },
 }));
+// set clients states on subplebbits store so the frontend can display it, dont persist in db because a reload cancels updating
+const onSubplebbitPostsClientsStateChange = (subplebbitAddress) => (state) => {
+    subplebbitsStore.setState((state) => {
+        var _a, _b, _c;
+        return (Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { 
+                // copy subplebbit.posts state
+                posts: Object.assign(Object.assign({}, (_a = state.subplebbits[subplebbitAddress]) === null || _a === void 0 ? void 0 : _a.posts), { 
+                    // copy subplebbit.posts.clients state
+                    clients: utils.clone(((_c = (_b = state.subplebbits[subplebbitAddress]) === null || _b === void 0 ? void 0 : _b.posts) === null || _c === void 0 ? void 0 : _c.clients) || {}) }) }) }));
+    });
+};
+const subplebbitPostsClientsOnStateChange = (clients, onStateChange) => {
+    var _a, _b, _c, _d, _e, _f;
+    for (const sortType in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
+        for (const clientUrl in (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[sortType]) {
+            (_c = (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', onStateChange);
+        }
+    }
+    for (const sortType in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
+        for (const clientUrl in (_d = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _d === void 0 ? void 0 : _d[sortType]) {
+            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', onStateChange);
+        }
+    }
+};
 let fetchPagePending = {};
 const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
     // subplebbit page is cached
     const cachedSubplebbitPage = yield subplebbitsPagesDatabase.getItem(pageCid);
     if (cachedSubplebbitPage) {
         return cachedSubplebbitPage;
     }
     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
+    // set clients states on subplebbits store so the frontend can display it
+    subplebbitPostsClientsOnStateChange((_d = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress));
     const onError = (error) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error);
     const fetchedSubplebbitPage = yield utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), { onError });
     yield subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage));
