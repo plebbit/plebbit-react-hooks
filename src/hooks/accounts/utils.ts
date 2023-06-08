@@ -296,6 +296,7 @@ const getAuthorShortAddressNoCache = async (authorAddress: string | undefined) =
   }
   if (!plebbit) {
     plebbit = await PlebbitJs.Plebbit()
+    plebbit.on('error', (error: any) => log.error('getAuthorShortAddress error', {error}))
   }
   try {
     const comment = await plebbit.createComment({author: {address: authorAddress}})

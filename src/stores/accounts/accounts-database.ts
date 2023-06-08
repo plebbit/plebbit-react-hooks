@@ -25,6 +25,9 @@ const getAccounts = async (accountIds: string[]) => {
       accounts[accountId].plebbitOptions = getDefaultPlebbitOptions()
     }
     accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
+    // handle errors or error events are uncaught
+    // no need to log them because plebbit-js already logs them
+    accounts[accountId].plebbit.on('error', () => {})
   }
   return accounts
 }
