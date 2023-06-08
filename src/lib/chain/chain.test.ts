@@ -15,16 +15,16 @@ const ipfsGatewayUrl = 'https://cloudflare-ipfs.com'
 
 const chainProviders = {
   eth: {
-    // default should not use a url, but rather ethers' default provider
-    url: 'ethers.getDefaultProvider()',
+    // default should not use a url, but rather ethers.js default provider
+    urls: ['ethers.js'],
     chainId: 1,
   },
   avax: {
-    url: 'https://api.avax.network/ext/bc/C/rpc',
+    urls: ['https://api.avax.network/ext/bc/C/rpc'],
     chainId: 43114,
   },
   matic: {
-    url: 'https://polygon-rpc.com',
+    urls: ['https://polygon-rpc.com'],
     chainId: 137,
   },
 }
