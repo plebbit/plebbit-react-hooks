@@ -497,27 +497,17 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     })
 
     // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
-    const addOnStateChangeToClientTypes = (clientTypes: any) => {
-      for (const clientUrl in clientTypes) {
-        clientTypes[clientUrl].on('statechange', (state: string) => {
-          accountsStore.setState(({accountsComments}) => {
-            const accountComments = [...accountsComments[account.id]]
-            const accountComment = accountComments[accountCommentIndex]
-            if (!accountComment) {
-              return {}
-            }
-            accountComments[accountCommentIndex] = {...accountComment, clients: utils.clone(comment.clients)}
-            return {accountsComments: {...accountsComments, [account.id]: accountComments}}
-          })
-        })
-      }
-    }
-    addOnStateChangeToClientTypes(comment.clients?.ipfsGateways)
-    addOnStateChangeToClientTypes(comment.clients?.ipfsClients)
-    addOnStateChangeToClientTypes(comment.clients?.pubsubClients)
-    for (const chainTicker in comment.clients?.chainProviders) {
-      addOnStateChangeToClientTypes(comment.clients?.chainProviders[chainTicker])
-    }
+    utils.clientsOnStateChange(comment.clients, (state: string) => {
+      accountsStore.setState(({accountsComments}) => {
+        const accountComments = [...accountsComments[account.id]]
+        const accountComment = accountComments[accountCommentIndex]
+        if (!accountComment) {
+          return {}
+        }
+        accountComments[accountCommentIndex] = {...accountComment, clients: utils.clone(comment.clients)}
+        return {accountsComments: {...accountsComments, [account.id]: accountComments}}
+      })
+    })
 
     listeners.push(comment)
     try {

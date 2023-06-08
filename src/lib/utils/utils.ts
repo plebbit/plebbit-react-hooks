@@ -211,6 +211,23 @@ export const memoSync = (functionToMemo: Function, memoOptions: any) => {
   return obj[memoedFunctionName]
 }
 
+export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
+  for (const clientUrl in clients?.ipfsGateways) {
+    clients?.ipfsGateways?.[clientUrl].on('statechange', onStateChange)
+  }
+  for (const clientUrl in clients?.ipfsClients) {
+    clients?.ipfsClients?.[clientUrl].on('statechange', onStateChange)
+  }
+  for (const clientUrl in clients?.pubsubClients) {
+    clients?.pubsubClients?.[clientUrl].on('statechange', onStateChange)
+  }
+  for (const chainTicker in clients?.chainProviders) {
+    for (const clientUrl in clients?.chainProviders?.[chainTicker]) {
+      clients?.chainProviders?.[chainTicker]?.[clientUrl].on('statechange', onStateChange)
+    }
+  }
+}
+
 const utils = {
   merge,
   clone,
@@ -221,6 +238,7 @@ const utils = {
   // export timeout values to mock them in tests
   retryInfinityMinTimeout: 1000,
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
+  clientsOnStateChange,
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {
