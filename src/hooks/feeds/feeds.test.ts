@@ -111,6 +111,15 @@ describe('feeds', () => {
 
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (4|5)/)
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // change sort type active
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 2', 'subplebbit address 3'], sortType: 'active'})
+      await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
+
+      expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
+      // the 'new' sort type should give timestamp higher than 99 with the current mock
+      expect(rendered.result.current.feed[0].timestamp).toBeGreaterThan(99)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
     })
 
     test('get feed with 1 subplebbit and scroll to multiple pages', async () => {

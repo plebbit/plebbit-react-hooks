@@ -71,6 +71,7 @@ export class Plebbit extends EventEmitter {
       hot: hotPageCid,
       topAll: subplebbit.address + ' page cid topAll',
       new: subplebbit.address + ' page cid new',
+      active: subplebbit.address + ' page cid active',
     }
     return subplebbit
   }
@@ -242,6 +243,7 @@ export class Subplebbit extends EventEmitter {
       hot: hotPageCid,
       topAll: this.address + ' page cid topAll',
       new: this.address + ' page cid new',
+      active: this.address + ' page cid active',
     }
 
     // simulate the ipns update

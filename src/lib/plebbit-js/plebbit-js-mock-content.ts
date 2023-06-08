@@ -726,6 +726,7 @@ class Plebbit extends EventEmitter {
       hot: await seedToCid(await getNumberHash(subplebbitAddress + 'hotpagecid2')),
       topAll: await seedToCid(await getNumberHash(subplebbitAddress + 'topallpagecid')),
       new: await seedToCid(await getNumberHash(subplebbitAddress + 'newpagecid')),
+      active: await seedToCid(await getNumberHash(subplebbitAddress + 'activepagecid')),
     }
 
     const subplebbitContent = await getSubplebbitContent(subplebbitAddress)

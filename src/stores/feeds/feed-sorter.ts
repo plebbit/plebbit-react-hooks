@@ -7,7 +7,7 @@ const sortByTop = (feed: any[]) => {
   const postScores: {[key: string]: number} = {}
   const postRelativeScores: {[key: string]: number} = {}
   for (const post of feed) {
-    const score = post.upvoteCount - post.downvoteCount
+    const score = post.upvoteCount - post.downvoteCount || 0
     if (!subplebbitScores[post.subplebbitAddress]) {
       subplebbitScores[post.subplebbitAddress] = 0
     }
@@ -21,9 +21,9 @@ const sortByTop = (feed: any[]) => {
   }
   // sort by new and upvoteCount first, for tiebreaker, then relative scores
   return feed
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .sort((a, b) => b.upvoteCount - a.upvoteCount)
-    .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid])
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0))
+    .sort((a, b) => (postRelativeScores[b.cid] || 0) - (postRelativeScores[a.cid] || 0))
 }
 
 /**
@@ -35,8 +35,10 @@ const sortByControversial = (feed: any[]) => {
   const postScores: {[key: string]: number} = {}
   const postRelativeScores: {[key: string]: number} = {}
   for (const post of feed) {
-    const magnitude = post.upvoteCount + post.downvoteCount
-    const balance = post.upvoteCount > post.downvoteCount ? parseFloat(post.downvoteCount) / post.upvoteCount : parseFloat(post.upvoteCount) / post.downvoteCount
+    const upvoteCount = post.upvoteCount || 0
+    const downvoteCount = post.downvoteCount || 0
+    const magnitude = upvoteCount + downvoteCount
+    const balance = upvoteCount > downvoteCount ? parseFloat(downvoteCount) / upvoteCount : parseFloat(upvoteCount) / downvoteCount
     const score = Math.pow(magnitude, balance)
     if (!subplebbitScores[post.subplebbitAddress]) {
       subplebbitScores[post.subplebbitAddress] = 0
@@ -51,9 +53,9 @@ const sortByControversial = (feed: any[]) => {
   }
   // sort by new and upvoteCount first, for tiebreaker, then relative scores
   return feed
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .sort((a, b) => b.upvoteCount - a.upvoteCount)
-    .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid])
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0))
+    .sort((a, b) => (postRelativeScores[b.cid] || 0) - (postRelativeScores[a.cid] || 0))
 }
 
 /**
@@ -70,7 +72,7 @@ const sortByHot = (feed: any[]) => {
     return Math.round(number * factorOfTen) / factorOfTen
   }
   for (const post of feed) {
-    const score = post.upvoteCount - post.downvoteCount
+    const score = (post.upvoteCount || 0) - (post.downvoteCount || 0)
     const order = Math.log10(Math.max(score, 1))
     const sign = score > 0 ? 1 : score < 0 ? -1 : 0
     const seconds = post.timestamp - 1134028003
@@ -88,9 +90,9 @@ const sortByHot = (feed: any[]) => {
   }
   // sort by new and upvoteCount first, for tiebreaker, then relative scores
   return feed
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .sort((a, b) => b.upvoteCount - a.upvoteCount)
-    .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid])
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0))
+    .sort((a, b) => (postRelativeScores[b.cid] || 0) - (postRelativeScores[a.cid] || 0))
 }
 
 /**
@@ -102,7 +104,7 @@ const sortByNew = (feed: any[]) => {
   const postScores: {[key: string]: number} = {}
   const postRelativeScores: {[key: string]: number} = {}
   for (const post of feed) {
-    const score = post.timestamp
+    const score = post.timestamp || 0
     if (!subplebbitScores[post.subplebbitAddress]) {
       subplebbitScores[post.subplebbitAddress] = 0
     }
@@ -116,9 +118,37 @@ const sortByNew = (feed: any[]) => {
   }
   // sort by new and upvoteCount first, for tiebreaker, then relative scores
   return feed
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .sort((a, b) => b.upvoteCount - a.upvoteCount)
-    .sort((a, b) => postRelativeScores[b.cid] - postRelativeScores[a.cid])
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0))
+    .sort((a, b) => (postRelativeScores[b.cid] || 0) - (postRelativeScores[a.cid] || 0))
+}
+
+/**
+ * Sort by active is made using relative lastReplyTimestamp score, to encourage small communities to grow
+ * and to not incentivize communities to inflate their lastReplyTimestamp
+ */
+const sortByActive = (feed: any[]) => {
+  const subplebbitScores: {[key: string]: number} = {}
+  const postScores: {[key: string]: number} = {}
+  const postRelativeScores: {[key: string]: number} = {}
+  for (const post of feed) {
+    const score = post.lastReplyTimestamp || post.timestamp || 0
+    if (!subplebbitScores[post.subplebbitAddress]) {
+      subplebbitScores[post.subplebbitAddress] = 0
+    }
+    subplebbitScores[post.subplebbitAddress] += score
+    postScores[post.cid] = score
+  }
+  for (const post of feed) {
+    // don't use subplebbit scores lower than 1 or it reverses the relative score
+    const subplebbitScore = subplebbitScores[post.subplebbitAddress] || 1
+    postRelativeScores[post.cid] = postScores[post.cid] / subplebbitScore
+  }
+  // sort by new and upvoteCount first, for tiebreaker, then relative scores
+  return feed
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0))
+    .sort((a, b) => (postRelativeScores[b.cid] || 0) - (postRelativeScores[a.cid] || 0))
 }
 
 export const sort = (sortType: string, feed: any[]) => {
@@ -137,6 +167,9 @@ export const sort = (sortType: string, feed: any[]) => {
   }
   if (sortType.match('controversial')) {
     return [...pinnedPosts, ...sortByControversial(feed)]
+  }
+  if (sortType.match('active')) {
+    return [...pinnedPosts, ...sortByActive(feed)]
   }
   throw Error(`feedsStore feedSorter sort type '${sortType}' doesn't exist`)
 }
