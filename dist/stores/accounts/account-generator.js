@@ -11,6 +11,8 @@ import PlebbitJs from '../../lib/plebbit-js';
 import validator from '../../lib/validator';
 import { v4 as uuid } from 'uuid';
 import accountsDatabase from './accounts-database';
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:accounts:stores');
 // default chain providers
 const chainProviders = {
     eth: {
@@ -59,7 +61,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
     const plebbit = yield PlebbitJs.Plebbit(plebbitOptions);
     // handle errors or error events are uncaught
     // no need to log them because plebbit-js already logs them
-    plebbit.on('error', () => { });
+    plebbit.on('error', (error) => log.error('uncaught plebbit instance error, should never happen', { error }));
     const signer = yield plebbit.createSigner();
     const author = {
         address: signer.address,

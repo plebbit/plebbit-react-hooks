@@ -655,6 +655,7 @@ class Plebbit extends EventEmitter {
                 hot: yield seedToCid(yield getNumberHash(subplebbitAddress + 'hotpagecid2')),
                 topAll: yield seedToCid(yield getNumberHash(subplebbitAddress + 'topallpagecid')),
                 new: yield seedToCid(yield getNumberHash(subplebbitAddress + 'newpagecid')),
+                active: yield seedToCid(yield getNumberHash(subplebbitAddress + 'activepagecid')),
             };
             const subplebbitContent = yield getSubplebbitContent(subplebbitAddress);
             // add extra props
