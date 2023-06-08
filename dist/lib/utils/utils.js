@@ -198,6 +198,23 @@ export const memoSync = (functionToMemo, memoOptions) => {
     };
     return obj[memoedFunctionName];
 };
+export const clientsOnStateChange = (clients, onStateChange) => {
+    var _a, _b, _c, _d, _e, _f;
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
+        (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[clientUrl].on('statechange', onStateChange);
+    }
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
+        (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _b === void 0 ? void 0 : _b[clientUrl].on('statechange', onStateChange);
+    }
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.pubsubClients) {
+        (_c = clients === null || clients === void 0 ? void 0 : clients.pubsubClients) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', onStateChange);
+    }
+    for (const chainTicker in clients === null || clients === void 0 ? void 0 : clients.chainProviders) {
+        for (const clientUrl in (_d = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _d === void 0 ? void 0 : _d[chainTicker]) {
+            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _e === void 0 ? void 0 : _e[chainTicker]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', onStateChange);
+        }
+    }
+};
 const utils = {
     merge,
     clone,
@@ -208,6 +225,7 @@ const utils = {
     // export timeout values to mock them in tests
     retryInfinityMinTimeout: 1000,
     retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
+    clientsOnStateChange,
 };
 export const retryInfinity = (functionToRetry, options) => __awaiter(void 0, void 0, void 0, function* () {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
