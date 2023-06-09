@@ -75,7 +75,7 @@ export const resolveEnsTxtRecord = utils.memo(resolveEnsTxtRecordNoCache, { maxS
 const getChainProviderNoCache = (chainTicker, chainProviderUrl, chainId) => {
     if (chainTicker === 'eth') {
         // if using eth, use ethers' default provider unless another provider is specified
-        if (!chainProviderUrl || chainProviderUrl.match(/DefaultProvider/i)) {
+        if (!chainProviderUrl || chainProviderUrl === 'ethers.js') {
             return ethers.getDefaultProvider();
         }
     }
