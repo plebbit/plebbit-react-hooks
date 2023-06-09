@@ -9,26 +9,111 @@ const useStateString = (commentOrSubplebbit) => {
     const clients = commentOrSubplebbit?.clients
 
     const states = {}
-    for (const clientType in clients) {
-      for (const clientUrl in clients[clientType]) {
-        const state = clients[clientType][clientUrl].state
-        if (state === 'stopped') {
-          continue
-        }
-        if (!states[state]) {
-          states[state] = []
-        }
-        states[state].push(clientUrl)
+    const addState = (state, clientUrl) => {
+      if (!state || state === 'stopped') {
+        return
+      }
+      if (!states[state]) {
+        states[state] = []
+      }
+      states[state].push(clientUrl)
+    }
+    for (const clientUrl in clients?.ipfsGateways) {
+      addState(clients.ipfsGateways[clientUrl]?.state, clientUrl)
+    }
+    for (const clientUrl in clients?.ipfsClients) {
+      addState(clients.ipfsClients[clientUrl]?.state, clientUrl)
+    }
+    for (const chainTicker in clients?.chainProviders) {
+      for (const clientUrl in clients.chainProviders[chainTicker]) {
+        addState(clients.chainProviders[chainTicker][clientUrl]?.state, clientUrl)
       }
     }
 
     const getClientHost = (clientUrl) => {
       try {
-        return new URL(clientUrl).hostname || clientUrl
+        clientUrl = new URL(clientUrl).hostname || clientUrl
       }
-      catch (e) {
-        return clientUrl
+      catch (e) {}
+      return clientUrl
+    }
+
+    let stateString = ''
+    for (const state in states) {
+      const clientUrls = states[state]
+      const clientHosts = clientUrls.map(clientUrl => getClientHost(clientUrl))
+
+      // if there are no valid hosts, skip this state
+      if (clientHosts.length === 0) {
+        continue
       }
+
+      // separate 2 different states using ', '
+      if (stateString) {
+        stateString += ', '
+      }
+
+      // e.g. 'fetching IPFS from cloudflare-ipfs.com, ipfs.io'
+      const formattedState = state.replaceAll('-', ' ').replace('ipfs', 'IPFS').replace('ipns', 'IPNS')
+      stateString += `${formattedState} from ${clientHosts.join(', ')}`
+    }
+
+    // fallback to comment or subplebbit state when possible
+    if (!stateString) {
+      if (commentOrSubplebbit?.publishingState !== 'stopped') {
+        stateString = commentOrSubplebbit.publishingState
+      }
+      else if (commentOrSubplebbit?.updatingState !== 'stopped') {
+        stateString = commentOrSubplebbit.updatingState
+      }
+      if (stateString) {
+        stateString = stateString.replaceAll('-', ' ').replace('ipfs', 'IPFS').replace('ipns', 'IPNS')
+      }
+    }
+
+    // capitalize first letter
+    if (stateString) {
+      stateString = stateString.charAt(0).toUpperCase() + stateString.slice(1)
+    }
+
+    // if string is empty, return undefined instead
+    return stateString === '' ? undefined : stateString
+  }, [commentOrSubplebbit])
+}const useStateString = (commentOrSubplebbit) => {
+  return useMemo(() => {
+    if (!commentOrSubplebbit?.clients) {
+      return
+    }
+    const clients = commentOrSubplebbit?.clients
+
+    const states = {}
+    const addState = (state, clientUrl) => {
+      if (!state || state === 'stopped') {
+        return
+      }
+      if (!states[state]) {
+        states[state] = []
+      }
+      states[state].push(clientUrl)
+    }
+    for (const clientUrl in clients?.ipfsGateways) {
+      addState(clients.ipfsGateways[clientUrl]?.state, clientUrl)
+    }
+    for (const clientUrl in clients?.ipfsClients) {
+      addState(clients.ipfsClients[clientUrl]?.state, clientUrl)
+    }
+    for (const chainTicker in clients?.chainProviders) {
+      for (const clientUrl in clients.chainProviders[chainTicker]) {
+        addState(clients.chainProviders[chainTicker][clientUrl]?.state, clientUrl)
+      }
+    }
+
+    const getClientHost = (clientUrl) => {
+      try {
+        clientUrl = new URL(clientUrl).hostname || clientUrl
+      }
+      catch (e) {}
+      return clientUrl
     }
 
     let stateString = ''
@@ -154,13 +239,26 @@ if (errorString) {
 ```js
 const useFeedStateString = (subplebbits) => {
   return useMemo(() => {
+    const getClientHost = (clientUrl) => {
+      try {
+        clientUrl = new URL(clientUrl).hostname || clientUrl
+      }
+      catch (e) {}
+      return clientUrl
+    }
     const getClientUrls = (regex) => {
       const clientUrls = new Set()
-      for (const clientType in subplebbits.clients) {
-        for (const clientUrl in subplebbits.clients[clientType]) {
-          const client = subplebbits.clients[clientType][clientUrl]
-          if (client.state.match(regex)) {
-            clientUrls.add(clientUrl)
+      const addClientUrl = (client, clientUrl) => client?.state?.match?.(regex) && clientUrls.add(getClientHost(clientUrl))
+      for (const subplebbit of subplebbits) {
+        for (const clientUrl in subplebbit?.clients?.ipfsGateways) {
+          addClientUrl(subplebbit.clients.ipfsGateways[clientUrl], clientUrl)
+        }
+        for (const clientUrl in subplebbit?.clients?.ipfsClients) {
+          addClientUrl(subplebbit.clients.ipfsClients[clientUrl], clientUrl)
+        }
+        for (const chainTicker in subplebbit?.clients?.chainProviders) {
+          for (const clientUrl in subplebbit.clients.chainProviders[chainTicker]) {
+            addClientUrl(subplebbit.clients.chainProviders[chainTicker][clientUrl], clientUrl)
           }
         }
       }
@@ -168,9 +266,9 @@ const useFeedStateString = (subplebbits) => {
     }
 
     if (!subplebbits) {
-      return undefined
+      return undefined;
     }
-    
+
     const states = {}
     for (const subplebbit of subplebbits) {
       states[subplebbit?.updatingState] = (states[subplebbit?.updatingState] || 0) + 1
