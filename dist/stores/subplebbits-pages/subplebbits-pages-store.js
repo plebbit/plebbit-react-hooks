@@ -127,14 +127,14 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
     },
 }));
 // set clients states on subplebbits store so the frontend can display it, dont persist in db because a reload cancels updating
-const onSubplebbitPostsClientsStateChange = (subplebbitAddress) => (state) => {
+const onSubplebbitPostsClientsStateChange = (subplebbit) => (clientState) => {
     subplebbitsStore.setState((state) => {
-        var _a, _b, _c;
-        return (Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { 
+        var _a, _b;
+        return (Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: Object.assign(Object.assign({}, state.subplebbits[subplebbit.address]), { 
                 // copy subplebbit.posts state
-                posts: Object.assign(Object.assign({}, (_a = state.subplebbits[subplebbitAddress]) === null || _a === void 0 ? void 0 : _a.posts), { 
+                posts: Object.assign(Object.assign({}, (_a = state.subplebbits[subplebbit.address]) === null || _a === void 0 ? void 0 : _a.posts), { 
                     // copy subplebbit.posts.clients state
-                    clients: utils.clone(((_c = (_b = state.subplebbits[subplebbitAddress]) === null || _b === void 0 ? void 0 : _b.posts) === null || _c === void 0 ? void 0 : _c.clients) || {}) }) }) }));
+                    clients: ((_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.clients) && utils.clone(subplebbit.posts.clients) }) }) }));
     });
 };
 const subplebbitPostsClientsOnStateChange = (clients, onStateChange) => {
@@ -160,7 +160,7 @@ const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, voi
     }
     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
     // set clients states on subplebbits store so the frontend can display it
-    subplebbitPostsClientsOnStateChange((_d = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress));
+    subplebbitPostsClientsOnStateChange((_d = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbit));
     const onError = (error) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error);
     const fetchedSubplebbitPage = yield utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), { onError });
     yield subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage));
