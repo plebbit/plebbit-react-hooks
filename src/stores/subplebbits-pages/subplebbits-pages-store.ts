@@ -145,16 +145,18 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
 // set clients states on subplebbits store so the frontend can display it, dont persist in db because a reload cancels updating
 const onSubplebbitPostsClientsStateChange = (subplebbit: Subplebbit) => (clientState: string) => {
   subplebbitsStore.setState((state: SubplebbitsState) => ({
-    // copy subplebbits state
-    ...state.subplebbits,
-    [subplebbit.address]: {
-      // copy subplebbit state
-      ...state.subplebbits[subplebbit.address],
-      // copy subplebbit.posts state
-      posts: {
-        ...state.subplebbits[subplebbit.address]?.posts,
-        // copy subplebbit.posts.clients state
-        clients: subplebbit.posts?.clients && utils.clone(subplebbit.posts.clients),
+    subplebbits: {
+      // copy subplebbits state
+      ...state.subplebbits,
+      [subplebbit.address]: {
+        // copy subplebbit state
+        ...state.subplebbits[subplebbit.address],
+        // copy subplebbit.posts state
+        posts: {
+          ...state.subplebbits[subplebbit.address]?.posts,
+          // copy subplebbit.posts.clients state
+          clients: subplebbit.posts?.clients && utils.clone(subplebbit.posts.clients),
+        },
       },
     },
   }))
