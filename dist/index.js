@@ -19,7 +19,7 @@ import { useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbi
 // feeds
 import { useFeed, useBufferedFeeds } from './hooks/feeds';
 // authors
-import { useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress } from './hooks/authors';
+import { useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress } from './hooks/authors';
 // actions
 import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit } from './hooks/actions';
 // actions that don't have their own hooks yet
@@ -38,7 +38,7 @@ useComment, useComments, useEditedComment,
 // subplebbits
 useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, 
 // authors
-useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, 
+useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, 
 // feeds
 useFeed, useBufferedFeeds, 
 // actions
@@ -74,6 +74,7 @@ const hooks = {
     useAuthorComments,
     useAuthorAvatar,
     useResolvedAuthorAddress,
+    useAuthorAddress,
     // feeds
     useFeed,
     useBufferedFeeds,
