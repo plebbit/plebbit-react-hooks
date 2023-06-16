@@ -698,6 +698,8 @@ class Plebbit extends EventEmitter {
     }
   }
 
+  async resolveAuthorAddress(authorAddress: string) {}
+
   async createSubplebbit(createSubplebbitOptions: any) {
     // if the only argument is {address}, the user didn't create the sub, it's a fetched sub
     if (createSubplebbitOptions?.address && Object.keys(createSubplebbitOptions).length === 1) {
