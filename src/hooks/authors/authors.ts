@@ -243,7 +243,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   }
 
   const isCryptoName = useMemo(() => {
-    return !!comment?.author?.address?.match?.('.')
+    return !comment?.author?.address?.match?.('.')
   }, [comment?.author?.address])
 
   return useMemo(
