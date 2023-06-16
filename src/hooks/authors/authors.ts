@@ -15,11 +15,13 @@ import {
   UseAuthorAvatarResult,
   UseResolvedAuthorAddressOptions,
   UseResolvedAuthorAddressResult,
+  UseAuthorAddressOptions,
+  UseAuthorAddressResult,
 } from '../../types'
 import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/chain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
-import {useAuthorCommentsName} from './utils'
+import {useAuthorCommentsName, usePlebbitAddress} from './utils'
 import useAuthorsCommentsStore from '../../stores/authors-comments'
 
 /**
@@ -217,6 +219,37 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
       errors,
     }),
     [imageUrl, metadataUrl, chainProvider, state, error]
+  )
+}
+
+/**
+ * @param author - The Author object to resolve the address of.
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
+export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAddressResult {
+  assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`)
+  const {comment, accountName} = options || {}
+  const {resolvedAddress, errors, state} = useResolvedAuthorAddress({author: comment?.author, accountName})
+  const signerAddress = usePlebbitAddress(comment?.signature?.publicKey)
+
+  // use signer address by default
+  let authorAddress = signerAddress
+
+  // author address was resolved successfully, use author address
+  if (resolvedAddress && signerAddress === resolvedAddress) {
+    authorAddress = comment?.author?.address
+  }
+
+  return useMemo(
+    () => ({
+      authorAddress,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [authorAddress, state, errors]
   )
 }
 

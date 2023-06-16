@@ -36,7 +36,7 @@ import {useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbit
 import {useFeed, useBufferedFeeds} from './hooks/feeds'
 
 // authors
-import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress} from './hooks/authors'
+import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress} from './hooks/authors'
 
 // actions
 import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
@@ -87,6 +87,7 @@ export {
   useAuthorComments,
   useAuthorAvatar,
   useResolvedAuthorAddress,
+  useAuthorAddress,
   // feeds
   useFeed,
   useBufferedFeeds,
@@ -141,6 +142,7 @@ const hooks = {
   useAuthorComments,
   useAuthorAvatar,
   useResolvedAuthorAddress,
+  useAuthorAddress,
   // feeds
   useFeed,
   useBufferedFeeds,

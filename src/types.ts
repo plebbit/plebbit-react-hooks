@@ -225,6 +225,14 @@ export interface UseAuthorAvatarResult extends Result {
   chainProvider: ChainProvider | undefined
 }
 
+// useAuthorAddress(options): result
+export interface UseAuthorAddressOptions extends Options {
+  comment?: Comment
+}
+export interface UseAuthorAddressResult extends Result {
+  authorAddress: string | undefined
+}
+
 // useCreateAccount(options): result
 // export interface UseCreateAccountOptions extends Options {}
 // export interface UseCreateAccountResult extends Result {
