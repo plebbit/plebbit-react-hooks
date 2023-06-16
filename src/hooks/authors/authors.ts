@@ -231,7 +231,19 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
 export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAddressResult {
   assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`)
   const {comment, accountName} = options || {}
-  const {resolvedAddress, errors, state} = useResolvedAuthorAddress({author: comment?.author, accountName})
+  const account = useAccount({accountName})
+  const [resolvedAddress, setResolvedAddress] = useState<string>()
+
+  useEffect(() => {
+    if (!account?.plebbit || !comment?.author?.address) {
+      return
+    }
+    account.plebbit
+      .resolveAuthorAddress(comment?.author?.address)
+      .then((resolvedAddress: string) => setResolvedAddress(resolvedAddress))
+      .catch((error: any) => log.error('useAuthorAddress error', {error, comment}))
+  }, [account?.plebbit, comment?.author?.address])
+
   const signerAddress = usePlebbitAddress(comment?.signature?.publicKey)
 
   // use signer address by default
@@ -249,11 +261,11 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   return useMemo(
     () => ({
       authorAddress,
-      state,
-      error: isCryptoName ? errors[errors.length - 1] : undefined,
-      errors: isCryptoName ? errors : [],
+      state: 'initializing',
+      error: undefined,
+      errors: [],
     }),
-    [authorAddress, state, errors]
+    [authorAddress]
   )
 }
 
