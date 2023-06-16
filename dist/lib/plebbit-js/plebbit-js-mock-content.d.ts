@@ -14,6 +14,7 @@ declare class Plebbit extends EventEmitter {
         privateKey: string;
         address: string;
     }>;
+    resolveAuthorAddress(authorAddress: string): Promise<void>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
     listSubplebbits(): Promise<string[]>;
