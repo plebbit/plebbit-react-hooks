@@ -628,6 +628,9 @@ class Plebbit extends EventEmitter {
             };
         });
     }
+    resolveAuthorAddress(authorAddress) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
     createSubplebbit(createSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             // if the only argument is {address}, the user didn't create the sub, it's a fetched sub

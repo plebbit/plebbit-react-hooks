@@ -23,6 +23,9 @@ export const debugPlebbitJsMock = () => {
     console.log({ createdOwnerSubplebbits, editedOwnerSubplebbits });
 };
 export class Plebbit extends EventEmitter {
+    resolveAuthorAddress(authorAddress) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
             return {
