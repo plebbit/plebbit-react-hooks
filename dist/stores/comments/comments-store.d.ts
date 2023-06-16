@@ -1,6 +1,6 @@
 import { Comments } from '../../types';
 export declare const listeners: any;
-export declare type CommentsState = {
+export type CommentsState = {
     comments: Comments;
     errors: {
         [commentCid: string]: Error[];

@@ -6,7 +6,8 @@
     "declaration": true,
     "moduleResolution": "Node",
     "outDir": "../dist",
-    "jsx": "react"
+    "jsx": "react",
+    "skipLibCheck": true
   },
   "exclude": ["../**/*.spec.ts", "../**/*.test.ts", "../**/*.donttest.ts"]
 }

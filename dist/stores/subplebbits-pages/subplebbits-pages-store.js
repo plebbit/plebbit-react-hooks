@@ -130,11 +130,13 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
 const onSubplebbitPostsClientsStateChange = (subplebbit) => (clientState) => {
     subplebbitsStore.setState((state) => {
         var _a, _b;
-        return (Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: Object.assign(Object.assign({}, state.subplebbits[subplebbit.address]), { 
-                // copy subplebbit.posts state
-                posts: Object.assign(Object.assign({}, (_a = state.subplebbits[subplebbit.address]) === null || _a === void 0 ? void 0 : _a.posts), { 
-                    // copy subplebbit.posts.clients state
-                    clients: ((_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.clients) && utils.clone(subplebbit.posts.clients) }) }) }));
+        return ({
+            subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: Object.assign(Object.assign({}, state.subplebbits[subplebbit.address]), { 
+                    // copy subplebbit.posts state
+                    posts: Object.assign(Object.assign({}, (_a = state.subplebbits[subplebbit.address]) === null || _a === void 0 ? void 0 : _a.posts), { 
+                        // copy subplebbit.posts.clients state
+                        clients: ((_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.clients) && utils.clone(subplebbit.posts.clients) }) }) }),
+        });
     });
 };
 const subplebbitPostsClientsOnStateChange = (clients, onStateChange) => {

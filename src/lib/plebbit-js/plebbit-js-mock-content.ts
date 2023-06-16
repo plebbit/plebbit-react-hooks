@@ -197,7 +197,7 @@ const getCidHash = async (string: string) => {
 }
 
 const seedToCid = async (seed: number) => {
-  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `seedToCid seed argument must be positive number not '${seed}'`)
+  assert(typeof seed === 'number' && !Number.isNaN(seed) && seed >= 0, `seedToCid seed argument must be positive number not '${seed}'`)
   let base10Seed = String(seed)
 
   // seed base10 string is usually too small for a cid, make it longer
@@ -230,7 +230,7 @@ class _SeedIncrementer {
   numbers: number[]
   index = 0
   constructor(seed: number) {
-    assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
+    assert(typeof seed === 'number' && !Number.isNaN(seed) && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
     this.seed = seed
     this.numbers = String(seed)
       .split('')
@@ -245,7 +245,7 @@ class _SeedIncrementer {
 export const SeedIncrementer = (seed: number) => new _SeedIncrementer(seed)
 
 const getNumberBetween = async (min: number, max: number, seed: number) => {
-  assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
+  assert(typeof seed === 'number' && !Number.isNaN(seed) && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`)
 
   // if the string is exponent, remove chars
   if (String(seed).match(/[^0-9]/)) {
@@ -263,7 +263,7 @@ const getArrayItem = async (array: any[], seed: number) => {
 }
 
 export const getImageUrl = async (_seed: number) => {
-  assert(typeof _seed === 'number' && _seed !== NaN && _seed >= 0, `getImageUrl seed argument must be positive number not '${_seed}'`)
+  assert(typeof _seed === 'number' && !Number.isNaN(_seed) && _seed >= 0, `getImageUrl seed argument must be positive number not '${_seed}'`)
   const seed = SeedIncrementer(_seed)
   const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed.increment())}/${await getNumberBetween(
     10,
@@ -294,7 +294,7 @@ export const getImageUrl = async (_seed: number) => {
 }
 
 const getAuthorAddress = async (_seed: number) => {
-  assert(typeof _seed === 'number' && _seed !== NaN && _seed >= 0, `getAuthorAddress seed argument must be positive number not '${_seed}'`)
+  assert(typeof _seed === 'number' && !Number.isNaN(_seed) && _seed >= 0, `getAuthorAddress seed argument must be positive number not '${_seed}'`)
   const seed = SeedIncrementer(_seed)
   const hasEns = await getArrayItem([true, false, false, false], seed.increment())
   if (hasEns) {

@@ -1,7 +1,7 @@
 import { AuthorCommentsOptions, Comment } from '../../types';
 export declare const commentsPerPage = 25;
 export declare const commentBufferSize = 50;
-export declare type AuthorsCommentsState = {
+export type AuthorsCommentsState = {
     options: {
         [authorCommentsName: string]: AuthorCommentsOptions;
     };

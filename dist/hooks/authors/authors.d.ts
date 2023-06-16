@@ -25,4 +25,4 @@ export declare function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAu
  * the active account.
  */
 export declare function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult;
-export declare const resolveAuthorAddress: (authorAddress: string, chainProviders: ChainProviders, cache?: boolean | undefined) => Promise<any>;
+export declare const resolveAuthorAddress: (authorAddress: string, chainProviders: ChainProviders, cache?: boolean) => Promise<any>;
