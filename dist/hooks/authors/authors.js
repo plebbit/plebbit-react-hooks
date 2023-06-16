@@ -16,7 +16,7 @@ import assert from 'assert';
 import { resolveEnsTxtRecord, resolveEnsTxtRecordNoCache } from '../../lib/chain';
 import { useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted } from './author-avatars';
 import { useComment } from '../comments';
-import { useAuthorCommentsName } from './utils';
+import { useAuthorCommentsName, usePlebbitAddress } from './utils';
 import useAuthorsCommentsStore from '../../stores/authors-comments';
 /**
  * @param authorAddress - The address of the author
@@ -195,6 +195,35 @@ export function useAuthorAvatar(options) {
         error,
         errors,
     }), [imageUrl, metadataUrl, chainProvider, state, error]);
+}
+/**
+ * @param author - The Author object to resolve the address of.
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
+export function useAuthorAddress(options) {
+    var _a, _b, _c;
+    assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`);
+    const { comment, accountName } = options || {};
+    const { resolvedAddress, errors, state } = useResolvedAuthorAddress({ author: comment === null || comment === void 0 ? void 0 : comment.author, accountName });
+    const signerAddress = usePlebbitAddress((_a = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _a === void 0 ? void 0 : _a.publicKey);
+    // use signer address by default
+    let authorAddress = signerAddress;
+    // author address was resolved successfully, use author address
+    if (resolvedAddress && signerAddress === resolvedAddress) {
+        authorAddress = (_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address;
+    }
+    const isCryptoName = useMemo(() => {
+        var _a, _b, _c;
+        return !((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
+    }, [(_c = comment === null || comment === void 0 ? void 0 : comment.author) === null || _c === void 0 ? void 0 : _c.address]);
+    return useMemo(() => ({
+        authorAddress,
+        state,
+        error: isCryptoName ? errors[errors.length - 1] : undefined,
+        errors: isCryptoName ? errors : [],
+    }), [authorAddress, state, errors]);
 }
 /**
  * @param author - The author with author.address to resolve to a public key, e.g. 'john.eth' resolves to '12D3KooW...'.

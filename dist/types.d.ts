@@ -164,6 +164,12 @@ export interface UseAuthorAvatarResult extends Result {
     metadataUrl: string | undefined;
     chainProvider: ChainProvider | undefined;
 }
+export interface UseAuthorAddressOptions extends Options {
+    comment?: Comment;
+}
+export interface UseAuthorAddressResult extends Result {
+    authorAddress: string | undefined;
+}
 export interface UsePublishCommentOptions extends Options {
     onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
     onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>;
