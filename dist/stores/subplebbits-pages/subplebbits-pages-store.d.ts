@@ -1,6 +1,6 @@
 import { Subplebbit, SubplebbitPage, SubplebbitsPages, Comments } from '../../types';
 export declare const listeners: any;
-export declare type SubplebbitsPagesState = {
+export type SubplebbitsPagesState = {
     subplebbitsPages: SubplebbitsPages;
     comments: Comments;
     addNextSubplebbitPageToStore: Function;
