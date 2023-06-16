@@ -243,14 +243,14 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   }
 
   const isCryptoName = useMemo(() => {
-    return comment?.author?.address?.match?.('.')
+    return !!comment?.author?.address?.match?.('.')
   }, [comment?.author?.address])
 
   return useMemo(
     () => ({
       authorAddress,
       state,
-      error: isCryptoName && errors[errors.length - 1],
+      error: isCryptoName ? errors[errors.length - 1] : undefined,
       errors: isCryptoName ? errors : [],
     }),
     [authorAddress, state, errors]
