@@ -2,7 +2,7 @@ export declare const silenceUpdateUnmountedComponentWarning: () => () => void;
 export declare const silenceTestWasNotWrappedInActWarning: () => () => void;
 export declare const silenceOverlappingActWarning: () => () => void;
 export declare const silenceReactWarnings: () => void;
-declare type WaitForOptions = {
+type WaitForOptions = {
     timeout?: number;
     interval?: number;
 };
@@ -16,7 +16,7 @@ declare const testUtils: {
     restoreAll: () => void;
     resetStores: () => Promise<void>;
     resetDatabasesAndStores: () => Promise<void>;
-    createWaitFor: (rendered: any, waitForOptions?: WaitForOptions | undefined) => (waitForFunction: Function) => Promise<void>;
+    createWaitFor: (rendered: any, waitForOptions?: WaitForOptions) => (waitForFunction: Function) => Promise<void>;
     silenceWaitForWarning: boolean;
 };
 export default testUtils;

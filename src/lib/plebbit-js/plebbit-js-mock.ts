@@ -18,6 +18,8 @@ export const debugPlebbitJsMock = () => {
 }
 
 export class Plebbit extends EventEmitter {
+  async resolveAuthorAddress(authorAddress: string) {}
+
   async createSigner() {
     return {
       privateKey: 'private key',

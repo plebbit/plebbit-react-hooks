@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount} from '../..'
+import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount, useAuthorAddress} from '../..'
 import {commentsPerPage} from '../../stores/authors-comments'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
@@ -25,6 +25,27 @@ const avatarNftImageUrl1 = 'https://cloudflare-ipfs.com/ipfs/QmeSjSinHpPnmXmspMj
 const avatarNftImageUrl2 = 'https://peer.decentraland.org/lambdas/collections/standard/erc721/137/0xf6d8e606c862143556b342149a7fe0558c220375/0/100'
 const authorAddress = '12D3KooW...'
 
+const comment = {
+  author: {
+    address: '12D3KooW9sKUZiFRD8Jh4Zrz2k1paW2L4eQU3kFCGDVejC1Eu9Xw',
+    displayName: 'plebeius.eth',
+  },
+  content: 'test',
+  depth: 0,
+  ipnsName: '12D3KooWHhU9b7wXsFqW2pEqX3mngeWqEBr7NonjVyTY3mC6sk7e',
+  previousCid: 'Qmf8Pj7D7jFn2Ue8qwm2RFop3E8Q7LcFT6pz4ssekgVtsj',
+  protocolVersion: '1.0.0',
+  signature: {
+    publicKey: 'AMGyneyCj/3x17tKh7jOIcvka/OpRlGfCasNpYccfNI',
+    signature: '+ixn9hY2nBlzRwLEGGE5+JgbnuRAAZQxkv4Kz9wM6as3sA0tA8PuOyCHe29rcNl9gOzLtCmYCARQOqHpmA05CQ',
+    signedPropertyNames: ['subplebbitAddress', 'author', 'timestamp', 'content', 'title', 'link', 'parentCid'],
+    type: 'ed25519',
+  },
+  subplebbitAddress: '12D3KooWG3XbzoVyAE6Y9vHZKF64Yuuu4TjdgQKedk14iYmTEPWu',
+  timestamp: 1686133292,
+  title: 'test',
+}
+
 describe('authors', () => {
   let author: Author
 
@@ -43,6 +64,29 @@ describe('authors', () => {
 
   afterAll(() => {
     testUtils.restoreAll()
+  })
+
+  describe('useAuthorAddress', () => {
+    let rendered: any, waitFor: any
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options: any) => {
+        const useAuthorCommentsResult = useAuthorAddress(options)
+        return useAuthorCommentsResult
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('no crypto name', async () => {
+      rendered.rerender({comment})
+      await waitFor(() => rendered.result.current.authorAddress)
+      expect(rendered.result.current.authorAddress).toBe(comment.author.address)
+      expect(rendered.result.current.error).toBe(undefined)
+    })
   })
 
   describe('useAuthorComments', () => {

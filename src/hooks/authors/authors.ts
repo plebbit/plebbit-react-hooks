@@ -15,11 +15,13 @@ import {
   UseAuthorAvatarResult,
   UseResolvedAuthorAddressOptions,
   UseResolvedAuthorAddressResult,
+  UseAuthorAddressOptions,
+  UseAuthorAddressResult,
 } from '../../types'
 import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/chain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
-import {useAuthorCommentsName} from './utils'
+import {useAuthorCommentsName, usePlebbitAddress} from './utils'
 import useAuthorsCommentsStore from '../../stores/authors-comments'
 
 /**
@@ -217,6 +219,53 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
       errors,
     }),
     [imageUrl, metadataUrl, chainProvider, state, error]
+  )
+}
+
+/**
+ * @param author - The Author object to resolve the address of.
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
+export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAddressResult {
+  assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`)
+  const {comment, accountName} = options || {}
+  const account = useAccount({accountName})
+  const [resolvedAddress, setResolvedAddress] = useState<string>()
+
+  useEffect(() => {
+    if (!account?.plebbit || !comment?.author?.address) {
+      return
+    }
+    account.plebbit
+      .resolveAuthorAddress(comment?.author?.address)
+      .then((resolvedAddress: string) => setResolvedAddress(resolvedAddress))
+      .catch((error: any) => log.error('useAuthorAddress error', {error, comment}))
+  }, [account?.plebbit, comment?.author?.address])
+
+  const signerAddress = usePlebbitAddress(comment?.signature?.publicKey)
+
+  // use signer address by default
+  let authorAddress = signerAddress
+
+  // author address was resolved successfully, use author address
+  if (resolvedAddress && signerAddress === resolvedAddress) {
+    authorAddress = comment?.author?.address
+  }
+
+  const isCryptoName = useMemo(() => {
+    return !comment?.author?.address?.match?.('.')
+  }, [comment?.author?.address])
+
+  return useMemo(
+    () => ({
+      authorAddress,
+      state: 'initializing',
+      error: undefined,
+      errors: [],
+    }),
+    [authorAddress]
   )
 }
 

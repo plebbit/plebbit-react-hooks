@@ -1,6 +1,6 @@
 import { AccountNamesToAccountIds, Accounts, AccountsVotes, AccountsEdits, AccountsComments, AccountsCommentsReplies, CommentCidsToAccountsComments } from '../../types';
 export declare const listeners: any;
-declare type AccountsState = {
+type AccountsState = {
     accounts: Accounts;
     accountIds: string[];
     activeAccountId: string | undefined;

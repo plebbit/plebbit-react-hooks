@@ -4,6 +4,7 @@ export declare const simulateLoadingTime: () => Promise<unknown>;
 export declare const resetPlebbitJsMock: () => void;
 export declare const debugPlebbitJsMock: () => void;
 export declare class Plebbit extends EventEmitter {
+    resolveAuthorAddress(authorAddress: string): Promise<void>;
     createSigner(): Promise<{
         privateKey: string;
         address: string;

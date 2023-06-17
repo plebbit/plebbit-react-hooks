@@ -1,6 +1,6 @@
 import { Subplebbits } from '../../types';
 export declare const listeners: any;
-export declare type SubplebbitsState = {
+export type SubplebbitsState = {
     subplebbits: Subplebbits;
     errors: {
         [subplebbitAddress: string]: Error[];

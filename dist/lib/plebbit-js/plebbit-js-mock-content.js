@@ -188,7 +188,7 @@ const getCidHash = (string) => __awaiter(void 0, void 0, void 0, function* () {
     return cid;
 });
 const seedToCid = (seed) => __awaiter(void 0, void 0, void 0, function* () {
-    assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `seedToCid seed argument must be positive number not '${seed}'`);
+    assert(typeof seed === 'number' && !Number.isNaN(seed) && seed >= 0, `seedToCid seed argument must be positive number not '${seed}'`);
     let base10Seed = String(seed);
     // seed base10 string is usually too small for a cid, make it longer
     // the cid is usually around 46 chars in base58, so 80 chars in base10
@@ -215,7 +215,7 @@ const getNumberHash = (string) => __awaiter(void 0, void 0, void 0, function* ()
 class _SeedIncrementer {
     constructor(seed) {
         this.index = 0;
-        assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`);
+        assert(typeof seed === 'number' && !Number.isNaN(seed) && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`);
         this.seed = seed;
         this.numbers = String(seed)
             .split('')
@@ -229,7 +229,7 @@ class _SeedIncrementer {
 }
 export const SeedIncrementer = (seed) => new _SeedIncrementer(seed);
 const getNumberBetween = (min, max, seed) => __awaiter(void 0, void 0, void 0, function* () {
-    assert(typeof seed === 'number' && seed !== NaN && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`);
+    assert(typeof seed === 'number' && !Number.isNaN(seed) && seed >= 0, `getNumberBetween seed argument must be positive number not '${seed}'`);
     // if the string is exponent, remove chars
     if (String(seed).match(/[^0-9]/)) {
         throw Error(`getNumberBetween seed too large '${seed}'`);
@@ -243,7 +243,7 @@ const getArrayItem = (array, seed) => __awaiter(void 0, void 0, void 0, function
     return array[index];
 });
 export const getImageUrl = (_seed) => __awaiter(void 0, void 0, void 0, function* () {
-    assert(typeof _seed === 'number' && _seed !== NaN && _seed >= 0, `getImageUrl seed argument must be positive number not '${_seed}'`);
+    assert(typeof _seed === 'number' && !Number.isNaN(_seed) && _seed >= 0, `getImageUrl seed argument must be positive number not '${_seed}'`);
     const seed = SeedIncrementer(_seed);
     const jpg = `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed.increment())}/${yield getNumberBetween(10, 2000, seed.increment())}/${yield getNumberBetween(10, 2000, seed.increment())}.jpg`;
     const webp = `https://picsum.photos/seed/${yield getNumberBetween(10, 2000, seed.increment())}/${yield getNumberBetween(10, 2000, seed.increment())}/${yield getNumberBetween(10, 2000, seed.increment())}.webp`;
@@ -263,7 +263,7 @@ export const getImageUrl = (_seed) => __awaiter(void 0, void 0, void 0, function
     return imageUrl;
 });
 const getAuthorAddress = (_seed) => __awaiter(void 0, void 0, void 0, function* () {
-    assert(typeof _seed === 'number' && _seed !== NaN && _seed >= 0, `getAuthorAddress seed argument must be positive number not '${_seed}'`);
+    assert(typeof _seed === 'number' && !Number.isNaN(_seed) && _seed >= 0, `getAuthorAddress seed argument must be positive number not '${_seed}'`);
     const seed = SeedIncrementer(_seed);
     const hasEns = yield getArrayItem([true, false, false, false], seed.increment());
     if (hasEns) {
@@ -627,6 +627,9 @@ class Plebbit extends EventEmitter {
                 address: yield getCidHash(String(Math.random())),
             };
         });
+    }
+    resolveAuthorAddress(authorAddress) {
+        return __awaiter(this, void 0, void 0, function* () { });
     }
     createSubplebbit(createSubplebbitOptions) {
         return __awaiter(this, void 0, void 0, function* () {

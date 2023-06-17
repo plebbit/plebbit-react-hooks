@@ -164,6 +164,12 @@ export interface UseAuthorAvatarResult extends Result {
     metadataUrl: string | undefined;
     chainProvider: ChainProvider | undefined;
 }
+export interface UseAuthorAddressOptions extends Options {
+    comment?: Comment;
+}
+export interface UseAuthorAddressResult extends Result {
+    authorAddress: string | undefined;
+}
 export interface UsePublishCommentOptions extends Options {
     onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
     onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>;
@@ -241,93 +247,93 @@ export interface UseBlockResult extends Result {
  * https://github.com/plebbit/plebbit-js or
  * https://github.com/plebbit/plebbit-react-hooks/blob/master/docs/schema.md
  */
-export declare type Account = {
+export type Account = {
     [key: string]: any;
 };
-export declare type AccountsActions = {
+export type AccountsActions = {
     [key: string]: any;
 };
-export declare type PublishCommentOptions = {
+export type PublishCommentOptions = {
     [key: string]: any;
 };
-export declare type PublishVoteOptions = {
+export type PublishVoteOptions = {
     [key: string]: any;
 };
-export declare type PublishCommentEditOptions = {
+export type PublishCommentEditOptions = {
     [key: string]: any;
 };
-export declare type PublishSubplebbitEditOptions = {
+export type PublishSubplebbitEditOptions = {
     [key: string]: any;
 };
-export declare type Challenge = {
+export type Challenge = {
     [key: string]: any;
 };
-export declare type ChallengeVerification = {
+export type ChallengeVerification = {
     [key: string]: any;
 };
-export declare type CreateCommentOptions = {
+export type CreateCommentOptions = {
     [key: string]: any;
 };
-export declare type CreateSubplebbitOptions = {
+export type CreateSubplebbitOptions = {
     [key: string]: any;
 };
-export declare type CreateVoteOptions = {
+export type CreateVoteOptions = {
     [key: string]: any;
 };
-export declare type Comment = {
+export type Comment = {
     [key: string]: any;
 };
-export declare type Vote = {
+export type Vote = {
     [key: string]: any;
 };
-export declare type CommentEdit = {
+export type CommentEdit = {
     [key: string]: any;
 };
-export declare type SubplebbitEdit = {
+export type SubplebbitEdit = {
     [key: string]: any;
 };
-export declare type Subplebbit = {
+export type Subplebbit = {
     [key: string]: any;
 };
-export declare type SubplebbitStats = {
+export type SubplebbitStats = {
     [key: string]: any;
 };
-export declare type Notification = {
+export type Notification = {
     [key: string]: any;
 };
-export declare type Nft = {
+export type Nft = {
     [key: string]: any;
 };
-export declare type Author = {
+export type Author = {
     [key: string]: any;
 };
 /**
  * Subplebbits and comments store
  */
-export declare type Subplebbits = {
+export type Subplebbits = {
     [subplebbitAddress: string]: Subplebbit;
 };
-export declare type Comments = {
+export type Comments = {
     [commentCid: string]: Comment;
 };
 /**
  * Accounts store
  */
-export declare type Accounts = {
+export type Accounts = {
     [accountId: string]: Account;
 };
-export declare type AccountNamesToAccountIds = {
+export type AccountNamesToAccountIds = {
     [accountName: string]: string;
 };
 export interface AccountComment extends Comment {
     index: number;
     accountId: string;
 }
-export declare type AccountComments = AccountComment[];
-export declare type AccountsComments = {
+export type AccountComments = AccountComment[];
+export type AccountsComments = {
     [accountId: string]: AccountComments;
 };
-export declare type CommentCidsToAccountsComments = {
+export type CommentCidsToAccountsComments = {
     [commentCid: string]: {
         accountId: string;
         accountCommentIndex: number;
@@ -336,92 +342,92 @@ export declare type CommentCidsToAccountsComments = {
 export interface AccountCommentReply extends Comment {
     markedAsRead: boolean;
 }
-export declare type AccountCommentsReplies = {
+export type AccountCommentsReplies = {
     [replyCid: string]: AccountCommentReply;
 };
-export declare type AccountsCommentsReplies = {
+export type AccountsCommentsReplies = {
     [accountId: string]: AccountCommentsReplies;
 };
-export declare type AccountsNotifications = {
+export type AccountsNotifications = {
     [accountId: string]: Notification[];
 };
-export declare type Role = {
+export type Role = {
     role: 'owner' | 'admin' | 'moderator';
 };
-export declare type AccountSubplebbit = {
+export type AccountSubplebbit = {
     role: Role;
     autoStart?: boolean;
 };
-export declare type AccountsVotes = {
+export type AccountsVotes = {
     [accountId: string]: AccountVotes;
 };
-export declare type AccountVotes = {
+export type AccountVotes = {
     [commentCid: string]: AccountVote;
 };
-export declare type AccountVote = {
+export type AccountVote = {
     [publishOption: string]: any;
 };
-export declare type AccountsEdits = {
+export type AccountsEdits = {
     [accountId: string]: AccountEdits;
 };
-export declare type AccountEdits = {
+export type AccountEdits = {
     [commentCidOrSubplebbitAddress: string]: AccountEdit[];
 };
-export declare type AccountEdit = {
+export type AccountEdit = {
     [publishOption: string]: any;
 };
 /**
  * Feeds store
  */
-export declare type Feed = Comment[];
-export declare type Feeds = {
+export type Feed = Comment[];
+export type Feeds = {
     [feedName: string]: Feed;
 };
-export declare type FeedOptions = {
+export type FeedOptions = {
     subplebbitAddresses: string[];
     sortType: string;
     accountId: string;
     pageNumber: number;
 };
-export declare type FeedsOptions = {
+export type FeedsOptions = {
     [feedName: string]: FeedOptions;
 };
-export declare type FeedSubplebbitsPostCounts = {
+export type FeedSubplebbitsPostCounts = {
     [subplebbitAddress: string]: number;
 };
-export declare type FeedsSubplebbitsPostCounts = {
+export type FeedsSubplebbitsPostCounts = {
     [feedName: string]: FeedSubplebbitsPostCounts;
 };
-export declare type SubplebbitPage = {
+export type SubplebbitPage = {
     nextCid?: string;
     comments: Comment[];
 };
-export declare type SubplebbitsPages = {
+export type SubplebbitsPages = {
     [pageCid: string]: SubplebbitPage;
 };
 /**
  * Authors comments store
  */
-export declare type AuthorsComments = {
+export type AuthorsComments = {
     [authorCommentsName: string]: Comment[];
 };
-export declare type AuthorCommentsOptions = {
+export type AuthorCommentsOptions = {
     authorAddress: string;
     pageNumber: number;
     filter?: AuthorCommentsFilter;
     accountId: string;
 };
-export declare type AuthorsCommentsOptions = {
+export type AuthorsCommentsOptions = {
     [authorCommentsName: string]: FeedOptions;
 };
-export declare type AuthorCommentsFilter = {
+export type AuthorCommentsFilter = {
     subplebbitAddresses?: string[];
     hasParentCid?: boolean;
 };
 /**
  * Accounts hooks
  */
-export declare type AccountPublicationsFilter = {
+export type AccountPublicationsFilter = {
     subplebbitAddresses?: string[];
     postCids?: string[];
     commentCids?: string[];
@@ -431,10 +437,10 @@ export declare type AccountPublicationsFilter = {
 /**
  * Other
  */
-export declare type ChainProvider = {
+export type ChainProvider = {
     chainId?: number;
     urls?: string[];
 };
-export declare type ChainProviders = {
+export type ChainProviders = {
     [chainTicker: string]: ChainProvider;
 };
