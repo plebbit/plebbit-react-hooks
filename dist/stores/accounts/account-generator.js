@@ -17,7 +17,7 @@ const log = Logger('plebbit-react-hooks:accounts:stores');
 const chainProviders = {
     eth: {
         // default should not use a url, but rather ethers' default provider
-        urls: ['ethers.js', 'https://ethrpc.xyz'],
+        urls: ['ethers.js', 'https://ethrpc.xyz', 'viem'],
         chainId: 1,
     },
     avax: {
