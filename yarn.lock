@@ -1992,9 +1992,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#220c709566d8b680e7dc13722f4e81c8d0f13b3b":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#4fb07fc1763d6803b0ac188db5bfec238af407b4":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#220c709566d8b680e7dc13722f4e81c8d0f13b3b"
+  resolved "https://github.com/plebbit/plebbit-js.git#4fb07fc1763d6803b0ac188db5bfec238af407b4"
   dependencies:
     "@adraffy/ens-normalize" "1.9.2"
     "@keyv/sqlite" "3.6.2"
