@@ -33,7 +33,6 @@
     "prettier": "prettier {src,test,config}/**/*.{cjs,js,jsx,ts,tsx} --config config/prettier.config.js --write"
   },
   "dependencies": {
-    "@adraffy/ens-normalize": "1.9.2",
     "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#ff9e647976dcfca5dc33f2aa5975d66f9be94384",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
     "assert": "2.0.0",
@@ -105,8 +104,5 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
-  },
-  "resolutions": {
-    "@adraffy/ens-normalize": "1.9.2"
   }
 }
