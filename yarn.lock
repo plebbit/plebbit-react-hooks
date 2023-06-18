@@ -2002,11 +2002,10 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#ff9e647976dcfca5dc33f2aa5975d66f9be94384":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#9fb2be4aaa94fc5e94468b66c7591b28ced23cea":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#ff9e647976dcfca5dc33f2aa5975d66f9be94384"
+  resolved "https://github.com/plebbit/plebbit-js.git#9fb2be4aaa94fc5e94468b66c7591b28ced23cea"
   dependencies:
-    "@adraffy/ens-normalize" "1.9.2"
     "@keyv/sqlite" "3.6.2"
     "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
     "@types/node-fetch" "2.6.2"
