@@ -2007,9 +2007,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#574d1730da725a6266da6d69f2fa01f027dadb96":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#77a05093408982086c02afea24e1d1923e1ae8a8":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#574d1730da725a6266da6d69f2fa01f027dadb96"
+  resolved "https://github.com/plebbit/plebbit-js.git#77a05093408982086c02afea24e1d1923e1ae8a8"
   dependencies:
     "@adraffy/ens-normalize" "1.8.3"
     "@keyv/sqlite" "3.6.2"
@@ -2061,7 +2061,6 @@
 
 "@plebbit/plebbit-logger@https://github.com/plebbit/plebbit-logger.git":
   version "0.0.1"
-  uid "9525ca9539479918931c3b334e8d490d1c87e507"
   resolved "https://github.com/plebbit/plebbit-logger.git#9525ca9539479918931c3b334e8d490d1c87e507"
   dependencies:
     debug "4.3.3"
