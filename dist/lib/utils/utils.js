@@ -9,6 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import assert from 'assert';
 import QuickLru from 'quick-lru';
+import PlebbitJs from '../plebbit-js';
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:utils');
 const merge = (...args) => {
     // @ts-ignore
     const clonedArgs = args.map((arg) => {
@@ -215,6 +218,41 @@ export const clientsOnStateChange = (clients, onStateChange) => {
         }
     }
 };
+let plebbit;
+const getShortAddressNoCache = (address) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!address) {
+        return;
+    }
+    if (!plebbit) {
+        plebbit = yield PlebbitJs.Plebbit();
+        plebbit.on('error', (error) => log.error('getShortCid/getShortAddress error', { error }));
+    }
+    try {
+        const comment = yield plebbit.createComment({ author: { address } });
+        return comment.author.shortAddress;
+    }
+    catch (error) {
+        log.error('getShortAddress plebbit.createComment({author: {address}) error', { address, error });
+    }
+});
+export const getShortAddress = memo(getShortAddressNoCache, { maxSize: 200 });
+const getShortCidNoCache = (cid) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!cid) {
+        return;
+    }
+    if (!plebbit) {
+        plebbit = yield PlebbitJs.Plebbit();
+        plebbit.on('error', (error) => log.error('getShortCid/getShortAddress  error', { error }));
+    }
+    try {
+        const comment = yield plebbit.createComment({ cid });
+        return comment.shortCid;
+    }
+    catch (error) {
+        log.error('getShortCid plebbit.createComment({cid}) error', { cid, error });
+    }
+});
+export const getShortCid = memo(getShortCidNoCache, { maxSize: 200 });
 const utils = {
     merge,
     clone,
@@ -226,6 +264,8 @@ const utils = {
     retryInfinityMinTimeout: 1000,
     retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
     clientsOnStateChange,
+    getShortAddress,
+    getShortCid,
 };
 export const retryInfinity = (functionToRetry, options) => __awaiter(void 0, void 0, void 0, function* () {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

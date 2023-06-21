@@ -54,6 +54,7 @@ export const getDefaultPlebbitOptions = () => {
         ipfsHttpClientsOptions: undefined,
         pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.live/api/v0'],
         chainProviders,
+        resolveAuthorAddresses: false,
     };
 };
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {

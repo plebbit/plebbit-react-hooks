@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import assert from 'assert';
 import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
+import useShortAddress from '../utils/use-short-address';
 import memoize from 'memoizee';
 import utils from '../../lib/utils';
-import PlebbitJs from '../../lib/plebbit-js';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:hooks');
 /**
@@ -148,8 +148,9 @@ const useAccountCalculatedProperties = (account, accountComments, accountComment
     }, [accountComments, accountCommentsReplies]);
 };
 export const useAccountWithCalculatedProperties = (account, accountComments, accountCommentsReplies) => {
+    var _a;
     const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies);
-    const shortAddress = useAccountAuthorShortAddress(account);
+    const shortAddress = useShortAddress((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address);
     return useMemo(() => {
         if (!account) {
             return;
@@ -229,19 +230,6 @@ const getAccountCalculatedPropertiesNoCache = (accountComments, notifications) =
     return accountCalculatedProperties;
 };
 const getAccountCalculatedProperties = memoize(getAccountCalculatedPropertiesNoCache, { max: 100 });
-const useAccountAuthorShortAddress = (account) => {
-    var _a;
-    const [shortAddress, setShortAddress] = useState();
-    useEffect(() => {
-        var _a;
-        getAuthorShortAddress((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address).then((_shortAddress) => {
-            if (_shortAddress !== shortAddress) {
-                setShortAddress(_shortAddress);
-            }
-        });
-    }, [(_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address]);
-    return shortAddress;
-};
 const useAccountsAuthorShortAddresses = (accounts) => {
     const [shortAddresses, setShortAddresses] = useState({});
     useEffect(() => {
@@ -252,7 +240,7 @@ const useAccountsAuthorShortAddresses = (accounts) => {
             let shouldUpdate = false;
             for (const accountId in accounts || {}) {
                 const address = (_b = (_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.author) === null || _b === void 0 ? void 0 : _b.address;
-                newShortAddresses[accountId] = yield getAuthorShortAddress(address);
+                newShortAddresses[accountId] = yield utils.getShortAddress(address);
                 if (shortAddresses[accountId] !== newShortAddresses[accountId]) {
                     shouldUpdate = true;
                 }
@@ -264,21 +252,3 @@ const useAccountsAuthorShortAddresses = (accounts) => {
     }, [accounts]);
     return shortAddresses;
 };
-let plebbit;
-const getAuthorShortAddressNoCache = (authorAddress) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!authorAddress) {
-        return;
-    }
-    if (!plebbit) {
-        plebbit = yield PlebbitJs.Plebbit();
-        plebbit.on('error', (error) => log.error('getAuthorShortAddress error', { error }));
-    }
-    try {
-        const comment = yield plebbit.createComment({ author: { address: authorAddress } });
-        return comment.author.shortAddress;
-    }
-    catch (error) {
-        log.error('useAccount plebbit.createComment({author: {address: authorAddress} error', { authorAddress, error });
-    }
-});
-const getAuthorShortAddress = utils.memo(getAuthorShortAddressNoCache, { maxSize: 200 });

@@ -16,6 +16,7 @@ import assert from 'assert';
 import { resolveEnsTxtRecord, resolveEnsTxtRecordNoCache } from '../../lib/chain';
 import { useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted } from './author-avatars';
 import { useComment } from '../comments';
+import useShortAddress from '../utils/use-short-address';
 import { useAuthorCommentsName, usePlebbitAddress } from './utils';
 import useAuthorsCommentsStore from '../../stores/authors-comments';
 /**
@@ -229,12 +230,14 @@ export function useAuthorAddress(options) {
         var _a, _b, _c;
         return !((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
     }, [(_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address]);
+    const shortAuthorAddress = useShortAddress(authorAddress);
     return useMemo(() => ({
         authorAddress,
+        shortAuthorAddress,
         state: 'initializing',
         error: undefined,
         errors: [],
-    }), [authorAddress]);
+    }), [authorAddress, shortAuthorAddress]);
 }
 /**
  * @param author - The author with author.address to resolve to a public key, e.g. 'john.eth' resolves to '12D3KooW...'.
