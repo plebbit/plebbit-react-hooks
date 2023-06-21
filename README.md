@@ -116,6 +116,10 @@ await publishComment()
 
 ```jsx
 const post = useComment({commentCid})
+
+// post.author.address should not be used directly, it needs to be verified asynchronously using useAuthorAddress
+const {authorAddress, shortAuthorAddress} = useAuthorAddress({comment: post})
+// exception: when linking to an author profile page, /u/${comment.author.address}/c/${comment.cid} should be used, not useAuthorAddress({comment}).authorAddress
 ```
 
 #### Get a comment
@@ -127,8 +131,9 @@ const {comments} = useComments({commentCids: [commentCid1, commentCid2, commentC
 // content
 console.log(comment.content || comment.link || comment.title)
 
-// author address
-console.log(comment.author.address)
+// comment.author.address should not be used directly, it needs to be verified asynchronously using useAuthorAddress
+const {authorAddress, shortAuthorAddress} = useAuthorAddress({comment})
+// exception: when linking to an author profile page, /u/${comment.author.address}/c/${comment.cid} should be used, not useAuthorAddress({comment}).authorAddress
 ```
 
 #### Get author avatar
@@ -900,4 +905,13 @@ for (const reply of sortedReplies) {
   // it is recommended to add a 'pending' or 'failed' label to these replies
   console.log(reply)
 }
+```
+
+#### Get a shortCid or shortAddress
+
+```jsx
+import {useShortAddress, useShortCid} from '@plebbit/plebbit-react-hooks'
+
+const shortParentCid = useShortCid(comment.parentCid)
+const shortAddress = useShortAddress(address)
 ```

@@ -231,6 +231,7 @@ export interface UseAuthorAddressOptions extends Options {
 }
 export interface UseAuthorAddressResult extends Result {
   authorAddress: string | undefined
+  shortAuthorAddress: string | undefined
 }
 
 // useCreateAccount(options): result

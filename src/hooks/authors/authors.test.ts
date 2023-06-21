@@ -83,8 +83,9 @@ describe('authors', () => {
 
     test('no crypto name', async () => {
       rendered.rerender({comment})
-      await waitFor(() => rendered.result.current.authorAddress)
+      await waitFor(() => rendered.result.current.authorAddress && rendered.result.current.shortAuthorAddress)
       expect(rendered.result.current.authorAddress).toBe(comment.author.address)
+      expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
       expect(rendered.result.current.error).toBe(undefined)
     })
   })
