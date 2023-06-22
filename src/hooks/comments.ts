@@ -64,10 +64,19 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
     state = 'succeeded'
   }
 
+  // force succeeded if the comment is newer than 5 minutes, no need to display loading skeleton if comment was just created
+  let replyCount = comment?.replyCount
+  if (comment?.replyCount === undefined && comment?.timestamp && comment?.timestamp > Date.now() / 1000 - 60) {
+    state = 'succeeded'
+    // set replyCount because some frontend are likely to check if replyCount === undefined to show a loading skeleton
+    replyCount = 0
+  }
+
   if (account && commentCid) {
     log('useComment', {
       commentCid,
       comment,
+      replyCount,
       state,
       commentFromStore,
       subplebbitsPagesComment,
@@ -80,6 +89,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   return useMemo(
     () => ({
       ...comment,
+      replyCount,
       state,
       error: errors?.[errors.length - 1],
       errors: errors || [],
