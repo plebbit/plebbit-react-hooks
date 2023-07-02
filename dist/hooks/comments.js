@@ -55,10 +55,18 @@ export function useComment(options) {
     if (comment === null || comment === void 0 ? void 0 : comment.updatedAt) {
         state = 'succeeded';
     }
+    // force succeeded if the comment is newer than 5 minutes, no need to display loading skeleton if comment was just created
+    let replyCount = comment === null || comment === void 0 ? void 0 : comment.replyCount;
+    if ((comment === null || comment === void 0 ? void 0 : comment.replyCount) === undefined && (comment === null || comment === void 0 ? void 0 : comment.timestamp) && (comment === null || comment === void 0 ? void 0 : comment.timestamp) > Date.now() / 1000 - 60) {
+        state = 'succeeded';
+        // set replyCount because some frontend are likely to check if replyCount === undefined to show a loading skeleton
+        replyCount = 0;
+    }
     if (account && commentCid) {
         log('useComment', {
             commentCid,
             comment,
+            replyCount,
             state,
             commentFromStore,
             subplebbitsPagesComment,
@@ -67,7 +75,8 @@ export function useComment(options) {
             account,
         });
     }
-    return useMemo(() => (Object.assign(Object.assign({}, comment), { state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [comment, commentCid, errors]);
+    return useMemo(() => (Object.assign(Object.assign({}, comment), { replyCount,
+        state, error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1], errors: errors || [] })), [comment, commentCid, errors]);
 }
 /**
  * @param commentCids - The IPFS CIDs of the comments to get
