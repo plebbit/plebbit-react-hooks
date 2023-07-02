@@ -75,7 +75,7 @@ deleteCaches() // delete the cached comments, cached subplebbits and cached page
 #### Getting started
 
 ```jsx
-import {useComment, useAccount, useBufferedFeeds} from '@plebbit/plebbit-react-hooks'
+import {useComment, useAccount} from '@plebbit/plebbit-react-hooks'
 
 const account = useAccount()
 const comment = useComment({commentCid})
@@ -834,20 +834,20 @@ const useRepliesAndAccountReplies = (comment) => {
 
   // the account's replies have a delay before getting published, so get them locally from accountComments instead
   const accountRepliesNotYetPublished = useMemo(() => {
-    const replies = comment?.replies?.pages?.topAll || []
+    const replies = comment?.replies?.pages?.topAll?.comments || []
     const replyCids = new Set(replies.map(reply => reply.cid))
     // filter out the account comments already in comment.replies, so they don't appear twice
     return accountComments.filter(accountReply => !replyCids.has(accountReply.cid))
-  }, [comment?.replies?.pages?.topAll, accountComments])
+  }, [comment?.replies?.pages?.topAll?.comments, accountComments])
 
   const repliesAndNotYetPublishedReplies = useMemo(() => {
     return [
       // put the author's unpublished replies at the top, latest first (reverse)
       ...accountRepliesNotYetPublished.reverse(),
       // put the published replies after,
-      ...comment?.replies?.pages?.topAll || []
+      ...comment?.replies?.pages?.topAll?.comments || []
     ]
-  }, [comment?.replies?.pages?.topAll, accountRepliesNotYetPublished])
+  }, [comment?.replies?.pages?.topAll?.comments, accountRepliesNotYetPublished])
 
   return repliesAndNotYetPublishedReplies
 }
@@ -914,4 +914,33 @@ import {useShortAddress, useShortCid} from '@plebbit/plebbit-react-hooks'
 
 const shortParentCid = useShortCid(comment.parentCid)
 const shortAddress = useShortAddress(address)
+```
+
+#### Get a shortCid or shortAddress
+
+```jsx
+import {useShortAddress, useShortCid} from '@plebbit/plebbit-react-hooks'
+
+const shortParentCid = useShortCid(comment.parentCid)
+const shortAddress = useShortAddress(address)
+```
+
+#### useBufferedFeeds with concurrency
+
+```jsx
+const useBufferedFeedsWithConcurrency = ({feedOptions}) => {
+
+  const subplebbits = useSubplebbits()
+
+  return useBufferedFeeds({feedsOptions})
+}
+
+const feedOptions = [
+  {subplebbitAddresses: ['news.eth', 'crypto.eth'], sortType: 'new'},
+  {subplebbitAddresses: ['memes.eth'], sortType: 'topWeek'},
+  {subplebbitAddresses: ['12D3KooW...', '12D3KooW...', '12D3KooW...', '12D3KooW...'], sortType: 'hot'},
+  ...
+]
+
+useBufferedFeedsWithConcurrency({feedOptions})
 ```
