@@ -370,6 +370,12 @@ const getPostContent = async (seed: string) => {
       if (imageIsMedia) {
         postContent.link = await getArrayItem(mediaLinks, postNumberSeed.increment())
       }
+      // if link is image, add width and height
+      else {
+        const [, linkWidth, linkHeight] = (postContent.link.match(/\d+\/\d+\/\d+/)?.[0] || '').split('/')
+        postContent.linkWidth = linkWidth
+        postContent.linkHeight = linkHeight
+      }
     }
     const hasThumbnail = await getArrayItem([true, true, true, false], postNumberSeed.increment())
     if (!linkIsImage && hasThumbnail) {
