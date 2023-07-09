@@ -373,8 +373,8 @@ const getPostContent = async (seed: string) => {
       // if link is image, add width and height
       else {
         const [, linkWidth, linkHeight] = (postContent.link.match(/\d+\/\d+\/\d+/)?.[0] || '').split('/')
-        postContent.linkWidth = linkWidth
-        postContent.linkHeight = linkHeight
+        postContent.linkWidth = Number(linkWidth)
+        postContent.linkHeight = Number(linkHeight)
       }
     }
     const hasThumbnail = await getArrayItem([true, true, true, false], postNumberSeed.increment())
