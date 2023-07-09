@@ -369,6 +369,11 @@ const getPostContent = async (seed: string) => {
       const imageIsMedia = await getArrayItem([true, false, false, false], postNumberSeed.increment())
       if (imageIsMedia) {
         postContent.link = await getArrayItem(mediaLinks, postNumberSeed.increment())
+        // add at least one example of video with width and height
+        if (postContent.link === mediaLinks[0]) {
+          postContent.linkWidth = 852
+          postContent.linkHeight = 480
+        }
       }
       // if link is image, add width and height
       else {
