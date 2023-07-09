@@ -307,6 +307,7 @@ const getAuthor = (seed) => __awaiter(void 0, void 0, void 0, function* () {
     return author;
 });
 const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const postNumberSeed = SeedIncrementer(yield getNumberHash(seed));
     const postContent = {
         depth: 0,
@@ -333,6 +334,12 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
             const imageIsMedia = yield getArrayItem([true, false, false, false], postNumberSeed.increment());
             if (imageIsMedia) {
                 postContent.link = yield getArrayItem(mediaLinks, postNumberSeed.increment());
+            }
+            // if link is image, add width and height
+            else {
+                const [, linkWidth, linkHeight] = (((_a = postContent.link.match(/\d+\/\d+\/\d+/)) === null || _a === void 0 ? void 0 : _a[0]) || '').split('/');
+                postContent.linkWidth = Number(linkWidth);
+                postContent.linkHeight = Number(linkHeight);
             }
         }
         const hasThumbnail = yield getArrayItem([true, true, true, false], postNumberSeed.increment());
@@ -406,7 +413,7 @@ const getReplyContent = (getReplyContentOptions, seed) => __awaiter(void 0, void
     return replyContent;
 });
 const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     const subplebbitNumberSeed = SeedIncrementer(yield getNumberHash(seed));
     const subplebbit = {
         pubsubTopic: yield seedToCid(subplebbitNumberSeed.seed),
@@ -442,7 +449,7 @@ const getSubplebbitContent = (seed) => __awaiter(void 0, void 0, void 0, functio
     }
     const hasAuthorFlairs = yield getArrayItem([true, false], subplebbitNumberSeed.increment());
     if (hasAuthorFlairs) {
-        subplebbit.flairs = { post: (_a = subplebbit.flairs) === null || _a === void 0 ? void 0 : _a.post, author: authorFlairs };
+        subplebbit.flairs = { post: (_b = subplebbit.flairs) === null || _b === void 0 ? void 0 : _b.post, author: authorFlairs };
     }
     const hasSuggested = yield getArrayItem([true, false], subplebbitNumberSeed.increment());
     if (hasSuggested) {
