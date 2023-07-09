@@ -49,8 +49,8 @@ export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, vo
         const image = new Image();
         image.onload = () => {
             const dimensions = {
-                height: image.height,
                 width: image.width,
+                height: image.height,
             };
             resolve(dimensions);
         };
@@ -69,8 +69,8 @@ export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, vo
         video.loop = false;
         video.addEventListener('loadeddata', () => {
             const dimensions = {
-                height: video.videoHeight,
                 width: video.videoWidth,
+                height: video.videoHeight,
             };
             resolve(dimensions);
             // prevent video from playing
@@ -100,8 +100,8 @@ export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, vo
             }
             const dimensions = yield Promise.race([fetchImageDimensions(link), fetchVideoDimensions(link)]);
             return {
-                linkHeight: dimensions.height,
                 linkWidth: dimensions.width,
+                linkHeight: dimensions.height,
             };
         }
         catch (error) {
