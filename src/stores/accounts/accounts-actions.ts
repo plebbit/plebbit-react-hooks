@@ -22,7 +22,7 @@ import {
   AccountComment,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
-import {getAccountSubplebbits, getCommentCidsToAccountsComments} from './utils'
+import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions} from './utils'
 import utils from '../../lib/utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
@@ -418,10 +418,16 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     author.previousCommentCid = previousCommentCid
   }
 
+  // fetch comment.link dimensions
+  publishCommentOptions.onPublishingStateChange?.('fetching-link-dimensions')
+  const commentLinkDimensions = await fetchCommentLinkDimensions(publishCommentOptions.link)
+  publishCommentOptions.onPublishingStateChange?.('stopped')
+
   let createCommentOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
     author,
     signer: account.signer,
+    ...commentLinkDimensions,
     ...publishCommentOptions,
   }
   delete createCommentOptions.onChallenge

@@ -1,5 +1,7 @@
 import {Account, Role, Subplebbits, AccountsComments, CommentCidsToAccountsComments} from '../../types'
 import assert from 'assert'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:accounts:stores')
 
 const getAuthorAddressRolesFromSubplebbits = (authorAddress: string, subplebbits: Subplebbits) => {
   const roles: {[subplebbitAddress: string]: Role} = {}
@@ -40,9 +42,82 @@ export const getCommentCidsToAccountsComments = (accountsComments: AccountsComme
   return commentCidsToAccountsComments
 }
 
+export const fetchCommentLinkDimensions = async (link: string) => {
+  const fetchImageDimensions = (url: string) =>
+    new Promise((resolve, reject) => {
+      const image = new Image()
+      image.onload = () => {
+        const dimensions = {
+          height: image.height,
+          width: image.width,
+        }
+        resolve(dimensions)
+      }
+      image.onerror = (error) => {
+        reject(Error(`failed fetching image dimensions for url '${url}'`))
+      }
+
+      // max loading time
+      const timeout = 10000
+      setTimeout(() => reject(Error(`failed fetching image dimensions for url '${url}' timeout '${timeout}'`)), timeout)
+
+      // start loading
+      image.src = url
+    })
+
+  const fetchVideoDimensions = (url: string) =>
+    new Promise((resolve, reject) => {
+      const video = document.createElement('video')
+      video.muted = true
+      video.loop = false
+      video.addEventListener('loadeddata', () => {
+        const dimensions = {
+          height: video.videoHeight,
+          width: video.videoWidth,
+        }
+        resolve(dimensions)
+        // prevent video from playing
+        try {
+          video.pause()
+        } catch (e) {}
+        // prevent video from loading
+        try {
+          video.src = ''
+        } catch (e) {}
+      })
+      video.addEventListener('error', (error) => {
+        reject(Error(`failed fetching video dimensions for url '${url}'`))
+      })
+
+      // max loading time
+      const timeout = 30000
+      setTimeout(() => reject(Error(`failed fetching video dimensions for url '${url}' timeout '${timeout}'`)), timeout)
+
+      // start loading
+      video.src = url
+    })
+
+  if (link) {
+    try {
+      if (new URL(link).protocol !== 'https:') {
+        throw Error(`failed fetching comment.link dimensions for link '${link}' not https protocol`)
+      }
+      const dimensions: any = await Promise.race([fetchImageDimensions(link), fetchVideoDimensions(link)])
+      return {
+        linkHeight: dimensions.height,
+        linkWidth: dimensions.width,
+      }
+    } catch (error: any) {
+      log.error('fetchCommentLinkDimensions error', {error, link})
+    }
+  }
+  return {}
+}
+
 const utils = {
   getAccountSubplebbits,
   getCommentCidsToAccountsComments,
+  fetchCommentLinkDimensions,
 }
 
 export default utils
