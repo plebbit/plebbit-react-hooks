@@ -2007,13 +2007,13 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#77a05093408982086c02afea24e1d1923e1ae8a8":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#e0c04caa13c165a2c6cbcbb8bd71193b4062af22":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#77a05093408982086c02afea24e1d1923e1ae8a8"
+  resolved "https://github.com/plebbit/plebbit-js.git#e0c04caa13c165a2c6cbcbb8bd71193b4062af22"
   dependencies:
     "@adraffy/ens-normalize" "1.8.3"
     "@keyv/sqlite" "3.6.2"
-    "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger"
+    "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger#9525ca9539479918931c3b334e8d490d1c87e507"
     "@types/node-fetch" "2.6.2"
     "@types/proper-lockfile" "4.1.2"
     "@types/uuid" "8.3.4"
@@ -2041,7 +2041,7 @@
     open-graph-scraper "5.2.3"
     p-limit "3.1.0"
     peer-id "0.16.0"
-    proper-lockfile "github:plebbit/node-proper-lockfile"
+    proper-lockfile "github:plebbit/node-proper-lockfile#d8b63817f9ea3304d3e048976d72b3108ec076ff"
     retry "0.13.1"
     safe-stable-stringify "2.4.1"
     sha1-uint8array "0.10.3"
@@ -2053,7 +2053,7 @@
     uuid "9.0.0"
     viem "1.0.7"
 
-"@plebbit/plebbit-logger@github:plebbit/plebbit-logger":
+"@plebbit/plebbit-logger@github:plebbit/plebbit-logger#9525ca9539479918931c3b334e8d490d1c87e507":
   version "0.0.1"
   resolved "https://codeload.github.com/plebbit/plebbit-logger/tar.gz/9525ca9539479918931c3b334e8d490d1c87e507"
   dependencies:
@@ -8084,7 +8084,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-"proper-lockfile@github:plebbit/node-proper-lockfile":
+"proper-lockfile@github:plebbit/node-proper-lockfile#d8b63817f9ea3304d3e048976d72b3108ec076ff":
   version "4.1.2"
   resolved "https://codeload.github.com/plebbit/node-proper-lockfile/tar.gz/d8b63817f9ea3304d3e048976d72b3108ec076ff"
   dependencies:
