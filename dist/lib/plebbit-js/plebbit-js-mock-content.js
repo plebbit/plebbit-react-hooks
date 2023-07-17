@@ -334,6 +334,11 @@ const getPostContent = (seed) => __awaiter(void 0, void 0, void 0, function* () 
             const imageIsMedia = yield getArrayItem([true, false, false, false], postNumberSeed.increment());
             if (imageIsMedia) {
                 postContent.link = yield getArrayItem(mediaLinks, postNumberSeed.increment());
+                // add at least one example of video with width and height
+                if (postContent.link === mediaLinks[0]) {
+                    postContent.linkWidth = 852;
+                    postContent.linkHeight = 480;
+                }
             }
             // if link is image, add width and height
             else {
