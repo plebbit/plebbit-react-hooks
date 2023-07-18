@@ -53,6 +53,7 @@ export const createAccount = (accountName) => __awaiter(void 0, void 0, void 0, 
     }
     yield addNewAccountToDatabaseAndState(newAccount);
     log('accountsActions.createAccount', { accountName, account: newAccount });
+    return newAccount;
 });
 export const deleteAccount = (accountName) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds, activeAccountId, accountsComments, accountsVotes } = accountsStore.getState();
