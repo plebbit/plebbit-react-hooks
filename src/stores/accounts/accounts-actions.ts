@@ -421,7 +421,6 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   // fetch comment.link dimensions
   publishCommentOptions.onPublishingStateChange?.('fetching-link-dimensions')
   const commentLinkDimensions = await fetchCommentLinkDimensions(publishCommentOptions.link)
-  publishCommentOptions.onPublishingStateChange?.('stopped')
 
   let createCommentOptions: any = {
     timestamp: Math.round(Date.now() / 1000),
