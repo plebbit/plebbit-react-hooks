@@ -42,6 +42,10 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   if (!feedName || typeof hasMore !== 'boolean') {
     hasMore = true
   }
+  // if the feed is not yet defined, but no subplebbit addresses, doesn't have more
+  if (!subplebbitAddresses?.length) {
+    hasMore = false
+  }
 
   const loadMore = async () => {
     try {
