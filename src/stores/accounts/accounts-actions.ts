@@ -61,8 +61,6 @@ export const createAccount = async (accountName?: string) => {
   }
   await addNewAccountToDatabaseAndState(newAccount)
   log('accountsActions.createAccount', {accountName, account: newAccount})
-
-  return newAccount
 }
 
 export const deleteAccount = async (accountName?: string) => {
