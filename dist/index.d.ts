@@ -43,22 +43,7 @@ declare const hooks: {
     usePublishCommentEdit: typeof usePublishCommentEdit;
     usePublishSubplebbitEdit: typeof usePublishSubplebbitEdit;
     useCreateSubplebbit: typeof useCreateSubplebbit;
-    createAccount: (accountName?: string | undefined) => Promise<{
-        id: string;
-        name: string;
-        author: {
-            address: string;
-        };
-        signer: import("@plebbit/plebbit-js/dist/node/signer").Signer;
-        plebbitOptions: any;
-        plebbit: import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit;
-        subscriptions: never[];
-        blockedAddresses: {};
-        blockedCids: {};
-        subplebbits: {
-            [subplebbitAddress: string]: import("./types").AccountSubplebbit;
-        };
-    }>;
+    createAccount: (accountName?: string | undefined) => Promise<void>;
     deleteAccount: (accountName?: string | undefined) => Promise<void>;
     setAccount: (account: import("./types").Account) => Promise<void>;
     setActiveAccount: (accountName: string) => Promise<void>;
