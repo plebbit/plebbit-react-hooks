@@ -1097,6 +1097,10 @@ class Comment extends Publication {
     if (createCommentOptions?.cid && Object.keys(createCommentOptions).length === 1) {
       this._getCommentOnFirstUpdate = true
     }
+
+    if (this.subplebbitAddress) {
+      this.shortSubplebbitAddress = this.subplebbitAddress.substring(0, 12)
+    }
   }
 
   async update() {
