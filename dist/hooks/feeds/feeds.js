@@ -47,6 +47,10 @@ export function useFeed(options) {
     if (!feedName || typeof hasMore !== 'boolean') {
         hasMore = true;
     }
+    // if the feed is not yet defined, but no subplebbit addresses, doesn't have more
+    if (!(subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.length)) {
+        hasMore = false;
+    }
     const loadMore = () => __awaiter(this, void 0, void 0, function* () {
         try {
             if (!uniqueSubplebbitAddresses || !account) {

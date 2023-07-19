@@ -1,20 +1,5 @@
 import { Account, PublishCommentOptions, PublishVoteOptions, PublishCommentEditOptions, PublishSubplebbitEditOptions, CreateSubplebbitOptions } from '../../types';
-export declare const createAccount: (accountName?: string) => Promise<{
-    id: string;
-    name: string;
-    author: {
-        address: string;
-    };
-    signer: import("@plebbit/plebbit-js/dist/node/signer").Signer;
-    plebbitOptions: any;
-    plebbit: import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit;
-    subscriptions: never[];
-    blockedAddresses: {};
-    blockedCids: {};
-    subplebbits: {
-        [subplebbitAddress: string]: import("../../types").AccountSubplebbit;
-    };
-}>;
+export declare const createAccount: (accountName?: string) => Promise<void>;
 export declare const deleteAccount: (accountName?: string) => Promise<void>;
 export declare const setActiveAccount: (accountName: string) => Promise<void>;
 export declare const setAccount: (account: Account) => Promise<void>;
