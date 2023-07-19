@@ -1059,6 +1059,7 @@ class Comment extends Publication {
   _getCommentOnFirstUpdate = false
   updatingState: string | undefined
   subplebbitAddress: string | undefined
+  shortSubplebbitAddress: string | undefined
 
   constructor(createCommentOptions?: any) {
     super()
