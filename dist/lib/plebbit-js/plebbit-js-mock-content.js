@@ -977,6 +977,9 @@ class Comment extends Publication {
         if ((createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.cid) && Object.keys(createCommentOptions).length === 1) {
             this._getCommentOnFirstUpdate = true;
         }
+        if (this.subplebbitAddress) {
+            this.shortSubplebbitAddress = this.subplebbitAddress.substring(0, 12);
+        }
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {

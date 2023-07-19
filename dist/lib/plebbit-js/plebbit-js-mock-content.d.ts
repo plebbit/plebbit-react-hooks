@@ -95,6 +95,8 @@ declare class Comment extends Publication {
     shortCid: string | undefined;
     _getCommentOnFirstUpdate: boolean;
     updatingState: string | undefined;
+    subplebbitAddress: string | undefined;
+    shortSubplebbitAddress: string | undefined;
     constructor(createCommentOptions?: any);
     update(): Promise<void>;
     simulateUpdateEvent(): Promise<void>;
