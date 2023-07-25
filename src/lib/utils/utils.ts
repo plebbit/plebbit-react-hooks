@@ -231,20 +231,14 @@ export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   }
 }
 
-let plebbit: any
 const getShortAddressNoCache = async (address: string | undefined) => {
   if (!address) {
     return
   }
-  if (!plebbit) {
-    plebbit = await PlebbitJs.Plebbit()
-    plebbit.on('error', (error: any) => log.error('getShortCid/getShortAddress error', {error}))
-  }
   try {
-    const comment = await plebbit.createComment({author: {address}})
-    return comment.author.shortAddress
+    return PlebbitJs.Plebbit.getShortAddress(address)
   } catch (error) {
-    log.error('getShortAddress plebbit.createComment({author: {address}) error', {address, error})
+    log.error('getShortAddress error', {address, error})
   }
 }
 export const getShortAddress = memo(getShortAddressNoCache, {maxSize: 200})
@@ -253,15 +247,10 @@ const getShortCidNoCache = async (cid: string | undefined) => {
   if (!cid) {
     return
   }
-  if (!plebbit) {
-    plebbit = await PlebbitJs.Plebbit()
-    plebbit.on('error', (error: any) => log.error('getShortCid/getShortAddress  error', {error}))
-  }
   try {
-    const comment = await plebbit.createComment({cid})
-    return comment.shortCid
+    return PlebbitJs.Plebbit.getShortCid(cid)
   } catch (error) {
-    log.error('getShortCid plebbit.createComment({cid}) error', {cid, error})
+    log.error('getShortCid error', {cid, error})
   }
 }
 export const getShortCid = memo(getShortCidNoCache, {maxSize: 200})
