@@ -910,10 +910,11 @@ for (const reply of sortedReplies) {
 #### Get a shortCid or shortAddress
 
 ```jsx
-import {useShortAddress, useShortCid} from '@plebbit/plebbit-react-hooks'
+// NOTE: not possible to do from plebbit-react-hooks, needs plebbit-js
+import {getShortAddress, getShortCid} from '@plebbit/plebbit-js'
 
-const shortParentCid = useShortCid(comment.parentCid)
-const shortAddress = useShortAddress(address)
+const shortParentCid = getShortAddress(comment.parentCid)
+const shortAddress = getShortCid(address)
 ```
 
 #### Get a shortCid or shortAddress

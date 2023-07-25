@@ -13,7 +13,6 @@ import type {
 } from '../../types'
 import {useMemo, useState, useEffect} from 'react'
 // @ts-ignore
-import useShortAddress from '../utils/use-short-address'
 import memoize from 'memoizee'
 import utils from '../../lib/utils'
 import PlebbitJs from '../../lib/plebbit-js'
@@ -168,7 +167,7 @@ const useAccountCalculatedProperties = (account?: Account, accountComments?: Acc
 
 export const useAccountWithCalculatedProperties = (account?: Accounts, accountComments?: AccountComments, accountCommentsReplies?: AccountCommentsReplies) => {
   const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies)
-  const shortAddress = useShortAddress(account?.author?.address)
+  const shortAddress = account?.author?.address && PlebbitJs.Plebbit.getShortAddress(account?.author?.address)
   return useMemo(() => {
     if (!account) {
       return
@@ -265,7 +264,7 @@ const useAccountsAuthorShortAddresses = (accounts?: Accounts) => {
       let shouldUpdate = false
       for (const accountId in accounts || {}) {
         const address: string | undefined = accounts?.[accountId]?.author?.address
-        newShortAddresses[accountId] = await utils.getShortAddress(address)
+        newShortAddresses[accountId] = PlebbitJs.Plebbit.getShortAddress(address)
         if (shortAddresses[accountId] !== newShortAddresses[accountId]) {
           shouldUpdate = true
         }

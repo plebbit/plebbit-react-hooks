@@ -6,7 +6,7 @@ import Plebbit from '@plebbit/plebbit-js'
 import assert from 'assert'
 const log = Logger('plebbit-react-hooks:plebbit-js')
 
-const PlebbitJs = {
+const PlebbitJs: any = {
   Plebbit: Plebbit,
 }
 
@@ -19,7 +19,7 @@ const PlebbitJs = {
 export function setPlebbitJs(_Plebbit: any) {
   assert(typeof _Plebbit === 'function', `setPlebbitJs invalid Plebbit argument '${_Plebbit}' not a function`)
   PlebbitJs.Plebbit = _Plebbit
-  log('setPlebbitJs', _Plebbit?.constructor?.name)
+  log('setPlebbitJs', _Plebbit?.name)
 }
 
 export function restorePlebbitJs() {

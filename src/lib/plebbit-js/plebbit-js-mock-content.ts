@@ -1165,6 +1165,19 @@ export class CommentEdit extends Publication {}
 
 export class SubplebbitEdit extends Publication {}
 
-export default async function () {
-  return new Plebbit()
+const createPlebbit: any = async (...args: any) => {
+  return new Plebbit(...args)
 }
+
+createPlebbit.getShortAddress = (address: string) => {
+  if (address.includes('.')) {
+    return address
+  }
+  return address.substring(0, 12)
+}
+
+createPlebbit.getShortCid = (cid: string) => {
+  return cid.substring(0, 12)
+}
+
+export default createPlebbit

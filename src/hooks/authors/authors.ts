@@ -21,9 +21,9 @@ import {
 import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/chain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
-import useShortAddress from '../utils/use-short-address'
 import {useAuthorCommentsName, usePlebbitAddress} from './utils'
 import useAuthorsCommentsStore from '../../stores/authors-comments'
+import PlebbitJs from '../../lib/plebbit-js'
 
 /**
  * @param authorAddress - The address of the author
@@ -259,7 +259,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
     return !comment?.author?.address?.match?.('.')
   }, [comment?.author?.address])
 
-  const shortAuthorAddress = useShortAddress(authorAddress)
+  const shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress)
 
   return useMemo(
     () => ({

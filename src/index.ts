@@ -56,8 +56,6 @@ import {
 // utils
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
 import {deleteDatabases, deleteCaches} from './lib/debug-utils'
-import useShortAddress from './hooks/utils/use-short-address'
-import useShortCid from './hooks/utils/use-short-cid'
 
 // types
 export * from './types'
@@ -115,8 +113,6 @@ export {
   restorePlebbitJs,
   deleteDatabases,
   deleteCaches,
-  useShortAddress,
-  useShortCid,
 }
 
 // IMPORTANT: should be the same as 'export {}'
@@ -172,8 +168,6 @@ const hooks = {
   restorePlebbitJs,
   deleteDatabases,
   deleteCaches,
-  useShortAddress,
-  useShortCid,
 }
 
 export default hooks
