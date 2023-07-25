@@ -27,8 +27,6 @@ import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccounts
 // utils
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
-import useShortAddress from './hooks/utils/use-short-address';
-import useShortCid from './hooks/utils/use-short-cid';
 // types
 export * from './types';
 // IMPORTANT: should be the same as 'export default hooks'
@@ -48,7 +46,7 @@ useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit
 // actions that don't have their own hooks yet
 createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, 
 // utils
-setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, useShortAddress, useShortCid, };
+setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 // IMPORTANT: should be the same as 'export {}'
 const hooks = {
     // accounts
@@ -102,7 +100,5 @@ const hooks = {
     restorePlebbitJs,
     deleteDatabases,
     deleteCaches,
-    useShortAddress,
-    useShortCid,
 };
 export default hooks;

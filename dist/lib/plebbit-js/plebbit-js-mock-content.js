@@ -1042,8 +1042,16 @@ export class CommentEdit extends Publication {
 }
 export class SubplebbitEdit extends Publication {
 }
-export default function () {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Plebbit();
-    });
-}
+const createPlebbit = (...args) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Plebbit(...args);
+});
+createPlebbit.getShortAddress = (address) => {
+    if (address.includes('.')) {
+        return address;
+    }
+    return address.substring(0, 12);
+};
+createPlebbit.getShortCid = (cid) => {
+    return cid.substring(0, 12);
+};
+export default createPlebbit;

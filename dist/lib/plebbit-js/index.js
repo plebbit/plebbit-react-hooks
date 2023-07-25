@@ -14,10 +14,9 @@ const PlebbitJs = {
  * desktop privileges in the Electron build.
  */
 export function setPlebbitJs(_Plebbit) {
-    var _a;
     assert(typeof _Plebbit === 'function', `setPlebbitJs invalid Plebbit argument '${_Plebbit}' not a function`);
     PlebbitJs.Plebbit = _Plebbit;
-    log('setPlebbitJs', (_a = _Plebbit === null || _Plebbit === void 0 ? void 0 : _Plebbit.constructor) === null || _a === void 0 ? void 0 : _a.name);
+    log('setPlebbitJs', _Plebbit === null || _Plebbit === void 0 ? void 0 : _Plebbit.name);
 }
 export function restorePlebbitJs() {
     PlebbitJs.Plebbit = Plebbit;

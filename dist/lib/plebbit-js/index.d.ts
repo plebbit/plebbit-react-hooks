@@ -1,13 +1,4 @@
-declare const PlebbitJs: {
-    Plebbit: {
-        (plebbitOptions?: import("@plebbit/plebbit-js/dist/node/types").PlebbitOptions | undefined): Promise<import("@plebbit/plebbit-js/dist/node/plebbit").Plebbit>;
-        setNativeFunctions: (newNativeFunctions: Partial<import("@plebbit/plebbit-js/dist/node/types").NativeFunctions>) => void;
-        nativeFunctions: {
-            node: import("@plebbit/plebbit-js/dist/node/types").NativeFunctions;
-            browser: import("@plebbit/plebbit-js/dist/node/types").NativeFunctions;
-        };
-    };
-};
+declare const PlebbitJs: any;
 /**
  * replace PlebbitJs with a different implementation, for
  * example to mock it during unit tests, to add mock content

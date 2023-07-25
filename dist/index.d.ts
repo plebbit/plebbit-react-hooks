@@ -7,10 +7,8 @@ import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSub
 import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit } from './stores/accounts/accounts-actions';
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
-import useShortAddress from './hooks/utils/use-short-address';
-import useShortCid from './hooks/utils/use-short-cid';
 export * from './types';
-export { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, useComment, useComments, useEditedComment, useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, useFeed, useBufferedFeeds, useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishSubplebbitEdit, useCreateSubplebbit, createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, useShortAddress, useShortCid, };
+export { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, useComment, useComments, useEditedComment, useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, useFeed, useBufferedFeeds, useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishSubplebbitEdit, useCreateSubplebbit, createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 declare const hooks: {
     useAccount: typeof useAccount;
     useAccounts: typeof useAccounts;
@@ -55,7 +53,5 @@ declare const hooks: {
     restorePlebbitJs: typeof restorePlebbitJs;
     deleteDatabases: () => Promise<[void, void, any, any, any]>;
     deleteCaches: () => Promise<[any, any, any]>;
-    useShortAddress: (address?: string | undefined) => string | undefined;
-    useShortCid: (cid?: string | undefined) => string | undefined;
 };
 export default hooks;
