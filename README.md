@@ -19,6 +19,7 @@ useAccountComment({commentIndex: string}): Comment // get a pending published co
 useAccountComments({filter: AccountPublicationsFilter}): {accountComments: Comment[]} // export or display list of own comments
 useAccountVotes({filter: AccountPublicationsFilter}): {accountVotes: Vote[]}  // export or display list of own votes
 useAccountVote({commentCid: string}): Vote // know if you already voted on some comment
+useAccountEdits({filer: AccountPublicationsFilter}):  {accountEdits: AccountEdit[]}
 useAccountSubplebbits(): {accountSubplebbits: {[subplebbitAddress: string]: AccountSubplebbit}}
 useAccounts(): Account[]
 useNotifications(): {notifications: Notification[], markAsRead: Function}
@@ -27,6 +28,7 @@ useNotifications(): {notifications: Notification[], markAsRead: Function}
 ```
 useComment({commentCid: string}): Comment
 useComments({commentCids: string[]}): {comments: Comment[]}
+useEditedComment({comment: Comment}): {editedComment: Comment | undefined}
 ```
 #### Subplebbits Hooks
 ```
@@ -35,15 +37,18 @@ useSubplebbits({subplebbitAddresses: string[]}): {subplebbits: Subplebbits[]}
 useSubplebbitStats({subplebbitAddress: string}): SubplebbitStats
 useResolvedSubplebbitAddress({subplebbitAddress: string, cache: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own subplebbit address
 ```
+#### Authors Hooks
+```
+useAuthor({authorAddress: string, commentCid: string}): {author: Author | undefined}
+useAuthorAddress({comment: Comment}): {authorAddress: string | undefined, shortAuthorAddress: string | undefined}
+useAuthorComments({authorAddress: string, commentCid: string, filter?: AccountPublicationsFilter}): {authorComments: Comment[], hasMore: boolean, loadMore: Promise<void>}
+useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
+useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
+```
 #### Feeds Hooks
 ```
 useFeed({subplebbitAddresses: string[], sortType?: string}): {feed: Feed, loadMore: function, hasMore: boolean}
 useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
-```
-#### Authors Hooks
-```
-useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
-useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
 ```
 #### Actions Hooks
 ```
