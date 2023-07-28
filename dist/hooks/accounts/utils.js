@@ -10,9 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import assert from 'assert';
 import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
-import useShortAddress from '../utils/use-short-address';
 import memoize from 'memoizee';
-import utils from '../../lib/utils';
+import PlebbitJs from '../../lib/plebbit-js';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:hooks');
 /**
@@ -148,9 +147,9 @@ const useAccountCalculatedProperties = (account, accountComments, accountComment
     }, [accountComments, accountCommentsReplies]);
 };
 export const useAccountWithCalculatedProperties = (account, accountComments, accountCommentsReplies) => {
-    var _a;
+    var _a, _b;
     const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies);
-    const shortAddress = useShortAddress((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address);
+    const shortAddress = ((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address) && PlebbitJs.Plebbit.getShortAddress((_b = account === null || account === void 0 ? void 0 : account.author) === null || _b === void 0 ? void 0 : _b.address);
     return useMemo(() => {
         if (!account) {
             return;
@@ -240,7 +239,7 @@ const useAccountsAuthorShortAddresses = (accounts) => {
             let shouldUpdate = false;
             for (const accountId in accounts || {}) {
                 const address = (_b = (_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.author) === null || _b === void 0 ? void 0 : _b.address;
-                newShortAddresses[accountId] = yield utils.getShortAddress(address);
+                newShortAddresses[accountId] = PlebbitJs.Plebbit.getShortAddress(address);
                 if (shortAddresses[accountId] !== newShortAddresses[accountId]) {
                     shouldUpdate = true;
                 }

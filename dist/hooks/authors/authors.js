@@ -16,9 +16,9 @@ import assert from 'assert';
 import { resolveEnsTxtRecord, resolveEnsTxtRecordNoCache } from '../../lib/chain';
 import { useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted } from './author-avatars';
 import { useComment } from '../comments';
-import useShortAddress from '../utils/use-short-address';
 import { useAuthorCommentsName, usePlebbitAddress } from './utils';
 import useAuthorsCommentsStore from '../../stores/authors-comments';
+import PlebbitJs from '../../lib/plebbit-js';
 /**
  * @param authorAddress - The address of the author
  * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)
@@ -230,7 +230,7 @@ export function useAuthorAddress(options) {
         var _a, _b, _c;
         return !((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
     }, [(_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address]);
-    const shortAuthorAddress = useShortAddress(authorAddress);
+    const shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
     return useMemo(() => ({
         authorAddress,
         shortAuthorAddress,

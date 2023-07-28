@@ -2,8 +2,6 @@ export declare const flattenCommentsPages: (pageInstanceOrPagesInstance: any) =>
 export declare const memo: (functionToMemo: Function, memoOptions: any) => (...args: any) => Promise<any>;
 export declare const memoSync: (functionToMemo: Function, memoOptions: any) => (...args: any) => any;
 export declare const clientsOnStateChange: (clients: any, onStateChange: Function) => void;
-export declare const getShortAddress: (...args: any) => Promise<any>;
-export declare const getShortCid: (...args: any) => Promise<any>;
 declare const utils: {
     merge: (...args: any) => any;
     clone: (obj: any) => any;
@@ -14,8 +12,6 @@ declare const utils: {
     retryInfinityMinTimeout: number;
     retryInfinityMaxTimeout: number;
     clientsOnStateChange: (clients: any, onStateChange: Function) => void;
-    getShortAddress: (...args: any) => Promise<any>;
-    getShortCid: (...args: any) => Promise<any>;
 };
 export declare const retryInfinity: (functionToRetry: any, options?: any) => Promise<any>;
 export default utils;

@@ -90,5 +90,5 @@ export declare class CommentEdit extends Publication {
 }
 export declare class SubplebbitEdit extends Publication {
 }
-export default function (): Promise<Plebbit>;
-export {};
+declare const createPlebbit: any;
+export default createPlebbit;
