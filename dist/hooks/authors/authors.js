@@ -204,11 +204,14 @@ export function useAuthorAvatar(options) {
  */
 // NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
 export function useAuthorAddress(options) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g;
     assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`);
     const { comment, accountName } = options || {};
     const account = useAccount({ accountName });
     const [resolvedAddress, setResolvedAddress] = useState();
+    const isCryptoName = !!((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
+    // don't waste time calculating plebbit address if not a crypto name
+    const signerAddress = usePlebbitAddress(isCryptoName && ((_d = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _d === void 0 ? void 0 : _d.publicKey));
     useEffect(() => {
         var _a, _b;
         if (!(account === null || account === void 0 ? void 0 : account.plebbit) || !((_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address)) {
@@ -218,18 +221,17 @@ export function useAuthorAddress(options) {
             .resolveAuthorAddress((_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address)
             .then((resolvedAddress) => setResolvedAddress(resolvedAddress))
             .catch((error) => log.error('useAuthorAddress error', { error, comment }));
-    }, [account === null || account === void 0 ? void 0 : account.plebbit, (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address]);
-    const signerAddress = usePlebbitAddress((_b = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _b === void 0 ? void 0 : _b.publicKey);
+    }, [account === null || account === void 0 ? void 0 : account.plebbit, (_e = comment === null || comment === void 0 ? void 0 : comment.author) === null || _e === void 0 ? void 0 : _e.address]);
     // use signer address by default
     let authorAddress = signerAddress;
-    // author address was resolved successfully, use author address
+    // if author address was resolved successfully, use author address
     if (resolvedAddress && signerAddress === resolvedAddress) {
-        authorAddress = (_c = comment === null || comment === void 0 ? void 0 : comment.author) === null || _c === void 0 ? void 0 : _c.address;
+        authorAddress = (_f = comment === null || comment === void 0 ? void 0 : comment.author) === null || _f === void 0 ? void 0 : _f.address;
     }
-    const isCryptoName = useMemo(() => {
-        var _a, _b, _c;
-        return !((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
-    }, [(_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address]);
+    // if isn't crypto name, always use author address
+    if (!isCryptoName) {
+        authorAddress = (_g = comment === null || comment === void 0 ? void 0 : comment.author) === null || _g === void 0 ? void 0 : _g.address;
+    }
     const shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
     return useMemo(() => ({
         authorAddress,
