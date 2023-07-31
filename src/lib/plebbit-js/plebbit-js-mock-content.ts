@@ -786,12 +786,12 @@ class Plebbit extends EventEmitter {
     return comment
   }
 
-  async createVote() {
-    return new Vote()
+  async createVote(publishVoteOptions: any) {
+    return new Vote(publishVoteOptions)
   }
 
-  async createCommentEdit() {
-    return new CommentEdit()
+  async createCommentEdit(publishCommentEditOptions: any) {
+    return new CommentEdit(publishCommentEditOptions)
   }
 
   async createSubplebbitEdit() {
@@ -1159,9 +1159,25 @@ class Comment extends Publication {
   }
 }
 
-class Vote extends Publication {}
+class Vote extends Publication {
+  constructor(publishVoteOptions: any) {
+    super()
+    for (const prop in publishVoteOptions) {
+      // @ts-ignore
+      this[prop] = publishVoteOptions[prop]
+    }
+  }
+}
 
-export class CommentEdit extends Publication {}
+export class CommentEdit extends Publication {
+  constructor(publishCommentEditOptions: any) {
+    super()
+    for (const prop in publishCommentEditOptions) {
+      // @ts-ignore
+      this[prop] = publishCommentEditOptions[prop]
+    }
+  }
+}
 
 export class SubplebbitEdit extends Publication {}
 
