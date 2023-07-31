@@ -20,6 +20,7 @@ declare class Publication extends EventEmitter {
     simulateChallengeVerificationEvent(): Promise<void>;
 }
 export declare class CommentEdit extends Publication {
+    constructor(publishCommentEditOptions: any);
 }
 export declare class SubplebbitEdit extends Publication {
 }
