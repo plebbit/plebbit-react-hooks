@@ -713,14 +713,14 @@ class Plebbit extends EventEmitter {
             return comment;
         });
     }
-    createVote() {
+    createVote(publishVoteOptions) {
         return __awaiter(this, void 0, void 0, function* () {
-            return new Vote();
+            return new Vote(publishVoteOptions);
         });
     }
-    createCommentEdit() {
+    createCommentEdit(publishCommentEditOptions) {
         return __awaiter(this, void 0, void 0, function* () {
-            return new CommentEdit();
+            return new CommentEdit(publishCommentEditOptions);
         });
     }
     createSubplebbitEdit() {
@@ -1037,8 +1037,22 @@ class Comment extends Publication {
     }
 }
 class Vote extends Publication {
+    constructor(publishVoteOptions) {
+        super();
+        for (const prop in publishVoteOptions) {
+            // @ts-ignore
+            this[prop] = publishVoteOptions[prop];
+        }
+    }
 }
 export class CommentEdit extends Publication {
+    constructor(publishCommentEditOptions) {
+        super();
+        for (const prop in publishCommentEditOptions) {
+            // @ts-ignore
+            this[prop] = publishCommentEditOptions[prop];
+        }
+    }
 }
 export class SubplebbitEdit extends Publication {
 }
