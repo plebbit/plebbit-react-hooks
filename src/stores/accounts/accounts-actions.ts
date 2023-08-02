@@ -480,7 +480,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         if (!accountComment) {
           return {}
         }
-        const errors = [...accountComment.errors, error]
+        const errors = [...(accountComment.errors || []), error]
         accountComments[accountCommentIndex] = {...accountComment, errors, error}
         return {accountsComments: {...accountsComments, [account.id]: accountComments}}
       })
