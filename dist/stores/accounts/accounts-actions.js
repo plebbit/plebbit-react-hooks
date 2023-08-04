@@ -421,7 +421,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 if (!accountComment) {
                     return {};
                 }
-                const errors = [...accountComment.errors, error];
+                const errors = [...(accountComment.errors || []), error];
                 accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { errors, error });
                 return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
             });
