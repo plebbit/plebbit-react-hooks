@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@adraffy/ens-normalize@1.8.3":
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.8.3.tgz#6084dd00eac37a99bcf91a3a3249cc737cbcb005"
-  integrity sha512-dQn3sYt0tsxyTjVj7Tvpn0L0+G9YP5/w7sjG8WX3s665CzNuiP6b4NKRhwCqR9pIKL1CVSY9te5wmzYWrwAoMQ==
-
 "@adraffy/ens-normalize@1.9.0":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.9.0.tgz#223572538f6bea336750039bb43a4016dcc8182d"
@@ -2019,11 +2014,10 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#8303fd067b326f6a6f415d7cec8c672f2bae2fd5":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#4f5664c6ab2abec91b81086a673576d1095865bc":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#8303fd067b326f6a6f415d7cec8c672f2bae2fd5"
+  resolved "https://github.com/plebbit/plebbit-js.git#4f5664c6ab2abec91b81086a673576d1095865bc"
   dependencies:
-    "@adraffy/ens-normalize" "1.8.3"
     "@ensdomains/eth-ens-namehash" "2.0.15"
     "@keyv/sqlite" "3.6.2"
     "@plebbit/plebbit-logger" "github:plebbit/plebbit-logger#9525ca9539479918931c3b334e8d490d1c87e507"
