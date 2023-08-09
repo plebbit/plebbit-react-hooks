@@ -437,16 +437,19 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   let accountCommentIndex: number
 
   let comment = await account.plebbit.createComment(createCommentOptions)
+  let lastChallenge: Challenge | undefined
   const publishAndRetryFailedChallengeVerification = async () => {
     comment.once('challenge', async (challenge: Challenge) => {
+      lastChallenge = challenge
       publishCommentOptions.onChallenge(challenge, comment)
     })
     comment.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
       publishCommentOptions.onChallengeVerification(challengeVerification, comment)
-      if (!challengeVerification.challengeSuccess) {
+      if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
         createCommentOptions = {...createCommentOptions, timestamp: Math.round(Date.now() / 1000)}
         comment = await account.plebbit.createComment(createCommentOptions)
+        lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
       } else {
         // the challengeverification message of a comment publication should in theory send back the CID
@@ -569,16 +572,19 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   delete createVoteOptions.onPublishingStateChange
 
   let vote = await account.plebbit.createVote(createVoteOptions)
+  let lastChallenge: Challenge | undefined
   const publishAndRetryFailedChallengeVerification = async () => {
     vote.once('challenge', async (challenge: Challenge) => {
+      lastChallenge = challenge
       publishVoteOptions.onChallenge(challenge, vote)
     })
     vote.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
       publishVoteOptions.onChallengeVerification(challengeVerification, vote)
-      if (!challengeVerification.challengeSuccess) {
+      if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
         createVoteOptions = {...createVoteOptions, timestamp: Math.round(Date.now() / 1000)}
         vote = await account.plebbit.createVote(createVoteOptions)
+        lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
       }
     })
@@ -633,16 +639,18 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   delete createCommentEditOptions.onPublishingStateChange
 
   let commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
+  let lastChallenge: Challenge | undefined
   const publishAndRetryFailedChallengeVerification = async () => {
     commentEdit.once('challenge', async (challenge: Challenge) => {
       publishCommentEditOptions.onChallenge(challenge, commentEdit)
     })
     commentEdit.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
       publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit)
-      if (!challengeVerification.challengeSuccess) {
+      if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
         createCommentEditOptions = {...createCommentEditOptions, timestamp: Math.round(Date.now() / 1000)}
         commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
+        lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
       }
     })
@@ -715,16 +723,18 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   delete createSubplebbitEditOptions.onPublishingStateChange
 
   let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
+  let lastChallenge: Challenge | undefined
   const publishAndRetryFailedChallengeVerification = async () => {
     subplebbitEdit.once('challenge', async (challenge: Challenge) => {
       publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit)
     })
     subplebbitEdit.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
       publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit)
-      if (!challengeVerification.challengeSuccess) {
+      if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
         createSubplebbitEditOptions = {...createSubplebbitEditOptions, timestamp: Math.round(Date.now() / 1000)}
         subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
+        lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
       }
     })
