@@ -377,18 +377,21 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     delete createCommentOptions.onPublishingStateChange;
     let accountCommentIndex;
     let comment = yield account.plebbit.createComment(createCommentOptions);
+    let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _e;
         comment.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
+            lastChallenge = challenge;
             publishCommentOptions.onChallenge(challenge, comment);
         }));
         comment.once('challengeverification', (challengeVerification) => __awaiter(void 0, void 0, void 0, function* () {
             var _f;
             publishCommentOptions.onChallengeVerification(challengeVerification, comment);
-            if (!challengeVerification.challengeSuccess) {
+            if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
                 createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp: Math.round(Date.now() / 1000) });
                 comment = yield account.plebbit.createComment(createCommentOptions);
+                lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
             }
             else {
@@ -495,17 +498,20 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     delete createVoteOptions.onError;
     delete createVoteOptions.onPublishingStateChange;
     let vote = yield account.plebbit.createVote(createVoteOptions);
+    let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _h;
         vote.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
+            lastChallenge = challenge;
             publishVoteOptions.onChallenge(challenge, vote);
         }));
         vote.once('challengeverification', (challengeVerification) => __awaiter(void 0, void 0, void 0, function* () {
             publishVoteOptions.onChallengeVerification(challengeVerification, vote);
-            if (!challengeVerification.challengeSuccess) {
+            if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
                 createVoteOptions = Object.assign(Object.assign({}, createVoteOptions), { timestamp: Math.round(Date.now() / 1000) });
                 vote = yield account.plebbit.createVote(createVoteOptions);
+                lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
             }
         }));
@@ -544,6 +550,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     delete createCommentEditOptions.onError;
     delete createCommentEditOptions.onPublishingStateChange;
     let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
+    let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _j;
         commentEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
@@ -551,10 +558,11 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
         }));
         commentEdit.once('challengeverification', (challengeVerification) => __awaiter(void 0, void 0, void 0, function* () {
             publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit);
-            if (!challengeVerification.challengeSuccess) {
+            if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
                 createCommentEditOptions = Object.assign(Object.assign({}, createCommentEditOptions), { timestamp: Math.round(Date.now() / 1000) });
                 commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
+                lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
             }
         }));
@@ -612,6 +620,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     delete createSubplebbitEditOptions.onError;
     delete createSubplebbitEditOptions.onPublishingStateChange;
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
+    let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
         var _l;
         subplebbitEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
@@ -619,10 +628,11 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         }));
         subplebbitEdit.once('challengeverification', (challengeVerification) => __awaiter(void 0, void 0, void 0, function* () {
             publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit);
-            if (!challengeVerification.challengeSuccess) {
+            if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
                 createSubplebbitEditOptions = Object.assign(Object.assign({}, createSubplebbitEditOptions), { timestamp: Math.round(Date.now() / 1000) });
                 subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
+                lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
             }
         }));
