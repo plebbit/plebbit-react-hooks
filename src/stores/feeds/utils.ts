@@ -14,7 +14,6 @@ import {
 } from '../../types'
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
-import {postsPerPage} from './feeds-store'
 
 /**
  * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
@@ -98,7 +97,7 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
 export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => {
   const loadedFeedsMissingPosts: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber} = feedsOptions[feedName]
+    const {pageNumber, postsPerPage} = feedsOptions[feedName]
     const loadedFeedPostCount = pageNumber * postsPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length

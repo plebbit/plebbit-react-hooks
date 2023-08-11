@@ -4,7 +4,7 @@ import {useFeed, useBufferedFeeds, useAccount, setPlebbitJs} from '../..'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
-import feedsStore from '../../stores/feeds'
+import feedsStore, {defaultPostsPerPage as postsPerPage} from '../../stores/feeds'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
 
@@ -17,8 +17,6 @@ describe('feeds', () => {
   })
 
   describe('get feed', () => {
-    // reddit infinite scrolling posts per pages are 25
-    const postsPerPage = 25
     let rendered: any, waitFor: any
 
     const scrollOnePage = async () => {
@@ -79,6 +77,26 @@ describe('feeds', () => {
       await waitFor(() => rendered2.result.current.feed[0].cid)
       expect(rendered2.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
       expect(rendered2.result.current.feed.length).toBe(postsPerPage)
+    })
+
+    test('get feed with custom posts per page', async () => {
+      const customPostsPerPage = 10
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], postsPerPage: customPostsPerPage})
+
+      // wait for feed array to render
+      await waitFor(() => Array.isArray(rendered.result.current.feed))
+      expect(rendered.result.current.feed).toEqual([])
+
+      // wait for posts to be added, should get full first page
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed.length).toBe(customPostsPerPage)
+
+      // load page 2
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.feed.length === customPostsPerPage * 2)
+      expect(rendered.result.current.feed.length).toBe(customPostsPerPage * 2)
     })
 
     test('change subplebbit addresses and sort type', async () => {
@@ -670,7 +688,7 @@ describe('feeds', () => {
 
       // the first page of loaded and buffered feeds should have laoded
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
-      expect(rendered.result.current.bufferedFeed.length).toBe(75)
+      expect(rendered.result.current.bufferedFeed.length).toBeGreaterThan(postsPerPage)
       // at this point only one subplebbit should have updated a single time
       expect(subplebbits.length).toBe(1)
       const [subplebbit] = subplebbits

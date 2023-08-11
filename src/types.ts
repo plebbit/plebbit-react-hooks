@@ -164,6 +164,7 @@ export interface UseResolvedSubplebbitAddressResult extends Result {
 export interface UseFeedOptions extends Options {
   subplebbitAddresses: string[]
   sortType?: string
+  postsPerPage?: number
 }
 export interface UseFeedResult extends Result {
   feed: Comment[]
@@ -512,6 +513,7 @@ export type FeedOptions = {
   sortType: string
   accountId: string
   pageNumber: number
+  postsPerPage: number
 }
 export type FeedsOptions = {[feedName: string]: FeedOptions}
 export type FeedSubplebbitsPostCounts = {[subplebbitAddress: string]: number}

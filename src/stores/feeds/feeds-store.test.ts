@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import useFeedsStore, {postsPerPage} from './feeds-store'
+import useFeedsStore, {defaultPostsPerPage as postsPerPage} from './feeds-store'
 import {SubplebbitPage} from '../../types'
 import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'

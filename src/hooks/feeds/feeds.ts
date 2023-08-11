@@ -16,7 +16,7 @@ import shallow from 'zustand/shallow'
  */
 export function useFeed(options?: UseFeedOptions): UseFeedResult {
   assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`)
-  let {subplebbitAddresses, sortType, accountName} = options || {}
+  let {subplebbitAddresses, sortType, accountName, postsPerPage} = options || {}
   if (!sortType) {
     sortType = 'hot'
   }
@@ -25,7 +25,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
-  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses)
+  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage)
   const [errors, setErrors] = useState<Error[]>([])
 
   // add feed to store
@@ -33,7 +33,10 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
     if (!uniqueSubplebbitAddresses?.length || !account) {
       return
     }
-    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error: unknown) => log.error('useFeed addFeedToStore error', {feedName, error}))
+    const isBufferedFeed = false
+    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage).catch((error: unknown) =>
+      log.error('useFeed addFeedToStore error', {feedName, error})
+    )
   }, [feedName])
 
   const feed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
@@ -200,9 +203,9 @@ function useUniqueSorted(stringsArray?: string[]) {
   }, [stringsArray])
 }
 
-function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[]) {
+function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[], postsPerPage?: number) {
   return useMemo(() => {
-    return JSON.stringify([accountId, sortType, uniqueSubplebbitAddresses])
+    return JSON.stringify([accountId, sortType, uniqueSubplebbitAddresses, postsPerPage])
   }, [accountId, sortType, uniqueSubplebbitAddresses])
 }
 

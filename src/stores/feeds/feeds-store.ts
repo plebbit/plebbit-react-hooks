@@ -27,7 +27,7 @@ import {
 
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
-export const postsPerPage = 25
+export const defaultPostsPerPage = 25
 
 // keep large buffer because fetching cids is slow
 export const subplebbitPostsLeftBeforeNextPage = 50
@@ -57,7 +57,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
   bufferedFeedsSubplebbitsPostCounts: {},
   feedsHaveMore: {},
 
-  async addFeedToStore(feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean) {
+  async addFeedToStore(feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean, postsPerPage?: number) {
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
     assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`)
     assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`)
@@ -66,6 +66,8 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null,
       `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
     )
+    postsPerPage = postsPerPage || defaultPostsPerPage
+    assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`)
 
     const {feedsOptions, updateFeeds} = getState()
     // feed is in store already, do nothing
@@ -74,7 +76,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       return
     }
     // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1}
+    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage}
     log('feedsActions.addFeedToStore', feedOptions)
     setState(({feedsOptions}: any) => {
       // make sure to never overwrite a feed already added
@@ -113,12 +115,12 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     log('feedsActions.incrementFeedPageNumber', {feedName})
 
     assert(
-      feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length,
+      feedsOptions[feedName].pageNumber * feedsOptions[feedName].postsPerPage <= loadedFeeds[feedName].length,
       `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
     )
     setState(({feedsOptions, loadedFeeds}: any) => {
       // don't increment page number before the current page has loaded
-      if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
+      if (feedsOptions[feedName].pageNumber * feedsOptions[feedName].postsPerPage > loadedFeeds[feedName].length) {
         return {}
       }
       const feedOptions = {
