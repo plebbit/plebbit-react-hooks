@@ -23,7 +23,7 @@ import shallow from 'zustand/shallow';
  */
 export function useFeed(options) {
     assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`);
-    let { subplebbitAddresses, sortType, accountName } = options || {};
+    let { subplebbitAddresses, sortType, accountName, postsPerPage } = options || {};
     if (!sortType) {
         sortType = 'hot';
     }
@@ -32,14 +32,15 @@ export function useFeed(options) {
     const addFeedToStore = useFeedsStore((state) => state.addFeedToStore);
     const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber);
     const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses);
-    const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses);
+    const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses, postsPerPage);
     const [errors, setErrors] = useState([]);
     // add feed to store
     useEffect(() => {
         if (!(uniqueSubplebbitAddresses === null || uniqueSubplebbitAddresses === void 0 ? void 0 : uniqueSubplebbitAddresses.length) || !account) {
             return;
         }
-        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
+        const isBufferedFeed = false;
+        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
     }, [feedName]);
     const feed = useFeedsStore((state) => state.loadedFeeds[feedName || '']);
     let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
@@ -183,9 +184,9 @@ function useUniqueSorted(stringsArray) {
         return [...new Set(stringsArray.sort())];
     }, [stringsArray]);
 }
-function useFeedName(accountId, sortType, uniqueSubplebbitAddresses) {
+function useFeedName(accountId, sortType, uniqueSubplebbitAddresses, postsPerPage) {
     return useMemo(() => {
-        return JSON.stringify([accountId, sortType, uniqueSubplebbitAddresses]);
+        return JSON.stringify([accountId, sortType, uniqueSubplebbitAddresses, postsPerPage]);
     }, [accountId, sortType, uniqueSubplebbitAddresses]);
 }
 function useFeedNames(accountId, sortTypes, uniqueSubplebbitAddressesArrays) {

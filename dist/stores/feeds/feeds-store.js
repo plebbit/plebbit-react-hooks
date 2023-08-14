@@ -18,7 +18,7 @@ import subplebbitsPagesStore from '../subplebbits-pages';
 import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, getAccountsBlockedCids, feedsHaveChangedBlockedCids, accountsBlockedCidsChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
-export const postsPerPage = 25;
+export const defaultPostsPerPage = 25;
 // keep large buffer because fetching cids is slow
 export const subplebbitPostsLeftBeforeNextPage = 50;
 // reset all event listeners in between tests
@@ -32,7 +32,7 @@ const feedsStore = createStore((setState, getState) => ({
     loadedFeeds: {},
     bufferedFeedsSubplebbitsPostCounts: {},
     feedsHaveMore: {},
-    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed) {
+    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`);
@@ -40,6 +40,8 @@ const feedsStore = createStore((setState, getState) => ({
             assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`);
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `addFeedToStore.addFeedToStore account '${account}' invalid`);
             assert(typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null, `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`);
+            postsPerPage = postsPerPage || defaultPostsPerPage;
+            assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`);
             const { feedsOptions, updateFeeds } = getState();
             // feed is in store already, do nothing
             // if the feed already exist but is at page 1, reset it to page 1
@@ -47,7 +49,7 @@ const feedsStore = createStore((setState, getState) => ({
                 return;
             }
             // to add a buffered feed, add a feed with pageNumber 0
-            const feedOptions = { subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1 };
+            const feedOptions = { subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage };
             log('feedsActions.addFeedToStore', feedOptions);
             setState(({ feedsOptions }) => {
                 // make sure to never overwrite a feed already added
@@ -77,10 +79,10 @@ const feedsStore = createStore((setState, getState) => ({
         const { feedsOptions, loadedFeeds, updateFeeds } = getState();
         assert(feedsOptions[feedName], `feedsActions.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`);
         log('feedsActions.incrementFeedPageNumber', { feedName });
-        assert(feedsOptions[feedName].pageNumber * postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
+        assert(feedsOptions[feedName].pageNumber * feedsOptions[feedName].postsPerPage <= loadedFeeds[feedName].length, `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`);
         setState(({ feedsOptions, loadedFeeds }) => {
             // don't increment page number before the current page has loaded
-            if (feedsOptions[feedName].pageNumber * postsPerPage > loadedFeeds[feedName].length) {
+            if (feedsOptions[feedName].pageNumber * feedsOptions[feedName].postsPerPage > loadedFeeds[feedName].length) {
                 return {};
             }
             const feedOptions = Object.assign(Object.assign({}, feedsOptions[feedName]), { pageNumber: feedsOptions[feedName].pageNumber + 1 });
