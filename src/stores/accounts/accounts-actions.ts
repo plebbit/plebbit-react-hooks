@@ -467,8 +467,10 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
             }
           })
 
+          // clone the comment or it bugs publishing callbacks
+          const updatingComment = await account.plebbit.createComment({...comment})
           accountsActionsInternal
-            .startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
+            .startUpdatingAccountCommentOnCommentUpdateEvents(updatingComment, account, accountCommentIndex)
             .catch((error: unknown) =>
               log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error})
             )
