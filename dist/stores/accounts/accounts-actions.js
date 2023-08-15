@@ -410,8 +410,10 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                             commentCidsToAccountsComments: Object.assign(Object.assign({}, commentCidsToAccountsComments), { [(_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid]: { accountId: account.id, accountCommentIndex } }),
                         };
                     });
+                    // clone the comment or it bugs publishing callbacks
+                    const updatingComment = yield account.plebbit.createComment(Object.assign({}, comment));
                     accountsActionsInternal
-                        .startUpdatingAccountCommentOnCommentUpdateEvents(comment, account, accountCommentIndex)
+                        .startUpdatingAccountCommentOnCommentUpdateEvents(updatingComment, account, accountCommentIndex)
                         .catch((error) => log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', { comment, account, accountCommentIndex, error }));
                 }
             }
