@@ -455,7 +455,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
         // the challengeverification message of a comment publication should in theory send back the CID
         // of the published comment which is needed to resolve it for replies, upvotes, etc
         if (challengeVerification?.publication?.cid) {
-          const commentWithCid = {...createCommentOptions, cid: challengeVerification.publication.cid}
+          const commentWithCid = comment
           await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
           accountsStore.setState(({accountsComments, commentCidsToAccountsComments}) => {
             const updatedAccountComments = [...accountsComments[account.id]]
