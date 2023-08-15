@@ -398,7 +398,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 // the challengeverification message of a comment publication should in theory send back the CID
                 // of the published comment which is needed to resolve it for replies, upvotes, etc
                 if ((_f = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _f === void 0 ? void 0 : _f.cid) {
-                    const commentWithCid = Object.assign(Object.assign({}, createCommentOptions), { cid: challengeVerification.publication.cid });
+                    const commentWithCid = comment;
                     yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
                     accountsStore.setState(({ accountsComments, commentCidsToAccountsComments }) => {
                         var _a;
