@@ -91,6 +91,10 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     if (JSON.stringify(accountToPutInDatabase.plebbitOptions) === JSON.stringify(getDefaultPlebbitOptions())) {
         delete accountToPutInDatabase.plebbitOptions;
     }
+    // make sure accountToPutInDatabase.plebbitOptions are valid
+    if (accountToPutInDatabase.plebbitOptions) {
+        yield PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions);
+    }
     yield accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase);
     // handle updating accountNamesToAccountIds database
     let accountNamesToAccountIds = yield accountsMetadataDatabase.getItem('accountNamesToAccountIds');
