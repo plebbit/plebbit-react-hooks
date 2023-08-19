@@ -3,6 +3,11 @@
 ```js
 const useStateString = (commentOrSubplebbit) => {
   return useMemo(() => {
+    // dont show state string if the data is already fetched
+    if (commentOrSubplebbit?.updatedAt) {
+      return
+    }
+
     if (!commentOrSubplebbit?.clients) {
       return
     }
@@ -96,6 +101,11 @@ const useStateString = (commentOrSubplebbit) => {
     // capitalize first letter
     if (stateString) {
       stateString = stateString.charAt(0).toUpperCase() + stateString.slice(1)
+    }
+
+    // dont show state string if the data is already fetched
+    if (commentOrSubplebbit?.updatedAt) {
+      return
     }
 
     // if string is empty, return undefined instead
