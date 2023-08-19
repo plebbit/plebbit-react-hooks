@@ -91,7 +91,9 @@ const addAccount = async (account: Account) => {
     delete accountToPutInDatabase.plebbitOptions
   }
   // make sure accountToPutInDatabase.plebbitOptions are valid
-  await PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions)
+  if (accountToPutInDatabase.plebbitOptions) {
+    await PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions)
+  }
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
 
   // handle updating accountNamesToAccountIds database
