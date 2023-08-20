@@ -195,7 +195,7 @@ import {Virtuoso} from 'react-virtuoso'
   useWindowScroll={true}
   components={{Footer: hasMore ? () => <Loading/> : undefined}}
   endReached={loadMore}
-  increaseViewportBy={{bottom: 600, top: 200}}
+  increaseViewportBy={{bottom: 600, top: 600}}
 />
 
 // it is recommended to always redirect the user to the last known comment cid
@@ -482,7 +482,7 @@ const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: ['memes.eth', '1
   useWindowScroll={true}
   components={{Footer: hasMore ? () => <Loading/> : undefined}}
   endReached={loadMore}
-  increaseViewportBy={{bottom: 600, top: 200}}
+  increaseViewportBy={{bottom: 600, top: 600}}
 />
 
 // you probably will want to buffer some feeds in the background so they are already loaded
