@@ -4,7 +4,7 @@
 const useStateString = (commentOrSubplebbit) => {
   return useMemo(() => {
     // dont show state string if the data is already fetched
-    if (commentOrSubplebbit?.updatedAt) {
+    if (commentOrSubplebbit?.updatedAt || commentOrSubplebbit?.state === 'succeeded') {
       return
     }
 
@@ -230,7 +230,7 @@ const useFeedStateString = (subplebbits) => {
     }
 
     if (!subplebbits) {
-      return undefined;
+      return
     }
 
     const states = {}
