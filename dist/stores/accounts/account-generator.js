@@ -52,7 +52,7 @@ export const getDefaultPlebbitOptions = () => {
     return {
         ipfsGatewayUrls: ['https://ipfs.io', 'https://ipfsgateway.xyz', 'https://cloudflare-ipfs.com', 'https://plebpubsub.live'],
         ipfsHttpClientsOptions: undefined,
-        pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.live/api/v0'],
+        pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.live/api/v0', 'https://rannithepleb.com/api/v0'],
         chainProviders,
         resolveAuthorAddresses: false,
     };
