@@ -45,7 +45,14 @@ describe('feeds', () => {
     test('get feed with no arguments', async () => {
       expect(rendered.result.current.feed).toEqual([])
       expect(typeof rendered.result.current.hasMore).toBe('boolean')
+      expect(rendered.result.current.hasMore).toBe(false)
       expect(typeof rendered.result.current.loadMore).toBe('function')
+    })
+
+    test('not yet loaded feed hasMore true', async () => {
+      expect(rendered.result.current.hasMore).toBe(false)
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      expect(rendered.result.current.hasMore).toBe(true)
     })
 
     test('get feed page 1 with 1 subplebbit sorted by default (hot)', async () => {
