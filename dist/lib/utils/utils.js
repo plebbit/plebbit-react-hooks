@@ -149,19 +149,17 @@ export const memo = (functionToMemo, memoOptions) => {
             });
             pendingPromises.set(cacheKey, pendingPromise);
             // execute the function
-            let result;
             try {
-                result = yield functionToMemo(...args);
+                const result = yield functionToMemo(...args);
                 cache.set(cacheKey, result);
                 pendingPromises.delete(cacheKey);
                 resolve === null || resolve === void 0 ? void 0 : resolve(result);
-                return result;
             }
             catch (error) {
                 pendingPromises.delete(cacheKey);
                 reject === null || reject === void 0 ? void 0 : reject(error);
-                throw error;
             }
+            return pendingPromise;
         }),
     };
     return obj[memoedFunctionName];
