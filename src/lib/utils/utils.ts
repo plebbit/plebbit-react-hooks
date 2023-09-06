@@ -156,18 +156,17 @@ export const memo = (functionToMemo: Function, memoOptions: any) => {
       pendingPromises.set(cacheKey, pendingPromise)
 
       // execute the function
-      let result
       try {
-        result = await functionToMemo(...args)
+        const result = await functionToMemo(...args)
         cache.set(cacheKey, result)
         pendingPromises.delete(cacheKey)
         resolve?.(result)
-        return result
       } catch (error) {
         pendingPromises.delete(cacheKey)
         reject?.(error)
-        throw error
       }
+
+      return pendingPromise
     },
   }
   return obj[memoedFunctionName]
