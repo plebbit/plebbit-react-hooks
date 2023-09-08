@@ -34,7 +34,7 @@ import type {
   UsePubsubSubscribeOptions,
   UsePubsubSubscribeResult,
 } from '../../types'
-import {filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications} from './utils'
+import {useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications} from './utils'
 import useInterval from '../utils/use-interval'
 
 /**
@@ -252,7 +252,7 @@ export function useAccountComments(options?: UseAccountCommentsOptions): UseAcco
       return []
     }
     if (filter) {
-      return filterPublications(accountComments, filter)
+      return accountComments.filter(filter)
     }
     return accountComments
   }, [accountComments, filter])
@@ -333,7 +333,7 @@ export function useAccountVotes(options?: UseAccountVotesOptions): UseAccountVot
       accountVotesArray.push(accountVotes[i])
     }
     if (filter) {
-      accountVotesArray = filterPublications(accountVotesArray, filter)
+      accountVotesArray = accountVotesArray.filter(filter)
     }
     return accountVotesArray
   }, [accountVotes, filter])
@@ -403,7 +403,7 @@ export function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEdi
     if (!filter) {
       return accountEditsArray
     }
-    return filterPublications(accountEditsArray, filter)
+    return accountEditsArray.filter(filter)
   }, [accountEditsArray, filter])
 
   // TODO: add failed / pending states

@@ -41,7 +41,7 @@ useResolvedSubplebbitAddress({subplebbitAddress: string, cache: boolean}): {reso
 ```
 useAuthor({authorAddress: string, commentCid: string}): {author: Author | undefined}
 useAuthorAddress({comment: Comment}): {authorAddress: string | undefined, shortAuthorAddress: string | undefined}
-useAuthorComments({authorAddress: string, commentCid: string, filter?: AccountPublicationsFilter}): {authorComments: Comment[], hasMore: boolean, loadMore: Promise<void>}
+useAuthorComments({authorAddress: string, commentCid: string, filter?: CommentsFilter}): {authorComments: Comment[], hasMore: boolean, loadMore: Promise<void>}
 useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
 useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
 ```
@@ -554,29 +554,23 @@ for (const accountComment of accountComments) {
 const {accountVotes} = useAccountVotes()
 
 // my own comments in memes.eth
-const myCommentsInMemesEth = useAccountComments({
-  filter: {subplebbitAddresses: ['memes.eth']}
-})
+const subplebbitAddress = 'memes.eth'
+const filter = useMemo(() => (comment) => comment.subplebbitAddress === subplebbitAddress, [subplebbitAddress]) // important to use useMemo or the same function or will cause rerenders
+const myCommentsInMemesEth = useAccountComments({filter})
 
 // my own posts in memes.eth
-const myPostsInMemesEth = useAccountComments({
-  filter: {
-    hasParentCommentCid: false, 
-    subplebbitAddresses: ['memes.eth']
-  }
-})
+const filter = useMemo(() => (comment) => comment.subplebbitAddress === subplebbitAddress && !comment.parentCid, [subplebbitAddress])
+const myPostsInMemesEth = useAccountComments({filter})
 
 // my own replies in a post with cid 'Qm...'
 const postCid = 'Qm...'
-const myCommentsInSomePost = useAccountComments({
-  filter: {postCids: [postCid]}
-})
+const filter = useMemo(() => (comment) => comment.postCid === postCid, [postCid])
+const myCommentsInSomePost = useAccountComments({filter})
 
 // my own replies to a comment with cid 'Qm...'
 const parentCommentCid = 'Qm...'
-const myRepliesToSomeComment = useAccountComments({
-  filter: {parentCids: [parentCommentCid]}
-})
+const filter = useMemo(() => (comment) => comment.parentCid === parentCommentCid, [parentCommentCid])
+const myRepliesToSomeComment = useAccountComments({filter})
 
 // know if you upvoted a comment already with cid 'Qm...'
 const {vote} = useAccountVote({commentCid: 'Qm...'})
@@ -819,11 +813,13 @@ for (const accountEdit of accountEdits) {
 console.log(`there's ${accountEdits.length} account edits`)
 
 // get only the account edits of a specific comment
-const filter = {commentCids: ['Qm...']}
+const commentCid = 'Qm...'
+const filter = useMemo(() => (edit) => edit.commentCid === commentCid, [commentCid]) // important to use useMemo or the same function or will cause rerenders
 const {accountEdits} = useAccountEdits({filter})
 
 // only get account edits in a specific subplebbit
-const filter = {subplebbitAddresses: ['news.eth']}
+const subplebbitAddress = 'news.eth'
+const filter = useMemo(() => (edit) => edit.subplebbitAddress === subplebbitAddress, [subplebbitAddress])
 const {accountEdits} = useAccountEdits({filter})
 ```
 
@@ -834,7 +830,7 @@ import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 
 const useRepliesAndAccountReplies = (comment) => {
   // filter only the parent cid
-  const filter = useMemo(() => ({parentCids: [comment?.cid || 'n/a']}), [comment?.cid])
+  const filter = useMemo(() => (accountComment) => accountComment.parentCid === comment?.cid || 'n/a', [comment?.cid])
   const {accountComments} = useAccountComments({filter})
 
   // the account's replies have a delay before getting published, so get them locally from accountComments instead
@@ -892,7 +888,10 @@ const comment = useComment({commentCid})
 const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [comment.replies])
 
 // the account replies to the post (commentCid) and account replies to all the post's replies
-const filter = useMemo(() => ({parentCids: [commentCid || 'n/a', ...flattenedReplies.map(reply => reply.cid)]}), [flattenedReplies])
+const filter = useMemo(() => {
+  const postAndRepliesCids = new Set([commentCid || 'n/a', ...flattenedReplies.map(reply => reply.cid)])
+  return (accountComment) => postAndRepliesCids.has(accountComment.parentCid)
+}, [commentCid, flattenedReplies])
 const {accountComments} = useAccountComments({filter})
 
 // the account's replies have a delay before getting published, so get them locally from accountComments instead

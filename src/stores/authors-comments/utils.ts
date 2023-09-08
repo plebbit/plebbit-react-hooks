@@ -1,4 +1,4 @@
-import {AccountPublicationsFilter, Comment, Comments, AuthorCommentsFilter} from '../../types'
+import {Comment, Comments, CommentsFilter} from '../../types'
 import {commentsPerPage} from './authors-comments-store'
 import assert from 'assert'
 import commentsStore from '../comments'
@@ -7,7 +7,7 @@ export const getUpdatedLoadedAndBufferedComments = (
   loadedComments: Comment[],
   bufferedComments: Comment[],
   pageNumber: number,
-  filter: AccountPublicationsFilter | undefined,
+  filter: CommentsFilter | undefined,
   comments: Comments
 ) => {
   const newBufferedComments = getUpdatedBufferedComments(loadedComments, bufferedComments, filter, comments)
@@ -24,7 +24,7 @@ export const getUpdatedLoadedAndBufferedComments = (
   return {loadedComments: newLoadedComments, bufferedComments: newBufferedComments}
 }
 
-export const getUpdatedBufferedComments = (loadedComments: Comment[], bufferedComments: Comment[], filter: AccountPublicationsFilter | undefined, comments: Comments) => {
+export const getUpdatedBufferedComments = (loadedComments: Comment[], bufferedComments: Comment[], filter: CommentsFilter | undefined, comments: Comments) => {
   // get previous loaded comment cids
   const previousLoadedCommentCids: {[commentCid: string]: boolean} = {}
   for (const comment of loadedComments) {
@@ -36,7 +36,7 @@ export const getUpdatedBufferedComments = (loadedComments: Comment[], bufferedCo
 
   // filter buffered comments
   if (filter) {
-    newBufferedComments = filterAuthorComments(newBufferedComments, filter)
+    newBufferedComments = newBufferedComments.filter(filter)
   }
 
   // sort buffered comments by timestamp (newest first)
@@ -67,28 +67,6 @@ const commentsHaveChanged = (comments1: Comment[], comments2: Comment[]) => {
     }
   }
   return false
-}
-
-export const filterAuthorComments = (authorComments: Comment[], filter: AuthorCommentsFilter) => {
-  assert(
-    !filter.subplebbitAddresses || Array.isArray(filter.subplebbitAddresses),
-    `authorsCommentsStore filterAuthorComments invalid argument filter.subplebbitAddresses '${filter.subplebbitAddresses}' not an array`
-  )
-  const filtered = []
-  for (const authorComment of authorComments) {
-    let isFilteredOut = false
-    if (filter.subplebbitAddresses?.length && !filter.subplebbitAddresses.includes(authorComment.subplebbitAddress)) {
-      isFilteredOut = true
-    }
-    if (typeof filter.hasParentCid === 'boolean' && filter.hasParentCid !== Boolean(authorComment.parentCid)) {
-      isFilteredOut = true
-    }
-    if (!isFilteredOut) {
-      filtered.push(authorComment)
-    } else {
-    }
-  }
-  return filtered
 }
 
 // if comment already exist, find the actual nextCidToFetch

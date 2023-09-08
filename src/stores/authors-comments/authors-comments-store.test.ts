@@ -4,7 +4,7 @@ import useAuthorsCommentsStore, {resetAuthorsCommentsDatabaseAndStore, commentsP
 import accountsStore from '../accounts'
 import commentsStore from '../comments'
 import {getUpdatedBufferedComments} from './utils'
-import {AuthorCommentsFilter, Comment, Account} from '../../types'
+import {CommentsFilter, Comment, Account} from '../../types'
 import {setPlebbitJs} from '../..'
 import PlebbitJsMock, {Plebbit} from '../../lib/plebbit-js/plebbit-js-mock'
 setPlebbitJs(PlebbitJsMock)
@@ -396,7 +396,7 @@ describe('authors comments store', () => {
 
     // add another author comments with post filter
     const postFilterName = authorAddress + '-post-filter'
-    const postFilter = {hasParentCid: false}
+    const postFilter = (comment: Comment) => !comment.parentCid
     act(() => {
       rendered.result.current.addAuthorCommentsToStore(postFilterName, authorAddress, commentCid, postFilter, account)
     })
@@ -415,7 +415,7 @@ describe('authors comments store', () => {
 
     // add another author comments with reply filter
     const replyFilterName = authorAddress + '-reply-filter'
-    const replyFilter = {hasParentCid: true}
+    const replyFilter = (comment: Comment) => !!comment.parentCid
     act(() => {
       rendered.result.current.addAuthorCommentsToStore(replyFilterName, authorAddress, commentCid, replyFilter, account)
     })
@@ -437,7 +437,7 @@ describe('authors comments store', () => {
 
     // add another author comments with empty filter
     const emptyFilterName = authorAddress + '-empty-filter'
-    const emptyFilter = {}
+    const emptyFilter = () => true
     act(() => {
       rendered.result.current.addAuthorCommentsToStore(emptyFilterName, authorAddress, commentCid, emptyFilter, account)
     })
@@ -450,7 +450,7 @@ describe('authors comments store', () => {
 
     // add another author comments with subplebbit filter (0 matching)
     const subplebbitFilterName = authorAddress + '-subplebbit-filter'
-    const subplebbitFilter = {subplebbitAddresses: [`doesn't exist`]}
+    const subplebbitFilter = (comment: Comment) => comment.subplebbitAddress === `doesn't exist`
     act(() => {
       rendered.result.current.addAuthorCommentsToStore(subplebbitFilterName, authorAddress, commentCid, subplebbitFilter, account)
     })
@@ -525,8 +525,8 @@ describe('authors comments store', () => {
     const author1 = 'author1.eth'
     const author2 = 'author2.eth'
     const author3 = 'author3.eth'
-    const replyFilter = {hasParentCid: true}
-    const postAndSubplebbitFilter = {hasParentCid: false, subplebbitAddresses: ['subplebbit2.eth']}
+    const replyFilter = (comment: any) => !!comment.parentCid
+    const postAndSubplebbitFilter = (comment: any) => !comment.parentCid && comment.subplebbitAddress === 'subplebbit2.eth'
     const author1Name = `${author1}-name`
     const author2Name = `${author2}-name`
     const author3Name = `${author3}-name`
@@ -546,7 +546,7 @@ describe('authors comments store', () => {
       authorCommentsName: string,
       authorAddress: string,
       startCid: string,
-      filter: AuthorCommentsFilter | undefined,
+      filter: CommentsFilter | undefined,
       totalAuthorCommentCount: number,
       totalAuthorCommentCountFromLastCommentCid: number
     ) => {
@@ -571,15 +571,13 @@ describe('authors comments store', () => {
       // scroll all pages
       let commentCount = totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid
       // 1/3 of comments are replies
-      if (filter?.hasParentCid === true) {
+      if (filter === replyFilter) {
         commentCount = Math.ceil(commentCount / 3)
       }
-      // 2/3 of comments are posts
-      if (filter?.hasParentCid === false) {
+      if (filter === postAndSubplebbitFilter) {
+        // 2/3 of comments are posts
         commentCount = Math.ceil((commentCount / 3) * 2)
-      }
-      // 1/2 of subplebbits are filtered
-      if (filter?.subplebbitAddresses) {
+        // 1/2 of subplebbits are filtered
         commentCount = Math.ceil(commentCount / 2)
       }
       await scrollPagesToComment(rendered, authorCommentsName, commentCount)
@@ -620,7 +618,7 @@ const hasDuplicateComments = (comments: any) => {
   return false
 }
 
-const getBufferedComments = (rendered: any, authorCommentsName: string, authorAddress: string, filter?: AuthorCommentsFilter) => {
+const getBufferedComments = (rendered: any, authorCommentsName: string, authorAddress: string, filter?: CommentsFilter) => {
   const {comments} = commentsStore.getState()
   const loadedComments = rendered.result.current.loadedComments[authorCommentsName]
   const allBufferedComments: any = [...rendered.result.current.bufferedCommentCids[authorAddress]].map((commentCid: string) => comments[commentCid])

@@ -2,7 +2,7 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:authors:stores')
 import createStore from 'zustand'
 import assert from 'assert'
-import {AuthorCommentsFilter, AuthorCommentsOptions, AuthorsComments, Account, Comment} from '../../types'
+import {CommentsFilter, AuthorCommentsOptions, AuthorsComments, Account, Comment} from '../../types'
 import commentsStore, {CommentsState} from '../comments'
 import QuickLru from 'quick-lru'
 import {toSizes, getUpdatedLoadedAndBufferedComments, getNextCommentCidToFetchNotFetched} from './utils'
@@ -39,14 +39,14 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
   nextCommentCidsToFetch: {},
   shouldFetchNextComment: {},
 
-  addAuthorCommentsToStore: (authorCommentsName: string, authorAddress: string, commentCid: string, filter: AuthorCommentsFilter | undefined, account: Account) => {
+  addAuthorCommentsToStore: (authorCommentsName: string, authorAddress: string, commentCid: string, filter: CommentsFilter | undefined, account: Account) => {
     assert(
       authorCommentsName && typeof authorCommentsName === 'string',
       `addAuthorCommentsToStore.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`
     )
     assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument authorAddress '${authorAddress}'`)
     assert(commentCid && typeof commentCid === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument commentCid '${commentCid}'`)
-    assert(!filter || typeof filter === 'object', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter '${filter}'`)
+    assert(!filter || typeof filter === 'function', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter '${filter}'`)
     assert(typeof account?.plebbit?.getComment === 'function', `authorsCommentsStore.addAuthorCommentsToStore account '${account}' invalid`)
 
     const {options, updateLoadedComments} = getState()
