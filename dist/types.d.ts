@@ -141,7 +141,7 @@ export interface UseAuthorResult extends Result {
 export interface UseAuthorCommentsOptions extends Options {
     authorAddress?: string;
     commentCid?: string;
-    filter?: AccountPublicationsFilter;
+    filter?: CommentsFilter;
 }
 export interface UseAuthorCommentsResult extends Result {
     authorComments: (Comment | undefined)[];
@@ -378,6 +378,7 @@ export type AccountEdits = {
 export type AccountEdit = {
     [publishOption: string]: any;
 };
+export type AccountPublicationsFilter = (publication: AccountComment | AccountVote | AccountEdit) => Boolean;
 /**
  * Feeds store
  */
@@ -408,6 +409,7 @@ export type SubplebbitPage = {
 export type SubplebbitsPages = {
     [pageCid: string]: SubplebbitPage;
 };
+export type CommentsFilter = (comment: Comment) => Boolean;
 /**
  * Authors comments store
  */
@@ -417,25 +419,11 @@ export type AuthorsComments = {
 export type AuthorCommentsOptions = {
     authorAddress: string;
     pageNumber: number;
-    filter?: AuthorCommentsFilter;
+    filter?: CommentsFilter;
     accountId: string;
 };
 export type AuthorsCommentsOptions = {
     [authorCommentsName: string]: FeedOptions;
-};
-export type AuthorCommentsFilter = {
-    subplebbitAddresses?: string[];
-    hasParentCid?: boolean;
-};
-/**
- * Accounts hooks
- */
-export type AccountPublicationsFilter = {
-    subplebbitAddresses?: string[];
-    postCids?: string[];
-    commentCids?: string[];
-    parentCids?: string[];
-    hasParentCid?: boolean;
 };
 /**
  * Other

@@ -7,55 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import assert from 'assert';
 import { useMemo, useState, useEffect } from 'react';
 // @ts-ignore
 import memoize from 'memoizee';
 import PlebbitJs from '../../lib/plebbit-js';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:hooks');
-/**
- * Filter publications, for example only get comments that are posts, votes in a certain subplebbit, etc.
- * Check AccountPublicationsFilter type in types.tsx for more information, e.g. filter = {subplebbitAddresses: ['memes.eth']}.
- */
-export const filterPublications = (publications, filter) => {
-    var _a, _b, _c, _d;
-    for (const postCid of filter.postCids || []) {
-        assert(postCid && typeof postCid === 'string', `accountCommentsFilter postCid '${postCid}' not a string`);
-    }
-    for (const subplebbitAddress of filter.subplebbitAddresses || []) {
-        assert(subplebbitAddress && typeof subplebbitAddress === 'string', `accountCommentsFilter subplebbitAddress '${subplebbitAddress}' not a string`);
-    }
-    for (const commentCid of filter.commentCids || []) {
-        assert(commentCid && typeof commentCid === 'string', `accountCommentsFilter commentCid '${commentCid}' not a string`);
-    }
-    for (const parentCid of filter.parentCids || []) {
-        assert(parentCid && typeof parentCid === 'string', `accountCommentsFilter parentCid '${parentCid}' not a string`);
-    }
-    const filteredPublications = [];
-    for (const publication of publications) {
-        let isFilteredOut = false;
-        if (((_a = filter.subplebbitAddresses) === null || _a === void 0 ? void 0 : _a.length) && !filter.subplebbitAddresses.includes(publication.subplebbitAddress)) {
-            isFilteredOut = true;
-        }
-        if (((_b = filter.postCids) === null || _b === void 0 ? void 0 : _b.length) && !filter.postCids.includes(publication.postCid)) {
-            isFilteredOut = true;
-        }
-        if (((_c = filter.commentCids) === null || _c === void 0 ? void 0 : _c.length) && !filter.commentCids.includes(publication.commentCid)) {
-            isFilteredOut = true;
-        }
-        if (((_d = filter.parentCids) === null || _d === void 0 ? void 0 : _d.length) && !filter.parentCids.includes(publication.parentCid)) {
-            isFilteredOut = true;
-        }
-        if (typeof filter.hasParentCid === 'boolean' && filter.hasParentCid !== Boolean(publication.parentCid)) {
-            isFilteredOut = true;
-        }
-        if (!isFilteredOut) {
-            filteredPublications.push(publication);
-        }
-    }
-    return filteredPublications;
-};
 export const useCalculatedNotifications = (account, accountCommentsReplies) => {
     return useMemo(() => {
         if (!account || !accountCommentsReplies) {
