@@ -1,7 +1,7 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:feeds:stores')
-import {Feed, Feeds, Subplebbit, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts} from '../../types'
+import {Feed, Feeds, Subplebbit, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts, CommentsFilter} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
 import accountsStore from '../accounts'
@@ -57,7 +57,15 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
   bufferedFeedsSubplebbitsPostCounts: {},
   feedsHaveMore: {},
 
-  async addFeedToStore(feedName: string, subplebbitAddresses: string[], sortType: string, account: Account, isBufferedFeed?: boolean, postsPerPage?: number) {
+  async addFeedToStore(
+    feedName: string,
+    subplebbitAddresses: string[],
+    sortType: string,
+    account: Account,
+    isBufferedFeed?: boolean,
+    postsPerPage?: number,
+    filter?: CommentsFilter
+  ) {
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
     assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`)
     assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`)
@@ -66,6 +74,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null,
       `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
     )
+    assert(!filter || typeof filter === 'function', `addFeedToStore.addFeedToStore filter '${filter}' invalid`)
     postsPerPage = postsPerPage || defaultPostsPerPage
     assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`)
 
@@ -76,7 +85,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       return
     }
     // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage}
+    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage, filter}
     log('feedsActions.addFeedToStore', feedOptions)
     setState(({feedsOptions}: any) => {
       // make sure to never overwrite a feed already added

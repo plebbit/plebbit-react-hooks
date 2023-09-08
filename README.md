@@ -47,7 +47,7 @@ useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
 ```
 #### Feeds Hooks
 ```
-useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number}): {feed: Feed, loadMore: function, hasMore: boolean}
+useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter: CommentsFilter}): {feed: Feed, loadMore: function, hasMore: boolean}
 useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 ```
 #### Actions Hooks

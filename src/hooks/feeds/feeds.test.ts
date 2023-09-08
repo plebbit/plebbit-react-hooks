@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
+import {Comment} from '../../types'
 import {useFeed, useBufferedFeeds, useAccount, setPlebbitJs} from '../..'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
 import localForageLru from '../../lib/localforage-lru'
@@ -329,6 +330,48 @@ describe('feeds', () => {
 
       // restore mock
       Pages.prototype.getPage = getPage
+    })
+
+    test('get multiple subplebbits with filter and scroll to multiple pages', async () => {
+      // filter only comment cids that contain a '5'
+      const filter = (comment: Comment) => !!comment.cid.match('5')
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+        filter,
+      })
+      await waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
+
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 5')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid hot comment cid 5')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid hot comment cid 5')
+
+      // scroll until the next buffered feed that needs to be refilled
+      await scrollOnePage()
+      await scrollOnePage()
+      await scrollOnePage()
+      await scrollOnePage()
+
+      expect(rendered.result.current.feed.length).toBe(postsPerPage * 5)
+      for (const post of rendered.result.current.feed) {
+        expect(filter(post)).toBe(true)
+      }
+
+      // make sure adding a new filter function creates a new feed (if the function isn't the same function)
+      expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(1)
+      const filter2 = (comment: Comment) => !!comment.cid.match('5')
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+        filter: filter2,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
+
+      // make sure adding the same filter functiom doesnt create a new feed
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+        filter,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
     })
 
     test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
