@@ -14,7 +14,7 @@ import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:hooks');
 import assert from 'assert';
 import { useListSubplebbits, useSubplebbits } from '../subplebbits';
-import { filterPublications, useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications } from './utils';
+import { useAccountsWithCalculatedProperties, useAccountWithCalculatedProperties, useCalculatedNotifications } from './utils';
 import useInterval from '../utils/use-interval';
 /**
  * @param accountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, return
@@ -197,7 +197,7 @@ export function useAccountComments(options) {
             return [];
         }
         if (filter) {
-            return filterPublications(accountComments, filter);
+            return accountComments.filter(filter);
         }
         return accountComments;
     }, [accountComments, filter]);
@@ -254,7 +254,7 @@ export function useAccountVotes(options) {
             accountVotesArray.push(accountVotes[i]);
         }
         if (filter) {
-            accountVotesArray = filterPublications(accountVotesArray, filter);
+            accountVotesArray = accountVotesArray.filter(filter);
         }
         return accountVotesArray;
     }, [accountVotes, filter]);
@@ -303,7 +303,7 @@ export function useAccountEdits(options) {
         if (!filter) {
             return accountEditsArray;
         }
-        return filterPublications(accountEditsArray, filter);
+        return accountEditsArray.filter(filter);
     }, [accountEditsArray, filter]);
     // TODO: add failed / pending states
     const state = accountId ? 'succeeded' : 'initializing';

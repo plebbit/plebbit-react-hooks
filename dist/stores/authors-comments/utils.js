@@ -1,5 +1,4 @@
 import { commentsPerPage } from './authors-comments-store';
-import assert from 'assert';
 import commentsStore from '../comments';
 export const getUpdatedLoadedAndBufferedComments = (loadedComments, bufferedComments, pageNumber, filter, comments) => {
     const newBufferedComments = getUpdatedBufferedComments(loadedComments, bufferedComments, filter, comments);
@@ -22,7 +21,7 @@ export const getUpdatedBufferedComments = (loadedComments, bufferedComments, fil
     let newBufferedComments = bufferedComments.filter((comment) => !previousLoadedCommentCids[comment.cid]);
     // filter buffered comments
     if (filter) {
-        newBufferedComments = filterAuthorComments(newBufferedComments, filter);
+        newBufferedComments = newBufferedComments.filter(filter);
     }
     // sort buffered comments by timestamp (newest first)
     newBufferedComments.sort((a, b) => b.timestamp - a.timestamp);
@@ -48,26 +47,6 @@ const commentsHaveChanged = (comments1, comments2) => {
         }
     }
     return false;
-};
-export const filterAuthorComments = (authorComments, filter) => {
-    var _a;
-    assert(!filter.subplebbitAddresses || Array.isArray(filter.subplebbitAddresses), `authorsCommentsStore filterAuthorComments invalid argument filter.subplebbitAddresses '${filter.subplebbitAddresses}' not an array`);
-    const filtered = [];
-    for (const authorComment of authorComments) {
-        let isFilteredOut = false;
-        if (((_a = filter.subplebbitAddresses) === null || _a === void 0 ? void 0 : _a.length) && !filter.subplebbitAddresses.includes(authorComment.subplebbitAddress)) {
-            isFilteredOut = true;
-        }
-        if (typeof filter.hasParentCid === 'boolean' && filter.hasParentCid !== Boolean(authorComment.parentCid)) {
-            isFilteredOut = true;
-        }
-        if (!isFilteredOut) {
-            filtered.push(authorComment);
-        }
-        else {
-        }
-    }
-    return filtered;
 };
 // if comment already exist, find the actual nextCidToFetch
 // can happen if a more recent lastCommentCid becomes nextCommentCidToFetch

@@ -32,7 +32,7 @@ const authorsCommentsStore = createStore((setState, getState) => ({
         assert(authorCommentsName && typeof authorCommentsName === 'string', `addAuthorCommentsToStore.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`);
         assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument authorAddress '${authorAddress}'`);
         assert(commentCid && typeof commentCid === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument commentCid '${commentCid}'`);
-        assert(!filter || typeof filter === 'object', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter '${filter}'`);
+        assert(!filter || typeof filter === 'function', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter '${filter}'`);
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getComment) === 'function', `authorsCommentsStore.addAuthorCommentsToStore account '${account}' invalid`);
         const { options, updateLoadedComments } = getState();
         // in store already, do nothing
