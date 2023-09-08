@@ -555,21 +555,21 @@ const {accountVotes} = useAccountVotes()
 
 // my own comments in memes.eth
 const subplebbitAddress = 'memes.eth'
-const filter = useMemo(() => (comment) => comment.subplebbitAddress === subplebbitAddress, [subplebbitAddress]) // important to use useMemo or the same function or will cause rerenders
+const filter = useCallback((comment) => comment.subplebbitAddress === subplebbitAddress, [subplebbitAddress]) // important to use useCallback or the same function or will cause rerenders
 const myCommentsInMemesEth = useAccountComments({filter})
 
 // my own posts in memes.eth
-const filter = useMemo(() => (comment) => comment.subplebbitAddress === subplebbitAddress && !comment.parentCid, [subplebbitAddress])
+const filter = useCallback((comment) => comment.subplebbitAddress === subplebbitAddress && !comment.parentCid, [subplebbitAddress])
 const myPostsInMemesEth = useAccountComments({filter})
 
 // my own replies in a post with cid 'Qm...'
 const postCid = 'Qm...'
-const filter = useMemo(() => (comment) => comment.postCid === postCid, [postCid])
+const filter = useCallback((comment) => comment.postCid === postCid, [postCid])
 const myCommentsInSomePost = useAccountComments({filter})
 
 // my own replies to a comment with cid 'Qm...'
 const parentCommentCid = 'Qm...'
-const filter = useMemo(() => (comment) => comment.parentCid === parentCommentCid, [parentCommentCid])
+const filter = useCallback((comment) => comment.parentCid === parentCommentCid, [parentCommentCid])
 const myRepliesToSomeComment = useAccountComments({filter})
 
 // know if you upvoted a comment already with cid 'Qm...'
@@ -814,12 +814,12 @@ console.log(`there's ${accountEdits.length} account edits`)
 
 // get only the account edits of a specific comment
 const commentCid = 'Qm...'
-const filter = useMemo(() => (edit) => edit.commentCid === commentCid, [commentCid]) // important to use useMemo or the same function or will cause rerenders
+const filter = useCallback((edit) => edit.commentCid === commentCid, [commentCid]) // important to use useMemo or the same function or will cause rerenders
 const {accountEdits} = useAccountEdits({filter})
 
 // only get account edits in a specific subplebbit
 const subplebbitAddress = 'news.eth'
-const filter = useMemo(() => (edit) => edit.subplebbitAddress === subplebbitAddress, [subplebbitAddress])
+const filter = useCallback((edit) => edit.subplebbitAddress === subplebbitAddress, [subplebbitAddress])
 const {accountEdits} = useAccountEdits({filter})
 ```
 
@@ -830,7 +830,7 @@ import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 
 const useRepliesAndAccountReplies = (comment) => {
   // filter only the parent cid
-  const filter = useMemo(() => (accountComment) => accountComment.parentCid === comment?.cid || 'n/a', [comment?.cid])
+  const filter = useCallback((accountComment) => accountComment.parentCid === (comment?.cid || 'n/a'), [comment?.cid])
   const {accountComments} = useAccountComments({filter})
 
   // the account's replies have a delay before getting published, so get them locally from accountComments instead
@@ -888,10 +888,8 @@ const comment = useComment({commentCid})
 const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [comment.replies])
 
 // the account replies to the post (commentCid) and account replies to all the post's replies
-const filter = useMemo(() => {
-  const postAndRepliesCids = new Set([commentCid || 'n/a', ...flattenedReplies.map(reply => reply.cid)])
-  return (accountComment) => postAndRepliesCids.has(accountComment.parentCid)
-}, [commentCid, flattenedReplies])
+const postAndRepliesCids = useMemo(() => new Set([(commentCid || 'n/a'), ...flattenedReplies.map(reply => reply.cid)]), [commentCid, flattenedReplies])
+const filter = useCallback((accountComment) => postAndRepliesCids.has(accountComment.parentCid), [postAndRepliesCids])
 const {accountComments} = useAccountComments({filter})
 
 // the account's replies have a delay before getting published, so get them locally from accountComments instead
