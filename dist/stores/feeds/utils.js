@@ -17,7 +17,7 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
     // calculate each feed
     let newBufferedFeeds = {};
     for (const feedName in feedsOptions) {
-        const { subplebbitAddresses, sortType, accountId } = feedsOptions[feedName];
+        const { subplebbitAddresses, sortType, accountId, filter } = feedsOptions[feedName];
         // find all fetched posts
         const bufferedFeedPosts = [];
         // add each comment from each page, do not filter at this stage, filter after sorting
@@ -59,6 +59,10 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
             // if a feed has more than 1 sub, don't include pinned posts
             // TODO: add test to check if pinned are filtered
             if (post.pinned && subplebbitAddresses.length > 1) {
+                continue;
+            }
+            // feedOptions filter function
+            if (filter && !filter(post)) {
                 continue;
             }
             filteredSortedBufferedFeedPosts.push(post);
