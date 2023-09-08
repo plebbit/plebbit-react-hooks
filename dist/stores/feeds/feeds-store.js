@@ -32,7 +32,7 @@ const feedsStore = createStore((setState, getState) => ({
     loadedFeeds: {},
     bufferedFeedsSubplebbitsPostCounts: {},
     feedsHaveMore: {},
-    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage) {
+    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`);
@@ -40,6 +40,7 @@ const feedsStore = createStore((setState, getState) => ({
             assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`);
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `addFeedToStore.addFeedToStore account '${account}' invalid`);
             assert(typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null, `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`);
+            assert(!filter || typeof filter === 'function', `addFeedToStore.addFeedToStore filter '${filter}' invalid`);
             postsPerPage = postsPerPage || defaultPostsPerPage;
             assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`);
             const { feedsOptions, updateFeeds } = getState();
@@ -49,7 +50,7 @@ const feedsStore = createStore((setState, getState) => ({
                 return;
             }
             // to add a buffered feed, add a feed with pageNumber 0
-            const feedOptions = { subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage };
+            const feedOptions = { subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage, filter };
             log('feedsActions.addFeedToStore', feedOptions);
             setState(({ feedsOptions }) => {
                 // make sure to never overwrite a feed already added

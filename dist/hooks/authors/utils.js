@@ -26,7 +26,7 @@ const getFilterName = (filter) => {
 };
 export const useAuthorCommentsName = (accountId, authorAddress, filter) => {
     const filterName = filter ? getFilterName(filter) : undefined;
-    return useMemo(() => accountId + '-' + authorAddress + '-' + filterName + '-', [accountId, authorAddress, filter]);
+    return useMemo(() => accountId + '-' + authorAddress + '-' + filterName, [accountId, authorAddress, filterName]);
 };
 const getPeerIdFromPublicKey = (publicKeyBase64) => __awaiter(void 0, void 0, void 0, function* () {
     const publicKeyBuffer = uint8ArrayFromString(publicKeyBase64, 'base64');
