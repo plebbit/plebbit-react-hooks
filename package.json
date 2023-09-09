@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#c6144b59c1d63aa23851f63c78c871b09e7b72dc",
     "assert": "2.0.0",
     "ethers": "5.6.9",
     "localforage": "1.10.0",
@@ -44,7 +45,6 @@
     "zustand": "4.0.0"
   },
   "peerDependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#a68905109591f81c996514dd548af5cb25c4b9d2",
     "react": ">=16.8"
   },
   "devDependencies": {
