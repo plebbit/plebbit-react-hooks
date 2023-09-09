@@ -243,6 +243,7 @@ const getAccountCommentsStates = (accountComments: AccountComment[]) => {
 export function useAccountComments(options?: UseAccountCommentsOptions): UseAccountCommentsResult {
   assert(!options || typeof options === 'object', `useAccountComments options argument '${options}' not an object`)
   const {accountName, filter} = options || {}
+  assert(!filter || typeof filter === 'function', `useAccountComments options.filter argument '${filter}' not an function`)
   const accountId = useAccountId(accountName)
   const accountComments = useAccountsStore((state) => state.accountsComments[accountId || ''])
   const [accountCommentStates, setAccountCommentStates] = useState<string[]>([])
@@ -321,6 +322,7 @@ export function useAccountComment(options?: UseAccountCommentOptions): UseAccoun
 export function useAccountVotes(options?: UseAccountVotesOptions): UseAccountVotesResult {
   assert(!options || typeof options === 'object', `useAccountVotes options argument '${options}' not an object`)
   const {accountName, filter} = options || {}
+  assert(!filter || typeof filter === 'function', `useAccountVotes options.filter argument '${filter}' not an function`)
   const accountId = useAccountId(accountName)
   const accountVotes = useAccountsStore((state) => state.accountsVotes[accountId || ''])
 
@@ -387,6 +389,7 @@ export function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteR
 export function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEditsResult {
   assert(!options || typeof options === 'object', `useAccountEdits options argument '${options}' not an object`)
   const {filter, accountName} = options || {}
+  assert(!filter || typeof filter === 'function', `useAccountEdits options.filter argument '${filter}' not an function`)
   const accountId = useAccountId(accountName)
   const accountEdits = useAccountsStore((state) => state.accountsEdits[accountId || ''])
 
