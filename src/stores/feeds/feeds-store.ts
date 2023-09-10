@@ -323,6 +323,9 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
   }
 }
 
+// TODO: with the current feeds store design, not possible to set hasMore false when a sub has 0 posts
+// because updateFeeds only triggers when the subplebbit pages change
+// changing from unfetched sub ipns to a sub with 0 posts doesn't change the subplebbit pages and doesnt trigger updateFeeds
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
 let previousFeedsSubplebbits: Map<string, Subplebbit> = new Map()
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
