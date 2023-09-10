@@ -311,6 +311,17 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
   return [...feedsSubplebbitsFirstPageCids].sort()
 }
 
+// get number of feeds subplebbit that are loaded
+export const getFeedsSubplebbitsLoadedCount = (feedsSubplebbits: Map<string, Subplebbit>): number => {
+  let count = 0
+  for (const subplebbit of feedsSubplebbits.values()) {
+    if (subplebbit?.updatedAt) {
+      count++
+    }
+  }
+  return count
+}
+
 export const getAccountsBlockedAddresses = (accounts: Accounts) => {
   const blockedAddressesSet = new Set<string>()
   for (const {blockedAddresses} of Object.values(accounts)) {

@@ -86,7 +86,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       error: errors[errors.length - 1],
       errors,
     }),
-    [feed, feedName, errors]
+    [feed, feedName, hasMore, errors]
   )
 }
 

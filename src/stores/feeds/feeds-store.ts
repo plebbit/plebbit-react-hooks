@@ -23,6 +23,7 @@ import {
   accountsBlockedCidsChanged,
   feedsSubplebbitsChanged,
   getFeedsSubplebbits,
+  getFeedsSubplebbitsLoadedCount,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -323,11 +324,9 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
   }
 }
 
-// TODO: with the current feeds store design, not possible to set hasMore false when a sub has 0 posts
-// because updateFeeds only triggers when the subplebbit pages change
-// changing from unfetched sub ipns to a sub with 0 posts doesn't change the subplebbit pages and doesnt trigger updateFeeds
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
 let previousFeedsSubplebbits: Map<string, Subplebbit> = new Map()
+let previousFeedsSubplebbitsLoadedCount = 0
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
   const {subplebbits} = subplebbitsStoreState
   const {feedsOptions, updateFeeds} = feedsStore.getState()
@@ -345,7 +344,12 @@ const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
 
   // first page cids haven't changed, do nothing
   if (feedsSubplebbitsFirstPageCids.toString() === previousFeedsSubplebbitsFirstPageCids.toString()) {
-    return
+    // if no new feed subplebbits have loaded, do nothing
+    const feedsSubplebbitsLoadedCount = getFeedsSubplebbitsLoadedCount(feedsSubplebbits)
+    if (feedsSubplebbitsLoadedCount === previousFeedsSubplebbitsLoadedCount) {
+      return
+    }
+    previousFeedsSubplebbitsLoadedCount = feedsSubplebbitsLoadedCount
   }
 
   // feeds subplebbits have changed, update feeds

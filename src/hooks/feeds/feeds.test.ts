@@ -933,36 +933,34 @@ describe('feeds', () => {
       expectFeedToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
     })
 
-    // TODO: with the current feeds store design, not possible to set hasMore false when a sub has 0 posts
-    // because updateFeeds only triggers when the subplebbit pages change
-    // changing from unfetched sub ipns to a sub with 0 posts doesn't change the subplebbit pages and doesnt trigger updateFeeds
-    // test(`empty subplebbit.post hasMore is false`, async () => {
-    //   const update = Subplebbit.prototype.update
-    //   const updatedAt = Math.floor(Date.now() / 1000)
-    //   const emptyPosts: any = {pages: {}, pageCids: {}}
-    //   Subplebbit.prototype.update = async function () {
-    //     await new Promise(r => setTimeout(r, 1000))
-    //     // @ts-ignore
-    //     this.posts = emptyPosts
-    //     this.emit('update', this)
-    //   }
+    test(`empty subplebbit.post hasMore is false`, async () => {
+      const update = Subplebbit.prototype.update
+      const updatedAt = Math.floor(Date.now() / 1000)
+      const emptyPosts: any = {pages: {}, pageCids: {}}
+      Subplebbit.prototype.update = async function () {
+        await simulateLoadingTime()
+        this.updatedAt = updatedAt
+        this.posts = emptyPosts
+        this.emit('update', this)
+      }
 
-    //   rendered = renderHook<any, any>((props: any) => {
-    //     const feed = useFeed(props)
-    //     const subplebbit = useSubplebbit({subplebbitAddress: props?.subplebbitAddresses?.[0]})
-    //     return {...feed, subplebbit}
-    //   })
-    //   waitFor = testUtils.createWaitFor(rendered)
+      rendered = renderHook<any, any>((props: any) => {
+        const feed = useFeed(props)
+        const subplebbit = useSubplebbit({subplebbitAddress: props?.subplebbitAddresses?.[0]})
+        return {feed, subplebbit}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
 
-    //   // get feed with 1 sub with no posts
-    //   rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
-    //   await new Promise(r => setTimeout(r, 2000))
+      // get feed with 1 sub with no posts
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      expect(rendered.result.current.feed.hasMore).toBe(true)
 
-    //   expect(rendered.result.current.hasMore).toBe(false)
-    //   expect(rendered.result.current.feed.length).toBe(0)
+      await waitFor(() => rendered.result.current.feed.hasMore === false)
+      expect(rendered.result.current.feed.hasMore).toBe(false)
+      expect(rendered.result.current.feed.feed.length).toBe(0)
 
-    //   Subplebbit.prototype.update = update
-    // })
+      Subplebbit.prototype.update = update
+    })
 
     // TODO: not implemented
     // at the moment a comment already inside a loaded feed will ignore all updates from future pages
