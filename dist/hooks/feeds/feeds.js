@@ -84,7 +84,7 @@ export function useFeed(options) {
         state,
         error: errors[errors.length - 1],
         errors,
-    }), [feed, feedName, errors]);
+    }), [feed, feedName, hasMore, errors]);
 }
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when

@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
-import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, getAccountsBlockedCids, feedsHaveChangedBlockedCids, accountsBlockedCidsChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, } from './utils';
+import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, getAccountsBlockedCids, feedsHaveChangedBlockedCids, accountsBlockedCidsChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, getFeedsSubplebbitsLoadedCount, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const defaultPostsPerPage = 25;
@@ -239,11 +239,9 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
         }
     }
 };
-// TODO: with the current feeds store design, not possible to set hasMore false when a sub has 0 posts
-// because updateFeeds only triggers when the subplebbit pages change
-// changing from unfetched sub ipns to a sub with 0 posts doesn't change the subplebbit pages and doesnt trigger updateFeeds
 let previousFeedsSubplebbitsFirstPageCids = [];
 let previousFeedsSubplebbits = new Map();
+let previousFeedsSubplebbitsLoadedCount = 0;
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState) => {
     const { subplebbits } = subplebbitsStoreState;
     const { feedsOptions, updateFeeds } = feedsStore.getState();
@@ -258,7 +256,12 @@ const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState) => {
     const feedsSubplebbitsFirstPageCids = getFeedsSubplebbitsFirstPageCids(feedsSubplebbits);
     // first page cids haven't changed, do nothing
     if (feedsSubplebbitsFirstPageCids.toString() === previousFeedsSubplebbitsFirstPageCids.toString()) {
-        return;
+        // if no new feed subplebbits have loaded, do nothing
+        const feedsSubplebbitsLoadedCount = getFeedsSubplebbitsLoadedCount(feedsSubplebbits);
+        if (feedsSubplebbitsLoadedCount === previousFeedsSubplebbitsLoadedCount) {
+            return;
+        }
+        previousFeedsSubplebbitsLoadedCount = feedsSubplebbitsLoadedCount;
     }
     // feeds subplebbits have changed, update feeds
     previousFeedsSubplebbitsFirstPageCids = feedsSubplebbitsFirstPageCids;

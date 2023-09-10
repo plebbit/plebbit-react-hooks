@@ -256,6 +256,16 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits) => {
     }
     return [...feedsSubplebbitsFirstPageCids].sort();
 };
+// get number of feeds subplebbit that are loaded
+export const getFeedsSubplebbitsLoadedCount = (feedsSubplebbits) => {
+    let count = 0;
+    for (const subplebbit of feedsSubplebbits.values()) {
+        if (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatedAt) {
+            count++;
+        }
+    }
+    return count;
+};
 export const getAccountsBlockedAddresses = (accounts) => {
     const blockedAddressesSet = new Set();
     for (const { blockedAddresses } of Object.values(accounts)) {
