@@ -83,10 +83,25 @@ describe('authors', () => {
 
     test('no crypto name', async () => {
       rendered.rerender({comment})
-      await waitFor(() => rendered.result.current.authorAddress && rendered.result.current.shortAuthorAddress)
       expect(rendered.result.current.authorAddress).toBe(comment.author.address)
       expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
+      expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
       expect(rendered.result.current.error).toBe(undefined)
+    })
+
+    test('invalid crypto name', async () => {
+      const commentWithInvalidCryptoName = {...comment, author: {address: 'name.eth'}}
+      rendered.rerender({comment: commentWithInvalidCryptoName})
+      expect(rendered.result.current.authorAddress).toBe('name.eth')
+      expect(rendered.result.current.shortAuthorAddress).toBe('name.eth')
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // wait for name.eth to be replaced by correct address because invalid
+      // this has to wait for the isReady time in useAuthorAddress, so can be slow
+      await waitFor(() => rendered.result.current.authorAddress === comment.author.address)
+      expect(rendered.result.current.authorAddress).toBe(comment.author.address)
+      expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
+      expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
     })
   })
 

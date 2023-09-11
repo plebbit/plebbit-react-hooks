@@ -228,7 +228,6 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
 export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAddressResult {
   assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`)
   const {comment, accountName} = options || {}
@@ -237,6 +236,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   const isCryptoName = !!comment?.author?.address?.match?.('.')
   // don't waste time calculating plebbit address if not a crypto name
   const signerAddress = usePlebbitAddress(isCryptoName && comment?.signature?.publicKey)
+  const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
     if (!account?.plebbit || !comment?.author?.address) {
@@ -246,6 +246,11 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
       .resolveAuthorAddress(comment?.author?.address)
       .then((resolvedAddress: string) => setResolvedAddress(resolvedAddress))
       .catch((error: any) => log.error('useAuthorAddress error', {error, comment}))
+
+    // give some time for resolvedAddress and signerAddress to become ready
+    // no more than 100ms or could trick users into believing fake .eth names
+    setIsReady(false)
+    setTimeout(() => setIsReady(true), 100)
   }, [account?.plebbit, comment?.author?.address])
 
   // use signer address by default
@@ -258,8 +263,19 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   if (!isCryptoName) {
     authorAddress = comment?.author?.address
   }
+  // if isn't ready, always use author address
+  if (!isReady) {
+    authorAddress = comment?.author?.address
+  }
 
-  const shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress)
+  let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress)
+
+  // if shortAddress is smaller than crypto name, give a longer
+  // shortAddress to cause the least UI displacement as possible
+  if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length) {
+    const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop()
+    shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, comment?.author?.address?.length - 2)
+  }
 
   return useMemo(
     () => ({
