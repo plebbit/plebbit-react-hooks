@@ -257,6 +257,7 @@ const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState) => {
     // first page cids haven't changed, do nothing
     if (feedsSubplebbitsFirstPageCids.toString() === previousFeedsSubplebbitsFirstPageCids.toString()) {
         // if no new feed subplebbits have loaded, do nothing
+        // in case a sub loads with no first page cid and first pages cids don't change, need to trigger hasMore update
         const feedsSubplebbitsLoadedCount = getFeedsSubplebbitsLoadedCount(feedsSubplebbits);
         if (feedsSubplebbitsLoadedCount === previousFeedsSubplebbitsLoadedCount) {
             return;
