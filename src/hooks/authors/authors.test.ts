@@ -103,7 +103,7 @@ describe('authors', () => {
       expect(rendered.result.current.authorAddress).toBe(comment.author.address)
       expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
       expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
-      expect(rendered.result.current.shortAuthorAddress.length).toBe(cryptoName.length - 2)
+      expect(rendered.result.current.shortAuthorAddress.length).toBe(cryptoName.length - 4)
     })
   })
 

@@ -272,9 +272,10 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
 
   // if shortAddress is smaller than crypto name, give a longer
   // shortAddress to cause the least UI displacement as possible
-  if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length) {
+  // -4 chars because most fonts will make the address larger
+  if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length - 4) {
     const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop()
-    shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, comment?.author?.address?.length - 2)
+    shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, comment?.author?.address?.length - 4)
   }
 
   return useMemo(
