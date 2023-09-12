@@ -465,9 +465,9 @@ createPlebbit.getShortAddress = (address) => {
     if (address.includes('.')) {
         return address;
     }
-    return address.substring(0, 12);
+    return address.substring(2, 14);
 };
 createPlebbit.getShortCid = (cid) => {
-    return cid.substring(0, 12);
+    return cid.substring(2, 14);
 };
 export default createPlebbit;
