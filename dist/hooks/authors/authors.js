@@ -202,9 +202,8 @@ export function useAuthorAvatar(options) {
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
  * the active account.
  */
-// NOTE: useAuthorAvatar tests are skipped, if changes are made they must be tested manually
 export function useAuthorAddress(options) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`);
     const { comment, accountName } = options || {};
     const account = useAccount({ accountName });
@@ -212,6 +211,7 @@ export function useAuthorAddress(options) {
     const isCryptoName = !!((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
     // don't waste time calculating plebbit address if not a crypto name
     const signerAddress = usePlebbitAddress(isCryptoName && ((_d = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _d === void 0 ? void 0 : _d.publicKey));
+    const [isReady, setIsReady] = useState(false);
     useEffect(() => {
         var _a, _b;
         if (!(account === null || account === void 0 ? void 0 : account.plebbit) || !((_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address)) {
@@ -221,6 +221,10 @@ export function useAuthorAddress(options) {
             .resolveAuthorAddress((_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address)
             .then((resolvedAddress) => setResolvedAddress(resolvedAddress))
             .catch((error) => log.error('useAuthorAddress error', { error, comment }));
+        // give some time for resolvedAddress and signerAddress to become ready
+        // no more than 100ms or could trick users into believing fake .eth names
+        setIsReady(false);
+        setTimeout(() => setIsReady(true), 100);
     }, [account === null || account === void 0 ? void 0 : account.plebbit, (_e = comment === null || comment === void 0 ? void 0 : comment.author) === null || _e === void 0 ? void 0 : _e.address]);
     // use signer address by default
     let authorAddress = signerAddress;
@@ -232,7 +236,17 @@ export function useAuthorAddress(options) {
     if (!isCryptoName) {
         authorAddress = (_g = comment === null || comment === void 0 ? void 0 : comment.author) === null || _g === void 0 ? void 0 : _g.address;
     }
-    const shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
+    // if isn't ready, always use author address
+    if (!isReady) {
+        authorAddress = (_h = comment === null || comment === void 0 ? void 0 : comment.author) === null || _h === void 0 ? void 0 : _h.address;
+    }
+    let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
+    // if shortAddress is smaller than crypto name, give a longer
+    // shortAddress to cause the least UI displacement as possible
+    if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length) {
+        const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop();
+        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_k = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address) === null || _k === void 0 ? void 0 : _k.length) - 2);
+    }
     return useMemo(() => ({
         authorAddress,
         shortAuthorAddress,
