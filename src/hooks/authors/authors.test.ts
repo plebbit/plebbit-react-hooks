@@ -90,10 +90,11 @@ describe('authors', () => {
     })
 
     test('invalid crypto name', async () => {
-      const commentWithInvalidCryptoName = {...comment, author: {address: 'name.eth'}}
+      const cryptoName = 'some-long-crypto-name.eth'
+      const commentWithInvalidCryptoName = {...comment, author: {address: cryptoName}}
       rendered.rerender({comment: commentWithInvalidCryptoName})
-      expect(rendered.result.current.authorAddress).toBe('name.eth')
-      expect(rendered.result.current.shortAuthorAddress).toBe('name.eth')
+      expect(rendered.result.current.authorAddress).toBe(cryptoName)
+      expect(rendered.result.current.shortAuthorAddress).toBe(cryptoName)
       expect(rendered.result.current.error).toBe(undefined)
 
       // wait for name.eth to be replaced by correct address because invalid
@@ -102,6 +103,7 @@ describe('authors', () => {
       expect(rendered.result.current.authorAddress).toBe(comment.author.address)
       expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
       expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
+      expect(rendered.result.current.shortAuthorAddress.length).toBe(cryptoName.length - 2)
     })
   })
 
