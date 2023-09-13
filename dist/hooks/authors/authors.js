@@ -19,6 +19,7 @@ import { useComment } from '../comments';
 import { useAuthorCommentsName, usePlebbitAddress } from './utils';
 import useAuthorsCommentsStore from '../../stores/authors-comments';
 import PlebbitJs from '../../lib/plebbit-js';
+import QuickLRU from 'quick-lru';
 /**
  * @param authorAddress - The address of the author
  * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)
@@ -203,50 +204,62 @@ export function useAuthorAvatar(options) {
  * the active account.
  */
 export function useAuthorAddress(options) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`);
     const { comment, accountName } = options || {};
     const account = useAccount({ accountName });
-    const [resolvedAddress, setResolvedAddress] = useState();
-    const isCryptoName = !!((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.match) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
-    // don't waste time calculating plebbit address if not a crypto name
-    const signerAddress = usePlebbitAddress(isCryptoName && ((_d = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _d === void 0 ? void 0 : _d.publicKey));
-    const [isReady, setIsReady] = useState(false);
+    const isCryptoName = !!((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.includes) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
+    const [resolvedAddress, setResolvedAddress] = useState(isCryptoName ? resolvedAuthorAddressCache.get((_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address) : undefined);
+    const signerAddress = usePlebbitAddress(isCryptoName ? (_e = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _e === void 0 ? void 0 : _e.publicKey : undefined);
     useEffect(() => {
-        var _a, _b;
-        if (!(account === null || account === void 0 ? void 0 : account.plebbit) || !((_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address)) {
+        var _a;
+        if (!(account === null || account === void 0 ? void 0 : account.plebbit) || !((_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) || !isCryptoName) {
             return;
         }
-        account.plebbit
-            .resolveAuthorAddress((_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address)
-            .then((resolvedAddress) => setResolvedAddress(resolvedAddress))
+        const resolveAuthorAddressNoCache = () => {
+            var _a, _b, _c, _d, _e, _f;
+            if (Boolean(resolveAuthorAddressPromises[(_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address])) {
+                return resolveAuthorAddressPromises[(_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address];
+            }
+            log('useAuthorAddress plebbit.resolveAuthorAddress', { address: (_c = comment === null || comment === void 0 ? void 0 : comment.author) === null || _c === void 0 ? void 0 : _c.address });
+            resolveAuthorAddressPromises[(_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address] = account.plebbit.resolveAuthorAddress((_e = comment === null || comment === void 0 ? void 0 : comment.author) === null || _e === void 0 ? void 0 : _e.address);
+            return resolveAuthorAddressPromises[(_f = comment === null || comment === void 0 ? void 0 : comment.author) === null || _f === void 0 ? void 0 : _f.address];
+        };
+        const resolveAuthorAddress = () => __awaiter(this, void 0, void 0, function* () {
+            var _b, _c;
+            const cached = resolvedAuthorAddressCache.get((_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address);
+            if (cached) {
+                return cached;
+            }
+            const res = yield resolveAuthorAddressNoCache();
+            resolvedAuthorAddressCache.set((_c = comment === null || comment === void 0 ? void 0 : comment.author) === null || _c === void 0 ? void 0 : _c.address, res);
+            return res;
+        });
+        resolveAuthorAddress()
+            .then((_resolvedAddress) => {
+            if (_resolvedAddress !== resolvedAddress) {
+                setResolvedAddress(_resolvedAddress);
+            }
+        })
             .catch((error) => log.error('useAuthorAddress error', { error, comment }));
-        // give some time for resolvedAddress and signerAddress to become ready
-        // no more than 100ms or could trick users into believing fake .eth names
-        setIsReady(false);
-        setTimeout(() => setIsReady(true), 100);
-    }, [account === null || account === void 0 ? void 0 : account.plebbit, (_e = comment === null || comment === void 0 ? void 0 : comment.author) === null || _e === void 0 ? void 0 : _e.address]);
+    }, [account === null || account === void 0 ? void 0 : account.plebbit, (_f = comment === null || comment === void 0 ? void 0 : comment.author) === null || _f === void 0 ? void 0 : _f.address, isCryptoName]);
     // use signer address by default
     let authorAddress = signerAddress;
     // if author address was resolved successfully, use author address
     if (resolvedAddress && signerAddress === resolvedAddress) {
-        authorAddress = (_f = comment === null || comment === void 0 ? void 0 : comment.author) === null || _f === void 0 ? void 0 : _f.address;
+        authorAddress = (_g = comment === null || comment === void 0 ? void 0 : comment.author) === null || _g === void 0 ? void 0 : _g.address;
     }
     // if isn't crypto name, always use author address
     if (!isCryptoName) {
-        authorAddress = (_g = comment === null || comment === void 0 ? void 0 : comment.author) === null || _g === void 0 ? void 0 : _g.address;
-    }
-    // if isn't ready, always use author address
-    if (!isReady) {
         authorAddress = (_h = comment === null || comment === void 0 ? void 0 : comment.author) === null || _h === void 0 ? void 0 : _h.address;
     }
     let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
     // if shortAddress is smaller than crypto name, give a longer
     // shortAddress to cause the least UI displacement as possible
     // -4 chars because most fonts will make the address larger
-    if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length - 4) {
+    if (isCryptoName && authorAddress && shortAuthorAddress.length < ((_k = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address) === null || _k === void 0 ? void 0 : _k.length) - 4) {
         const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop();
-        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_k = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address) === null || _k === void 0 ? void 0 : _k.length) - 4);
+        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_m = (_l = comment === null || comment === void 0 ? void 0 : comment.author) === null || _l === void 0 ? void 0 : _l.address) === null || _m === void 0 ? void 0 : _m.length) - 4);
     }
     return useMemo(() => ({
         authorAddress,
@@ -256,6 +269,9 @@ export function useAuthorAddress(options) {
         errors: [],
     }), [authorAddress, shortAuthorAddress]);
 }
+// TODO: figure out how to upgrade to quick-lru 6+ to use maxAge
+const resolvedAuthorAddressCache = new QuickLRU({ maxSize: 1000 });
+const resolveAuthorAddressPromises = {};
 /**
  * @param author - The author with author.address to resolve to a public key, e.g. 'john.eth' resolves to '12D3KooW...'.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
