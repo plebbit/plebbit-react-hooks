@@ -36,6 +36,6 @@ const getPlebbitAddressFromPublicKey = (publicKeyBase64: string) => {
   return uint8ArrayToString(multihash, 'base58btc')
 }
 
-export const usePlebbitAddress = (publicKeyBase64: string) => {
-  return useMemo(() => getPlebbitAddressFromPublicKey(publicKeyBase64), [publicKeyBase64])
+export const usePlebbitAddress = (publicKeyBase64?: string) => {
+  return useMemo(() => (publicKeyBase64 ? getPlebbitAddressFromPublicKey(publicKeyBase64) : undefined), [publicKeyBase64])
 }

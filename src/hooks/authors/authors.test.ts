@@ -89,21 +89,26 @@ describe('authors', () => {
       expect(rendered.result.current.error).toBe(undefined)
     })
 
-    test('invalid crypto name', async () => {
+    test('long crypto name', async () => {
       const cryptoName = 'some-long-crypto-name.eth'
       const commentWithInvalidCryptoName = {...comment, author: {address: cryptoName}}
       rendered.rerender({comment: commentWithInvalidCryptoName})
-      expect(rendered.result.current.authorAddress).toBe(cryptoName)
-      expect(rendered.result.current.shortAuthorAddress).toBe(cryptoName)
-      expect(rendered.result.current.error).toBe(undefined)
-
-      // wait for name.eth to be replaced by correct address because invalid
-      // this has to wait for the isReady time in useAuthorAddress, so can be slow
-      await waitFor(() => rendered.result.current.authorAddress === comment.author.address)
       expect(rendered.result.current.authorAddress).toBe(comment.author.address)
       expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
       expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
+      // shortAuthorAddress length is bigger with longer crypto name to reduce displacement
       expect(rendered.result.current.shortAuthorAddress.length).toBe(cryptoName.length - 4)
+    })
+
+    test('short crypto name', async () => {
+      const cryptoName = 'a.eth'
+      const commentWithInvalidCryptoName = {...comment, author: {address: cryptoName}}
+      rendered.rerender({comment: commentWithInvalidCryptoName})
+      expect(rendered.result.current.authorAddress).toBe(comment.author.address)
+      expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
+      expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
+      // shortAuthorAddress length is bigger with longer crypto name to reduce displacement
+      expect(rendered.result.current.shortAuthorAddress.length).toBe(12)
     })
   })
 

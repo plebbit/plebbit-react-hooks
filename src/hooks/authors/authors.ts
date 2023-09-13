@@ -24,6 +24,7 @@ import {useComment, useComments} from '../comments'
 import {useAuthorCommentsName, usePlebbitAddress} from './utils'
 import useAuthorsCommentsStore from '../../stores/authors-comments'
 import PlebbitJs from '../../lib/plebbit-js'
+import QuickLRU from 'quick-lru'
 
 /**
  * @param authorAddress - The address of the author
@@ -232,26 +233,39 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`)
   const {comment, accountName} = options || {}
   const account = useAccount({accountName})
-  const [resolvedAddress, setResolvedAddress] = useState<string>()
-  const isCryptoName = !!comment?.author?.address?.match?.('.')
-  // don't waste time calculating plebbit address if not a crypto name
-  const signerAddress = usePlebbitAddress(isCryptoName && comment?.signature?.publicKey)
-  const [isReady, setIsReady] = useState(false)
+  const isCryptoName = !!comment?.author?.address?.includes?.('.')
+  const [resolvedAddress, setResolvedAddress] = useState<string | undefined>(isCryptoName ? resolvedAuthorAddressCache.get(comment?.author?.address) : undefined)
+  const signerAddress = usePlebbitAddress(isCryptoName ? comment?.signature?.publicKey : undefined)
 
   useEffect(() => {
-    if (!account?.plebbit || !comment?.author?.address) {
+    if (!account?.plebbit || !comment?.author?.address || !isCryptoName) {
       return
     }
-    account.plebbit
-      .resolveAuthorAddress(comment?.author?.address)
-      .then((resolvedAddress: string) => setResolvedAddress(resolvedAddress))
+    const resolveAuthorAddressNoCache = () => {
+      if (Boolean(resolveAuthorAddressPromises[comment?.author?.address])) {
+        return resolveAuthorAddressPromises[comment?.author?.address]
+      }
+      log('useAuthorAddress plebbit.resolveAuthorAddress', {address: comment?.author?.address})
+      resolveAuthorAddressPromises[comment?.author?.address] = account.plebbit.resolveAuthorAddress(comment?.author?.address)
+      return resolveAuthorAddressPromises[comment?.author?.address]
+    }
+    const resolveAuthorAddress = async () => {
+      const cached = resolvedAuthorAddressCache.get(comment?.author?.address)
+      if (cached) {
+        return cached
+      }
+      const res = await resolveAuthorAddressNoCache()
+      resolvedAuthorAddressCache.set(comment?.author?.address, res)
+      return res
+    }
+    resolveAuthorAddress()
+      .then((_resolvedAddress: string) => {
+        if (_resolvedAddress !== resolvedAddress) {
+          setResolvedAddress(_resolvedAddress)
+        }
+      })
       .catch((error: any) => log.error('useAuthorAddress error', {error, comment}))
-
-    // give some time for resolvedAddress and signerAddress to become ready
-    // no more than 100ms or could trick users into believing fake .eth names
-    setIsReady(false)
-    setTimeout(() => setIsReady(true), 100)
-  }, [account?.plebbit, comment?.author?.address])
+  }, [account?.plebbit, comment?.author?.address, isCryptoName])
 
   // use signer address by default
   let authorAddress = signerAddress
@@ -263,17 +277,13 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   if (!isCryptoName) {
     authorAddress = comment?.author?.address
   }
-  // if isn't ready, always use author address
-  if (!isReady) {
-    authorAddress = comment?.author?.address
-  }
 
   let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress)
 
   // if shortAddress is smaller than crypto name, give a longer
   // shortAddress to cause the least UI displacement as possible
   // -4 chars because most fonts will make the address larger
-  if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length - 4) {
+  if (isCryptoName && authorAddress && shortAuthorAddress.length < comment?.author?.address?.length - 4) {
     const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop()
     shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, comment?.author?.address?.length - 4)
   }
@@ -289,6 +299,9 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
     [authorAddress, shortAuthorAddress]
   )
 }
+// TODO: figure out how to upgrade to quick-lru 6+ to use maxAge
+const resolvedAuthorAddressCache = new QuickLRU<string, string>({maxSize: 1000})
+const resolveAuthorAddressPromises: {[address: string]: Promise<string>} = {}
 
 /**
  * @param author - The author with author.address to resolve to a public key, e.g. 'john.eth' resolves to '12D3KooW...'.
