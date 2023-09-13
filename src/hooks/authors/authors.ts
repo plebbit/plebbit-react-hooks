@@ -237,6 +237,9 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   const [resolvedAddress, setResolvedAddress] = useState<string | undefined>(isCryptoName ? resolvedAuthorAddressCache.get(comment?.author?.address) : undefined)
   const signerAddress = usePlebbitAddress(isCryptoName ? comment?.signature?.publicKey : undefined)
 
+  // useful for triggering css animation when the address changes from unverified to verified
+  const [authorAddressChanged, setAuthorAddressChanged] = useState(false)
+
   useEffect(() => {
     if (!account?.plebbit || !comment?.author?.address || !isCryptoName) {
       return
@@ -262,6 +265,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
       .then((_resolvedAddress: string) => {
         if (_resolvedAddress !== resolvedAddress) {
           setResolvedAddress(_resolvedAddress)
+          setAuthorAddressChanged(true)
         }
       })
       .catch((error: any) => log.error('useAuthorAddress error', {error, comment}))
@@ -292,6 +296,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
     () => ({
       authorAddress,
       shortAuthorAddress,
+      authorAddressChanged,
       state: 'initializing',
       error: undefined,
       errors: [],

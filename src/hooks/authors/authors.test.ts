@@ -86,6 +86,7 @@ describe('authors', () => {
       expect(rendered.result.current.authorAddress).toBe(comment.author.address)
       expect(typeof rendered.result.current.shortAuthorAddress).toBe('string')
       expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
+      expect(rendered.result.current.authorAddressChanged).toBe(false)
       expect(rendered.result.current.error).toBe(undefined)
     })
 
@@ -98,6 +99,7 @@ describe('authors', () => {
       expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
       // shortAuthorAddress length is bigger with longer crypto name to reduce displacement
       expect(rendered.result.current.shortAuthorAddress.length).toBe(cryptoName.length - 4)
+      expect(rendered.result.current.authorAddressChanged).toBe(false)
     })
 
     test('short crypto name', async () => {
@@ -109,6 +111,7 @@ describe('authors', () => {
       expect(rendered.result.current.authorAddress.includes(rendered.result.current.shortAuthorAddress)).toBe(true)
       // shortAuthorAddress length is bigger with longer crypto name to reduce displacement
       expect(rendered.result.current.shortAuthorAddress.length).toBe(12)
+      expect(rendered.result.current.authorAddressChanged).toBe(false)
     })
   })
 

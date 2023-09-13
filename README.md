@@ -40,7 +40,7 @@ useResolvedSubplebbitAddress({subplebbitAddress: string, cache: boolean}): {reso
 #### Authors Hooks
 ```
 useAuthor({authorAddress: string, commentCid: string}): {author: Author | undefined}
-useAuthorAddress({comment: Comment}): {authorAddress: string | undefined, shortAuthorAddress: string | undefined}
+useAuthorAddress({comment: Comment}): {authorAddress: string | undefined, shortAuthorAddress: string | undefined, authorAddressChanged: boolean}
 useAuthorComments({authorAddress: string, commentCid: string, filter?: CommentsFilter}): {authorComments: Comment[], hasMore: boolean, loadMore: Promise<void>}
 useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
 useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
