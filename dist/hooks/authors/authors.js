@@ -243,9 +243,10 @@ export function useAuthorAddress(options) {
     let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
     // if shortAddress is smaller than crypto name, give a longer
     // shortAddress to cause the least UI displacement as possible
-    if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length) {
+    // -4 chars because most fonts will make the address larger
+    if (isCryptoName && authorAddress && shortAuthorAddress.length < authorAddress.length - 4) {
         const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop();
-        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_k = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address) === null || _k === void 0 ? void 0 : _k.length) - 2);
+        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_k = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address) === null || _k === void 0 ? void 0 : _k.length) - 4);
     }
     return useMemo(() => ({
         authorAddress,
