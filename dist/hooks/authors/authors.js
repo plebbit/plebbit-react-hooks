@@ -211,6 +211,8 @@ export function useAuthorAddress(options) {
     const isCryptoName = !!((_c = (_b = (_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) === null || _b === void 0 ? void 0 : _b.includes) === null || _c === void 0 ? void 0 : _c.call(_b, '.'));
     const [resolvedAddress, setResolvedAddress] = useState(isCryptoName ? resolvedAuthorAddressCache.get((_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address) : undefined);
     const signerAddress = usePlebbitAddress(isCryptoName ? (_e = comment === null || comment === void 0 ? void 0 : comment.signature) === null || _e === void 0 ? void 0 : _e.publicKey : undefined);
+    // useful for triggering css animation when the address changes from unverified to verified
+    const [authorAddressChanged, setAuthorAddressChanged] = useState(false);
     useEffect(() => {
         var _a;
         if (!(account === null || account === void 0 ? void 0 : account.plebbit) || !((_a = comment === null || comment === void 0 ? void 0 : comment.author) === null || _a === void 0 ? void 0 : _a.address) || !isCryptoName) {
@@ -239,6 +241,7 @@ export function useAuthorAddress(options) {
             .then((_resolvedAddress) => {
             if (_resolvedAddress !== resolvedAddress) {
                 setResolvedAddress(_resolvedAddress);
+                setAuthorAddressChanged(true);
             }
         })
             .catch((error) => log.error('useAuthorAddress error', { error, comment }));
@@ -264,6 +267,7 @@ export function useAuthorAddress(options) {
     return useMemo(() => ({
         authorAddress,
         shortAuthorAddress,
+        authorAddressChanged,
         state: 'initializing',
         error: undefined,
         errors: [],

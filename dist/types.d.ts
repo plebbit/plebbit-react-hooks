@@ -172,6 +172,7 @@ export interface UseAuthorAddressOptions extends Options {
 export interface UseAuthorAddressResult extends Result {
     authorAddress: string | undefined;
     shortAuthorAddress: string | undefined;
+    authorAddressChanged: boolean;
 }
 export interface UsePublishCommentOptions extends Options {
     onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
