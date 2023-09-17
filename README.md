@@ -781,7 +781,7 @@ if (editedCommentState === 'failed') {
 }
 ```
 
-### View the status of a specific comment edit property
+#### View the status of a specific comment edit property
 
 ```jsx
 const comment = useComment({commentCid})
