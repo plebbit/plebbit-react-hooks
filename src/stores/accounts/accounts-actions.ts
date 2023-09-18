@@ -434,7 +434,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   delete createCommentOptions.onError
   delete createCommentOptions.onPublishingStateChange
 
-  let accountCommentIndex: number
+  let accountCommentIndex = accountsComments[account.id].length
 
   let comment = await account.plebbit.createComment(createCommentOptions)
   let lastChallenge: Challenge | undefined
@@ -534,8 +534,6 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   log('accountsActions.publishComment', {createCommentOptions})
   let createdAccountComment
   accountsStore.setState(({accountsComments}) => {
-    // save account comment index to update the comment later
-    accountCommentIndex = accountsComments[account.id].length
     createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
     return {
       accountsComments: {
