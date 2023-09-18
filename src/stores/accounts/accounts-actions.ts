@@ -264,8 +264,8 @@ export const subscribe = async (subplebbitAddress: string, accountName?: string)
   subscriptions.push(subplebbitAddress)
 
   const updatedAccount: Account = {...account, subscriptions}
-  // update account in db
-  await accountsDatabase.addAccount(updatedAccount)
+  // update account in db async for instant feedback speed
+  accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
   log('accountsActions.subscribe', {account: updatedAccount, accountName, subplebbitAddress})
   accountsStore.setState({accounts: updatedAccounts})
@@ -290,8 +290,8 @@ export const unsubscribe = async (subplebbitAddress: string, accountName?: strin
   subscriptions = subscriptions.filter((address) => address !== subplebbitAddress)
 
   const updatedAccount: Account = {...account, subscriptions}
-  // update account in db
-  await accountsDatabase.addAccount(updatedAccount)
+  // update account in db async for instant feedback speed
+  accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
   log('accountsActions.unsubscribe', {account: updatedAccount, accountName, subplebbitAddress})
   accountsStore.setState({accounts: updatedAccounts})
@@ -315,8 +315,8 @@ export const blockAddress = async (address: string, accountName?: string) => {
   blockedAddresses[address] = true
 
   const updatedAccount: Account = {...account, blockedAddresses}
-  // update account in db
-  await accountsDatabase.addAccount(updatedAccount)
+  // update account in db async for instant feedback speed
+  accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
   log('accountsActions.blockAddress', {account: updatedAccount, accountName, address})
   accountsStore.setState({accounts: updatedAccounts})
@@ -340,8 +340,8 @@ export const unblockAddress = async (address: string, accountName?: string) => {
   delete blockedAddresses[address]
 
   const updatedAccount: Account = {...account, blockedAddresses}
-  // update account in db
-  await accountsDatabase.addAccount(updatedAccount)
+  // update account in db async for instant feedback speed
+  accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
   log('accountsActions.unblockAddress', {account: updatedAccount, accountName, address})
   accountsStore.setState({accounts: updatedAccounts})
@@ -365,8 +365,8 @@ export const blockCid = async (cid: string, accountName?: string) => {
   blockedCids[cid] = true
 
   const updatedAccount: Account = {...account, blockedCids}
-  // update account in db
-  await accountsDatabase.addAccount(updatedAccount)
+  // update account in db async for instant feedback speed
+  accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
   log('accountsActions.blockCid', {account: updatedAccount, accountName, cid})
   accountsStore.setState({accounts: updatedAccounts})
@@ -390,8 +390,8 @@ export const unblockCid = async (cid: string, accountName?: string) => {
   delete blockedCids[cid]
 
   const updatedAccount: Account = {...account, blockedCids}
-  // update account in db
-  await accountsDatabase.addAccount(updatedAccount)
+  // update account in db async for instant feedback speed
+  accountsDatabase.addAccount(updatedAccount)
   const updatedAccounts = {...accounts, [updatedAccount.id]: updatedAccount}
   log('accountsActions.unblockCid', {account: updatedAccount, accountName, cid})
   accountsStore.setState({accounts: updatedAccounts})
