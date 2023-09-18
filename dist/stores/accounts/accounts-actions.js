@@ -367,15 +367,42 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     if (previousCommentCid) {
         author.previousCommentCid = previousCommentCid;
     }
-    // fetch comment.link dimensions
-    (_d = publishCommentOptions.onPublishingStateChange) === null || _d === void 0 ? void 0 : _d.call(publishCommentOptions, 'fetching-link-dimensions');
-    const commentLinkDimensions = yield fetchCommentLinkDimensions(publishCommentOptions.link);
-    let createCommentOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author, signer: account.signer }, commentLinkDimensions), publishCommentOptions);
+    let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author, signer: account.signer }, publishCommentOptions);
     delete createCommentOptions.onChallenge;
     delete createCommentOptions.onChallengeVerification;
     delete createCommentOptions.onError;
     delete createCommentOptions.onPublishingStateChange;
+    // make sure the options dont throw
+    yield account.plebbit.createComment(createCommentOptions);
+    // set fetching link dimensions state
+    let fetchingLinkDimensionsStates;
+    if (publishCommentOptions.link) {
+        (_d = publishCommentOptions.onPublishingStateChange) === null || _d === void 0 ? void 0 : _d.call(publishCommentOptions, 'fetching-link-dimensions');
+        fetchingLinkDimensionsStates = { state: 'publishing', publishingState: 'fetching-link-dimensions' };
+    }
+    // save comment to db
     let accountCommentIndex = accountsComments[account.id].length;
+    yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
+    let createdAccountComment;
+    accountsStore.setState(({ accountsComments }) => {
+        createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
+        return {
+            accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: [...accountsComments[account.id], Object.assign(Object.assign({}, createdAccountComment), fetchingLinkDimensionsStates)] }),
+        };
+    });
+    // fetch comment.link dimensions
+    if (publishCommentOptions.link) {
+        const commentLinkDimensions = yield fetchCommentLinkDimensions(publishCommentOptions.link);
+        createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), commentLinkDimensions);
+        // save dimensions to db
+        createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
+        yield accountsDatabase.addAccountComment(account.id, createdAccountComment);
+        accountsStore.setState(({ accountsComments }) => {
+            const accountComments = [...accountsComments[account.id]];
+            accountComments[accountCommentIndex] = createdAccountComment;
+            return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+        });
+    }
     let comment = yield account.plebbit.createComment(createCommentOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -469,15 +496,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
         }
     });
     publishAndRetryFailedChallengeVerification();
-    yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
     log('accountsActions.publishComment', { createCommentOptions });
-    let createdAccountComment;
-    accountsStore.setState(({ accountsComments }) => {
-        createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
-        return {
-            accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: [...accountsComments[account.id], createdAccountComment] }),
-        };
-    });
     return createdAccountComment;
 });
 export const deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(void 0, void 0, void 0, function* () {
