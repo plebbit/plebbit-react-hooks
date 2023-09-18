@@ -375,7 +375,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     delete createCommentOptions.onChallengeVerification;
     delete createCommentOptions.onError;
     delete createCommentOptions.onPublishingStateChange;
-    let accountCommentIndex;
+    let accountCommentIndex = accountsComments[account.id].length;
     let comment = yield account.plebbit.createComment(createCommentOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -473,8 +473,6 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     log('accountsActions.publishComment', { createCommentOptions });
     let createdAccountComment;
     accountsStore.setState(({ accountsComments }) => {
-        // save account comment index to update the comment later
-        accountCommentIndex = accountsComments[account.id].length;
         createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
         return {
             accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: [...accountsComments[account.id], createdAccountComment] }),
