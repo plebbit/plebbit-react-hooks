@@ -390,113 +390,118 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: [...accountsComments[account.id], Object.assign(Object.assign({}, createdAccountComment), fetchingLinkDimensionsStates)] }),
         };
     });
-    // fetch comment.link dimensions
-    if (publishCommentOptions.link) {
-        const commentLinkDimensions = yield fetchCommentLinkDimensions(publishCommentOptions.link);
-        createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), commentLinkDimensions);
-        // save dimensions to db
-        createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
-        yield accountsDatabase.addAccountComment(account.id, createdAccountComment);
-        accountsStore.setState(({ accountsComments }) => {
-            const accountComments = [...accountsComments[account.id]];
-            accountComments[accountCommentIndex] = createdAccountComment;
-            return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+    let comment;
+    (() => __awaiter(void 0, void 0, void 0, function* () {
+        // fetch comment.link dimensions
+        if (publishCommentOptions.link) {
+            const commentLinkDimensions = yield fetchCommentLinkDimensions(publishCommentOptions.link);
+            createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), commentLinkDimensions);
+            // save dimensions to db
+            createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
+            yield accountsDatabase.addAccountComment(account.id, createdAccountComment);
+            accountsStore.setState(({ accountsComments }) => {
+                const accountComments = [...accountsComments[account.id]];
+                accountComments[accountCommentIndex] = createdAccountComment;
+                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+            });
+        }
+        comment = yield account.plebbit.createComment(createCommentOptions);
+        publishAndRetryFailedChallengeVerification();
+        log('accountsActions.publishComment', { createCommentOptions });
+    }))();
+    let lastChallenge;
+    function publishAndRetryFailedChallengeVerification() {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            comment.once('challenge', (challenge) => __awaiter(this, void 0, void 0, function* () {
+                lastChallenge = challenge;
+                publishCommentOptions.onChallenge(challenge, comment);
+            }));
+            comment.once('challengeverification', (challengeVerification) => __awaiter(this, void 0, void 0, function* () {
+                var _b;
+                publishCommentOptions.onChallengeVerification(challengeVerification, comment);
+                if (!challengeVerification.challengeSuccess && lastChallenge) {
+                    // publish again automatically on fail
+                    createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp: Math.round(Date.now() / 1000) });
+                    comment = yield account.plebbit.createComment(createCommentOptions);
+                    lastChallenge = undefined;
+                    publishAndRetryFailedChallengeVerification();
+                }
+                else {
+                    // the challengeverification message of a comment publication should in theory send back the CID
+                    // of the published comment which is needed to resolve it for replies, upvotes, etc
+                    if ((_b = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _b === void 0 ? void 0 : _b.cid) {
+                        const commentWithCid = comment;
+                        yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
+                        accountsStore.setState(({ accountsComments, commentCidsToAccountsComments }) => {
+                            var _a;
+                            const updatedAccountComments = [...accountsComments[account.id]];
+                            const updatedAccountComment = Object.assign(Object.assign({}, commentWithCid), { index: accountCommentIndex, accountId: account.id });
+                            updatedAccountComments[accountCommentIndex] = updatedAccountComment;
+                            return {
+                                accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: updatedAccountComments }),
+                                commentCidsToAccountsComments: Object.assign(Object.assign({}, commentCidsToAccountsComments), { [(_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid]: { accountId: account.id, accountCommentIndex } }),
+                            };
+                        });
+                        // clone the comment or it bugs publishing callbacks
+                        const updatingComment = yield account.plebbit.createComment(Object.assign({}, comment));
+                        accountsActionsInternal
+                            .startUpdatingAccountCommentOnCommentUpdateEvents(updatingComment, account, accountCommentIndex)
+                            .catch((error) => log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', { comment, account, accountCommentIndex, error }));
+                    }
+                }
+            }));
+            comment.on('error', (error) => {
+                var _a;
+                accountsStore.setState(({ accountsComments }) => {
+                    const accountComments = [...accountsComments[account.id]];
+                    const accountComment = accountComments[accountCommentIndex];
+                    if (!accountComment) {
+                        return {};
+                    }
+                    const errors = [...(accountComment.errors || []), error];
+                    accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { errors, error });
+                    return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+                });
+                (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment);
+            });
+            comment.on('publishingstatechange', (publishingState) => __awaiter(this, void 0, void 0, function* () {
+                var _c;
+                // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
+                accountsStore.setState(({ accountsComments }) => {
+                    const accountComments = [...accountsComments[account.id]];
+                    const accountComment = accountComments[accountCommentIndex];
+                    if (!accountComment) {
+                        return {};
+                    }
+                    accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { publishingState });
+                    return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+                });
+                (_c = publishCommentOptions.onPublishingStateChange) === null || _c === void 0 ? void 0 : _c.call(publishCommentOptions, publishingState);
+            }));
+            // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
+            utils.clientsOnStateChange(comment.clients, (state) => {
+                accountsStore.setState(({ accountsComments }) => {
+                    const accountComments = [...accountsComments[account.id]];
+                    const accountComment = accountComments[accountCommentIndex];
+                    if (!accountComment) {
+                        return {};
+                    }
+                    accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients: utils.clone(comment.clients) });
+                    return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+                });
+            });
+            listeners.push(comment);
+            try {
+                // publish will resolve after the challenge request
+                // if it fails before, like failing to resolve ENS, we can emit the error
+                yield comment.publish();
+            }
+            catch (error) {
+                (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment);
+            }
         });
     }
-    let comment = yield account.plebbit.createComment(createCommentOptions);
-    let lastChallenge;
-    const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _e;
-        comment.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
-            lastChallenge = challenge;
-            publishCommentOptions.onChallenge(challenge, comment);
-        }));
-        comment.once('challengeverification', (challengeVerification) => __awaiter(void 0, void 0, void 0, function* () {
-            var _f;
-            publishCommentOptions.onChallengeVerification(challengeVerification, comment);
-            if (!challengeVerification.challengeSuccess && lastChallenge) {
-                // publish again automatically on fail
-                createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp: Math.round(Date.now() / 1000) });
-                comment = yield account.plebbit.createComment(createCommentOptions);
-                lastChallenge = undefined;
-                publishAndRetryFailedChallengeVerification();
-            }
-            else {
-                // the challengeverification message of a comment publication should in theory send back the CID
-                // of the published comment which is needed to resolve it for replies, upvotes, etc
-                if ((_f = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _f === void 0 ? void 0 : _f.cid) {
-                    const commentWithCid = comment;
-                    yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
-                    accountsStore.setState(({ accountsComments, commentCidsToAccountsComments }) => {
-                        var _a;
-                        const updatedAccountComments = [...accountsComments[account.id]];
-                        const updatedAccountComment = Object.assign(Object.assign({}, commentWithCid), { index: accountCommentIndex, accountId: account.id });
-                        updatedAccountComments[accountCommentIndex] = updatedAccountComment;
-                        return {
-                            accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: updatedAccountComments }),
-                            commentCidsToAccountsComments: Object.assign(Object.assign({}, commentCidsToAccountsComments), { [(_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid]: { accountId: account.id, accountCommentIndex } }),
-                        };
-                    });
-                    // clone the comment or it bugs publishing callbacks
-                    const updatingComment = yield account.plebbit.createComment(Object.assign({}, comment));
-                    accountsActionsInternal
-                        .startUpdatingAccountCommentOnCommentUpdateEvents(updatingComment, account, accountCommentIndex)
-                        .catch((error) => log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', { comment, account, accountCommentIndex, error }));
-                }
-            }
-        }));
-        comment.on('error', (error) => {
-            var _a;
-            accountsStore.setState(({ accountsComments }) => {
-                const accountComments = [...accountsComments[account.id]];
-                const accountComment = accountComments[accountCommentIndex];
-                if (!accountComment) {
-                    return {};
-                }
-                const errors = [...(accountComment.errors || []), error];
-                accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { errors, error });
-                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
-            });
-            (_a = publishCommentOptions.onError) === null || _a === void 0 ? void 0 : _a.call(publishCommentOptions, error, comment);
-        });
-        comment.on('publishingstatechange', (publishingState) => __awaiter(void 0, void 0, void 0, function* () {
-            var _g;
-            // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
-            accountsStore.setState(({ accountsComments }) => {
-                const accountComments = [...accountsComments[account.id]];
-                const accountComment = accountComments[accountCommentIndex];
-                if (!accountComment) {
-                    return {};
-                }
-                accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { publishingState });
-                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
-            });
-            (_g = publishCommentOptions.onPublishingStateChange) === null || _g === void 0 ? void 0 : _g.call(publishCommentOptions, publishingState);
-        }));
-        // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
-        utils.clientsOnStateChange(comment.clients, (state) => {
-            accountsStore.setState(({ accountsComments }) => {
-                const accountComments = [...accountsComments[account.id]];
-                const accountComment = accountComments[accountCommentIndex];
-                if (!accountComment) {
-                    return {};
-                }
-                accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients: utils.clone(comment.clients) });
-                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
-            });
-        });
-        listeners.push(comment);
-        try {
-            // publish will resolve after the challenge request
-            // if it fails before, like failing to resolve ENS, we can emit the error
-            yield comment.publish();
-        }
-        catch (error) {
-            (_e = publishCommentOptions.onError) === null || _e === void 0 ? void 0 : _e.call(publishCommentOptions, error, comment);
-        }
-    });
-    publishAndRetryFailedChallengeVerification();
-    log('accountsActions.publishComment', { createCommentOptions });
     return createdAccountComment;
 });
 export const deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(void 0, void 0, void 0, function* () {
@@ -519,7 +524,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     let vote = yield account.plebbit.createVote(createVoteOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _h;
+        var _e;
         vote.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             lastChallenge = challenge;
             publishVoteOptions.onChallenge(challenge, vote);
@@ -544,7 +549,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
             yield vote.publish();
         }
         catch (error) {
-            (_h = publishVoteOptions.onError) === null || _h === void 0 ? void 0 : _h.call(publishVoteOptions, error, vote);
+            (_e = publishVoteOptions.onError) === null || _e === void 0 ? void 0 : _e.call(publishVoteOptions, error, vote);
         }
     });
     publishAndRetryFailedChallengeVerification();
@@ -571,7 +576,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _j;
+        var _f;
         commentEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishCommentEditOptions.onChallenge(challenge, commentEdit);
         }));
@@ -595,7 +600,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
             yield commentEdit.publish();
         }
         catch (error) {
-            (_j = publishCommentEditOptions.onError) === null || _j === void 0 ? void 0 : _j.call(publishCommentEditOptions, error, commentEdit);
+            (_f = publishCommentEditOptions.onError) === null || _f === void 0 ? void 0 : _f.call(publishCommentEditOptions, error, commentEdit);
         }
     });
     publishAndRetryFailedChallengeVerification();
@@ -612,7 +617,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     });
 });
 export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
-    var _k;
+    var _g;
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
     assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
     let account = accounts[activeAccountId];
@@ -627,7 +632,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         yield subplebbitsStore.getState().editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account);
         // create fake success challenge verification for consistent behavior with remote subplebbit edit
         publishSubplebbitEditOptions.onChallengeVerification({ challengeSuccess: true });
-        (_k = publishSubplebbitEditOptions.onPublishingStateChange) === null || _k === void 0 ? void 0 : _k.call(publishSubplebbitEditOptions, 'succeeded');
+        (_g = publishSubplebbitEditOptions.onPublishingStateChange) === null || _g === void 0 ? void 0 : _g.call(publishSubplebbitEditOptions, 'succeeded');
         return;
     }
     assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
@@ -641,7 +646,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _l;
+        var _h;
         subplebbitEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit);
         }));
@@ -665,7 +670,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
             yield subplebbitEdit.publish();
         }
         catch (error) {
-            (_l = publishSubplebbitEditOptions.onError) === null || _l === void 0 ? void 0 : _l.call(publishSubplebbitEditOptions, error, subplebbitEdit);
+            (_h = publishSubplebbitEditOptions.onError) === null || _h === void 0 ? void 0 : _h.call(publishSubplebbitEditOptions, error, subplebbitEdit);
         }
     });
     publishAndRetryFailedChallengeVerification();
