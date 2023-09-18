@@ -453,23 +453,28 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     }
   })
 
-  // fetch comment.link dimensions
-  if (publishCommentOptions.link) {
-    const commentLinkDimensions = await fetchCommentLinkDimensions(publishCommentOptions.link)
-    createCommentOptions = {...createCommentOptions, ...commentLinkDimensions}
-    // save dimensions to db
-    createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
-    await accountsDatabase.addAccountComment(account.id, createdAccountComment)
-    accountsStore.setState(({accountsComments}) => {
-      const accountComments: AccountComment[] = [...accountsComments[account.id]]
-      accountComments[accountCommentIndex] = createdAccountComment
-      return {accountsComments: {...accountsComments, [account.id]: accountComments}}
-    })
-  }
+  let comment: any
+  ;(async () => {
+    // fetch comment.link dimensions
+    if (publishCommentOptions.link) {
+      const commentLinkDimensions = await fetchCommentLinkDimensions(publishCommentOptions.link)
+      createCommentOptions = {...createCommentOptions, ...commentLinkDimensions}
+      // save dimensions to db
+      createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
+      await accountsDatabase.addAccountComment(account.id, createdAccountComment)
+      accountsStore.setState(({accountsComments}) => {
+        const accountComments: AccountComment[] = [...accountsComments[account.id]]
+        accountComments[accountCommentIndex] = createdAccountComment
+        return {accountsComments: {...accountsComments, [account.id]: accountComments}}
+      })
+    }
+    comment = await account.plebbit.createComment(createCommentOptions)
+    publishAndRetryFailedChallengeVerification()
+    log('accountsActions.publishComment', {createCommentOptions})
+  })()
 
-  let comment = await account.plebbit.createComment(createCommentOptions)
   let lastChallenge: Challenge | undefined
-  const publishAndRetryFailedChallengeVerification = async () => {
+  async function publishAndRetryFailedChallengeVerification() {
     comment.once('challenge', async (challenge: Challenge) => {
       lastChallenge = challenge
       publishCommentOptions.onChallenge(challenge, comment)
@@ -559,9 +564,6 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       publishCommentOptions.onError?.(error, comment)
     }
   }
-
-  publishAndRetryFailedChallengeVerification()
-  log('accountsActions.publishComment', {createCommentOptions})
 
   return createdAccountComment
 }
