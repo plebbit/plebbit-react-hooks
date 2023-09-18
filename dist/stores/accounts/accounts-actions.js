@@ -230,8 +230,8 @@ export const subscribe = (subplebbitAddress, accountName) => __awaiter(void 0, v
     }
     subscriptions.push(subplebbitAddress);
     const updatedAccount = Object.assign(Object.assign({}, account), { subscriptions });
-    // update account in db
-    yield accountsDatabase.addAccount(updatedAccount);
+    // update account in db async for instant feedback speed
+    accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
     log('accountsActions.subscribe', { account: updatedAccount, accountName, subplebbitAddress });
     accountsStore.setState({ accounts: updatedAccounts });
@@ -253,8 +253,8 @@ export const unsubscribe = (subplebbitAddress, accountName) => __awaiter(void 0,
     // remove subplebbitAddress
     subscriptions = subscriptions.filter((address) => address !== subplebbitAddress);
     const updatedAccount = Object.assign(Object.assign({}, account), { subscriptions });
-    // update account in db
-    yield accountsDatabase.addAccount(updatedAccount);
+    // update account in db async for instant feedback speed
+    accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
     log('accountsActions.unsubscribe', { account: updatedAccount, accountName, subplebbitAddress });
     accountsStore.setState({ accounts: updatedAccounts });
@@ -275,8 +275,8 @@ export const blockAddress = (address, accountName) => __awaiter(void 0, void 0, 
     }
     blockedAddresses[address] = true;
     const updatedAccount = Object.assign(Object.assign({}, account), { blockedAddresses });
-    // update account in db
-    yield accountsDatabase.addAccount(updatedAccount);
+    // update account in db async for instant feedback speed
+    accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
     log('accountsActions.blockAddress', { account: updatedAccount, accountName, address });
     accountsStore.setState({ accounts: updatedAccounts });
@@ -297,8 +297,8 @@ export const unblockAddress = (address, accountName) => __awaiter(void 0, void 0
     }
     delete blockedAddresses[address];
     const updatedAccount = Object.assign(Object.assign({}, account), { blockedAddresses });
-    // update account in db
-    yield accountsDatabase.addAccount(updatedAccount);
+    // update account in db async for instant feedback speed
+    accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
     log('accountsActions.unblockAddress', { account: updatedAccount, accountName, address });
     accountsStore.setState({ accounts: updatedAccounts });
@@ -319,8 +319,8 @@ export const blockCid = (cid, accountName) => __awaiter(void 0, void 0, void 0, 
     }
     blockedCids[cid] = true;
     const updatedAccount = Object.assign(Object.assign({}, account), { blockedCids });
-    // update account in db
-    yield accountsDatabase.addAccount(updatedAccount);
+    // update account in db async for instant feedback speed
+    accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
     log('accountsActions.blockCid', { account: updatedAccount, accountName, cid });
     accountsStore.setState({ accounts: updatedAccounts });
@@ -341,8 +341,8 @@ export const unblockCid = (cid, accountName) => __awaiter(void 0, void 0, void 0
     }
     delete blockedCids[cid];
     const updatedAccount = Object.assign(Object.assign({}, account), { blockedCids });
-    // update account in db
-    yield accountsDatabase.addAccount(updatedAccount);
+    // update account in db async for instant feedback speed
+    accountsDatabase.addAccount(updatedAccount);
     const updatedAccounts = Object.assign(Object.assign({}, accounts), { [updatedAccount.id]: updatedAccount });
     log('accountsActions.unblockCid', { account: updatedAccount, accountName, cid });
     accountsStore.setState({ accounts: updatedAccounts });
