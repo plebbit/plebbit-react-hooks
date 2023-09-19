@@ -281,6 +281,11 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
   if (!isCryptoName) {
     authorAddress = comment?.author?.address
   }
+  // if comment has no signature, it's a pending account comment, no need to verify it
+  // TODO: eventually account comments will have a signature immediately
+  if (comment && !comment?.signature) {
+    authorAddress = comment?.author?.address
+  }
 
   let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress)
 

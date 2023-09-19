@@ -113,6 +113,16 @@ describe('authors', () => {
       expect(rendered.result.current.shortAuthorAddress.length).toBe(12)
       expect(rendered.result.current.authorAddressChanged).toBe(false)
     })
+
+    // TODO: eventually account comments will have a comment.signature immediately
+    test('account comment with no comment.signature', async () => {
+      const cryptoName = 'name.eth'
+      const accountComment = {author: {address: cryptoName}}
+      rendered.rerender({comment: accountComment})
+      expect(rendered.result.current.authorAddress).toBe(cryptoName)
+      expect(rendered.result.current.shortAuthorAddress).toBe(cryptoName)
+      expect(rendered.result.current.authorAddressChanged).toBe(false)
+    })
   })
 
   describe('useAuthorComments', () => {
