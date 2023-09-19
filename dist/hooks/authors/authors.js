@@ -204,7 +204,7 @@ export function useAuthorAvatar(options) {
  * the active account.
  */
 export function useAuthorAddress(options) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     assert(!options || typeof options === 'object', `useAuthorAddress options argument '${options}' not an object`);
     const { comment, accountName } = options || {};
     const account = useAccount({ accountName });
@@ -256,13 +256,18 @@ export function useAuthorAddress(options) {
     if (!isCryptoName) {
         authorAddress = (_h = comment === null || comment === void 0 ? void 0 : comment.author) === null || _h === void 0 ? void 0 : _h.address;
     }
+    // if comment has no signature, it's a pending account comment, no need to verify it
+    // TODO: eventually account comments will have a signature immediately
+    if (comment && !(comment === null || comment === void 0 ? void 0 : comment.signature)) {
+        authorAddress = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address;
+    }
     let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
     // if shortAddress is smaller than crypto name, give a longer
     // shortAddress to cause the least UI displacement as possible
     // -4 chars because most fonts will make the address larger
-    if (isCryptoName && authorAddress && shortAuthorAddress.length < ((_k = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address) === null || _k === void 0 ? void 0 : _k.length) - 4) {
+    if (isCryptoName && authorAddress && shortAuthorAddress.length < ((_l = (_k = comment === null || comment === void 0 ? void 0 : comment.author) === null || _k === void 0 ? void 0 : _k.address) === null || _l === void 0 ? void 0 : _l.length) - 4) {
         const restOfAuthorAddress = authorAddress.split(shortAuthorAddress).pop();
-        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_m = (_l = comment === null || comment === void 0 ? void 0 : comment.author) === null || _l === void 0 ? void 0 : _l.address) === null || _m === void 0 ? void 0 : _m.length) - 4);
+        shortAuthorAddress = (shortAuthorAddress + restOfAuthorAddress).substring(0, ((_o = (_m = comment === null || comment === void 0 ? void 0 : comment.author) === null || _m === void 0 ? void 0 : _m.address) === null || _o === void 0 ? void 0 : _o.length) - 4);
     }
     return useMemo(() => ({
         authorAddress,
