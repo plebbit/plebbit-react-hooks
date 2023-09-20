@@ -76,10 +76,18 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     })
 
     // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
-    utils.clientsOnStateChange(comment?.clients, (state: string) => {
-      setState((state: CommentsState) => ({
-        comments: {...state.comments, [commentCid]: {...state.comments[commentCid], clients: utils.clone(comment?.clients)}},
-      }))
+    utils.clientsOnStateChange(comment?.clients, (clientState: string, clientType: string, clientUrl: string, chainTicker?: string) => {
+      setState((state: CommentsState) => {
+        const clients = {...state.comments[commentCid].clients}
+        const client = {state: clientState}
+        if (chainTicker) {
+          const chainProviders = {...clients[clientType][chainTicker], [clientUrl]: client}
+          clients[clientType] = {...clients[clientType], [chainTicker]: chainProviders}
+        } else {
+          clients[clientType] = {...clients[clientType], [clientUrl]: client}
+        }
+        return {comments: {...state.comments, [commentCid]: {...state.comments[commentCid], clients}}}
+      })
     })
 
     // when publishing a comment, you don't yet know its CID

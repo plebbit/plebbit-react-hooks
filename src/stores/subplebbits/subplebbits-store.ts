@@ -113,10 +113,18 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     })
 
     // set clients on subplebbit so the frontend can display it, dont persist in db because a reload cancels updating
-    utils.clientsOnStateChange(subplebbit?.clients, (state: string) => {
-      setState((state: SubplebbitsState) => ({
-        subplebbits: {...state.subplebbits, [subplebbitAddress]: {...state.subplebbits[subplebbitAddress], clients: utils.clone(subplebbit?.clients)}},
-      }))
+    utils.clientsOnStateChange(subplebbit?.clients, (clientState: string, clientType: string, clientUrl: string, chainTicker?: string) => {
+      setState((state: SubplebbitsState) => {
+        const clients = {...state.subplebbits[subplebbitAddress].clients}
+        const client = {state: clientState}
+        if (chainTicker) {
+          const chainProviders = {...clients[clientType][chainTicker], [clientUrl]: client}
+          clients[clientType] = {...clients[clientType], [chainTicker]: chainProviders}
+        } else {
+          clients[clientType] = {...clients[clientType], [clientUrl]: client}
+        }
+        return {subplebbits: {...state.subplebbits, [subplebbitAddress]: {...state.subplebbits[subplebbitAddress], clients}}}
+      })
     })
 
     listeners.push(subplebbit)

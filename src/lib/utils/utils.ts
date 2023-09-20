@@ -214,17 +214,20 @@ export const memoSync = (functionToMemo: Function, memoOptions: any) => {
 
 export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   for (const clientUrl in clients?.ipfsGateways) {
-    clients?.ipfsGateways?.[clientUrl].on('statechange', onStateChange)
+    clients?.ipfsGateways?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', clientUrl))
   }
   for (const clientUrl in clients?.ipfsClients) {
-    clients?.ipfsClients?.[clientUrl].on('statechange', onStateChange)
+    clients?.ipfsClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsClients', clientUrl))
   }
   for (const clientUrl in clients?.pubsubClients) {
-    clients?.pubsubClients?.[clientUrl].on('statechange', onStateChange)
+    clients?.pubsubClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'pubsubClients', clientUrl))
+  }
+  for (const clientUrl in clients?.plebbitRpcClients) {
+    clients?.plebbitRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', clientUrl))
   }
   for (const chainTicker in clients?.chainProviders) {
     for (const clientUrl in clients?.chainProviders?.[chainTicker]) {
-      clients?.chainProviders?.[chainTicker]?.[clientUrl].on('statechange', onStateChange)
+      clients?.chainProviders?.[chainTicker]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'chainProviders', clientUrl, chainTicker))
     }
   }
 }

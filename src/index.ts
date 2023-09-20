@@ -53,6 +53,9 @@ import {
   deleteSubplebbit,
 } from './stores/accounts/accounts-actions'
 
+// states
+import {useClientsStates} from './hooks/states'
+
 // utils
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
 import {deleteDatabases, deleteCaches} from './lib/debug-utils'
@@ -108,6 +111,8 @@ export {
   importAccount,
   exportAccount,
   deleteSubplebbit,
+  // states
+  useClientsStates,
   // utils
   setPlebbitJs,
   restorePlebbitJs,
@@ -163,6 +168,8 @@ const hooks = {
   importAccount,
   exportAccount,
   deleteSubplebbit,
+  // states
+  useClientsStates,
   // utils
   setPlebbitJs,
   restorePlebbitJs,
