@@ -246,6 +246,32 @@ export interface UseBlockResult extends Result {
     block(): Promise<void>;
     unblock(): Promise<void>;
 }
+export interface UseClientsStatesOptions extends Options {
+    comment?: Comment;
+    subplebbit?: Subplebbit;
+}
+type ClientUrls = string[];
+type Peer = string;
+export interface UseClientsStatesResult extends Result {
+    states: {
+        [state: string]: ClientUrls;
+    };
+    peers: {
+        [clientUrl: string]: Peer[];
+    };
+}
+export interface UseClientsStatesCountsOptions extends Options {
+    subplebbits?: Subplebbit[];
+}
+type StateCount = {
+    count: number;
+    clientUrls: string[];
+};
+export interface UseClientsStatesCountsResult extends Result {
+    states: {
+        [state: string]: StateCount;
+    };
+}
 /**
  * TODO: define these types more in depth, most are already defined in:
  * https://github.com/plebbit/plebbit-js or
@@ -438,3 +464,4 @@ export type ChainProvider = {
 export type ChainProviders = {
     [chainTicker: string]: ChainProvider;
 };
+export {};

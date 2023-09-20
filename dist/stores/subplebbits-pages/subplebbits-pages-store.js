@@ -127,28 +127,33 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
     },
 }));
 // set clients states on subplebbits store so the frontend can display it, dont persist in db because a reload cancels updating
-const onSubplebbitPostsClientsStateChange = (subplebbit) => (clientState) => {
+const onSubplebbitPostsClientsStateChange = (subplebbitAddress) => (clientState, clientType, sortType, clientUrl) => {
     subplebbitsStore.setState((state) => {
-        var _a, _b;
-        return ({
-            subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: Object.assign(Object.assign({}, state.subplebbits[subplebbit.address]), { 
-                    // copy subplebbit.posts state
-                    posts: Object.assign(Object.assign({}, (_a = state.subplebbits[subplebbit.address]) === null || _a === void 0 ? void 0 : _a.posts), { 
-                        // copy subplebbit.posts.clients state
-                        clients: ((_b = subplebbit.posts) === null || _b === void 0 ? void 0 : _b.clients) && utils.clone(subplebbit.posts.clients) }) }) }),
-        });
+        const client = { state: clientState };
+        const subplebbit = Object.assign({}, state.subplebbits[subplebbitAddress]);
+        subplebbit.posts = Object.assign({}, subplebbit.posts);
+        subplebbit.posts.clients = Object.assign({}, subplebbit.posts.clients);
+        subplebbit.posts.clients[clientType] = Object.assign({}, subplebbit.posts.clients[clientType]);
+        subplebbit.posts.clients[clientType][sortType] = Object.assign({}, subplebbit.posts.clients[clientType][sortType]);
+        subplebbit.posts.clients[clientType][sortType][clientUrl] = client;
+        return { subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: subplebbit }) };
     });
 };
 const subplebbitPostsClientsOnStateChange = (clients, onStateChange) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     for (const sortType in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
         for (const clientUrl in (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[sortType]) {
-            (_c = (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', onStateChange);
+            (_c = (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsGateways', sortType, clientUrl));
         }
     }
     for (const sortType in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
         for (const clientUrl in (_d = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _d === void 0 ? void 0 : _d[sortType]) {
-            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', onStateChange);
+            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsClients', sortType, clientUrl));
+        }
+    }
+    for (const sortType in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
+        for (const clientUrl in (_g = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _g === void 0 ? void 0 : _g[sortType]) {
+            (_j = (_h = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _h === void 0 ? void 0 : _h[sortType]) === null || _j === void 0 ? void 0 : _j[clientUrl].on('statechange', (state) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl));
         }
     }
 };
@@ -162,7 +167,7 @@ const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, voi
     }
     const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
     // set clients states on subplebbits store so the frontend can display it
-    subplebbitPostsClientsOnStateChange((_d = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbit));
+    subplebbitPostsClientsOnStateChange((_d = subplebbit.posts) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbit.address));
     const onError = (error) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error);
     const fetchedSubplebbitPage = yield utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), { onError });
     yield subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage));

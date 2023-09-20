@@ -66,10 +66,19 @@ const commentsStore = createStore((setState, getState) => ({
                 });
             });
             // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
-            utils.clientsOnStateChange(comment === null || comment === void 0 ? void 0 : comment.clients, (state) => {
-                setState((state) => ({
-                    comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients: utils.clone(comment === null || comment === void 0 ? void 0 : comment.clients) }) }),
-                }));
+            utils.clientsOnStateChange(comment === null || comment === void 0 ? void 0 : comment.clients, (clientState, clientType, clientUrl, chainTicker) => {
+                setState((state) => {
+                    const clients = Object.assign({}, state.comments[commentCid].clients);
+                    const client = { state: clientState };
+                    if (chainTicker) {
+                        const chainProviders = Object.assign(Object.assign({}, clients[clientType][chainTicker]), { [clientUrl]: client });
+                        clients[clientType] = Object.assign(Object.assign({}, clients[clientType]), { [chainTicker]: chainProviders });
+                    }
+                    else {
+                        clients[clientType] = Object.assign(Object.assign({}, clients[clientType]), { [clientUrl]: client });
+                    }
+                    return { comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: Object.assign(Object.assign({}, state.comments[commentCid]), { clients }) }) };
+                });
             });
             // when publishing a comment, you don't yet know its CID
             // so when a new comment is fetched, check to see if it's your own

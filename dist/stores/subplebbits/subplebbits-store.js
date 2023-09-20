@@ -91,10 +91,19 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 });
             });
             // set clients on subplebbit so the frontend can display it, dont persist in db because a reload cancels updating
-            utils.clientsOnStateChange(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients, (state) => {
-                setState((state) => ({
-                    subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { clients: utils.clone(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients) }) }),
-                }));
+            utils.clientsOnStateChange(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.clients, (clientState, clientType, clientUrl, chainTicker) => {
+                setState((state) => {
+                    const clients = Object.assign({}, state.subplebbits[subplebbitAddress].clients);
+                    const client = { state: clientState };
+                    if (chainTicker) {
+                        const chainProviders = Object.assign(Object.assign({}, clients[clientType][chainTicker]), { [clientUrl]: client });
+                        clients[clientType] = Object.assign(Object.assign({}, clients[clientType]), { [chainTicker]: chainProviders });
+                    }
+                    else {
+                        clients[clientType] = Object.assign(Object.assign({}, clients[clientType]), { [clientUrl]: client });
+                    }
+                    return { subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: Object.assign(Object.assign({}, state.subplebbits[subplebbitAddress]), { clients }) }) };
+                });
             });
             listeners.push(subplebbit);
             subplebbit.update().catch((error) => log.trace('subplebbit.update error', { subplebbit, error }));

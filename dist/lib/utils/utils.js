@@ -199,19 +199,22 @@ export const memoSync = (functionToMemo, memoOptions) => {
     return obj[memoedFunctionName];
 };
 export const clientsOnStateChange = (clients, onStateChange) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
-        (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[clientUrl].on('statechange', onStateChange);
+        (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsGateways', clientUrl));
     }
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
-        (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _b === void 0 ? void 0 : _b[clientUrl].on('statechange', onStateChange);
+        (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _b === void 0 ? void 0 : _b[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsClients', clientUrl));
     }
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.pubsubClients) {
-        (_c = clients === null || clients === void 0 ? void 0 : clients.pubsubClients) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', onStateChange);
+        (_c = clients === null || clients === void 0 ? void 0 : clients.pubsubClients) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', (state) => onStateChange(state, 'pubsubClients', clientUrl));
+    }
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
+        (_d = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _d === void 0 ? void 0 : _d[clientUrl].on('statechange', (state) => onStateChange(state, 'plebbitRpcClients', clientUrl));
     }
     for (const chainTicker in clients === null || clients === void 0 ? void 0 : clients.chainProviders) {
-        for (const clientUrl in (_d = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _d === void 0 ? void 0 : _d[chainTicker]) {
-            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _e === void 0 ? void 0 : _e[chainTicker]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', onStateChange);
+        for (const clientUrl in (_e = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _e === void 0 ? void 0 : _e[chainTicker]) {
+            (_g = (_f = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _f === void 0 ? void 0 : _f[chainTicker]) === null || _g === void 0 ? void 0 : _g[clientUrl].on('statechange', (state) => onStateChange(state, 'chainProviders', clientUrl, chainTicker));
         }
     }
 };
