@@ -516,8 +516,9 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
 
     comment.on('error', (error: Error) => {
       accountsStore.setState(({accountsComments}) => {
-        const accountComments = [...accountsComments[account.id]]
+        const accountComments = [...(accountsComments[account.id] || [])]
         const accountComment = accountComments[accountCommentIndex]
+        // account comment hasn't been stored in state yet
         if (!accountComment) {
           return {}
         }
@@ -530,8 +531,9 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     comment.on('publishingstatechange', async (publishingState: string) => {
       // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
       accountsStore.setState(({accountsComments}) => {
-        const accountComments = [...accountsComments[account.id]]
+        const accountComments = [...(accountsComments[account.id] || [])]
         const accountComment = accountComments[accountCommentIndex]
+        // account comment hasn't been stored in state yet
         if (!accountComment) {
           return {}
         }
@@ -543,14 +545,23 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     })
 
     // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
-    utils.clientsOnStateChange(comment.clients, (state: string) => {
+    utils.clientsOnStateChange(comment.clients, (clientState: string, clientType: string, clientUrl: string, chainTicker?: string) => {
       accountsStore.setState(({accountsComments}) => {
-        const accountComments = [...accountsComments[account.id]]
+        const accountComments = [...(accountsComments[account.id] || [])]
         const accountComment = accountComments[accountCommentIndex]
+        // account comment hasn't been stored in state yet
         if (!accountComment) {
           return {}
         }
-        accountComments[accountCommentIndex] = {...accountComment, clients: utils.clone(comment.clients)}
+        const clients = {...comment.clients}
+        const client = {state: clientState}
+        if (chainTicker) {
+          const chainProviders = {...clients[clientType][chainTicker], [clientUrl]: client}
+          clients[clientType] = {...clients[clientType], [chainTicker]: chainProviders}
+        } else {
+          clients[clientType] = {...clients[clientType], [clientUrl]: client}
+        }
+        accountComments[accountCommentIndex] = {...accountComment, clients}
         return {accountsComments: {...accountsComments, [account.id]: accountComments}}
       })
     })

@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useComment, useSubplebbit, useFeed, setPlebbitJs, useClientsStates} from '..'
+import {useComment, useSubplebbit, useFeed, setPlebbitJs, useClientsStates, useAccountComment, usePublishComment, useAccount} from '..'
 import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import utils from '../lib/utils'
@@ -58,9 +58,9 @@ class Comment extends EventEmitter {
   cid: string
   timestamp?: number
   updatedAt?: number
-  constructor({cid}: any) {
+  constructor(createCommentOptions: any) {
     super()
-    this.cid = cid
+    this.cid = createCommentOptions.cid
   }
 
   async update() {
@@ -96,6 +96,68 @@ class Comment extends EventEmitter {
       // fetched comment update
       this.updatedAt = updatedAt
       this.emit('update', this)
+    })()
+  }
+
+  async publish() {
+    ;(async () => {
+      await simulateLoadingTime(20)
+
+      // set states resolving subplebbit address
+      changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'resolving-address')
+      await simulateLoadingTime(20)
+
+      // set states publishing
+      changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'stopped')
+      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-request')
+      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-request')
+      changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'publishing-challenge-request')
+      await simulateLoadingTime(20)
+
+      // set states waiting challenge
+      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge')
+      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge')
+      changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'waiting-challenge')
+      await simulateLoadingTime(20)
+
+      // emit challenge
+      const challengeMessage = {
+        type: 'CHALLENGE',
+        challenges: [{type: 'text', challenge: '2+2=?'}],
+      }
+      this.emit('challenge', challengeMessage, this)
+    })()
+  }
+
+  async publishChallengeAnswers() {
+    ;(async () => {
+      await simulateLoadingTime(20)
+
+      // set states publishing challenge answer
+      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-answer')
+      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-answer')
+      changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'publishing-challenge-answer')
+      await simulateLoadingTime(20)
+
+      // set states waiting challenge verification
+      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge-verification')
+      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge-verification')
+      changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'waiting-challenge-verification')
+      await simulateLoadingTime(20)
+
+      // emit challenge verification
+      this.cid = 'published comment cid'
+      const challengeVerificationMessage = {
+        type: 'CHALLENGEVERIFICATION',
+        challengeSuccess: true,
+        publication: {cid: this.cid},
+      }
+      this.emit('challengeverification', challengeVerificationMessage, this)
+
+      // set states stopped
+      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
     })()
   }
 }
@@ -203,7 +265,7 @@ describe('states', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test('comment', async () => {
+    test('fetch comment', async () => {
       const rendered = renderHook<any, any>((commentCid) => {
         const comment = useComment({commentCid})
         const {states} = useClientsStates({comment})
@@ -259,7 +321,7 @@ describe('states', () => {
       expect(rendered.result.current.states).toEqual({})
     })
 
-    test('subplebbit', async () => {
+    test('fetch subplebbit', async () => {
       const rendered = renderHook<any, any>((subplebbitAddress: string) => {
         const subplebbit = useSubplebbit({subplebbitAddress})
         const {feed, loadMore} = useFeed({subplebbitAddresses: subplebbitAddress ? [subplebbitAddress] : []})
@@ -319,6 +381,97 @@ describe('states', () => {
       // wait for second page
       await waitFor(() => rendered.result.current.feed.length === 6)
       expect(rendered.result.current.feed.length).toEqual(6)
+      expect(rendered.result.current.states).toEqual({})
+    })
+
+    test('publish comment', async () => {
+      const onChallenge = (challenge: any, comment: Comment) => comment.publishChallengeAnswers()
+      const onChallengeVerification = jest.fn()
+      const publishCommentOptions = {
+        subplebbitAddress: '12D3KooW... states.test',
+        title: 'some title states.test',
+        content: 'some content states.test',
+        onChallenge,
+        onChallengeVerification,
+      }
+      const rendered = renderHook<any, any>(() => {
+        const account = useAccount()
+        const {publishComment, index, errors} = usePublishComment(publishCommentOptions)
+        const accountComment = useAccountComment({commentIndex: index})
+        const {states} = useClientsStates({comment: accountComment})
+        return {publishComment, accountComment, states, errors, account}
+      })
+      const waitFor = testUtils.createWaitFor(rendered)
+
+      // wait for init
+      await waitFor(() => !!rendered.result.current.account)
+      expect(!!rendered.result.current.account).toEqual(true)
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishComment()
+      })
+
+      // wait for resolving subplebbit address
+      await waitFor(() => rendered.result.current.states['resolving-address'].length >= 2)
+      expect(rendered.result.current.states).toEqual({
+        'resolving-address': [ethChainProviderUrl1, ethChainProviderUrl2],
+      })
+
+      // wait for publishing state
+      await waitFor(() => rendered.result.current.states['publishing-challenge-request'].length >= 6)
+      expect(rendered.result.current.states).toEqual({
+        'publishing-challenge-request': [
+          'https://ipfsclient1.com',
+          'https://ipfsclient2.com',
+          'https://pubsubclient1.com',
+          'https://pubsubclient2.com',
+          'https://plebbitrpcclienturl1.com',
+          'https://plebbitrpcclienturl2.com',
+        ],
+      })
+
+      // wait for challenge state
+      await waitFor(() => rendered.result.current.states['waiting-challenge'].length >= 6)
+      expect(rendered.result.current.states).toEqual({
+        'waiting-challenge': [
+          'https://ipfsclient1.com',
+          'https://ipfsclient2.com',
+          'https://pubsubclient1.com',
+          'https://pubsubclient2.com',
+          'https://plebbitrpcclienturl1.com',
+          'https://plebbitrpcclienturl2.com',
+        ],
+      })
+
+      // wait for publishing challenge answer state
+      await waitFor(() => rendered.result.current.states['publishing-challenge-answer'].length >= 6)
+      expect(rendered.result.current.states).toEqual({
+        'publishing-challenge-answer': [
+          'https://ipfsclient1.com',
+          'https://ipfsclient2.com',
+          'https://pubsubclient1.com',
+          'https://pubsubclient2.com',
+          'https://plebbitrpcclienturl1.com',
+          'https://plebbitrpcclienturl2.com',
+        ],
+      })
+
+      // wait for challenge verification state
+      await waitFor(() => rendered.result.current.states['waiting-challenge-verification'].length >= 6)
+      expect(rendered.result.current.states).toEqual({
+        'waiting-challenge-verification': [
+          'https://ipfsclient1.com',
+          'https://ipfsclient2.com',
+          'https://pubsubclient1.com',
+          'https://pubsubclient2.com',
+          'https://plebbitrpcclienturl1.com',
+          'https://plebbitrpcclienturl2.com',
+        ],
+      })
+
+      // wait for end
+      await waitFor(() => typeof rendered.result.current.accountComment.cid === 'string')
       expect(rendered.result.current.states).toEqual({})
     })
   })
