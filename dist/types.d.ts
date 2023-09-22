@@ -260,16 +260,18 @@ export interface UseClientsStatesResult extends Result {
         [clientUrl: string]: Peer[];
     };
 }
-export interface UseClientsStatesCountsOptions extends Options {
-    subplebbits?: Subplebbit[];
+export interface UseSubplebbitsStatesOptions extends Options {
+    subplebbitAddresses?: string[];
 }
-type StateCount = {
-    count: number;
-    clientUrls: string[];
-};
-export interface UseClientsStatesCountsResult extends Result {
+export interface UseSubplebbitsStatesResult extends Result {
     states: {
-        [state: string]: StateCount;
+        [state: string]: {
+            subplebbitAddresses: string[];
+            clientUrls: string[];
+        };
+    };
+    peers: {
+        [clientUrl: string]: Peer[];
     };
 }
 /**

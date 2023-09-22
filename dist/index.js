@@ -25,7 +25,7 @@ import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSub
 // actions that don't have their own hooks yet
 import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, } from './stores/accounts/accounts-actions';
 // states
-import { useClientsStates } from './hooks/states';
+import { useClientsStates, useSubplebbitsStates } from './hooks/states';
 // utils
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
@@ -48,7 +48,7 @@ useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit
 // actions that don't have their own hooks yet
 createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, 
 // states
-useClientsStates, 
+useClientsStates, useSubplebbitsStates, 
 // utils
 setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 // IMPORTANT: should be the same as 'export {}'
@@ -101,6 +101,7 @@ const hooks = {
     deleteSubplebbit,
     // states
     useClientsStates,
+    useSubplebbitsStates,
     // utils
     setPlebbitJs,
     restorePlebbitJs,

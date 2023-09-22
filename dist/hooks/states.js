@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:states:hooks');
 import assert from 'assert';
+import { useSubplebbits } from './subplebbits';
 // TODO: implement getting peers
 const peers = {};
 /**
@@ -83,6 +84,102 @@ export function useClientsStates(options) {
         });
         return states;
     }, [commentOrSubplebbit]);
+    return useMemo(() => ({
+        states,
+        peers,
+        state: 'initializing',
+        error: undefined,
+        errors: [],
+    }), [states, peers]);
+}
+/**
+ * @param subplebbitAddresses - The subplebbit addresses to get the states from
+ * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
+ * the active account.
+ */
+export function useSubplebbitsStates(options) {
+    assert(!options || typeof options === 'object', `useClientsStatesCounts options argument '${options}' not an object`);
+    const { subplebbitAddresses } = options || {};
+    assert(!subplebbitAddresses || Array.isArray(subplebbitAddresses), `useClientsStatesCounts subplebbitAddresses '${subplebbitAddresses}' not an array`);
+    for (const subplebbitAddress of subplebbitAddresses || []) {
+        assert(typeof subplebbitAddress === 'string', `useClientsStatesCounts subplebbitAddresses '${subplebbitAddresses}' subplebbitAddress '${subplebbitAddress}' not a string`);
+    }
+    const { subplebbits } = useSubplebbits({ subplebbitAddresses });
+    const states = useMemo(() => {
+        var _a;
+        const states = {};
+        for (const subplebbit of subplebbits) {
+            if (!(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState)) {
+                continue;
+            }
+            // dont show subplebbit state if data is already fetched
+            if (!subplebbit.updatedAt && (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) !== 'stopped' && (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) !== 'succeeded') {
+                if (!states[subplebbit.updatingState]) {
+                    states[subplebbit.updatingState] = { subplebbitAddresses: new Set(), clientUrls: new Set() };
+                }
+                states[subplebbit.updatingState].subplebbitAddresses.add(subplebbit.address);
+                // find client urls
+                for (const clientType in subplebbit.clients) {
+                    if (clientType === 'chainProviders') {
+                        for (const chainTicker in subplebbit.clients.chainProviders) {
+                            for (const clientUrl in subplebbit.clients.chainProviders[chainTicker]) {
+                                const state = subplebbit.clients.chainProviders[chainTicker][clientUrl].state;
+                                if (state !== 'stopped') {
+                                    states[subplebbit.updatingState].clientUrls.add(clientUrl);
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        for (const clientUrl in subplebbit.clients[clientType]) {
+                            const state = subplebbit.clients[clientType][clientUrl].state;
+                            if (state !== 'stopped') {
+                                states[subplebbit.updatingState].clientUrls.add(clientUrl);
+                            }
+                        }
+                    }
+                }
+            }
+            // find subplebbit pages states and client urls
+            const pagesClientsUrls = {};
+            for (const clientType in (_a = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _a === void 0 ? void 0 : _a.clients) {
+                for (const sortType in subplebbit.posts.clients[clientType]) {
+                    for (const clientUrl in subplebbit.posts.clients[clientType][sortType]) {
+                        let state = subplebbit.posts.clients[clientType][sortType][clientUrl].state;
+                        if (state !== 'stopped') {
+                            state += `-page-${sortType}`;
+                            if (!pagesClientsUrls[state]) {
+                                pagesClientsUrls[state] = [];
+                            }
+                            pagesClientsUrls[state].push(clientUrl);
+                        }
+                    }
+                }
+            }
+            // add subplebbitAddresses and clientUrls
+            for (const pagesState in pagesClientsUrls) {
+                if (!states[pagesState]) {
+                    states[pagesState] = { subplebbitAddresses: new Set(), clientUrls: new Set() };
+                }
+                states[pagesState].subplebbitAddresses.add(subplebbit.address);
+                pagesClientsUrls[pagesState].forEach((clientUrl) => states[pagesState].clientUrls.add(clientUrl));
+            }
+        }
+        // convert sets to arrays
+        const _states = {};
+        for (const state in states) {
+            _states[state] = {
+                subplebbitAddresses: [...states[state].subplebbitAddresses],
+                clientUrls: [...states[state].clientUrls],
+            };
+        }
+        log('useSubplebbitsStates', {
+            subplebbitAddresses,
+            states: _states,
+            subplebbits,
+        });
+        return _states;
+    }, [subplebbits]);
     return useMemo(() => ({
         states,
         peers,

@@ -454,8 +454,9 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             comment.on('error', (error) => {
                 var _a;
                 accountsStore.setState(({ accountsComments }) => {
-                    const accountComments = [...accountsComments[account.id]];
+                    const accountComments = [...(accountsComments[account.id] || [])];
                     const accountComment = accountComments[accountCommentIndex];
+                    // account comment hasn't been stored in state yet
                     if (!accountComment) {
                         return {};
                     }
@@ -469,8 +470,9 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 var _c;
                 // set publishing state on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
                 accountsStore.setState(({ accountsComments }) => {
-                    const accountComments = [...accountsComments[account.id]];
+                    const accountComments = [...(accountsComments[account.id] || [])];
                     const accountComment = accountComments[accountCommentIndex];
+                    // account comment hasn't been stored in state yet
                     if (!accountComment) {
                         return {};
                     }
@@ -480,14 +482,24 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 (_c = publishCommentOptions.onPublishingStateChange) === null || _c === void 0 ? void 0 : _c.call(publishCommentOptions, publishingState);
             }));
             // set clients on account comment so the frontend can display it, dont persist in db because a reload cancels publishing
-            utils.clientsOnStateChange(comment.clients, (state) => {
+            utils.clientsOnStateChange(comment.clients, (clientState, clientType, clientUrl, chainTicker) => {
                 accountsStore.setState(({ accountsComments }) => {
-                    const accountComments = [...accountsComments[account.id]];
+                    const accountComments = [...(accountsComments[account.id] || [])];
                     const accountComment = accountComments[accountCommentIndex];
+                    // account comment hasn't been stored in state yet
                     if (!accountComment) {
                         return {};
                     }
-                    accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients: utils.clone(comment.clients) });
+                    const clients = Object.assign({}, comment.clients);
+                    const client = { state: clientState };
+                    if (chainTicker) {
+                        const chainProviders = Object.assign(Object.assign({}, clients[clientType][chainTicker]), { [clientUrl]: client });
+                        clients[clientType] = Object.assign(Object.assign({}, clients[clientType]), { [chainTicker]: chainProviders });
+                    }
+                    else {
+                        clients[clientType] = Object.assign(Object.assign({}, clients[clientType]), { [clientUrl]: client });
+                    }
+                    accountComments[accountCommentIndex] = Object.assign(Object.assign({}, accountComment), { clients });
                     return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
                 });
             });
