@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useComment, useSubplebbit, useFeed, setPlebbitJs, useClientsStates, useAccountComment, usePublishComment, useAccount} from '..'
+import {useComment, useSubplebbit, useFeed, setPlebbitJs, useClientsStates, useSubplebbitsStates, useAccountComment, usePublishComment, useAccount} from '..'
 import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import utils from '../lib/utils'
@@ -181,7 +181,7 @@ class Pages {
     changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped', 'hot')
 
     return {
-      comments: [{cid: '4'}, {cid: '5'}, {cid: '6'}],
+      comments: [{cid: `${pageCid} cid 1`}, {cid: `${pageCid} cid 2`}, {cid: `${pageCid} cid 3`}],
     }
   }
 }
@@ -197,6 +197,7 @@ class Subplebbit extends EventEmitter {
   posts = new Pages()
   address: string
   updatedAt?: number
+  updatingState: string = 'stopped'
   constructor({address}: any) {
     super()
     this.address = address
@@ -205,17 +206,25 @@ class Subplebbit extends EventEmitter {
   async update() {
     ;(async () => {
       // set states resolving subplebbit address
+      this.updatingState = 'resolving-address'
+      this.emit('updatingstatechange', 'resolving-address')
       changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'resolving-address')
       await simulateLoadingTime(100)
 
-      // set states fetching subplebbit ipns
+      // stop resolving
       changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'stopped')
+
+      // set states fetching subplebbit ipns
+      this.updatingState = 'fetching-ipns'
+      this.emit('updatingstatechange', 'fetching-ipns')
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipns')
       changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipns')
       await simulateLoadingTime(100)
 
       // set states stop fetching subplebbit ipns
+      this.updatingState = 'succeeded'
+      this.emit('updatingstatechange', 'succeeded')
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped')
       changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
@@ -225,8 +234,8 @@ class Subplebbit extends EventEmitter {
       this.updatedAt = updatedAt
       this.posts.pages = {
         hot: {
-          comments: [{cid: '1'}, {cid: '2'}, {cid: '3'}],
-          nextCid: 'next page cid',
+          comments: [{cid: `${this.address} cid 1`}, {cid: `${this.address} cid 2`}, {cid: `${this.address} cid 3`}],
+          nextCid: `${this.address} next page cid -`,
         },
       }
       this.emit('update', this)
@@ -473,6 +482,99 @@ describe('states', () => {
       // wait for end
       await waitFor(() => typeof rendered.result.current.accountComment.cid === 'string')
       expect(rendered.result.current.states).toEqual({})
+    })
+  })
+
+  describe('useSubplebbitsStates', () => {
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('fetch feed', async () => {
+      const subplebbitAddresses = ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']
+      const rendered = renderHook<any, any>(() => {
+        const {states} = useSubplebbitsStates({subplebbitAddresses})
+        const {feed, loadMore} = useFeed({subplebbitAddresses})
+        return {states, feed, loadMore}
+      })
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.states).toEqual({})
+
+      // wait for first page
+      await waitFor(() => rendered.result.current.feed.length === 9)
+      expect(rendered.result.current.feed.length).toEqual(9)
+
+      // states contained resolving address
+      let resolvingAddress = false
+      for (const result of rendered.result.all) {
+        if (result.states['resolving-address']?.subplebbitAddresses.length === 3) {
+          expect(result.states).toEqual({
+            'resolving-address': {
+              subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+              clientUrls: ['https://ethchainprovider1.com', 'https://ethchainprovider2.com'],
+            },
+          })
+          resolvingAddress = true
+          break
+        }
+      }
+      expect(resolvingAddress).toBe(true)
+
+      // states contained fetching ipns
+      let fetchingIpns = false
+      for (const result of rendered.result.all) {
+        if (result.states['fetching-ipns']?.subplebbitAddresses.length === 3) {
+          expect(result.states).toEqual({
+            'fetching-ipns': {
+              subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+              clientUrls: [
+                'https://ipfsgateway1.com',
+                'https://ipfsgateway2.com',
+                'https://ipfsclient1.com',
+                'https://ipfsclient2.com',
+                'https://plebbitrpcclienturl1.com',
+                'https://plebbitrpcclienturl2.com',
+              ],
+            },
+          })
+          fetchingIpns = true
+          break
+        }
+      }
+      expect(fetchingIpns).toBe(true)
+
+      // wait for second page
+      await waitFor(() => rendered.result.current.feed.length === 18)
+      expect(rendered.result.current.feed.length).toEqual(18)
+
+      // states contained fetching ipfs page hot
+      let fetchingIpfsPageHot = false
+      for (const result of rendered.result.all) {
+        if (result.states['fetching-ipfs-page-hot']?.subplebbitAddresses.length === 3) {
+          expect(result.states).toEqual({
+            'fetching-ipfs-page-hot': {
+              subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+              clientUrls: [
+                'https://ipfsgateway1.com',
+                'https://ipfsgateway2.com',
+                'https://ipfsclient1.com',
+                'https://ipfsclient2.com',
+                'https://plebbitrpcclienturl1.com',
+                'https://plebbitrpcclienturl2.com',
+              ],
+            },
+          })
+          fetchingIpfsPageHot = true
+          break
+        }
+      }
+      expect(fetchingIpfsPageHot).toBe(true)
+
+      // states don't have stopped or succeeded
+      for (const result of rendered.result.all) {
+        expect(result.states.succeeded).toBe(undefined)
+        expect(result.states.stopped).toBe(undefined)
+      }
     })
   })
 })
