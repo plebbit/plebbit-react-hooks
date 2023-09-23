@@ -18,6 +18,7 @@ import {
   UseSubplebbitStatsResult,
 } from '../types'
 import useInterval from './utils/use-interval'
+import createStore from 'zustand'
 import {resolveEnsTxtRecord} from '../lib/chain'
 import useSubplebbitsStore from '../stores/subplebbits'
 import shallow from 'zustand/shallow'
@@ -78,10 +79,11 @@ export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubp
   const account = useAccount({accountName})
   const subplebbit = useSubplebbit({subplebbitAddress})
   const subplebbitStatsCid = subplebbit?.statsCid
-  const [subplebbitStats, setSubplebbitStats] = useState<SubplebbitStats>()
+  const subplebbitStats = useSubplebbitsStatsStore((state: SubplebbitsStatsState) => state.subplebbitsStats[subplebbitAddress || ''])
+  const setSubplebbitStats = useSubplebbitsStatsStore((state: SubplebbitsStatsState) => state.setSubplebbitStats)
 
   useEffect(() => {
-    if (!subplebbitStatsCid || !account) {
+    if (!subplebbitAddress || !subplebbitStatsCid || !account) {
       return
     }
     ;(async () => {
@@ -89,12 +91,12 @@ export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubp
       try {
         fetchedCid = await account.plebbit.fetchCid(subplebbitStatsCid)
         fetchedCid = JSON.parse(fetchedCid)
-        setSubplebbitStats(fetchedCid)
+        setSubplebbitStats(subplebbitAddress, fetchedCid)
       } catch (error) {
         log.error('useSubplebbitStats plebbit.fetchCid error', {subplebbitAddress, subplebbitStatsCid, subplebbit, fetchedCid, error})
       }
     })()
-  }, [subplebbitStatsCid, account?.id])
+  }, [subplebbitStatsCid, account?.id, subplebbitAddress, setSubplebbitStats])
 
   if (account && subplebbitStatsCid) {
     log('useSubplebbitStats', {subplebbitAddress, subplebbitStatsCid, subplebbitStats, subplebbit, account})
@@ -109,9 +111,20 @@ export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubp
       error: undefined,
       errors: [],
     }),
-    [subplebbitStats, subplebbitStatsCid]
+    [subplebbitStats, subplebbitStatsCid, subplebbitAddress]
   )
 }
+
+export type SubplebbitsStatsState = {
+  subplebbitsStats: {[subplebbitAddress: string]: SubplebbitStats}
+  setSubplebbitStats: Function
+}
+
+const useSubplebbitsStatsStore = createStore<SubplebbitsStatsState>((setState: Function) => ({
+  subplebbitsStats: {},
+  setSubplebbitStats: (subplebbitAddress: string, subplebbitStats: SubplebbitStats) =>
+    setState((state: SubplebbitsStatsState) => ({subplebbitsStats: {...state.subplebbitsStats, [subplebbitAddress]: subplebbitStats}})),
+}))
 
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', '12D3KooWA...']
