@@ -57,7 +57,7 @@ export function useComment(options) {
     }
     // force succeeded if the comment is newer than 5 minutes, no need to display loading skeleton if comment was just created
     let replyCount = comment === null || comment === void 0 ? void 0 : comment.replyCount;
-    if ((comment === null || comment === void 0 ? void 0 : comment.replyCount) === undefined && (comment === null || comment === void 0 ? void 0 : comment.timestamp) && (comment === null || comment === void 0 ? void 0 : comment.timestamp) > Date.now() / 1000 - 60) {
+    if ((comment === null || comment === void 0 ? void 0 : comment.replyCount) === undefined && (comment === null || comment === void 0 ? void 0 : comment.timestamp) && (comment === null || comment === void 0 ? void 0 : comment.timestamp) > Date.now() / 1000 - 5 * 60) {
         state = 'succeeded';
         // set replyCount because some frontend are likely to check if replyCount === undefined to show a loading skeleton
         replyCount = 0;

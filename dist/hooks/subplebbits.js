@@ -14,6 +14,7 @@ import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:subplebbits:hooks');
 import assert from 'assert';
 import useInterval from './utils/use-interval';
+import createStore from 'zustand';
 import { resolveEnsTxtRecord } from '../lib/chain';
 import useSubplebbitsStore from '../stores/subplebbits';
 import shallow from 'zustand/shallow';
@@ -60,9 +61,10 @@ export function useSubplebbitStats(options) {
     const account = useAccount({ accountName });
     const subplebbit = useSubplebbit({ subplebbitAddress });
     const subplebbitStatsCid = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.statsCid;
-    const [subplebbitStats, setSubplebbitStats] = useState();
+    const subplebbitStats = useSubplebbitsStatsStore((state) => state.subplebbitsStats[subplebbitAddress || '']);
+    const setSubplebbitStats = useSubplebbitsStatsStore((state) => state.setSubplebbitStats);
     useEffect(() => {
-        if (!subplebbitStatsCid || !account) {
+        if (!subplebbitAddress || !subplebbitStatsCid || !account) {
             return;
         }
         ;
@@ -71,19 +73,23 @@ export function useSubplebbitStats(options) {
             try {
                 fetchedCid = yield account.plebbit.fetchCid(subplebbitStatsCid);
                 fetchedCid = JSON.parse(fetchedCid);
-                setSubplebbitStats(fetchedCid);
+                setSubplebbitStats(subplebbitAddress, fetchedCid);
             }
             catch (error) {
                 log.error('useSubplebbitStats plebbit.fetchCid error', { subplebbitAddress, subplebbitStatsCid, subplebbit, fetchedCid, error });
             }
         }))();
-    }, [subplebbitStatsCid, account === null || account === void 0 ? void 0 : account.id]);
+    }, [subplebbitStatsCid, account === null || account === void 0 ? void 0 : account.id, subplebbitAddress, setSubplebbitStats]);
     if (account && subplebbitStatsCid) {
         log('useSubplebbitStats', { subplebbitAddress, subplebbitStatsCid, subplebbitStats, subplebbit, account });
     }
     const state = subplebbitStats ? 'succeeded' : 'fetching-ipfs';
-    return useMemo(() => (Object.assign(Object.assign({}, subplebbitStats), { state, error: undefined, errors: [] })), [subplebbitStats, subplebbitStatsCid]);
+    return useMemo(() => (Object.assign(Object.assign({}, subplebbitStats), { state, error: undefined, errors: [] })), [subplebbitStats, subplebbitStatsCid, subplebbitAddress]);
 }
+const useSubplebbitsStatsStore = createStore((setState) => ({
+    subplebbitsStats: {},
+    setSubplebbitStats: (subplebbitAddress, subplebbitStats) => setState((state) => ({ subplebbitsStats: Object.assign(Object.assign({}, state.subplebbitsStats), { [subplebbitAddress]: subplebbitStats }) })),
+}));
 /**
  * @param subplebbitAddresses - The addresses of the subplebbits, e.g. ['memes.eth', '12D3KooWA...']
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
