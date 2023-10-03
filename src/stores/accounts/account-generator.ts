@@ -45,7 +45,7 @@ export const getDefaultPlebbitOptions = () => {
   }
   // default plebbit options for web client
   return {
-    ipfsGatewayUrls: ['https://ipfs.io', 'https://ipfsgateway.xyz', 'https://cloudflare-ipfs.com', 'https://plebpubsub.live'],
+    ipfsGatewayUrls: ['https://ipfs.io', 'https://ipfsgateway.xyz', 'https://cloudflare-ipfs.com', 'https://gateway.plebpubsub.live', 'https://4everland.io'],
     ipfsHttpClientsOptions: undefined,
     pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.live/api/v0', 'https://rannithepleb.com/api/v0'],
     chainProviders,
