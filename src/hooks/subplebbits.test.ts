@@ -32,6 +32,7 @@ describe('subplebbits', () => {
       rendered.rerender('subplebbit address 1')
       await waitFor(() => typeof rendered.result.current.title === 'string')
 
+      expect(typeof rendered.result.current.fetchedAt).toBe('number')
       expect(rendered.result.current.address).toBe('subplebbit address 1')
       expect(rendered.result.current.title).toBe('subplebbit address 1 title')
       // wait for subplebbit.on('update') to fetch the updated description
@@ -85,6 +86,7 @@ describe('subplebbits', () => {
       // wait to get account loaded
       await waitFor(() => rendered2.result.current.address === 'subplebbit address 1')
 
+      expect(typeof rendered2.result.current.fetchedAt).toBe('number')
       expect(rendered2.result.current.address).toBe('subplebbit address 1')
       expect(rendered2.result.current.title).toBe('subplebbit address 1 title')
       expect(rendered2.result.current.description).toBe('subplebbit address 1 description updated')

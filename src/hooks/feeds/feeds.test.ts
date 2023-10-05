@@ -87,6 +87,51 @@ describe('feeds', () => {
       expect(rendered2.result.current.feed.length).toBe(postsPerPage)
     })
 
+    test('feed cache expires', async () => {
+      // mock Date.now for fetchedAt cache value
+      const now = Date.now()
+      const DateNow = Date.now
+      Date.now = () => now
+
+      // get feed with 1 sub
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+
+      // wait for posts to be added, should get full first page
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // expire cache 1h + 1min
+      Date.now = () => now + 61 * 60
+
+      // mock subs
+      const comments = [{cid: 'cid cache expires test'}]
+      const update = Subplebbit.prototype.update
+      const updatedAt = Math.floor(Date.now() / 1000)
+      const posts: any = {pages: {hot: {comments}}, pageCids: {}}
+      Subplebbit.prototype.update = async function () {
+        await simulateLoadingTime()
+        this.updatedAt = updatedAt
+        this.posts = posts
+        this.emit('update', this)
+      }
+
+      // reset stores to force using the db
+      await testUtils.resetStores()
+
+      // get feed again from database, only wait for 1 render because subplebbit is stored in db
+      const rendered2 = renderHook<any, any>(() => useFeed({subplebbitAddresses: ['subplebbit address 1']}))
+
+      // only wait for 1 render because subplebbit is stored in db
+      await waitFor(() => rendered2.result.current.feed[0].cid)
+      expect(rendered2.result.current.feed[0].cid).toBe(comments[0].cid)
+      expect(rendered2.result.current.feed.length).toBe(comments.length)
+
+      // restore mock
+      Date.now = DateNow
+      Subplebbit.prototype.update = update
+    })
+
     test('get feed with custom posts per page', async () => {
       const customPostsPerPage = 10
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], postsPerPage: customPostsPerPage})

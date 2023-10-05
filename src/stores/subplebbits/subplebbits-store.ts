@@ -51,8 +51,14 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     }
 
     // try to find subplebbit in database
+    let fetchedAt: number | undefined
     if (!subplebbit) {
-      subplebbit = await getSubplebbitFromDatabase(subplebbitAddress, account)
+      const subplebbitData: any = await subplebbitsDatabase.getItem(subplebbitAddress)
+      if (subplebbitData) {
+        fetchedAt = subplebbitData.fetchedAt
+        delete subplebbitData.fetchedAt
+        subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
+      }
       if (subplebbit) {
         // add page comments to subplebbitsPagesStore so they can be used in useComment
         subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(subplebbit)
@@ -77,13 +83,19 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     }
 
     // success getting subplebbit
-    await subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit))
+    const firstSubplebbitState = utils.clone({...subplebbit, fetchedAt})
+    await subplebbitsDatabase.setItem(subplebbitAddress, firstSubplebbitState)
     log('subplebbitsStore.addSubplebbitToStore', {subplebbitAddress, subplebbit, account})
-    setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: utils.clone(subplebbit)}}))
+    setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: firstSubplebbitState}}))
 
     // the subplebbit has published new posts
     subplebbit.on('update', async (updatedSubplebbit: Subplebbit) => {
       updatedSubplebbit = utils.clone(updatedSubplebbit)
+
+      // add fetchedAt to be able to expire the cache
+      // NOTE: fetchedAt is undefined on owner subplebbits because never stale
+      updatedSubplebbit.fetchedAt = Math.floor(Date.now() / 1000)
+
       await subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit)
       log('subplebbitsStore subplebbit update', {subplebbitAddress, updatedSubplebbit, account})
       setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: updatedSubplebbit}}))
@@ -192,15 +204,6 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     setState((state: any) => ({subplebbits: {...state.subplebbits, [subplebbitAddress]: undefined}}))
   },
 }))
-
-const getSubplebbitFromDatabase = async (subplebbitAddress: string, account: Account) => {
-  const subplebbitData: any = await subplebbitsDatabase.getItem(subplebbitAddress)
-  if (!subplebbitData) {
-    return
-  }
-  const subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
-  return subplebbit
-}
 
 // reset store in between tests
 const originalState = subplebbitsStore.getState()

@@ -44,6 +44,13 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
         continue
       }
 
+      // if cache is older than 1 hour and has internet access, don't use, wait for next subplebbit update
+      // NOTE: fetchedAt is undefined on owner subplebbits
+      const oneHourAgo = Date.now() / 1000 - 60 * 60
+      if (subplebbits[subplebbitAddress].fetchedAt && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt && window.navigator.onLine) {
+        continue
+      }
+
       // use subplebbit preloaded posts if any
       const preloadedPosts = subplebbits[subplebbitAddress].posts?.pages?.[sortType]?.comments
       if (preloadedPosts) {
