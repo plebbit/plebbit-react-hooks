@@ -63,7 +63,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')
         expect(isBase64(rendered.result.current.account.signer.privateKey)).to.be.true
-        expect(isBase64(rendered.result.current.account.signer.privateKey)).to.be.true
         expect(rendered.result.current.account.signer.address).to.equal(rendered.result.current.account.author.address)
         expect(rendered.result.current.account.name).to.equal('Account 1')
         expect(typeof rendered.result.current.publishComment).to.equal('function')
