@@ -26,6 +26,12 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
             if (!subplebbits[subplebbitAddress]) {
                 continue;
             }
+            // if cache is older than 1 hour and has internet access, don't use, wait for next subplebbit update
+            // NOTE: fetchedAt is undefined on owner subplebbits
+            const oneHourAgo = Date.now() / 1000 - 60 * 60;
+            if (subplebbits[subplebbitAddress].fetchedAt && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt && window.navigator.onLine) {
+                continue;
+            }
             // use subplebbit preloaded posts if any
             const preloadedPosts = (_c = (_b = (_a = subplebbits[subplebbitAddress].posts) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
             if (preloadedPosts) {

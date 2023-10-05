@@ -41,8 +41,14 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
             }
             // try to find subplebbit in database
+            let fetchedAt;
             if (!subplebbit) {
-                subplebbit = yield getSubplebbitFromDatabase(subplebbitAddress, account);
+                const subplebbitData = yield subplebbitsDatabase.getItem(subplebbitAddress);
+                if (subplebbitData) {
+                    fetchedAt = subplebbitData.fetchedAt;
+                    delete subplebbitData.fetchedAt;
+                    subplebbit = yield account.plebbit.createSubplebbit(subplebbitData);
+                }
                 if (subplebbit) {
                     // add page comments to subplebbitsPagesStore so they can be used in useComment
                     subplebbitsPagesStore.getState().addSubplebbitPageCommentsToStore(subplebbit);
@@ -64,12 +70,16 @@ const subplebbitsStore = createStore((setState, getState) => ({
                 throw errorGettingSubplebbit || Error(`subplebbitsStore.addSubplebbitToStore failed getting subplebbit '${subplebbitAddress}'`);
             }
             // success getting subplebbit
-            yield subplebbitsDatabase.setItem(subplebbitAddress, utils.clone(subplebbit));
+            const firstSubplebbitState = utils.clone(Object.assign(Object.assign({}, subplebbit), { fetchedAt }));
+            yield subplebbitsDatabase.setItem(subplebbitAddress, firstSubplebbitState);
             log('subplebbitsStore.addSubplebbitToStore', { subplebbitAddress, subplebbit, account });
-            setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: utils.clone(subplebbit) }) }));
+            setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: firstSubplebbitState }) }));
             // the subplebbit has published new posts
             subplebbit.on('update', (updatedSubplebbit) => __awaiter(this, void 0, void 0, function* () {
                 updatedSubplebbit = utils.clone(updatedSubplebbit);
+                // add fetchedAt to be able to expire the cache
+                // NOTE: fetchedAt is undefined on owner subplebbits because never stale
+                updatedSubplebbit.fetchedAt = Math.floor(Date.now() / 1000);
                 yield subplebbitsDatabase.setItem(subplebbitAddress, updatedSubplebbit);
                 log('subplebbitsStore subplebbit update', { subplebbitAddress, updatedSubplebbit, account });
                 setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbitAddress]: updatedSubplebbit }) }));
@@ -161,14 +171,6 @@ const subplebbitsStore = createStore((setState, getState) => ({
         });
     },
 }));
-const getSubplebbitFromDatabase = (subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
-    const subplebbitData = yield subplebbitsDatabase.getItem(subplebbitAddress);
-    if (!subplebbitData) {
-        return;
-    }
-    const subplebbit = yield account.plebbit.createSubplebbit(subplebbitData);
-    return subplebbit;
-});
 // reset store in between tests
 const originalState = subplebbitsStore.getState();
 // async function because some stores have async init
