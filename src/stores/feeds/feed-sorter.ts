@@ -73,7 +73,7 @@ const sortByHot = (feed: any[]) => {
   }
   for (const post of feed) {
     const score = (post.upvoteCount || 0) - (post.downvoteCount || 0)
-    const order = Math.log10(Math.max(score, 1))
+    const order = Math.log10(Math.max(Math.abs(score), 1))
     const sign = score > 0 ? 1 : score < 0 ? -1 : 0
     const seconds = post.timestamp - 1134028003
     const hotScore = round(sign * order + seconds / 45000, 7)
