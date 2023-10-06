@@ -59,9 +59,9 @@ describe('feeds (plebbit-js mock)', () => {
 
       // wait for posts to be added, should get full first page
       await waitFor(() => rendered.result.current.feed.length > 0)
-      // NOTE: the 'hot' sort type uses timestamps and bugs out with timestamp '1-100' so this is why we get cid 1
+      // NOTE: the 'hot' sort type uses timestamps and bugs out with timestamp '100-1' so this is why we get cid 100
       // with low upvote count first
-      expect(rendered.result.current.feed[0].cid).to.equal('subplebbit address 1 page cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).to.equal('subplebbit address 1 page cid hot comment cid 100')
       expect(rendered.result.current.feed.length).to.equal(postsPerPage)
     })
 
