@@ -71,7 +71,7 @@ describe('feeds', () => {
       await waitFor(() => rendered.result.current.feed.length > 0)
       // NOTE: the 'hot' sort type uses timestamps and bugs out with timestamp '1-100' so this is why we get cid 1
       // with low upvote count first
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 100')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // reset stores to force using the db
@@ -83,7 +83,7 @@ describe('feeds', () => {
 
       // only wait for 1 render because subplebbit is stored in db
       await waitFor(() => rendered2.result.current.feed[0].cid)
-      expect(rendered2.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
+      expect(rendered2.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 100')
       expect(rendered2.result.current.feed.length).toBe(postsPerPage)
     })
 
@@ -98,7 +98,7 @@ describe('feeds', () => {
 
       // wait for posts to be added, should get full first page
       await waitFor(() => rendered.result.current.feed.length > 0)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 1')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 100')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // expire cache 1h + 1min
@@ -163,8 +163,8 @@ describe('feeds', () => {
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
 
       expect(rendered.result.current.feed[0].cid).toMatch(/subplebbit address (2|3)/)
-      // the 'hot' sort type should give timestamp 1 with the current mock
-      expect(rendered.result.current.feed[0].timestamp).toBe(1)
+      // the 'hot' sort type should give timestamp 100 with the current mock
+      expect(rendered.result.current.feed[0].timestamp).toBe(100)
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // change sort type
@@ -387,9 +387,9 @@ describe('feeds', () => {
       await waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
 
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
-      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 5')
-      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid hot comment cid 5')
-      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid hot comment cid 5')
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 95')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid hot comment cid 95')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid hot comment cid 95')
 
       // scroll until the next buffered feed that needs to be refilled
       await scrollOnePage()
