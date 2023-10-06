@@ -314,6 +314,13 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
         continue
       }
 
+      // if subplebbit cache is older than 1 hour, don't use, wait for next subplebbit update
+      // NOTE: fetchedAt is undefined on owner subplebbits
+      const oneHourAgo = Date.now() / 1000 - 60 * 60
+      if (subplebbits[subplebbitAddress]?.fetchedAt && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt) {
+        continue
+      }
+
       // subplebbit post count is low, fetch next subplebbit page
       if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
         addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error: unknown) =>
