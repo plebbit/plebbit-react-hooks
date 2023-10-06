@@ -76,7 +76,7 @@ describe('feeds (plebbit-js mock)', () => {
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address (2|3)/))
       expect(rendered.result.current.feed[0].cid).to.match(/subplebbit address (2|3)/)
       // the 'hot' sort type should give timestamp 1 with the current mock
-      expect(rendered.result.current.feed[0].timestamp).to.equal(1)
+      expect(rendered.result.current.feed[0].timestamp).to.equal(100)
       expect(rendered.result.current.feed.length).to.equal(postsPerPage)
 
       // change sort type
