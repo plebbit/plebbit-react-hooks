@@ -197,6 +197,7 @@ let previousBufferedFeedsSubplebbitsPostCountsPageCids = [];
 let previousBufferedFeedsSubplebbits = new Map();
 let previousBufferedFeedsSubplebbitsPostCounts = {};
 const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState) => {
+    var _a;
     const { bufferedFeedsSubplebbitsPostCounts, feedsOptions } = feedsStore.getState();
     const { subplebbits } = subplebbitsStore.getState();
     // if feeds subplebbits have changed, we must try adding them even if buffered posts counts haven't changed
@@ -230,6 +231,12 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
             }
             // subplebbit hasn't loaded yet
             if (!subplebbits[subplebbitAddress]) {
+                continue;
+            }
+            // if subplebbit cache is older than 1 hour, don't use, wait for next subplebbit update
+            // NOTE: fetchedAt is undefined on owner subplebbits
+            const oneHourAgo = Date.now() / 1000 - 60 * 60;
+            if (((_a = subplebbits[subplebbitAddress]) === null || _a === void 0 ? void 0 : _a.fetchedAt) && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt) {
                 continue;
             }
             // subplebbit post count is low, fetch next subplebbit page
