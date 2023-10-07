@@ -298,14 +298,9 @@ const addAccountCommentReply = async (accountId: string, reply: AccountCommentRe
 
 const getAccountCommentsReplies = async (accountId: string) => {
   const accountCommentsRepliesDatabase = getAccountCommentsRepliesDatabase(accountId)
-  const replyCids = await accountCommentsRepliesDatabase.keys()
-  const promises = []
-  for (const replyCid of replyCids) {
-    promises.push(accountCommentsRepliesDatabase.getItem(replyCid))
-  }
-  const replyArray = await Promise.all(promises)
+  const accountCommentsRepliesEntries = await accountCommentsRepliesDatabase.entries()
   const replies = {}
-  for (const reply of replyArray) {
+  for (const [, reply] of accountCommentsRepliesEntries) {
     // @ts-ignore
     replies[reply.cid] = reply
   }
