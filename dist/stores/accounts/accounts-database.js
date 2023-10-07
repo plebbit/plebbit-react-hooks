@@ -277,14 +277,9 @@ const addAccountCommentReply = (accountId, reply) => __awaiter(void 0, void 0, v
 });
 const getAccountCommentsReplies = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
     const accountCommentsRepliesDatabase = getAccountCommentsRepliesDatabase(accountId);
-    const replyCids = yield accountCommentsRepliesDatabase.keys();
-    const promises = [];
-    for (const replyCid of replyCids) {
-        promises.push(accountCommentsRepliesDatabase.getItem(replyCid));
-    }
-    const replyArray = yield Promise.all(promises);
+    const accountCommentsRepliesEntries = yield accountCommentsRepliesDatabase.entries();
     const replies = {};
-    for (const reply of replyArray) {
+    for (const [, reply] of accountCommentsRepliesEntries) {
         // @ts-ignore
         replies[reply.cid] = reply;
     }
