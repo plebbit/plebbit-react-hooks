@@ -11,7 +11,7 @@ function createLocalForageInstance(localForageLruOptions: any): any {
     databaseSize: number,
     initialized = false
 
-  ;(async () => {
+  const initializationPromize = new Promise(async (resolve) => {
     const localForage1 = localForage.createInstance({
       ...localForageOptions,
       name: localForageLruOptions.name,
@@ -31,16 +31,16 @@ function createLocalForageInstance(localForageLruOptions: any): any {
       databaseSize = localForage1Size
     }
     initialized = true
-  })()
+    resolve(undefined)
+  })
 
   return {
     getItem: async function (key: string) {
       await initialization()
-      const value = await database1.getItem(key)
-      const value2 = await database2.getItem(key)
+      const [value, value2] = await Promise.all([database1.getItem(key), database2.getItem(key)])
 
       let returnValue = value
-      if (returnValue !== null && value !== undefined) return returnValue
+      if (returnValue !== null && returnValue !== undefined) return returnValue
       if ((returnValue = value2) !== null && (returnValue = value2) !== undefined) {
         await updateDatabases(key, returnValue)
         return returnValue
@@ -62,20 +62,42 @@ function createLocalForageInstance(localForageLruOptions: any): any {
     },
     removeItem: async function (key: string) {
       await initialization()
-      await database1.removeItem(key)
-      await database2.removeItem(key)
+      await Promise.all([database1.removeItem(key), database2.removeItem(key)])
     },
     clear: async function () {
       await initialization()
-      await database1.clear()
-      await database2.clear()
+      await Promise.all([database1.clear(), database2.clear()])
     },
     key: async function (keyIndex: number) {
       throw Error('not implemented')
     },
+    // don't use for init react state, use entries() instead
     keys: async function () {
       await initialization()
-      return [...new Set([...(await database1.keys()), ...(await database2.keys())])]
+      const [keys1, keys2] = await Promise.all([database1.keys(), database2.keys()])
+      return [...new Set([...keys1, ...keys2])]
+    },
+    // useful to init a react state on load
+    entries: async function () {
+      await initialization()
+      const [keys1, keys2] = await Promise.all([database1.keys(), database2.keys()])
+      const keys = [...new Set([...keys1, ...keys2])]
+      const entries: any[] = []
+      const getItem = async (key: string) => {
+        const [value, value2] = await Promise.all([database1.getItem(key), database2.getItem(key)])
+        if (value !== null && value !== undefined) {
+          return value
+        }
+        return value2
+      }
+      await Promise.all(
+        keys.map((key, i) =>
+          getItem(key).then((value) => {
+            entries[i] = [key, value]
+          })
+        )
+      )
+      return entries
     },
     length: async function () {
       throw Error('not implemented')
@@ -106,9 +128,10 @@ function createLocalForageInstance(localForageLruOptions: any): any {
   }
 
   async function initialization() {
-    if (initialized) return
-    await new Promise((r) => setTimeout(r, 10))
-    await initialization()
+    if (initialized) {
+      return
+    }
+    return initializationPromize
   }
 }
 

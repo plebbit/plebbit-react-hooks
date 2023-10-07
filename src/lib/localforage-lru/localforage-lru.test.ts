@@ -29,6 +29,14 @@ describe('localForageLru', () => {
     // .keys() is implemented
     expect(await testDatabase.keys()).toEqual(['five', 'six', 'one', 'two'])
 
+    // .entries() is implemented
+    expect(await testDatabase.entries()).toEqual([
+      ['five', 5],
+      ['six', 6],
+      ['one', 1],
+      ['two', 2],
+    ])
+
     await testDatabase.clear()
   })
 

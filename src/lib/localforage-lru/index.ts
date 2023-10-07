@@ -14,6 +14,9 @@ try {
         keys: async function () {
           return []
         },
+        entries: async function () {
+          return []
+        },
       }
     }
   }
