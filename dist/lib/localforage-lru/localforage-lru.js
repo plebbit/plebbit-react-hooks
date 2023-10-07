@@ -22,12 +22,12 @@ function createLocalForageInstance(localForageLruOptions) {
         if (localForage1Size > localForage2Size) {
             database2 = localForage1;
             database1 = localForage2;
-            databaseSize = localForage1Size;
+            databaseSize = localForage2Size;
         }
         else {
             database2 = localForage2;
             database1 = localForage1;
-            databaseSize = localForage2Size;
+            databaseSize = localForage1Size;
         }
         initialized = true;
     }))();
@@ -129,7 +129,7 @@ function createLocalForageInstance(localForageLruOptions) {
         });
     }
 }
-const instances = {};
+export const instances = {};
 const createInstance = (localForageLruOptions) => {
     if (typeof (localForageLruOptions === null || localForageLruOptions === void 0 ? void 0 : localForageLruOptions.name) !== 'string') {
         throw Error(`LocalForageLru.createInstance localForageLruOptions.name '${localForageLruOptions === null || localForageLruOptions === void 0 ? void 0 : localForageLruOptions.name}' not a string`);
