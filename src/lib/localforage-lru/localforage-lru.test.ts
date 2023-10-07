@@ -1,4 +1,4 @@
-import localForageLru from './localforage-lru'
+import localForageLru, {instances} from './localforage-lru'
 
 describe('localForageLru', () => {
   test('get last recently used', async () => {
@@ -30,5 +30,56 @@ describe('localForageLru', () => {
     expect(await testDatabase.keys()).toEqual(['five', 'six', 'one', 'two'])
 
     await testDatabase.clear()
+  })
+
+  test('reinstantiate case 1', async () => {
+    let testDatabase = localForageLru.createInstance({name: 'testDatabase2', size: 4})
+    await testDatabase.clear()
+
+    await testDatabase.setItem('one', 1)
+    await testDatabase.setItem('two', 2)
+
+    delete instances['testDatabase2']
+
+    testDatabase = localForageLru.createInstance({name: 'testDatabase2', size: 4})
+
+    await testDatabase.setItem('three', 3)
+    expect(await testDatabase.getItem('one')).toBe(1)
+    expect(await testDatabase.getItem('two')).toBe(2)
+  })
+
+  test('reinstantiate case 2', async () => {
+    let testDatabase = localForageLru.createInstance({name: 'testDatabase3', size: 4})
+    await testDatabase.clear()
+
+    await testDatabase.setItem('one', 1)
+    await testDatabase.setItem('two', 2)
+
+    delete instances['testDatabase3']
+
+    testDatabase = localForageLru.createInstance({name: 'testDatabase3', size: 4})
+
+    await testDatabase.setItem('three', 3)
+    await testDatabase.setItem('four', 4)
+    expect(await testDatabase.getItem('one')).toBe(1)
+    expect(await testDatabase.getItem('two')).toBe(2)
+  })
+
+  test('reinstantiate case 3', async () => {
+    let testDatabase = localForageLru.createInstance({name: 'testDatabase4', size: 4})
+    await testDatabase.clear()
+
+    await testDatabase.setItem('one', 1)
+    await testDatabase.setItem('two', 2)
+
+    delete instances['testDatabase4']
+
+    testDatabase = localForageLru.createInstance({name: 'testDatabase4', size: 4})
+
+    await testDatabase.setItem('three', 3)
+    await testDatabase.setItem('four', 4)
+    await testDatabase.setItem('five', 5)
+    expect(await testDatabase.getItem('one')).toBe(1) // since the 1 is gotten first, the 2 gets deleted, even if the 2 was set last
+    expect(await testDatabase.getItem('two')).toBe(undefined)
   })
 })

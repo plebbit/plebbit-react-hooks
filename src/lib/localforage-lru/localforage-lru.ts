@@ -24,11 +24,11 @@ function createLocalForageInstance(localForageLruOptions: any): any {
     if (localForage1Size > localForage2Size) {
       database2 = localForage1
       database1 = localForage2
-      databaseSize = localForage1Size
+      databaseSize = localForage2Size
     } else {
       database2 = localForage2
       database1 = localForage1
-      databaseSize = localForage2Size
+      databaseSize = localForage1Size
     }
     initialized = true
   })()
@@ -112,7 +112,7 @@ function createLocalForageInstance(localForageLruOptions: any): any {
   }
 }
 
-const instances: any = {}
+export const instances: any = {}
 
 const createInstance = (localForageLruOptions: any) => {
   if (typeof localForageLruOptions?.name !== 'string') {
