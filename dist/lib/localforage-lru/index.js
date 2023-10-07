@@ -32,6 +32,11 @@ try {
                         return [];
                     });
                 },
+                entries: function () {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        return [];
+                    });
+                },
             };
         };
     }

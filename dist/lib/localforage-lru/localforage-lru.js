@@ -15,7 +15,7 @@ function createLocalForageInstance(localForageLruOptions) {
     const localForageOptions = Object.assign({}, localForageLruOptions);
     delete localForageOptions.size;
     let database1, database2, databaseSize, initialized = false;
-    (() => __awaiter(this, void 0, void 0, function* () {
+    const initializationPromize = new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
         const localForage1 = localForage.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name }));
         const localForage2 = localForage.createInstance(Object.assign(Object.assign({}, localForageOptions), { name: localForageLruOptions.name + '2' }));
         const [localForage1Size, localForage2Size] = yield Promise.all([localForage1.length(), localForage2.length()]);
@@ -30,15 +30,15 @@ function createLocalForageInstance(localForageLruOptions) {
             databaseSize = localForage1Size;
         }
         initialized = true;
-    }))();
+        resolve(undefined);
+    }));
     return {
         getItem: function (key) {
             return __awaiter(this, void 0, void 0, function* () {
                 yield initialization();
-                const value = yield database1.getItem(key);
-                const value2 = yield database2.getItem(key);
+                const [value, value2] = yield Promise.all([database1.getItem(key), database2.getItem(key)]);
                 let returnValue = value;
-                if (returnValue !== null && value !== undefined)
+                if (returnValue !== null && returnValue !== undefined)
                     return returnValue;
                 if ((returnValue = value2) !== null && (returnValue = value2) !== undefined) {
                     yield updateDatabases(key, returnValue);
@@ -67,15 +67,13 @@ function createLocalForageInstance(localForageLruOptions) {
         removeItem: function (key) {
             return __awaiter(this, void 0, void 0, function* () {
                 yield initialization();
-                yield database1.removeItem(key);
-                yield database2.removeItem(key);
+                yield Promise.all([database1.removeItem(key), database2.removeItem(key)]);
             });
         },
         clear: function () {
             return __awaiter(this, void 0, void 0, function* () {
                 yield initialization();
-                yield database1.clear();
-                yield database2.clear();
+                yield Promise.all([database1.clear(), database2.clear()]);
             });
         },
         key: function (keyIndex) {
@@ -83,10 +81,32 @@ function createLocalForageInstance(localForageLruOptions) {
                 throw Error('not implemented');
             });
         },
+        // don't use for init react state, use entries() instead
         keys: function () {
             return __awaiter(this, void 0, void 0, function* () {
                 yield initialization();
-                return [...new Set([...(yield database1.keys()), ...(yield database2.keys())])];
+                const [keys1, keys2] = yield Promise.all([database1.keys(), database2.keys()]);
+                return [...new Set([...keys1, ...keys2])];
+            });
+        },
+        // useful to init a react state on load
+        entries: function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield initialization();
+                const [keys1, keys2] = yield Promise.all([database1.keys(), database2.keys()]);
+                const keys = [...new Set([...keys1, ...keys2])];
+                const entries = [];
+                const getItem = (key) => __awaiter(this, void 0, void 0, function* () {
+                    const [value, value2] = yield Promise.all([database1.getItem(key), database2.getItem(key)]);
+                    if (value !== null && value !== undefined) {
+                        return value;
+                    }
+                    return value2;
+                });
+                yield Promise.all(keys.map((key, i) => getItem(key).then((value) => {
+                    entries[i] = [key, value];
+                })));
+                return entries;
             });
         },
         length: function () {
@@ -122,10 +142,10 @@ function createLocalForageInstance(localForageLruOptions) {
     }
     function initialization() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (initialized)
+            if (initialized) {
                 return;
-            yield new Promise((r) => setTimeout(r, 10));
-            yield initialization();
+            }
+            return initializationPromize;
         });
     }
 }
