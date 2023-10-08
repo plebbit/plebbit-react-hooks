@@ -21,7 +21,8 @@ function createLocalForageInstance(localForageLruOptions: any): any {
       name: localForageLruOptions.name + '2',
     })
     const [localForage1Size, localForage2Size] = await Promise.all([localForage1.length(), localForage2.length()])
-    if (localForage1Size > localForage2Size) {
+    // largest db is always active db, unless is max size, because max sized db is always inactive
+    if (localForage2Size > localForage1Size && localForage2Size !== localForageLruOptions.size) {
       database2 = localForage1
       database1 = localForage2
       databaseSize = localForage2Size

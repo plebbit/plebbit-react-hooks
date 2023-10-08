@@ -1,9 +1,12 @@
 import localForageLru, {instances} from './localforage-lru'
 
+let dbCount = 0
+const getNewTestDbName = () => `testDb${++dbCount}`
+
 describe('localForageLru', () => {
   test('get last recently used', async () => {
-    const testDatabase = localForageLru.createInstance({name: 'testDatabase', size: 4})
-    await testDatabase.clear()
+    const name = getNewTestDbName()
+    const testDatabase = localForageLru.createInstance({name, size: 4})
 
     await testDatabase.setItem('one', 1)
     await testDatabase.setItem('two', 2)
@@ -37,35 +40,24 @@ describe('localForageLru', () => {
       ['two', 2],
     ])
 
+    // .clear() is implemented
     await testDatabase.clear()
+    expect(await testDatabase.entries()).toEqual([])
+    expect(await testDatabase.keys()).toEqual([])
+    expect(await testDatabase.getItem('one')).toBe(undefined)
+    expect(await testDatabase.getItem('two')).toBe(undefined)
   })
 
-  test('reinstantiate case 1', async () => {
-    let testDatabase = localForageLru.createInstance({name: 'testDatabase2', size: 4})
-    await testDatabase.clear()
+  test('reinstantiate', async () => {
+    const name = getNewTestDbName()
+    let testDatabase = localForageLru.createInstance({name, size: 4})
 
     await testDatabase.setItem('one', 1)
     await testDatabase.setItem('two', 2)
 
-    delete instances['testDatabase2']
-
-    testDatabase = localForageLru.createInstance({name: 'testDatabase2', size: 4})
-
-    await testDatabase.setItem('three', 3)
-    expect(await testDatabase.getItem('one')).toBe(1)
-    expect(await testDatabase.getItem('two')).toBe(2)
-  })
-
-  test('reinstantiate case 2', async () => {
-    let testDatabase = localForageLru.createInstance({name: 'testDatabase3', size: 4})
-    await testDatabase.clear()
-
-    await testDatabase.setItem('one', 1)
-    await testDatabase.setItem('two', 2)
-
-    delete instances['testDatabase3']
-
-    testDatabase = localForageLru.createInstance({name: 'testDatabase3', size: 4})
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 4})
 
     await testDatabase.setItem('three', 3)
     await testDatabase.setItem('four', 4)
@@ -73,21 +65,45 @@ describe('localForageLru', () => {
     expect(await testDatabase.getItem('two')).toBe(2)
   })
 
-  test('reinstantiate case 3', async () => {
-    let testDatabase = localForageLru.createInstance({name: 'testDatabase4', size: 4})
-    await testDatabase.clear()
+  test('reinstantiate and overfill', async () => {
+    const name = getNewTestDbName()
+    let testDatabase = localForageLru.createInstance({name, size: 4})
 
     await testDatabase.setItem('one', 1)
     await testDatabase.setItem('two', 2)
 
-    delete instances['testDatabase4']
-
-    testDatabase = localForageLru.createInstance({name: 'testDatabase4', size: 4})
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 4})
 
     await testDatabase.setItem('three', 3)
     await testDatabase.setItem('four', 4)
     await testDatabase.setItem('five', 5)
+    // need to add 2 more, because the max size is actually not just 4, it can be up to 4*2-1
+    await testDatabase.setItem('six', 6)
+    await testDatabase.setItem('seven', 7)
     expect(await testDatabase.getItem('one')).toBe(1) // since the 1 is gotten first, the 2 gets deleted, even if the 2 was set last
     expect(await testDatabase.getItem('two')).toBe(undefined)
+  })
+
+  test('reinstantiate twice', async () => {
+    const name = getNewTestDbName()
+    let testDatabase = localForageLru.createInstance({name, size: 100})
+
+    await testDatabase.setItem('a', 1)
+
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 100})
+
+    await testDatabase.setItem('a', 2)
+    await testDatabase.setItem('b', 2)
+
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 100})
+
+    expect(await testDatabase.getItem('a')).toBe(2)
+    expect(await testDatabase.getItem('b')).toBe(2)
   })
 })
