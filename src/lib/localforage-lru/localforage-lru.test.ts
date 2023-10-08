@@ -106,4 +106,34 @@ describe('localForageLru', () => {
     expect(await testDatabase.getItem('a')).toBe(2)
     expect(await testDatabase.getItem('b')).toBe(2)
   })
+
+  test('reinstantiate twice and overfill', async () => {
+    const name = getNewTestDbName()
+    let testDatabase = localForageLru.createInstance({name, size: 4})
+
+    await testDatabase.setItem('a', 1)
+    await testDatabase.setItem('b', 1)
+    await testDatabase.setItem('c', 1)
+    await testDatabase.setItem('d', 1)
+
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 4})
+
+    await testDatabase.setItem('a', 2)
+    await testDatabase.setItem('b', 2)
+    await testDatabase.setItem('e', 2)
+
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 4})
+
+    expect(await testDatabase.getItem('a')).toBe(2)
+    expect(await testDatabase.getItem('b')).toBe(2)
+    expect(await testDatabase.getItem('d')).toBe(1)
+
+    // reinstantiate
+    delete instances[name]
+    testDatabase = localForageLru.createInstance({name, size: 4})
+  })
 })
