@@ -169,6 +169,7 @@ export class Subplebbit extends EventEmitter {
     this.statsCid = 'statscid'
     this.state = 'stopped'
     this.updatingState = 'stopped'
+    this.updatedAt = createSubplebbitOptions?.updatedAt
 
     this.posts = new Pages({subplebbit: this})
 
@@ -227,7 +228,8 @@ export class Subplebbit extends EventEmitter {
     }
 
     this.description = this.address + ' description updated'
-    this.updatedAt = Math.floor(Date.now() / 1000)
+    // @ts-ignore
+    this.updatedAt = this.updatedAt + 1
 
     this.updatingState = 'succeeded'
     this.emit('update', this)
@@ -237,6 +239,7 @@ export class Subplebbit extends EventEmitter {
   // the first update event adds all the field from getSubplebbit
   async simulateFirstUpdateEvent() {
     this.firstUpdate = false
+    this.updatedAt = Math.floor(Date.now() / 1000)
 
     this.title = this.address + ' title'
     const hotPageCid = this.address + ' page cid hot'

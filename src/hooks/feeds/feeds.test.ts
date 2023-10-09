@@ -115,7 +115,7 @@ describe('feeds', () => {
       const rendered2 = renderHook<any, any>(() => useFeed({subplebbitAddresses: ['subplebbit address 1']}))
 
       // no way to wait other than just time since result is that there's no result
-      await new Promise((r) => setTimeout(r, 50))
+      await new Promise((r) => setTimeout(r, 100))
 
       // feed cache expired
       expect(rendered2.result.current.feed.length).toBe(0)
