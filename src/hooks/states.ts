@@ -45,8 +45,11 @@ export function useClientsStates(options?: UseClientsStatesOptions): UseClientsS
       states[state].push(clientUrl)
     }
 
+    const oneHourAgo = Date.now() / 1000 - 60 * 60
+    const subplebbitPostsCacheExpired = Boolean(commentOrSubplebbit.fetchedAt && oneHourAgo > commentOrSubplebbit.fetched)
+
     // dont show state if the data is already fetched
-    if (!commentOrSubplebbit?.updatedAt) {
+    if (!commentOrSubplebbit?.updatedAt || subplebbitPostsCacheExpired) {
       for (const clientUrl in clients?.ipfsGateways) {
         addState(clients.ipfsGateways[clientUrl]?.state, clientUrl)
       }
@@ -131,8 +134,11 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
         continue
       }
 
+      const oneHourAgo = Date.now() / 1000 - 60 * 60
+      const subplebbitPostsCacheExpired = Boolean(subplebbit.fetchedAt && oneHourAgo > subplebbit.fetched)
+
       // dont show subplebbit state if data is already fetched
-      if (!subplebbit.updatedAt && subplebbit?.updatingState !== 'stopped' && subplebbit?.updatingState !== 'succeeded') {
+      if ((!subplebbit.updatedAt || subplebbitPostsCacheExpired) && subplebbit?.updatingState !== 'stopped' && subplebbit?.updatingState !== 'succeeded') {
         if (!states[subplebbit.updatingState]) {
           states[subplebbit.updatingState] = {subplebbitAddresses: new Set(), clientUrls: new Set()}
         }
