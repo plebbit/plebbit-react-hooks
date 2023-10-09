@@ -169,11 +169,11 @@ export const getFeedsHaveMore = (feedsOptions, bufferedFeeds, subplebbits, subpl
             }
             // if at least 1 subplebbit has cache older than 1 hour, then the feed still has more
             // NOTE: fetchedAt is undefined on owner subplebbits
-            // const oneHourAgo = Date.now() / 1000 - 60 * 60
-            // if (subplebbit?.fetchedAt && oneHourAgo > subplebbit.fetchedAt) {
-            //   feedsHaveMore[feedName] = true
-            //   continue feedsLoop
-            // }
+            const oneHourAgo = Date.now() / 1000 - 60 * 60;
+            if ((subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.fetchedAt) && oneHourAgo > subplebbit.fetchedAt) {
+                feedsHaveMore[feedName] = true;
+                continue feedsLoop;
+            }
             const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType);
             // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
             // should we try to use another sort type by default, like 'hot', or should we just ignore it?

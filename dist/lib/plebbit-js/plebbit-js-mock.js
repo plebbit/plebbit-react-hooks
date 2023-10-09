@@ -169,6 +169,7 @@ export class Subplebbit extends EventEmitter {
         this.statsCid = 'statscid';
         this.state = 'stopped';
         this.updatingState = 'stopped';
+        this.updatedAt = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.updatedAt;
         this.posts = new Pages({ subplebbit: this });
         // add subplebbit.posts from createSubplebbitOptions
         if ((_a = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _a === void 0 ? void 0 : _a.pages) {
@@ -220,7 +221,8 @@ export class Subplebbit extends EventEmitter {
             return;
         }
         this.description = this.address + ' description updated';
-        this.updatedAt = Math.floor(Date.now() / 1000);
+        // @ts-ignore
+        this.updatedAt = this.updatedAt + 1;
         this.updatingState = 'succeeded';
         this.emit('update', this);
         this.emit('updatingstatechange', 'succeeded');
@@ -229,6 +231,7 @@ export class Subplebbit extends EventEmitter {
     simulateFirstUpdateEvent() {
         return __awaiter(this, void 0, void 0, function* () {
             this.firstUpdate = false;
+            this.updatedAt = Math.floor(Date.now() / 1000);
             this.title = this.address + ' title';
             const hotPageCid = this.address + ' page cid hot';
             this.posts.pages.hot = getCommentsPage(hotPageCid, this);
