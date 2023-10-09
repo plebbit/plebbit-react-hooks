@@ -87,7 +87,7 @@ describe('feeds', () => {
       expect(rendered2.result.current.feed.length).toBe(postsPerPage)
     })
 
-    test('feed cache expires', async () => {
+    test('feed cache expires and hasMore is true', async () => {
       // mock Date.now for fetchedAt cache value
       const now = Date.now()
       const DateNow = Date.now
@@ -102,19 +102,11 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
 
       // expire cache 1h + 1min
-      Date.now = () => now + 61 * 60
+      Date.now = () => now + 61 * 60 * 1000
 
-      // mock subs
-      const comments = [{cid: 'cid cache expires test'}]
+      // mock sub update to never update
       const update = Subplebbit.prototype.update
-      const updatedAt = Math.floor(Date.now() / 1000)
-      const posts: any = {pages: {hot: {comments}}, pageCids: {}}
-      Subplebbit.prototype.update = async function () {
-        await simulateLoadingTime()
-        this.updatedAt = updatedAt
-        this.posts = posts
-        this.emit('update', this)
-      }
+      Subplebbit.prototype.update = async function () {}
 
       // reset stores to force using the db
       await testUtils.resetStores()
@@ -122,10 +114,14 @@ describe('feeds', () => {
       // get feed again from database, only wait for 1 render because subplebbit is stored in db
       const rendered2 = renderHook<any, any>(() => useFeed({subplebbitAddresses: ['subplebbit address 1']}))
 
-      // only wait for 1 render because subplebbit is stored in db
-      await waitFor(() => rendered2.result.current.feed[0].cid)
-      expect(rendered2.result.current.feed[0].cid).toBe(comments[0].cid)
-      expect(rendered2.result.current.feed.length).toBe(comments.length)
+      // no way to wait other than just time since result is that there's no result
+      await new Promise((r) => setTimeout(r, 50))
+
+      // feed cache expired
+      expect(rendered2.result.current.feed.length).toBe(0)
+
+      // hasMore is true
+      expect(rendered2.result.current.hasMore).toBe(true)
 
       // restore mock
       Date.now = DateNow

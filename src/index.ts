@@ -7,7 +7,7 @@ try {
     require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
   }
   if (process.env.DEBUG_ARRAY) {
-    require('util').inspect.defaultOptions.maxArrayLength = null
+    require('util').inspect.defaultOptions.maxArrayLength = process.env.DEBUG_ARRAY
   }
 } catch (e) {}
 
