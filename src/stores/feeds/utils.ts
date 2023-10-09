@@ -14,6 +14,7 @@ import {
 } from '../../types'
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
+import {subplebbitPostsCacheExpired} from '../../lib/utils'
 
 /**
  * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
@@ -44,10 +45,8 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
         continue
       }
 
-      // if cache is older than 1 hour and has internet access, don't use, wait for next subplebbit update
-      // NOTE: fetchedAt is undefined on owner subplebbits
-      const oneHourAgo = Date.now() / 1000 - 60 * 60
-      if (subplebbits[subplebbitAddress].fetchedAt && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt && window.navigator.onLine) {
+      // if cache is expired and has internet access, don't use, wait for next subplebbit update
+      if (subplebbitPostsCacheExpired(subplebbits[subplebbitAddress]) && window.navigator.onLine) {
         continue
       }
 
@@ -204,10 +203,8 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
         continue feedsLoop
       }
 
-      // if at least 1 subplebbit has cache older than 1 hour, then the feed still has more
-      // NOTE: fetchedAt is undefined on owner subplebbits
-      const oneHourAgo = Date.now() / 1000 - 60 * 60
-      if (subplebbit?.fetchedAt && oneHourAgo > subplebbit.fetchedAt) {
+      // if at least 1 subplebbit has posts cache expired, then the feed still has more
+      if (subplebbitPostsCacheExpired(subplebbit)) {
         feedsHaveMore[feedName] = true
         continue feedsLoop
       }

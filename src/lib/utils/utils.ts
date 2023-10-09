@@ -232,6 +232,16 @@ export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   }
 }
 
+export const subplebbitPostsCacheExpired = (subplebbit: any) => {
+  // NOTE: fetchedAt is undefined on owner subplebbits
+  if (!subplebbit?.fetchedAt) {
+    false
+  }
+  // if subplebbit cache is older than 1 hour, its subplebbit.posts are considered expired
+  const oneHourAgo = Date.now() / 1000 - 60 * 60
+  return oneHourAgo > subplebbit.fetchedAt
+}
+
 const utils = {
   merge,
   clone,
@@ -243,6 +253,7 @@ const utils = {
   retryInfinityMinTimeout: 1000,
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
   clientsOnStateChange,
+  subplebbitPostsCacheExpired,
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {

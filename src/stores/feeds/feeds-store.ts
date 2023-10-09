@@ -4,6 +4,7 @@ const log = Logger('plebbit-react-hooks:feeds:stores')
 import {Feed, Feeds, Subplebbit, Subplebbits, Account, FeedsOptions, SubplebbitPage, FeedsSubplebbitsPostCounts, CommentsFilter} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
+import {subplebbitPostsCacheExpired} from '../../lib/utils'
 import accountsStore from '../accounts'
 import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
@@ -314,10 +315,8 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
         continue
       }
 
-      // if subplebbit cache is older than 1 hour, don't use, wait for next subplebbit update
-      // NOTE: fetchedAt is undefined on owner subplebbits
-      const oneHourAgo = Date.now() / 1000 - 60 * 60
-      if (subplebbits[subplebbitAddress]?.fetchedAt && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt) {
+      // if subplebbit posts cache is expired, don't use, wait for next subplebbit update
+      if (subplebbitPostsCacheExpired(subplebbits[subplebbitAddress])) {
         continue
       }
 
