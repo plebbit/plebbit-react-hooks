@@ -3,6 +3,7 @@ import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:states:hooks');
 import assert from 'assert';
 import { useSubplebbits } from './subplebbits';
+import { subplebbitPostsCacheExpired } from '../lib/utils';
 // TODO: implement getting peers
 const peers = {};
 /**
@@ -38,10 +39,8 @@ export function useClientsStates(options) {
             }
             states[state].push(clientUrl);
         };
-        const oneHourAgo = Date.now() / 1000 - 60 * 60;
-        const subplebbitPostsCacheExpired = Boolean(commentOrSubplebbit.fetchedAt && oneHourAgo > commentOrSubplebbit.fetched);
         // dont show state if the data is already fetched
-        if (!(commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.updatedAt) || subplebbitPostsCacheExpired) {
+        if (!(commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.updatedAt) || subplebbitPostsCacheExpired(commentOrSubplebbit)) {
             for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
                 addState((_a = clients.ipfsGateways[clientUrl]) === null || _a === void 0 ? void 0 : _a.state, clientUrl);
             }
@@ -114,10 +113,8 @@ export function useSubplebbitsStates(options) {
             if (!(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState)) {
                 continue;
             }
-            const oneHourAgo = Date.now() / 1000 - 60 * 60;
-            const subplebbitPostsCacheExpired = Boolean(subplebbit.fetchedAt && oneHourAgo > subplebbit.fetched);
             // dont show subplebbit state if data is already fetched
-            if ((!subplebbit.updatedAt || subplebbitPostsCacheExpired) && (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) !== 'stopped' && (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) !== 'succeeded') {
+            if ((!subplebbit.updatedAt || subplebbitPostsCacheExpired(subplebbit)) && (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) !== 'stopped' && (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.updatingState) !== 'succeeded') {
                 if (!states[subplebbit.updatingState]) {
                     states[subplebbit.updatingState] = { subplebbitAddresses: new Set(), clientUrls: new Set() };
                 }

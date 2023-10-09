@@ -12,6 +12,7 @@ import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:feeds:stores');
 import createStore from 'zustand';
 import localForageLru from '../../lib/localforage-lru';
+import { subplebbitPostsCacheExpired } from '../../lib/utils';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
@@ -197,7 +198,6 @@ let previousBufferedFeedsSubplebbitsPostCountsPageCids = [];
 let previousBufferedFeedsSubplebbits = new Map();
 let previousBufferedFeedsSubplebbitsPostCounts = {};
 const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreState) => {
-    var _a;
     const { bufferedFeedsSubplebbitsPostCounts, feedsOptions } = feedsStore.getState();
     const { subplebbits } = subplebbitsStore.getState();
     // if feeds subplebbits have changed, we must try adding them even if buffered posts counts haven't changed
@@ -233,10 +233,8 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
             if (!subplebbits[subplebbitAddress]) {
                 continue;
             }
-            // if subplebbit cache is older than 1 hour, don't use, wait for next subplebbit update
-            // NOTE: fetchedAt is undefined on owner subplebbits
-            const oneHourAgo = Date.now() / 1000 - 60 * 60;
-            if (((_a = subplebbits[subplebbitAddress]) === null || _a === void 0 ? void 0 : _a.fetchedAt) && oneHourAgo > subplebbits[subplebbitAddress].fetchedAt) {
+            // if subplebbit posts cache is expired, don't use, wait for next subplebbit update
+            if (subplebbitPostsCacheExpired(subplebbits[subplebbitAddress])) {
                 continue;
             }
             // subplebbit post count is low, fetch next subplebbit page
