@@ -82,7 +82,7 @@ export const getNextCommentCidToFetchNotFetched = (nextCommentCidToFetch: string
       throw Error(`getNextCommentCidToFetchNotFetched '${nextCommentCidToFetch}' infinite loop`)
     }
     const comment = comments[nextCommentCidToFetchNotFetched || '']
-    if (!comment) {
+    if (!comment?.timestamp) {
       break
     }
     nextCommentCidToFetchNotFetched = comment.author?.previousCommentCid
