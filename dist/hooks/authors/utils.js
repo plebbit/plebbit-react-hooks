@@ -2,10 +2,12 @@ import { useMemo } from 'react';
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { create as createMultihash } from 'multiformats/hashes/digest';
+import assert from 'assert';
 // filters are functions so they can't be stringified
 const filterNumbers = new WeakMap();
 let filterCount = 0;
 const getFilterName = (filter) => {
+    assert(typeof filter === 'function', `invalid useAuthorComments options.filter argument '${filter}' not a function`);
     let filterNumber = filterNumbers.get(filter);
     if (!filterNumber) {
         filterCount++;
