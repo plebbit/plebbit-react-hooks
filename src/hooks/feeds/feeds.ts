@@ -211,6 +211,7 @@ function useUniqueSorted(stringsArray?: string[]) {
 const filterNumbers = new WeakMap()
 let filterCount = 0
 const getFilterName = (filter: CommentsFilter) => {
+  assert(typeof filter === 'function', `invalid useFeed options.filter argument '${filter}' not a function`)
   let filterNumber = filterNumbers.get(filter)
   if (!filterNumber) {
     filterCount++
