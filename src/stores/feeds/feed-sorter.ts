@@ -22,7 +22,8 @@ const sortByTop = (feed: any[]) => {
 const sortByControversial = (feed: any[]) => {
   const postScores: {[key: string]: number} = {}
   for (const post of feed) {
-    const upvoteCount = post.upvoteCount || 0
+    let upvoteCount = post.upvoteCount || 0
+    upvoteCount++ // reddit initial upvotes is 1, plebbit is 0
     const downvoteCount = post.downvoteCount || 0
     const magnitude = upvoteCount + downvoteCount
     const balance = upvoteCount > downvoteCount ? parseFloat(downvoteCount) / upvoteCount : parseFloat(upvoteCount) / downvoteCount
@@ -48,7 +49,8 @@ const sortByHot = (feed: any[]) => {
     return Math.round(number * factorOfTen) / factorOfTen
   }
   for (const post of feed) {
-    const score = (post.upvoteCount || 0) - (post.downvoteCount || 0)
+    let score = (post.upvoteCount || 0) - (post.downvoteCount || 0)
+    score++ // reddit initial upvotes is 1, plebbit is 0
     const order = Math.log10(Math.max(Math.abs(score), 1))
     const sign = score > 0 ? 1 : score < 0 ? -1 : 0
     const seconds = post.timestamp - 1134028003
