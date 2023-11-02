@@ -34,14 +34,7 @@ const privateKey = signers[0].privateKey
   })
   subplebbit.on('challengerequest', console.log)
   subplebbit.on('challengeanswer', console.log)
-  subplebbit.setProvideCaptchaCallback((challengeRequestMessage) => {
-    return [[{challenge: '1+1=?', type: 'text'}]]
-  })
-  subplebbit.setValidateCaptchaAnswerCallback((challengeAnswerMessage) => {
-    const challengeSuccess = challengeAnswerMessage.challengeAnswers[0] === '2'
-    const challengeErrors = challengeSuccess ? undefined : ['Result of math expression is incorrect']
-    return [challengeSuccess, challengeErrors]
-  })
+  await subplebbit.edit({settings: {challenges: [{name: 'question', options: {question: '1+1=?', answer: '2'}}]}})
   console.log('subplebbit created')
 
   console.log('starting subplebbit...')
