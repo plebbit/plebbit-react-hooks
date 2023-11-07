@@ -2108,9 +2108,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#6985b2a4194328752c6d76e80470c8079c562869":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#e592f894fd1b93d9d0b5f792f6f4f25ce1593631":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#6985b2a4194328752c6d76e80470c8079c562869"
+  resolved "https://github.com/plebbit/plebbit-js.git#e592f894fd1b93d9d0b5f792f6f4f25ce1593631"
   dependencies:
     "@ensdomains/eth-ens-namehash" "2.0.15"
     "@keyv/sqlite" "3.6.2"
@@ -2142,10 +2142,11 @@
     lru-cache "7.18.3"
     open-graph-scraper "4.11.1"
     p-limit "3.1.0"
+    p-timeout "4.1.0"
     peer-id "0.16.0"
     probe-image-size "^7.2.3"
     retry "0.13.1"
-    rpc-websockets "7.5.1"
+    rpc-websockets "7.6.0"
     safe-stable-stringify "2.4.1"
     sha1-uint8array "0.10.3"
     skia-canvas "1.0.0"
@@ -8502,6 +8503,11 @@ p-map@^4.0.0:
   dependencies:
     aggregate-error "^3.0.0"
 
+p-timeout@4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/p-timeout/-/p-timeout-4.1.0.tgz#788253c0452ab0ffecf18a62dff94ff1bd09ca0a"
+  integrity sha512-+/wmHtzJuWii1sXn3HCuH/FTwGhrp4tmJTxSKJbfS+vkipci6osxXM5mY0jUiRzWKMTgUT8l7HFbeSwZAynqHw==
+
 p-try@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
@@ -9297,10 +9303,10 @@ roarr@^2.15.3:
     semver-compare "^1.0.0"
     sprintf-js "^1.1.2"
 
-rpc-websockets@7.5.1:
-  version "7.5.1"
-  resolved "https://registry.yarnpkg.com/rpc-websockets/-/rpc-websockets-7.5.1.tgz#e0a05d525a97e7efc31a0617f093a13a2e10c401"
-  integrity sha512-kGFkeTsmd37pHPMaHIgN1LVKXMi0JD782v4Ds9ZKtLlwdTKjn+CxM9A9/gLT2LaOuEcEFGL98h1QWQtlOIdW0w==
+rpc-websockets@7.6.0:
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/rpc-websockets/-/rpc-websockets-7.6.0.tgz#d3f4c0dac108ca35566b0e31552c32e58928cd04"
+  integrity sha512-Jgcs8q6t8Go98dEulww1x7RysgTkzpCMelVxZW4hvuyFtOGpeUz9prpr2KjUa/usqxgFCd9Tu3+yhHEP9GVmiQ==
   dependencies:
     "@babel/runtime" "^7.17.2"
     eventemitter3 "^4.0.7"
