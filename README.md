@@ -69,6 +69,7 @@ setActiveAccount(accountName: string)
 setAccountsOrder(accountNames: string[])
 importAccount(serializedAccount: string)
 exportAccount(accountName: string): string // don't allow undefined to prevent catastrophic bugs
+deleteSubplebbit(subplebbitAddress: string, accountName?: string)
 ```
 #### Util functions
 ```
