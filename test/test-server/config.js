@@ -10,4 +10,8 @@ const pubsubIpfs = {
   args: '--enable-pubsub-experiment',
 }
 
-module.exports = {offlineIpfs, pubsubIpfs}
+const plebbitRpc = {
+  port: 48392,
+}
+
+module.exports = {offlineIpfs, pubsubIpfs, plebbitRpc}

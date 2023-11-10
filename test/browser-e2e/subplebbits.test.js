@@ -5,7 +5,7 @@ const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
-const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
+const {offlineIpfs, pubsubIpfs} = require('../test-server/config')
 
 // large value for manual debugging
 const timeout = 600000
@@ -16,7 +16,7 @@ const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
 const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
-  'http client': {
+  'ipfs http client': {
     ipfsHttpClientsOptions: [localIpfsProviderUrl],
     // define pubsubHttpClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub

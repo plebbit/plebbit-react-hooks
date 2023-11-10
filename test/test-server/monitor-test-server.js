@@ -2,7 +2,7 @@
 // you should also import assertTestServerDidntCrash and run it beforeEach and afterEach
 
 const nodeFetch = require('node-fetch')
-const {offlineIpfs, pubsubIpfs} = require('./ipfs-config')
+const {offlineIpfs, pubsubIpfs} = require('./config')
 
 // make sure only one instance is running in node
 let started = false

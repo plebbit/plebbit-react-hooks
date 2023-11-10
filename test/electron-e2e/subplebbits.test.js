@@ -7,27 +7,30 @@ Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
-const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
+const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
 const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)
-
-window.fetch = () => {
-  throw Error(`electron tests shouldn't use window.fetch`)
-}
 
 // large value for manual debugging
 const timeout = 600000
 
 // run tests using plebbit options gateway and httpClient
-const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
-const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
-const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
+const localGatewayUrl = `http://127.0.0.1:${offlineIpfs.gatewayPort}`
+const localIpfsProviderUrl = `http://127.0.0.1:${offlineIpfs.apiPort}/api/v0`
+const localPubsubProviderUrl = `http://127.0.0.1:${pubsubIpfs.apiPort}/api/v0`
+const localPlebbitRpcUrl = `ws://127.0.0.1:${plebbitRpc.port}`
 const plebbitOptionsTypes = {
-  'http client': {
+  'ipfs http client': {
     ipfsHttpClientsOptions: [localIpfsProviderUrl],
     // define pubsubHttpClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubHttpClientsOptions: [localPubsubProviderUrl],
     dataPath: window.plebbitDataPath,
+  },
+  'plebbit rpc client': {
+    plebbitRpcClientsOptions: [localPlebbitRpcUrl],
+    dataPath: window.plebbitDataPath,
+    publishInterval: 1000,
+    updateInterval: 1000,
   },
 }
 

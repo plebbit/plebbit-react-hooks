@@ -4,7 +4,8 @@ const Plebbit = require('@plebbit/plebbit-js')
 const getTmpFolderPath = require('tempy').directory
 const plebbitDataPath = getTmpFolderPath()
 const startIpfs = require('./start-ipfs')
-const {offlineIpfs, pubsubIpfs} = require('./ipfs-config')
+const startPlebbitRpc = require('./start-plebbit-rpc')
+const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('./config')
 const signers = require('../fixtures/signers')
 
 // always use the same private key and subplebbit address when testing
@@ -14,10 +15,11 @@ const privateKey = signers[0].privateKey
 ;(async () => {
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
+  await startPlebbitRpc({port: plebbitRpc.port, ipfsApiPort: offlineIpfs.apiPort, pubsubApiPort: pubsubIpfs.apiPort})
 
   const plebbitOptions = {
-    ipfsHttpClientsOptions: [`http://localhost:${offlineIpfs.apiPort}/api/v0`],
-    pubsubHttpClientsOptions: [`http://localhost:${pubsubIpfs.apiPort}/api/v0`],
+    ipfsHttpClientsOptions: [`http://127.0.0.1:${offlineIpfs.apiPort}/api/v0`],
+    pubsubHttpClientsOptions: [`http://127.0.0.1:${pubsubIpfs.apiPort}/api/v0`],
     // pubsubHttpClientsOptions: [`https://pubsubprovider.xyz/api/v0`],
     dataPath: plebbitDataPath,
     publishInterval: 1000,

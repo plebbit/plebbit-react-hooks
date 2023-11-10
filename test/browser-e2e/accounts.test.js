@@ -3,7 +3,7 @@ const {act, renderHook} = require('@testing-library/react-hooks/dom')
 const {useAccount, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
 const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
-const {offlineIpfs, pubsubIpfs} = require('../test-server/ipfs-config')
+const {offlineIpfs, pubsubIpfs} = require('../test-server/config')
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
 
@@ -17,7 +17,7 @@ const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
 const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
-  'http client': {
+  'ipfs http client': {
     ipfsHttpClientsOptions: [localIpfsProviderUrl],
     // define pubsubHttpClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
