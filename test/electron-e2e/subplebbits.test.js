@@ -19,13 +19,6 @@ const localIpfsProviderUrl = `http://127.0.0.1:${offlineIpfs.apiPort}/api/v0`
 const localPubsubProviderUrl = `http://127.0.0.1:${pubsubIpfs.apiPort}/api/v0`
 const localPlebbitRpcUrl = `ws://127.0.0.1:${plebbitRpc.port}`
 const plebbitOptionsTypes = {
-  'ipfs http client': {
-    ipfsHttpClientsOptions: [localIpfsProviderUrl],
-    // define pubsubHttpClientsOptions with localPubsubProviderUrl because
-    // localIpfsProviderUrl is offline node with no pubsub
-    pubsubHttpClientsOptions: [localPubsubProviderUrl],
-    dataPath: window.plebbitDataPath,
-  },
   'plebbit rpc client': {
     plebbitRpcClientsOptions: [localPlebbitRpcUrl],
     dataPath: window.plebbitDataPath,
