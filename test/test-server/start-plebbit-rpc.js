@@ -10,8 +10,8 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
 
   const plebbitOptions = {
     dataPath: path.join(__dirname, '..', '.plebbit', 'rpc'),
-    ipfsHttpClientsOptions: [`http://localhost:${ipfsApiPort}/api/v0`],
-    pubsubHttpClientsOptions: [`http://localhost:${pubsubApiPort}/api/v0`],
+    ipfsHttpClientsOptions: [`http://127.0.0.1:${ipfsApiPort}/api/v0`],
+    pubsubHttpClientsOptions: [`http://127.0.0.1:${pubsubApiPort}/api/v0`],
   }
 
   console.log('plebbit rpc: starting...')
