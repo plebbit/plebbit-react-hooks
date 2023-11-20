@@ -2108,9 +2108,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#a3e971f07456ec89e5cba26ae056cd3c44aadeaf":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#40737b8f9d68fe039be0b3c160c7c32e7b3e2a21":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#a3e971f07456ec89e5cba26ae056cd3c44aadeaf"
+  resolved "https://github.com/plebbit/plebbit-js.git#40737b8f9d68fe039be0b3c160c7c32e7b3e2a21"
   dependencies:
     "@ensdomains/eth-ens-namehash" "2.0.15"
     "@keyv/sqlite" "3.6.2"
