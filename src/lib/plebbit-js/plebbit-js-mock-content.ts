@@ -4,7 +4,6 @@ import assert from 'assert'
 import {sha256} from 'multiformats/hashes/sha2'
 import {fromString as uint8ArrayFromString} from 'uint8arrays/from-string'
 import {toString as uint8ArrayToString} from 'uint8arrays/to-string'
-import PlebbitJs from '@plebbit/plebbit-js'
 
 // changeable with env variable so the frontend can test with different latencies
 const doubleMedia = Boolean(process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_DOUBLE_MEDIA)
@@ -703,7 +702,11 @@ const createdSubplebbits: any = {}
 
 class Plebbit extends EventEmitter {
   async createSigner() {
-    return {privateKey: 'private key', address: 'address'}
+    return {
+      privateKey:
+        'private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key',
+      address: await getCidHash(String(Math.random())),
+    }
   }
 
   async resolveAuthorAddress(authorAddress: string) {}
@@ -818,7 +821,6 @@ class Plebbit extends EventEmitter {
   async pubsubSubscribe(subplebbitAddress: string) {}
   async pubsubUnsubscribe(subplebbitAddress: string) {}
 }
-Plebbit.prototype.createSigner = PlebbitJs.prototype.createSigner
 
 class Pages {
   pageCids: any = {}
