@@ -68,7 +68,8 @@ const commentsStore = createStore((setState, getState) => ({
             // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
             utils.clientsOnStateChange(comment === null || comment === void 0 ? void 0 : comment.clients, (clientState, clientType, clientUrl, chainTicker) => {
                 setState((state) => {
-                    const clients = Object.assign({}, state.comments[commentCid].clients);
+                    var _a;
+                    const clients = Object.assign({}, (_a = state.comments[commentCid]) === null || _a === void 0 ? void 0 : _a.clients);
                     const client = { state: clientState };
                     if (chainTicker) {
                         const chainProviders = Object.assign(Object.assign({}, clients[clientType][chainTicker]), { [clientUrl]: client });
