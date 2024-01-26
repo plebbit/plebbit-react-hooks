@@ -182,6 +182,64 @@ describe('feeds', () => {
       Pages.prototype.getPage = getPage
     })
 
+    test('newerThan sets correct sortType', async () => {
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'topAll',
+        newerThan: 60 * 60 * 24,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('topDay')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'topAll',
+        newerThan: 60 * 60 * 24 * 7,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('topWeek')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'topAll',
+        newerThan: 60 * 60 * 24 * 30,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('topMonth')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'topAll',
+        newerThan: 60 * 60 * 24 * 365,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('topYear')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'controversialAll',
+        newerThan: 60 * 60 * 24,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('controversialDay')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'controversialAll',
+        newerThan: 60 * 60 * 24 * 7,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('controversialWeek')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'controversialAll',
+        newerThan: 60 * 60 * 24 * 30,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('controversialMonth')
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'controversialAll',
+        newerThan: 60 * 60 * 24 * 365,
+      })
+      expect(Object.keys(feedsStore.getState().feedsOptions).join(' ')).toMatch('controversialYear')
+    })
+
     test('change subplebbit addresses and sort type', async () => {
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))
