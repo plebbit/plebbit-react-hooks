@@ -182,6 +182,63 @@ describe('feeds', () => {
       Pages.prototype.getPage = getPage
     })
 
+    test('get feed with newerThan sortType active', async () => {
+      const getPage = Pages.prototype.getPage
+      const now = Math.floor(Date.now() / 1000)
+      Pages.prototype.getPage = async function (pageCid: string) {
+        await simulateLoadingTime()
+        return {
+          comments: [
+            // should be newer
+            {
+              timestamp: now,
+              lastReplyTimestamp: undefined,
+              cid: 'newer cid 1',
+              subplebbitAddress: this.subplebbit.address,
+            },
+            {
+              timestamp: 1,
+              lastReplyTimestamp: now,
+              cid: 'newer cid 2',
+              subplebbitAddress: this.subplebbit.address,
+            },
+            // should not be newer
+            {
+              timestamp: 1,
+              lastReplyTimestamp: undefined,
+              cid: 'older cid 1',
+              subplebbitAddress: this.subplebbit.address,
+            },
+            {
+              timestamp: 1,
+              lastReplyTimestamp: 1,
+              cid: 'older cid 2',
+              subplebbitAddress: this.subplebbit.address,
+            },
+          ],
+        }
+      }
+
+      const newerThan = 5 // newer than x seconds
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'active',
+        newerThan,
+      })
+
+      // wait for feed array to render
+      await waitFor(() => Array.isArray(rendered.result.current.feed))
+      expect(rendered.result.current.feed).toEqual([])
+
+      // wait for posts to be added, should get same amount as newerThan because 1 post per second in getPage
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed.length).toBe(2)
+      expect(rendered.result.current.feed[0].cid).toBe('newer cid 1')
+      expect(rendered.result.current.feed[1].cid).toBe('newer cid 2')
+
+      Pages.prototype.getPage = getPage
+    })
+
     test('newerThan sets correct sortType', async () => {
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1'],

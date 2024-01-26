@@ -99,8 +99,16 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
       }
 
       // filter posts older than newerThan option
-      if (newerThanTimestamp && post.timestamp <= newerThanTimestamp) {
-        continue
+      if (newerThanTimestamp) {
+        if (sortType === 'active') {
+          if ((post.lastReplyTimestamp || post.timestamp) <= newerThanTimestamp) {
+            continue
+          }
+        } else {
+          if (post.timestamp <= newerThanTimestamp) {
+            continue
+          }
+        }
       }
 
       filteredSortedBufferedFeedPosts.push(post)
