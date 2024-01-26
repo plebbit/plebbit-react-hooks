@@ -18,7 +18,8 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
     // calculate each feed
     let newBufferedFeeds = {};
     for (const feedName in feedsOptions) {
-        const { subplebbitAddresses, sortType, accountId, filter } = feedsOptions[feedName];
+        const { subplebbitAddresses, sortType, accountId, filter, newerThan } = feedsOptions[feedName];
+        const newerThanTimestamp = newerThan ? Math.floor(Date.now() / 1000) - newerThan : undefined;
         // find all fetched posts
         const bufferedFeedPosts = [];
         // add each comment from each page, do not filter at this stage, filter after sorting
@@ -68,6 +69,10 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
             }
             // feedOptions filter function
             if (filter && !filter(post)) {
+                continue;
+            }
+            // filter posts older than newerThan option
+            if (newerThanTimestamp && post.timestamp <= newerThanTimestamp) {
                 continue;
             }
             filteredSortedBufferedFeedPosts.push(post);

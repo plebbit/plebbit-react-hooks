@@ -23,16 +23,14 @@ import shallow from 'zustand/shallow';
  */
 export function useFeed(options) {
     assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`);
-    let { subplebbitAddresses, sortType, accountName, postsPerPage, filter } = options || {};
-    if (!sortType) {
-        sortType = 'hot';
-    }
+    let { subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan } = options || {};
+    sortType = getSortType(sortType, newerThan);
     validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName);
     const account = useAccount({ accountName });
     const addFeedToStore = useFeedsStore((state) => state.addFeedToStore);
     const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber);
     const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses);
-    const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter);
+    const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan);
     const [errors, setErrors] = useState([]);
     // add feed to store
     useEffect(() => {
@@ -40,7 +38,7 @@ export function useFeed(options) {
             return;
         }
         const isBufferedFeed = false;
-        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
+        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
     }, [feedName]);
     const feed = useFeedsStore((state) => state.loadedFeeds[feedName || '']);
     let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
@@ -101,21 +99,23 @@ export function useBufferedFeeds(options) {
     const account = useAccount({ accountName });
     const addFeedToStore = useFeedsStore((state) => state.addFeedToStore);
     // do a bunch of calculations to get feedsOptionsFlattened and feedNames
-    const { subplebbitAddressesArrays, sortTypes, postsPerPages, filters } = useMemo(() => {
+    const { subplebbitAddressesArrays, sortTypes, postsPerPages, filters, newerThans } = useMemo(() => {
         const subplebbitAddressesArrays = [];
         const sortTypes = [];
         const postsPerPages = [];
         const filters = [];
+        const newerThans = [];
         for (const feedOptions of feedsOptions || []) {
             subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses || []);
-            sortTypes.push(feedOptions.sortType);
+            sortTypes.push(getSortType(feedOptions.sortType, feedOptions.newerThan));
             postsPerPages.push(feedOptions.postsPerPage);
             filters.push(feedOptions.filter);
+            newerThans.push(feedOptions.newerThan);
         }
-        return { subplebbitAddressesArrays, sortTypes, postsPerPages, filters };
+        return { subplebbitAddressesArrays, sortTypes, postsPerPages, filters, newerThans };
     }, [feedsOptions]);
     const uniqueSubplebbitAddressesArrays = useUniqueSortedArrays(subplebbitAddressesArrays);
-    const feedNames = useFeedNames(account === null || account === void 0 ? void 0 : account.id, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters);
+    const feedNames = useFeedNames(account === null || account === void 0 ? void 0 : account.id, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters, newerThans);
     const bufferedFeeds = useFeedsStore((state) => {
         const bufferedFeeds = {};
         for (const feedName of feedNames) {
@@ -201,20 +201,53 @@ const getFilterName = (filter) => {
     }
     return `filter${filterNumber}`;
 };
-function useFeedName(accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter) {
+function useFeedName(accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan) {
     return useMemo(() => {
         const filterName = filter ? getFilterName(filter) : undefined;
-        return accountId + '-' + sortType + '-' + uniqueSubplebbitAddresses + '-' + postsPerPage + '-' + filterName;
-    }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter]);
+        return accountId + '-' + sortType + '-' + uniqueSubplebbitAddresses + '-' + postsPerPage + '-' + filterName + '-' + newerThan;
+    }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan]);
 }
-function useFeedNames(accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters) {
+function useFeedNames(accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters, newerThans) {
     return useMemo(() => {
         const feedNames = [];
         for (const [i] of sortTypes.entries()) {
             // @ts-ignore
             const filterName = filters[i] ? getFilterName(filters[i]) : undefined;
-            feedNames.push(accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName);
+            feedNames.push(accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName + '-' + newerThans[i]);
         }
         return feedNames;
-    }, [accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters]);
+    }, [accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters, newerThans]);
 }
+const getSortType = (sortType, newerThan) => {
+    if (!sortType) {
+        sortType = 'hot';
+    }
+    if (newerThan && (sortType === 'topAll' || sortType === 'controversialAll')) {
+        let time;
+        if (newerThan <= 60 * 60 * 24) {
+            // 1 day
+            time = 'Day';
+        }
+        else if (newerThan <= 60 * 60 * 24 * 7) {
+            // 1 week
+            time = 'Week';
+        }
+        else if (newerThan <= 60 * 60 * 24 * 31) {
+            // 1 month
+            time = 'Month';
+        }
+        else if (newerThan <= 60 * 60 * 24 * 365) {
+            // 1 year
+            time = 'Year';
+        }
+        if (time) {
+            if (sortType === 'topAll') {
+                sortType = `top${time}`;
+            }
+            else if (sortType === 'controversialAll') {
+                sortType = `controversial${time}`;
+            }
+        }
+    }
+    return sortType;
+};

@@ -119,6 +119,7 @@ export interface UseFeedOptions extends Options {
     subplebbitAddresses: string[];
     sortType?: string;
     postsPerPage?: number;
+    newerThan?: number;
     filter?: CommentsFilter;
 }
 export interface UseFeedResult extends Result {
@@ -423,6 +424,7 @@ export type FeedOptions = {
     pageNumber: number;
     postsPerPage: number;
     filter: CommentsFilter;
+    newerThan?: number;
 };
 export type FeedsOptions = {
     [feedName: string]: FeedOptions;
