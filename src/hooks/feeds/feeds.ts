@@ -253,20 +253,15 @@ function useFeedNames(
 const getSortType = (sortType?: string, newerThan?: number) => {
   if (!sortType) {
     sortType = 'hot'
-  }
-  if (newerThan && (sortType === 'topAll' || sortType === 'controversialAll')) {
+  } else if (newerThan && (sortType === 'topAll' || sortType === 'controversialAll')) {
     let time: string | undefined
     if (newerThan <= 60 * 60 * 24) {
-      // 1 day
       time = 'Day'
     } else if (newerThan <= 60 * 60 * 24 * 7) {
-      // 1 week
       time = 'Week'
     } else if (newerThan <= 60 * 60 * 24 * 31) {
-      // 1 month
       time = 'Month'
     } else if (newerThan <= 60 * 60 * 24 * 365) {
-      // 1 year
       time = 'Year'
     }
     if (time) {
