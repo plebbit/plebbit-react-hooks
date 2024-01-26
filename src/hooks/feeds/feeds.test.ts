@@ -148,6 +148,40 @@ describe('feeds', () => {
       expect(rendered.result.current.feed.length).toBe(customPostsPerPage * 2)
     })
 
+    test('get feed with newerThan', async () => {
+      const getPage = Pages.prototype.getPage
+      const now = Math.floor(Date.now() / 1000)
+      Pages.prototype.getPage = async function (pageCid: string) {
+        await simulateLoadingTime()
+        const page: any = {comments: []}
+        while (page.comments.length < 100) {
+          page.comments.push({
+            timestamp: now - page.comments.length, // 1 post per second
+            cid: pageCid + ' comment cid ' + (page.comments.length + 1),
+            subplebbitAddress: this.subplebbit.address,
+          })
+        }
+        return page
+      }
+
+      const newerThan = 5 // newer than x seconds
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1'],
+        sortType: 'new', // sort by new so the feed uses getPage
+        newerThan,
+      })
+
+      // wait for feed array to render
+      await waitFor(() => Array.isArray(rendered.result.current.feed))
+      expect(rendered.result.current.feed).toEqual([])
+
+      // wait for posts to be added, should get same amount as newerThan because 1 post per second in getPage
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed.length === newerThan || rendered.result.current.feed.length === newerThan - 1).toBe(true)
+
+      Pages.prototype.getPage = getPage
+    })
+
     test('change subplebbit addresses and sort type', async () => {
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'hot'})
       await waitFor(() => !!rendered.result.current.feed[0].cid.match(/subplebbit address 1/))

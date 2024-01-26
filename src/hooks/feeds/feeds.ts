@@ -16,7 +16,7 @@ import shallow from 'zustand/shallow'
  */
 export function useFeed(options?: UseFeedOptions): UseFeedResult {
   assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`)
-  let {subplebbitAddresses, sortType, accountName, postsPerPage, filter} = options || {}
+  let {subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan} = options || {}
   if (!sortType) {
     sortType = 'hot'
   }
@@ -25,7 +25,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
-  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter)
+  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan)
   const [errors, setErrors] = useState<Error[]>([])
 
   // add feed to store
@@ -34,7 +34,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       return
     }
     const isBufferedFeed = false
-    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter).catch((error: unknown) =>
+    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan).catch((error: unknown) =>
       log.error('useFeed addFeedToStore error', {feedName, error})
     )
   }, [feedName])
@@ -106,21 +106,23 @@ export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBuffered
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
 
   // do a bunch of calculations to get feedsOptionsFlattened and feedNames
-  const {subplebbitAddressesArrays, sortTypes, postsPerPages, filters} = useMemo(() => {
+  const {subplebbitAddressesArrays, sortTypes, postsPerPages, filters, newerThans} = useMemo(() => {
     const subplebbitAddressesArrays = []
     const sortTypes = []
     const postsPerPages = []
     const filters = []
+    const newerThans = []
     for (const feedOptions of feedsOptions || []) {
       subplebbitAddressesArrays.push(feedOptions.subplebbitAddresses || [])
       sortTypes.push(feedOptions.sortType)
       postsPerPages.push(feedOptions.postsPerPage)
       filters.push(feedOptions.filter)
+      newerThans.push(feedOptions.newerThan)
     }
-    return {subplebbitAddressesArrays, sortTypes, postsPerPages, filters}
+    return {subplebbitAddressesArrays, sortTypes, postsPerPages, filters, newerThans}
   }, [feedsOptions])
   const uniqueSubplebbitAddressesArrays = useUniqueSortedArrays(subplebbitAddressesArrays)
-  const feedNames = useFeedNames(account?.id, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters)
+  const feedNames = useFeedNames(account?.id, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters, newerThans)
 
   const bufferedFeeds = useFeedsStore((state) => {
     const bufferedFeeds: Feeds = {}
@@ -221,11 +223,11 @@ const getFilterName = (filter: CommentsFilter) => {
   return `filter${filterNumber}`
 }
 
-function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[], postsPerPage?: number, filter?: CommentsFilter) {
+function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[], postsPerPage?: number, filter?: CommentsFilter, newerThan?: number) {
   return useMemo(() => {
     const filterName = filter ? getFilterName(filter) : undefined
-    return accountId + '-' + sortType + '-' + uniqueSubplebbitAddresses + '-' + postsPerPage + '-' + filterName
-  }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter])
+    return accountId + '-' + sortType + '-' + uniqueSubplebbitAddresses + '-' + postsPerPage + '-' + filterName + '-' + newerThan
+  }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan])
 }
 
 function useFeedNames(
@@ -233,15 +235,18 @@ function useFeedNames(
   sortTypes: (string | undefined)[],
   uniqueSubplebbitAddressesArrays: string[][],
   postsPerPages: (number | undefined)[],
-  filters: (CommentsFilter | undefined)[]
+  filters: (CommentsFilter | undefined)[],
+  newerThans: (number | undefined)[]
 ) {
   return useMemo(() => {
     const feedNames = []
     for (const [i] of sortTypes.entries()) {
       // @ts-ignore
       const filterName = filters[i] ? getFilterName(filters[i]) : undefined
-      feedNames.push(accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName)
+      feedNames.push(
+        accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName + '-' + newerThans[i]
+      )
     }
     return feedNames
-  }, [accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters])
+  }, [accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters, newerThans])
 }

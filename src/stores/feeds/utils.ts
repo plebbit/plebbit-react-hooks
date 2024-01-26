@@ -33,7 +33,8 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
   // calculate each feed
   let newBufferedFeeds: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {subplebbitAddresses, sortType, accountId, filter} = feedsOptions[feedName]
+    const {subplebbitAddresses, sortType, accountId, filter, newerThan} = feedsOptions[feedName]
+    const newerThanTimestamp = newerThan ? Math.floor(Date.now() / 1000) - newerThan : undefined
 
     // find all fetched posts
     const bufferedFeedPosts = []
@@ -94,6 +95,11 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
 
       // feedOptions filter function
       if (filter && !filter(post)) {
+        continue
+      }
+
+      // filter posts older than newerThan option
+      if (newerThanTimestamp && post.timestamp <= newerThanTimestamp) {
         continue
       }
 

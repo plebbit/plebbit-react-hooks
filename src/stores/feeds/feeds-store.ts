@@ -66,7 +66,8 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     account: Account,
     isBufferedFeed?: boolean,
     postsPerPage?: number,
-    filter?: CommentsFilter
+    filter?: CommentsFilter,
+    newerThan?: number
   ) {
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
     assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`)
@@ -77,6 +78,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
     )
     assert(!filter || typeof filter === 'function', `addFeedToStore.addFeedToStore filter '${filter}' invalid`)
+    assert(!newerThan || typeof newerThan === 'number', `addFeedToStore.addFeedToStore newerThan '${newerThan}' invalid`)
     postsPerPage = postsPerPage || defaultPostsPerPage
     assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`)
 
@@ -87,7 +89,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       return
     }
     // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage, filter}
+    const feedOptions = {subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage, newerThan, filter}
     log('feedsActions.addFeedToStore', feedOptions)
     setState(({feedsOptions}: any) => {
       // make sure to never overwrite a feed already added
