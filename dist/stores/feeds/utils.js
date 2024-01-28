@@ -6,7 +6,7 @@ import { subplebbitPostsCacheExpired } from '../../lib/utils';
  * and remove the posts already loaded in loadedFeeds
  */
 export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subplebbitsPages, accounts) => {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     // contruct a list of posts already loaded to remove them from buffered feeds
     const loadedFeedsPosts = {};
     for (const feedName in loadedFeeds) {
@@ -54,12 +54,12 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
             if ((_d = loadedFeedsPosts[feedName]) === null || _d === void 0 ? void 0 : _d.has(post.cid)) {
                 continue;
             }
-            // address is blocked
-            if (accounts[accountId].blockedAddresses[post.subplebbitAddress] || (((_e = post.author) === null || _e === void 0 ? void 0 : _e.address) && accounts[accountId].blockedAddresses[post.author.address])) {
+            // address is blocked (accounts[accountId] is undefined in rare cases)
+            if (((_e = accounts[accountId]) === null || _e === void 0 ? void 0 : _e.blockedAddresses[post.subplebbitAddress]) || (((_f = post.author) === null || _f === void 0 ? void 0 : _f.address) && ((_g = accounts[accountId]) === null || _g === void 0 ? void 0 : _g.blockedAddresses[post.author.address]))) {
                 continue;
             }
-            // comment cid is blocked
-            if (accounts[accountId].blockedCids[post.cid]) {
+            // comment cid is blocked (accounts[accountId] is undefined in rare cases)
+            if ((_h = accounts[accountId]) === null || _h === void 0 ? void 0 : _h.blockedCids[post.cid]) {
                 continue;
             }
             // if a feed has more than 1 sub, don't include pinned posts
