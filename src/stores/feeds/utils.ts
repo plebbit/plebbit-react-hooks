@@ -77,13 +77,13 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
         continue
       }
 
-      // address is blocked
-      if (accounts[accountId].blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[accountId].blockedAddresses[post.author.address])) {
+      // address is blocked (accounts[accountId] is undefined in rare cases)
+      if (accounts[accountId]?.blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[accountId]?.blockedAddresses[post.author.address])) {
         continue
       }
 
-      // comment cid is blocked
-      if (accounts[accountId].blockedCids[post.cid]) {
+      // comment cid is blocked (accounts[accountId] is undefined in rare cases)
+      if (accounts[accountId]?.blockedCids[post.cid]) {
         continue
       }
 
