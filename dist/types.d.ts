@@ -126,6 +126,7 @@ export interface UseFeedResult extends Result {
     feed: Comment[];
     hasMore: boolean;
     loadMore(): Promise<void>;
+    reset(): Promise<void>;
 }
 export interface UseBufferedFeedsOptions extends Options {
     feedsOptions?: UseFeedOptions[];

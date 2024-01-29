@@ -12,6 +12,7 @@ export type FeedsState = {
     };
     addFeedToStore: Function;
     incrementFeedPageNumber: Function;
+    resetFeed: Function;
     updateFeeds: Function;
 };
 declare const feedsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<FeedsState>>;

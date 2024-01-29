@@ -95,6 +95,17 @@ const feedsStore = createStore((setState, getState) => ({
         // a race condition, rather schedule a feed update
         updateFeeds();
     },
+    resetFeed(feedName) {
+        const { feedsOptions, updateFeeds } = getState();
+        assert(feedsOptions[feedName], `feedsActions.resetFeed feed name '${feedName}' does not exist in feeds store`);
+        assert(feedsOptions[feedName].pageNumber >= 1, `feedsActions.resetFeed cannot reset feed page number '${feedsOptions[feedName].pageNumber}' lower than 1`);
+        log('feedsActions.resetFeed', { feedName });
+        setState(({ feedsOptions, loadedFeeds }) => {
+            const feedOptions = Object.assign(Object.assign({}, feedsOptions[feedName]), { pageNumber: 1 });
+            return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }), loadedFeeds: Object.assign(Object.assign({}, loadedFeeds), { [feedName]: [] }) };
+        });
+        updateFeeds();
+    },
     // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
     updateFeeds() {
         if (updateFeedsPending) {
