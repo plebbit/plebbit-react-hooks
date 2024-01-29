@@ -23,6 +23,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   const account = useAccount({accountName})
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
+  const resetFeed = useFeedsStore((state) => state.resetFeed)
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
   const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan)
   const [errors, setErrors] = useState<Error[]>([])
@@ -62,6 +63,19 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
     }
   }
 
+  const reset = async () => {
+    try {
+      if (!uniqueSubplebbitAddresses || !account) {
+        throw Error('useFeed cannot reset feed not initalized yet')
+      }
+      resetFeed(feedName)
+    } catch (e: any) {
+      // wait 100 ms so infinite scroll doesn't spam this function
+      await new Promise((r) => setTimeout(r, 50))
+      setErrors([...errors, e])
+    }
+  }
+
   if (account && subplebbitAddresses?.length) {
     log('useFeed', {
       feedLength: feed?.length || 0,
@@ -81,6 +95,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       feed: feed || [],
       hasMore,
       loadMore,
+      reset,
       state,
       error: errors[errors.length - 1],
       errors,

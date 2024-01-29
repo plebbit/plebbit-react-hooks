@@ -564,6 +564,18 @@ describe('feeds', () => {
       expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
     })
 
+    test('reset feed', async () => {
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      await waitFor(() => rendered.result.current.feed?.length === postsPerPage)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      await scrollOnePage()
+      expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+
+      await rendered.result.current.reset()
+      await waitFor(() => rendered.result.current.feed?.length === postsPerPage)
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+    })
+
     test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
       // use buffered feeds to be able to wait until the buffered feeds have updated before loading page 2
       rendered = renderHook<any, any>((props: any) => {

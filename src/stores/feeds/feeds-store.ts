@@ -45,6 +45,7 @@ export type FeedsState = {
   feedsHaveMore: {[feedName: string]: boolean}
   addFeedToStore: Function
   incrementFeedPageNumber: Function
+  resetFeed: Function
   updateFeeds: Function
 }
 
@@ -145,6 +146,23 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
 
     // do not update feed at the same time as increment a page number or it might cause
     // a race condition, rather schedule a feed update
+    updateFeeds()
+  },
+
+  resetFeed(feedName: string) {
+    const {feedsOptions, updateFeeds} = getState()
+    assert(feedsOptions[feedName], `feedsActions.resetFeed feed name '${feedName}' does not exist in feeds store`)
+    assert(feedsOptions[feedName].pageNumber >= 1, `feedsActions.resetFeed cannot reset feed page number '${feedsOptions[feedName].pageNumber}' lower than 1`)
+    log('feedsActions.resetFeed', {feedName})
+
+    setState(({feedsOptions, loadedFeeds}: any) => {
+      const feedOptions = {
+        ...feedsOptions[feedName],
+        pageNumber: 1,
+      }
+      return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}, loadedFeeds: {...loadedFeeds, [feedName]: []}}
+    })
+
     updateFeeds()
   },
 
