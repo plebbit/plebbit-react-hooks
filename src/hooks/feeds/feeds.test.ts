@@ -1164,6 +1164,65 @@ describe('feeds', () => {
       Subplebbit.prototype.update = update
     })
 
+    test(`subplebbitAddressesWithNewerPosts and reset`, async () => {
+      const update = Subplebbit.prototype.update
+      // mock the update method to be able to have access to the updating subplebbit instances
+      const subplebbits: any = []
+      Subplebbit.prototype.update = function () {
+        subplebbits.push(this)
+        return update.bind(this)()
+      }
+
+      rendered = renderHook<any, any>((props: any) => {
+        const feed = useFeed(props)
+        const {bufferedFeeds} = useBufferedFeeds({
+          feedsOptions: [{subplebbitAddresses: props?.subplebbitAddresses, sortType: props?.sortType}],
+          accountName: props?.accountName,
+        })
+        return {...feed, bufferedFeed: bufferedFeeds[0]}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+
+      // get feed with 1 sub
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2'], sortType: 'new'})
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      await act(async () => {
+        await rendered.result.current.loadMore()
+      })
+      await waitFor(() => rendered.result.current.feed.length > postsPerPage)
+
+      // the first page of loaded and buffered feeds should have laoded
+      expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+      expect(rendered.result.current.bufferedFeed.length).toBeGreaterThan(postsPerPage * 2)
+      expect(rendered.result.current.subplebbitAddressesWithNewerPosts).toEqual([])
+      expect(subplebbits.length).toBe(2)
+
+      act(() => {
+        // update the subs
+        subplebbits[0].posts.pageCids = {
+          new: 'updated page cid new',
+        }
+        subplebbits[0].emit('update', subplebbits[0])
+        subplebbits[1].posts.pageCids = {
+          new: 'updated page cid new',
+        }
+        subplebbits[1].emit('update', subplebbits[1])
+      })
+
+      await waitFor(() => rendered.result.current.subplebbitAddressesWithNewerPosts.length === 2)
+      expect(rendered.result.current.subplebbitAddressesWithNewerPosts).toEqual(['subplebbit address 1', 'subplebbit address 2'])
+
+      await act(async () => {
+        await rendered.result.current.reset()
+      })
+
+      await waitFor(() => rendered.result.current.subplebbitAddressesWithNewerPosts.length === 0)
+      expect(rendered.result.current.bufferedFeed.length).toBeGreaterThan(postsPerPage)
+      expect(rendered.result.current.subplebbitAddressesWithNewerPosts).toEqual([])
+
+      Subplebbit.prototype.update = update
+    })
+
     // TODO: not implemented
     // at the moment a comment already inside a loaded feed will ignore all updates from future pages
     test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`)

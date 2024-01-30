@@ -10,7 +10,6 @@ import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
 import {
   getFeedsSubplebbitsFirstPageCids,
-  getBufferedFeeds,
   getLoadedFeeds,
   getBufferedFeedsWithoutLoadedFeeds,
   getFeedsSubplebbitsPostCounts,
@@ -25,6 +24,8 @@ import {
   feedsSubplebbitsChanged,
   getFeedsSubplebbits,
   getFeedsSubplebbitsLoadedCount,
+  getFilteredSortedFeeds,
+  getFeedsSubplebbitAddressesWithNewerPosts,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -43,6 +44,7 @@ export type FeedsState = {
   loadedFeeds: Feeds
   bufferedFeedsSubplebbitsPostCounts: FeedsSubplebbitsPostCounts
   feedsHaveMore: {[feedName: string]: boolean}
+  feedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]}
   addFeedToStore: Function
   incrementFeedPageNumber: Function
   resetFeed: Function
@@ -59,6 +61,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
   loadedFeeds: {},
   bufferedFeedsSubplebbitsPostCounts: {},
   feedsHaveMore: {},
+  feedsSubplebbitAddressesWithNewerPosts: {},
 
   async addFeedToStore(
     feedName: string,
@@ -188,15 +191,30 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       const {accounts} = accountsStore.getState()
 
       // calculate new feeds
-      const bufferedFeedsWithLoadedFeeds = getBufferedFeeds(feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts)
-      const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithLoadedFeeds)
-      // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-      const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
+      const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, subplebbits, subplebbitsPages, accounts)
+      const bufferedFeedsWithoutPreviousLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(filteredSortedFeeds, previousState.loadedFeeds)
+      const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds)
+      // after loaded feeds are caculated, remove new loaded feeds (again) from buffered feeds
+      const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithoutPreviousLoadedFeeds, loadedFeeds)
       const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
       const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts)
+      const feedsSubplebbitAddressesWithNewerPosts = getFeedsSubplebbitAddressesWithNewerPosts(
+        filteredSortedFeeds,
+        loadedFeeds,
+        previousState.feedsSubplebbitAddressesWithNewerPosts
+      )
       // set new feeds
-      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore}))
-      log.trace('feedsStore.updateFeeds', {feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, subplebbits, subplebbitsPages})
+      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, feedsSubplebbitAddressesWithNewerPosts}))
+      log.trace('feedsStore.updateFeeds', {
+        feedsOptions,
+        bufferedFeeds,
+        loadedFeeds,
+        bufferedFeedsSubplebbitsPostCounts,
+        feedsHaveMore,
+        subplebbits,
+        subplebbitsPages,
+        feedsSubplebbitAddressesWithNewerPosts,
+      })
     }, timeUntilNextUpdate)
   },
 }))

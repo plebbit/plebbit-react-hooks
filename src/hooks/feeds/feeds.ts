@@ -27,6 +27,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
   const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan)
   const [errors, setErrors] = useState<Error[]>([])
+  const subplebbitAddressesWithNewerPosts = useFeedsStore((state) => state.feedsSubplebbitAddressesWithNewerPosts[feedName])
 
   // add feed to store
   useEffect(() => {
@@ -94,13 +95,14 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
     () => ({
       feed: feed || [],
       hasMore,
+      subplebbitAddressesWithNewerPosts: subplebbitAddressesWithNewerPosts || [],
       loadMore,
       reset,
       state,
       error: errors[errors.length - 1],
       errors,
     }),
-    [feed, feedName, hasMore, errors]
+    [feed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]
   )
 }
 

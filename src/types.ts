@@ -172,7 +172,7 @@ export interface UseFeedResult extends Result {
   feed: Comment[]
   hasMore: boolean
   loadMore(): Promise<void>
-  // subplebbitAddressesWithNewerPosts: string[]
+  subplebbitAddressesWithNewerPosts: string[]
   reset(): Promise<void>
 }
 

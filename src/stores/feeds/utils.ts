@@ -17,21 +17,11 @@ import feedSorter from './feed-sorter'
 import {subplebbitPostsCacheExpired} from '../../lib/utils'
 
 /**
- * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
- * and remove the posts already loaded in loadedFeeds
+ * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
-export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
-  // contruct a list of posts already loaded to remove them from buffered feeds
-  const loadedFeedsPosts: {[feedName: string]: Set<string>} = {}
-  for (const feedName in loadedFeeds) {
-    loadedFeedsPosts[feedName] = new Set()
-    for (const post of loadedFeeds[feedName]) {
-      loadedFeedsPosts[feedName].add(post.cid)
-    }
-  }
-
+export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   // calculate each feed
-  let newBufferedFeeds: Feeds = {}
+  let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
     const {subplebbitAddresses, sortType, accountId, filter, newerThan} = feedsOptions[feedName]
     const newerThanTimestamp = newerThan ? Math.floor(Date.now() / 1000) - newerThan : undefined
@@ -72,11 +62,6 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
     // filter the feed
     const filteredSortedBufferedFeedPosts = []
     for (const post of sortedBufferedFeedPosts) {
-      // don't add posts already loaded in loaded feeds
-      if (loadedFeedsPosts[feedName]?.has(post.cid)) {
-        continue
-      }
-
       // address is blocked (accounts[accountId] is undefined in rare cases)
       if (accounts[accountId]?.blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[accountId]?.blockedAddresses[post.author.address])) {
         continue
@@ -114,9 +99,9 @@ export const getBufferedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds,
       filteredSortedBufferedFeedPosts.push(post)
     }
 
-    newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts
+    feeds[feedName] = filteredSortedBufferedFeedPosts
   }
-  return newBufferedFeeds
+  return feeds
 }
 
 export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => {
@@ -174,6 +159,46 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
     }
   }
   return newBufferedFeeds
+}
+
+// find with subplebbits have posts newer (or ranked higher) than the loaded feeds
+// can be used to display "new posts in x, y, z subs" alert, like on twitter
+export const getFeedsSubplebbitAddressesWithNewerPosts = (
+  filteredSortedFeeds: Feeds,
+  loadedFeeds: Feeds,
+  previousFeedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]}
+) => {
+  const feedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]} = {}
+  for (const feedName in loadedFeeds) {
+    const loadedFeed = loadedFeeds[feedName]
+    const cidsInLoadedFeed = new Set()
+    for (const post of loadedFeed) {
+      cidsInLoadedFeed.add(post.cid)
+    }
+    const subplebbitAddressesWithNewerPostsSet = new Set<string>()
+    for (const [i, post] of filteredSortedFeeds[feedName].entries()) {
+      if (i >= loadedFeed.length) {
+        break
+      }
+      // if any post in filteredSortedFeeds ranks higher than the loaded feed count, it's a newer post
+      if (!cidsInLoadedFeed.has(post.cid)) {
+        subplebbitAddressesWithNewerPostsSet.add(post.subplebbitAddress)
+      }
+    }
+    const subplebbitAddressesWithNewerPosts = [...subplebbitAddressesWithNewerPostsSet]
+
+    // don't update the array if the data is the same to avoid rerenders
+    const previousSubplebbitAddressesWithNewerPosts = previousFeedsSubplebbitAddressesWithNewerPosts[feedName] || []
+    if (
+      subplebbitAddressesWithNewerPosts.length === previousSubplebbitAddressesWithNewerPosts.length &&
+      subplebbitAddressesWithNewerPosts.toString() === previousSubplebbitAddressesWithNewerPosts.toString()
+    ) {
+      feedsSubplebbitAddressesWithNewerPosts[feedName] = previousFeedsSubplebbitAddressesWithNewerPosts[feedName]
+    } else {
+      feedsSubplebbitAddressesWithNewerPosts[feedName] = subplebbitAddressesWithNewerPosts
+    }
+  }
+  return feedsSubplebbitAddressesWithNewerPosts
 }
 
 // find how many posts are left in each subplebbits in a buffereds feeds
