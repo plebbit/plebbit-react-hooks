@@ -10,6 +10,9 @@ export type FeedsState = {
     feedsHaveMore: {
         [feedName: string]: boolean;
     };
+    feedsSubplebbitAddressesWithNewerPosts: {
+        [feedName: string]: string[];
+    };
     addFeedToStore: Function;
     incrementFeedPageNumber: Function;
     resetFeed: Function;

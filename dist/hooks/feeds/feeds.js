@@ -33,6 +33,7 @@ export function useFeed(options) {
     const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses);
     const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan);
     const [errors, setErrors] = useState([]);
+    const subplebbitAddressesWithNewerPosts = useFeedsStore((state) => state.feedsSubplebbitAddressesWithNewerPosts[feedName]);
     // add feed to store
     useEffect(() => {
         if (!(uniqueSubplebbitAddresses === null || uniqueSubplebbitAddresses === void 0 ? void 0 : uniqueSubplebbitAddresses.length) || !account) {
@@ -92,12 +93,13 @@ export function useFeed(options) {
     return useMemo(() => ({
         feed: feed || [],
         hasMore,
+        subplebbitAddressesWithNewerPosts: subplebbitAddressesWithNewerPosts || [],
         loadMore,
         reset,
         state,
         error: errors[errors.length - 1],
         errors,
-    }), [feed, feedName, hasMore, errors]);
+    }), [feed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]);
 }
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when

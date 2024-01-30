@@ -2,21 +2,12 @@ import { getSubplebbitPages, getSubplebbitFirstPageCid } from '../subplebbits-pa
 import feedSorter from './feed-sorter';
 import { subplebbitPostsCacheExpired } from '../../lib/utils';
 /**
- * Calculate the final buffered feeds from all the loaded subplebbit pages, sort them,
- * and remove the posts already loaded in loadedFeeds
+ * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
-export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subplebbitsPages, accounts) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
-    // contruct a list of posts already loaded to remove them from buffered feeds
-    const loadedFeedsPosts = {};
-    for (const feedName in loadedFeeds) {
-        loadedFeedsPosts[feedName] = new Set();
-        for (const post of loadedFeeds[feedName]) {
-            loadedFeedsPosts[feedName].add(post.cid);
-        }
-    }
+export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPages, accounts) => {
+    var _a, _b, _c, _d, _e, _f, _g;
     // calculate each feed
-    let newBufferedFeeds = {};
+    let feeds = {};
     for (const feedName in feedsOptions) {
         const { subplebbitAddresses, sortType, accountId, filter, newerThan } = feedsOptions[feedName];
         const newerThanTimestamp = newerThan ? Math.floor(Date.now() / 1000) - newerThan : undefined;
@@ -50,16 +41,12 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
         // filter the feed
         const filteredSortedBufferedFeedPosts = [];
         for (const post of sortedBufferedFeedPosts) {
-            // don't add posts already loaded in loaded feeds
-            if ((_d = loadedFeedsPosts[feedName]) === null || _d === void 0 ? void 0 : _d.has(post.cid)) {
-                continue;
-            }
             // address is blocked (accounts[accountId] is undefined in rare cases)
-            if (((_e = accounts[accountId]) === null || _e === void 0 ? void 0 : _e.blockedAddresses[post.subplebbitAddress]) || (((_f = post.author) === null || _f === void 0 ? void 0 : _f.address) && ((_g = accounts[accountId]) === null || _g === void 0 ? void 0 : _g.blockedAddresses[post.author.address]))) {
+            if (((_d = accounts[accountId]) === null || _d === void 0 ? void 0 : _d.blockedAddresses[post.subplebbitAddress]) || (((_e = post.author) === null || _e === void 0 ? void 0 : _e.address) && ((_f = accounts[accountId]) === null || _f === void 0 ? void 0 : _f.blockedAddresses[post.author.address]))) {
                 continue;
             }
             // comment cid is blocked (accounts[accountId] is undefined in rare cases)
-            if ((_h = accounts[accountId]) === null || _h === void 0 ? void 0 : _h.blockedCids[post.cid]) {
+            if ((_g = accounts[accountId]) === null || _g === void 0 ? void 0 : _g.blockedCids[post.cid]) {
                 continue;
             }
             // if a feed has more than 1 sub, don't include pinned posts
@@ -86,9 +73,9 @@ export const getBufferedFeeds = (feedsOptions, loadedFeeds, subplebbits, subpleb
             }
             filteredSortedBufferedFeedPosts.push(post);
         }
-        newBufferedFeeds[feedName] = filteredSortedBufferedFeedPosts;
+        feeds[feedName] = filteredSortedBufferedFeedPosts;
     }
-    return newBufferedFeeds;
+    return feeds;
 };
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds) => {
     const loadedFeedsMissingPosts = {};
@@ -141,6 +128,39 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) =
         }
     }
     return newBufferedFeeds;
+};
+// find with subplebbits have posts newer (or ranked higher) than the loaded feeds
+// can be used to display "new posts in x, y, z subs" alert, like on twitter
+export const getFeedsSubplebbitAddressesWithNewerPosts = (filteredSortedFeeds, loadedFeeds, previousFeedsSubplebbitAddressesWithNewerPosts) => {
+    const feedsSubplebbitAddressesWithNewerPosts = {};
+    for (const feedName in loadedFeeds) {
+        const loadedFeed = loadedFeeds[feedName];
+        const cidsInLoadedFeed = new Set();
+        for (const post of loadedFeed) {
+            cidsInLoadedFeed.add(post.cid);
+        }
+        const subplebbitAddressesWithNewerPostsSet = new Set();
+        for (const [i, post] of filteredSortedFeeds[feedName].entries()) {
+            if (i >= loadedFeed.length) {
+                break;
+            }
+            // if any post in filteredSortedFeeds ranks higher than the loaded feed count, it's a newer post
+            if (!cidsInLoadedFeed.has(post.cid)) {
+                subplebbitAddressesWithNewerPostsSet.add(post.subplebbitAddress);
+            }
+        }
+        const subplebbitAddressesWithNewerPosts = [...subplebbitAddressesWithNewerPostsSet];
+        // don't update the array if the data is the same to avoid rerenders
+        const previousSubplebbitAddressesWithNewerPosts = previousFeedsSubplebbitAddressesWithNewerPosts[feedName] || [];
+        if (subplebbitAddressesWithNewerPosts.length === previousSubplebbitAddressesWithNewerPosts.length &&
+            subplebbitAddressesWithNewerPosts.toString() === previousSubplebbitAddressesWithNewerPosts.toString()) {
+            feedsSubplebbitAddressesWithNewerPosts[feedName] = previousFeedsSubplebbitAddressesWithNewerPosts[feedName];
+        }
+        else {
+            feedsSubplebbitAddressesWithNewerPosts[feedName] = subplebbitAddressesWithNewerPosts;
+        }
+    }
+    return feedsSubplebbitAddressesWithNewerPosts;
 };
 // find how many posts are left in each subplebbits in a buffereds feeds
 export const getFeedsSubplebbitsPostCounts = (feedsOptions, feeds) => {

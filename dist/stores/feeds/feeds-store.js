@@ -16,7 +16,7 @@ import { subplebbitPostsCacheExpired } from '../../lib/utils';
 import accountsStore from '../accounts';
 import subplebbitsStore from '../subplebbits';
 import subplebbitsPagesStore from '../subplebbits-pages';
-import { getFeedsSubplebbitsFirstPageCids, getBufferedFeeds, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, getAccountsBlockedCids, feedsHaveChangedBlockedCids, accountsBlockedCidsChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, getFeedsSubplebbitsLoadedCount, } from './utils';
+import { getFeedsSubplebbitsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsSubplebbitsPostCounts, getFeedsHaveMore, getAccountsBlockedAddresses, feedsHaveChangedBlockedAddresses, accountsBlockedAddressesChanged, getAccountsBlockedCids, feedsHaveChangedBlockedCids, accountsBlockedCidsChanged, feedsSubplebbitsChanged, getFeedsSubplebbits, getFeedsSubplebbitsLoadedCount, getFilteredSortedFeeds, getFeedsSubplebbitAddressesWithNewerPosts, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const defaultPostsPerPage = 25;
@@ -33,6 +33,7 @@ const feedsStore = createStore((setState, getState) => ({
     loadedFeeds: {},
     bufferedFeedsSubplebbitsPostCounts: {},
     feedsHaveMore: {},
+    feedsSubplebbitAddressesWithNewerPosts: {},
     addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -124,15 +125,26 @@ const feedsStore = createStore((setState, getState) => ({
             const { subplebbitsPages } = subplebbitsPagesStore.getState();
             const { accounts } = accountsStore.getState();
             // calculate new feeds
-            const bufferedFeedsWithLoadedFeeds = getBufferedFeeds(feedsOptions, previousState.loadedFeeds, subplebbits, subplebbitsPages, accounts);
-            const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithLoadedFeeds);
-            // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-            const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds);
+            const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, subplebbits, subplebbitsPages, accounts);
+            const bufferedFeedsWithoutPreviousLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(filteredSortedFeeds, previousState.loadedFeeds);
+            const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds);
+            // after loaded feeds are caculated, remove new loaded feeds (again) from buffered feeds
+            const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithoutPreviousLoadedFeeds, loadedFeeds);
             const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds);
             const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts);
+            const feedsSubplebbitAddressesWithNewerPosts = getFeedsSubplebbitAddressesWithNewerPosts(filteredSortedFeeds, loadedFeeds, previousState.feedsSubplebbitAddressesWithNewerPosts);
             // set new feeds
-            setState((state) => ({ bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore }));
-            log.trace('feedsStore.updateFeeds', { feedsOptions, bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, subplebbits, subplebbitsPages });
+            setState((state) => ({ bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, feedsSubplebbitAddressesWithNewerPosts }));
+            log.trace('feedsStore.updateFeeds', {
+                feedsOptions,
+                bufferedFeeds,
+                loadedFeeds,
+                bufferedFeedsSubplebbitsPostCounts,
+                feedsHaveMore,
+                subplebbits,
+                subplebbitsPages,
+                feedsSubplebbitAddressesWithNewerPosts,
+            });
         }, timeUntilNextUpdate);
     },
 }));
