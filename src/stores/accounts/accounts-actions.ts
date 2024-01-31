@@ -461,7 +461,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       createCommentOptions = {...createCommentOptions, ...commentLinkDimensions}
       // save dimensions to db
       createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
-      await accountsDatabase.addAccountComment(account.id, createdAccountComment)
+      await accountsDatabase.addAccountComment(account.id, createdAccountComment, accountCommentIndex)
       accountsStore.setState(({accountsComments}) => {
         const accountComments: AccountComment[] = [...accountsComments[account.id]]
         accountComments[accountCommentIndex] = createdAccountComment
