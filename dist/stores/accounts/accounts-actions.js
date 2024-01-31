@@ -398,7 +398,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), commentLinkDimensions);
             // save dimensions to db
             createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
-            yield accountsDatabase.addAccountComment(account.id, createdAccountComment);
+            yield accountsDatabase.addAccountComment(account.id, createdAccountComment, accountCommentIndex);
             accountsStore.setState(({ accountsComments }) => {
                 const accountComments = [...accountsComments[account.id]];
                 accountComments[accountCommentIndex] = createdAccountComment;
