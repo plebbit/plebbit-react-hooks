@@ -60,6 +60,15 @@ usePublishCommentEdit(options: UsePublishCommentEditOptions): UsePublishCommentE
 usePublishSubplebbitEdit(options: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult
 useCreateSubplebbit(options: CreateSubplebbitOptions): {createdSubplebbit: Subplebbit | undefined, createSubplebbit: Function}
 ```
+#### States Hooks
+```
+useClientsStates({comment?: Comment, subplebbit?: Subplebbit}): {states, peers}
+useSubplebbitsStates({subplebbitAddresses: string[]}): {states, peers}
+```
+#### Plebbit RPC Hooks
+```
+usePlebbitRpcSettings(): {plebbitRpcSettings: {plebbitOptions, challenges}, setPlebbitRpcSettings: Function}
+```
 #### Actions with no hooks implementations yet
 ```
 createAccount(account: Account)

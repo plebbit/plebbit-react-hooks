@@ -56,6 +56,9 @@ import {
 // states
 import {useClientsStates, useSubplebbitsStates} from './hooks/states'
 
+// plebbit-rpc
+import {usePlebbitRpcSettings} from './hooks/plebbit-rpc'
+
 // utils
 import {setPlebbitJs, restorePlebbitJs} from './lib/plebbit-js'
 import {deleteDatabases, deleteCaches} from './lib/debug-utils'
@@ -114,6 +117,8 @@ export {
   // states
   useClientsStates,
   useSubplebbitsStates,
+  // plebbit-rpc
+  usePlebbitRpcSettings,
   // utils
   setPlebbitJs,
   restorePlebbitJs,
@@ -172,6 +177,8 @@ const hooks = {
   // states
   useClientsStates,
   useSubplebbitsStates,
+  // plebbit-rpc
+  usePlebbitRpcSettings,
   // utils
   setPlebbitJs,
   restorePlebbitJs,

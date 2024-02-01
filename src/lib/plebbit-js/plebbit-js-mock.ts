@@ -128,6 +128,16 @@ export class Plebbit extends EventEmitter {
 
   async pubsubSubscribe(subplebbitAddress: string) {}
   async pubsubUnsubscribe(subplebbitAddress: string) {}
+
+  async rpcCall(method: string, params: any[]) {
+    if (method === 'getSettings') {
+      return {
+        challenges: {
+          'text-math': {},
+        },
+      }
+    }
+  }
 }
 
 export class Pages {
