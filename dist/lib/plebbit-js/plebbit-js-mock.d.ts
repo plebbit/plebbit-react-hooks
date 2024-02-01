@@ -21,6 +21,11 @@ export declare class Plebbit extends EventEmitter {
     fetchCid(cid: string): Promise<string>;
     pubsubSubscribe(subplebbitAddress: string): Promise<void>;
     pubsubUnsubscribe(subplebbitAddress: string): Promise<void>;
+    rpcCall(method: string, params: any[]): Promise<{
+        challenges: {
+            'text-math': {};
+        };
+    } | undefined>;
 }
 export declare class Pages {
     pageCids: any;

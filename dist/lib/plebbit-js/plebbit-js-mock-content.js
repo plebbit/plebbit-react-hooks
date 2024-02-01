@@ -755,6 +755,17 @@ class Plebbit extends EventEmitter {
     pubsubUnsubscribe(subplebbitAddress) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
+    rpcCall(method, params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (method === 'getSettings') {
+                return {
+                    challenges: {
+                        'text-math': {},
+                    },
+                };
+            }
+        });
+    }
 }
 class Pages {
     constructor(pagesOptions) {

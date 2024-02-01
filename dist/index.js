@@ -26,6 +26,8 @@ import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSub
 import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, } from './stores/accounts/accounts-actions';
 // states
 import { useClientsStates, useSubplebbitsStates } from './hooks/states';
+// plebbit-rpc
+import { usePlebbitRpcSettings } from './hooks/plebbit-rpc';
 // utils
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
@@ -49,6 +51,8 @@ useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit
 createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, 
 // states
 useClientsStates, useSubplebbitsStates, 
+// plebbit-rpc
+usePlebbitRpcSettings, 
 // utils
 setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 // IMPORTANT: should be the same as 'export {}'
@@ -102,6 +106,8 @@ const hooks = {
     // states
     useClientsStates,
     useSubplebbitsStates,
+    // plebbit-rpc
+    usePlebbitRpcSettings,
     // utils
     setPlebbitJs,
     restorePlebbitJs,

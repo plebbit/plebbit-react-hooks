@@ -277,6 +277,15 @@ export interface UseSubplebbitsStatesResult extends Result {
         [clientUrl: string]: Peer[];
     };
 }
+export type PlebbitRpcSettings = {
+    [key: string]: any;
+};
+export interface UsePlebbitRpcSettingsOptions extends Options {
+}
+export interface UsePlebbitRpcSettingsResult extends Result {
+    plebbitRpcSettings: PlebbitRpcSettings | undefined;
+    setPlebbitRpcSettings(plebbitRpcSettings: PlebbitRpcSettings): Promise<void>;
+}
 /**
  * TODO: define these types more in depth, most are already defined in:
  * https://github.com/plebbit/plebbit-js or
