@@ -53,6 +53,10 @@ export const getDefaultPlebbitOptions = () => {
   }
 }
 
+// the gateway to use in <img src> for nft avatars
+// @ts-ignore
+export const defaultMediaIpfsGatewayUrl = window.defaultMediaIpfsGatewayUrl || 'https://ipfs.io'
+
 export const generateDefaultAccount = async () => {
   const plebbitOptions = getDefaultPlebbitOptions()
   const plebbit = await PlebbitJs.Plebbit(plebbitOptions)
@@ -81,6 +85,7 @@ export const generateDefaultAccount = async () => {
     blockedAddresses: {},
     blockedCids: {},
     subplebbits,
+    mediaIpfsGatewayUrl: defaultMediaIpfsGatewayUrl,
   }
   return account
 }
