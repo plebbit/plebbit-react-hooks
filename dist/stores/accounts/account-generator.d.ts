@@ -1,5 +1,6 @@
 import { AccountSubplebbit } from '../../types';
 export declare const getDefaultPlebbitOptions: () => any;
+export declare const defaultMediaIpfsGatewayUrl: any;
 export declare const generateDefaultAccount: () => Promise<{
     id: string;
     name: string;
@@ -15,6 +16,7 @@ export declare const generateDefaultAccount: () => Promise<{
     subplebbits: {
         [subplebbitAddress: string]: AccountSubplebbit;
     };
+    mediaIpfsGatewayUrl: any;
 }>;
 declare const accountGenerator: {
     generateDefaultAccount: () => Promise<{
@@ -32,6 +34,7 @@ declare const accountGenerator: {
         subplebbits: {
             [subplebbitAddress: string]: AccountSubplebbit;
         };
+        mediaIpfsGatewayUrl: any;
     }>;
     getDefaultPlebbitOptions: () => any;
 };

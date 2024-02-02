@@ -57,6 +57,9 @@ export const getDefaultPlebbitOptions = () => {
         resolveAuthorAddresses: false,
     };
 };
+// the gateway to use in <img src> for nft avatars
+// @ts-ignore
+export const defaultMediaIpfsGatewayUrl = window.defaultMediaIpfsGatewayUrl || 'https://ipfs.io';
 export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, function* () {
     const plebbitOptions = getDefaultPlebbitOptions();
     const plebbit = yield PlebbitJs.Plebbit(plebbitOptions);
@@ -81,6 +84,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         blockedAddresses: {},
         blockedCids: {},
         subplebbits,
+        mediaIpfsGatewayUrl: defaultMediaIpfsGatewayUrl,
     };
     return account;
 });

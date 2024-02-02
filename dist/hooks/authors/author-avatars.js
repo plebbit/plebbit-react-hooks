@@ -14,6 +14,7 @@ const log = Logger('plebbit-react-hooks:authors:hooks');
 import assert from 'assert';
 import { ethers } from 'ethers';
 import { getNftMetadataUrl, getNftImageUrl, getNftOwner } from '../../lib/chain';
+import { defaultMediaIpfsGatewayUrl } from '../../stores/accounts/account-generator';
 /**
  * @param nft - The NFT object to resolve the URL of.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -21,19 +22,19 @@ import { getNftMetadataUrl, getNftImageUrl, getNftOwner } from '../../lib/chain'
  */
 // NOTE: useNftMetadataUrl tests are skipped, if changes are made they must be tested manually
 export function useNftMetadataUrl(nft, accountName) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d;
     const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
-    const ipfsGatewayUrl = (_b = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsGatewayUrls) === null || _b === void 0 ? void 0 : _b[0];
-    const chainProviders = (_c = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _c === void 0 ? void 0 : _c.chainProviders;
+    const ipfsGatewayUrl = (account === null || account === void 0 ? void 0 : account.mediaIpfsGatewayUrl) || defaultMediaIpfsGatewayUrl;
+    const chainProviders = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.chainProviders;
     const [nftMetadataUrl, setNftMetadataUrl] = useState();
     const [error, setError] = useState();
     const getNftMetadataUrlArgs = [
         nft === null || nft === void 0 ? void 0 : nft.address,
         nft === null || nft === void 0 ? void 0 : nft.id,
         nft === null || nft === void 0 ? void 0 : nft.chainTicker,
-        (_e = (_d = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _d === void 0 ? void 0 : _d.urls) === null || _e === void 0 ? void 0 : _e[0],
-        (_f = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _f === void 0 ? void 0 : _f.chainId,
+        (_c = (_b = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _b === void 0 ? void 0 : _b.urls) === null || _c === void 0 ? void 0 : _c[0],
+        (_d = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _d === void 0 ? void 0 : _d.chainId,
         ipfsGatewayUrl,
     ];
     useEffect(() => {
@@ -65,11 +66,10 @@ export function useNftMetadataUrl(nft, accountName) {
  */
 // NOTE: useNftImageUrl tests are skipped, if changes are made they must be tested manually
 export function useNftImageUrl(nftMetadataUrl, accountName) {
-    var _a, _b;
     assert(!nftMetadataUrl || typeof nftMetadataUrl === 'string', `useNftImageUrl invalid argument nftMetadataUrl '${nftMetadataUrl}' not a string`);
     const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
-    const ipfsGatewayUrl = (_b = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsGatewayUrls) === null || _b === void 0 ? void 0 : _b[0];
+    const ipfsGatewayUrl = (account === null || account === void 0 ? void 0 : account.mediaIpfsGatewayUrl) || defaultMediaIpfsGatewayUrl;
     const [imageUrl, setImageUrl] = useState();
     const [error, setError] = useState();
     useEffect(() => {
