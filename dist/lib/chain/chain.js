@@ -67,6 +67,9 @@ export const getNftOwner = utils.memo(getNftOwnerNoCache, { maxSize: 5000, maxAg
 export const resolveEnsTxtRecordNoCache = (ensName, txtRecordName, chainTicker, chainProviderUrl, chainId) => __awaiter(void 0, void 0, void 0, function* () {
     const chainProvider = getChainProvider(chainTicker, chainProviderUrl, chainId);
     const resolver = yield chainProvider.getResolver(ensName);
+    if (!resolver) {
+        throw Error(`name not registered or network error`);
+    }
     const txtRecordResult = yield resolver.getText(txtRecordName);
     return txtRecordResult;
 });
