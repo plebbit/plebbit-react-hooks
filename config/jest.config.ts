@@ -1,5 +1,10 @@
-module.exports = {
+/** @type {import('jest').Config} */
+
+import type {Config} from 'jest'
+
+const config: Config = {
   preset: 'ts-jest',
+
   testEnvironment: 'jsdom',
   rootDir: '../src',
   setupFilesAfterEnv: ['../config/jest.setup.js'],
@@ -18,3 +23,5 @@ module.exports = {
     },
   },
 }
+
+export default config
