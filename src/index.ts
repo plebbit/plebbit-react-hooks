@@ -1,15 +1,18 @@
 import polyfill from './lib/polyfill'
 polyfill()
+import util from 'util'
 
 // fix DEBUG_DEPTH bug https://github.com/debug-js/debug/issues/746
 try {
   if (process.env.DEBUG_DEPTH) {
-    require('util').inspect.defaultOptions.depth = process.env.DEBUG_DEPTH
+    util.inspect.defaultOptions.depth = Number(process.env.DEBUG_DEPTH)
   }
   if (process.env.DEBUG_ARRAY) {
-    require('util').inspect.defaultOptions.maxArrayLength = process.env.DEBUG_ARRAY
+    util.inspect.defaultOptions.maxArrayLength = Number(process.env.DEBUG_ARRAY)
   }
-} catch (e) {}
+} catch (e) {
+  console.error(e)
+}
 
 // accounts
 import {
