@@ -5,4 +5,4 @@ signers[0] = {
   address: '12D3KooWMZPQsQdYtrakc4D1XtzGXwN1X3DBnAobcCjcPYYXTB6o',
 }
 
-module.exports = signers
+export default signers

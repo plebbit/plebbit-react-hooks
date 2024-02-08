@@ -1,13 +1,13 @@
-const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} = require('../../dist')
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const Plebbit = require('@plebbit/plebbit-js')
+import {assertTestServerDidntCrash} from '../test-server/monitor-test-server'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} from '../../dist'
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import Plebbit from '@plebbit/plebbit-js'
 Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
-const testUtils = require('../../dist/lib/test-utils').default
-const signers = require('../fixtures/signers')
+import {default as testUtils} from '../../dist/lib/test-utils'
+import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
-const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
+import {offlineIpfs, pubsubIpfs, plebbitRpc} from '../test-server/config'
 const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)
 
 // large value for manual debugging
@@ -63,7 +63,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
 
             return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
           },
-          {wrapper: PlebbitProvider}
+          {wrapper: PlebbitProvider},
         )
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
@@ -173,7 +173,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           () =>
             typeof rendered.result.current.comment.cid === 'string' &&
             typeof rendered.result.current.comment.upvoteCount === 'number' &&
-            rendered.result.current.comment?.upvoteCount > 0
+            rendered.result.current.comment?.upvoteCount > 0,
         )
         console.log('after getting comment update')
         expect(rendered.result.current.comment?.cid).to.equal(commentCid)

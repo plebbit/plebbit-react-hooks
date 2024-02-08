@@ -1,8 +1,8 @@
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} = require('../../dist')
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const testUtils = require('../../dist/lib/test-utils').default
-const {default: PlebbitJsMock} = require('../../dist/lib/plebbit-js/plebbit-js-mock')
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {useAccount, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} from '../../dist'
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions' // Not sure about this line
+import {default as testUtils} from '../../dist/lib/test-utils'
+import {default as PlebbitJsMock} from '../../dist/lib/plebbit-js/plebbit-js-mock'
 // mock right after importing or sometimes fails to mock
 setPlebbitJs(PlebbitJsMock)
 

@@ -1,10 +1,10 @@
-const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const testUtils = require('../../dist/lib/test-utils').default
-const {offlineIpfs, pubsubIpfs} = require('../test-server/config')
-const signers = require('../fixtures/signers')
+import {assertTestServerDidntCrash} from '../test-server/monitor-test-server'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {useAccount, useAccountVotes, useAccountComments, debugUtils} from '../../dist'
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import {default as testUtils} from '../../dist/lib/test-utils'
+import {offlineIpfs, pubsubIpfs} from '../test-server/config'
+import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
 
 const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)

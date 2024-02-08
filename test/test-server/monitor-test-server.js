@@ -1,8 +1,8 @@
 // the test server can crash without logs, this script adds logs when this happens
 // you should also import assertTestServerDidntCrash and run it beforeEach and afterEach
 
-const nodeFetch = require('node-fetch')
-const {offlineIpfs, pubsubIpfs} = require('./config')
+import nodeFetch from 'node-fetch'
+import {offlineIpfs, pubsubIpfs} from './config'
 
 // make sure only one instance is running in node
 let started = false

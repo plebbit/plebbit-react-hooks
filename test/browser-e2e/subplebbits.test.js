@@ -1,11 +1,11 @@
-const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useSubplebbit, useAccountVotes, useComment, debugUtils} = require('../../dist')
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const testUtils = require('../../dist/lib/test-utils').default
-const signers = require('../fixtures/signers')
+import {assertTestServerDidntCrash} from '../test-server/monitor-test-server'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {useAccount, useSubplebbit, useAccountVotes, useComment, debugUtils} from '../../dist'
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import {default as testUtils} from '../../dist/lib/test-utils'
+import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
-const {offlineIpfs, pubsubIpfs} = require('../test-server/config')
+import {offlineIpfs, pubsubIpfs} from '../test-server/config'
 
 // large value for manual debugging
 const timeout = 600000
@@ -165,7 +165,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           () =>
             typeof rendered.result.current.comment.cid === 'string' &&
             typeof rendered.result.current.comment.upvoteCount === 'number' &&
-            rendered.result.current.comment?.upvoteCount > 0
+            rendered.result.current.comment?.upvoteCount > 0,
         )
         console.log('after getting comment update')
         expect(rendered.result.current.comment?.cid).to.equal(commentCid)

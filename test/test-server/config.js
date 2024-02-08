@@ -14,4 +14,4 @@ const plebbitRpc = {
   port: 48392,
 }
 
-module.exports = {offlineIpfs, pubsubIpfs, plebbitRpc}
+export {offlineIpfs, pubsubIpfs, plebbitRpc}
