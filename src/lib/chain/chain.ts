@@ -1,7 +1,6 @@
 import assert from 'assert'
 import {Nft, ChainProviders} from '../../types'
 import {ethers} from 'ethers'
-import fetch from 'node-fetch'
 import utils from '../utils'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
