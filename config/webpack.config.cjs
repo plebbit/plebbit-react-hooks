@@ -23,7 +23,7 @@ const testEntries = testFiles.reduce((acc, file) => {
 // console.log({rootFolder, testFiles, testEntries, outputFolder, testFolder, lockFile})
 console.log('karma test files:')
 console.log(Object.keys(testEntries))
-
+/** @type { import('webpack').Configuration } */
 module.exports = {
   // each test file is its own entry
   entry: testEntries,
@@ -52,6 +52,9 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
+        resolve: {
+          fullySpecified: false,
+        },
         use: {
           loader: 'babel-loader',
           options: {
