@@ -19,7 +19,7 @@ describe('PlebbitJsMock', () => {
     const succeededPromise = new Promise((resolve) =>
       comment.on('updatingstatechange', (state: string) => {
         state === 'succeeded' && resolve(state)
-      })
+      }),
     )
 
     // start updating state
@@ -58,7 +58,7 @@ describe('PlebbitJsMock', () => {
     const succeededPromise = new Promise((resolve) =>
       subplebbit.on('updatingstatechange', (state: string) => {
         state === 'succeeded' && ++succeededCount === 2 && resolve(state)
-      })
+      }),
     )
 
     // start updating state
@@ -98,7 +98,7 @@ describe('PlebbitJsMock', () => {
     const succeededPromise = new Promise((resolve) =>
       comment.on('publishingstatechange', (state: string) => {
         state === 'succeeded' && resolve(state)
-      })
+      }),
     )
 
     // start publishing state

@@ -375,10 +375,10 @@ describe('authors comments store', () => {
     await waitFor(
       () =>
         rendered.result.current.bufferedCommentCids[authorAddress].size ===
-        totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+        totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2,
     )
     expect(rendered.result.current.bufferedCommentCids[authorAddress].size).toBe(
-      totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+      totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2,
     )
     // should fetch comment because buffer is not full, but author has no more comments
     expect(rendered.result.current.shouldFetchNextComment[authorAddress]).toBe(true)
@@ -432,7 +432,7 @@ describe('authors comments store', () => {
       expect(comment.parentCid).toBe('parent cid')
     }
     expect(rendered.result.current.loadedComments[replyFilterName].length + rendered.result.current.loadedComments[postFilterName].length).toBe(
-      totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2
+      totalAuthorCommentCount + totalAuthorCommentCountFromLastCommentCid + totalAuthorCommentCountFromLastCommentCid2,
     )
 
     // add another author comments with empty filter
@@ -548,7 +548,7 @@ describe('authors comments store', () => {
       startCid: string,
       filter: CommentsFilter | undefined,
       totalAuthorCommentCount: number,
-      totalAuthorCommentCountFromLastCommentCid: number
+      totalAuthorCommentCountFromLastCommentCid: number,
     ) => {
       // wait for 1st page
       act(() => {
@@ -596,10 +596,10 @@ describe('authors comments store', () => {
     expect(rendered.result.current.loadedComments[author2Name].length).toBe(author2TotalCommentCount + author2TotalCommentCountFromLastCommentCid)
     expect(rendered.result.current.loadedComments[author3Name].length).toBe(author3TotalCommentCount + author3TotalCommentCountFromLastCommentCid)
     expect(rendered.result.current.loadedComments[author1ReplyFilterName].length).toBe(
-      Math.ceil((author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid) / 3)
+      Math.ceil((author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid) / 3),
     )
     expect(rendered.result.current.loadedComments[author1PostAndSubplebbitFilterName].length).toBe(
-      (((author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid) / 3) * 2) / 2
+      (((author1TotalCommentCount + author1TotalCommentCountFromLastCommentCid) / 3) * 2) / 2,
     )
 
     // restore mock

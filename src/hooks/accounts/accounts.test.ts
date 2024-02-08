@@ -267,7 +267,7 @@ describe('accounts', () => {
       expect(typeof rendered.result.current.account.name).toBe('string')
       await act(async () => {
         expect(() => rendered.result.current.createAccount(rendered.result.current.account.name)).rejects.toThrow(
-          `account name '${rendered.result.current.account.name}' already exists in database`
+          `account name '${rendered.result.current.account.name}' already exists in database`,
         )
       })
     })

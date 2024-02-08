@@ -43,7 +43,7 @@ describe('PlebbitJsMockContent', () => {
           comment.removeAllListeners()
           r(undefined)
         }
-      })
+      }),
     )
   })
 
@@ -69,7 +69,7 @@ describe('PlebbitJsMockContent', () => {
           console.log(e)
         }
         // r(undefined)
-      })
+      }),
     )
   })
 
@@ -86,7 +86,7 @@ describe('PlebbitJsMockContent', () => {
           comment.removeAllListeners()
           r(undefined)
         }
-      })
+      }),
     )
   })
 
@@ -108,7 +108,7 @@ describe('PlebbitJsMockContent', () => {
             comment.removeAllListeners()
             r(undefined)
           }
-        })
+        }),
       )
       // if (count === 92)
       //   break
@@ -128,7 +128,7 @@ describe('PlebbitJsMockContent', () => {
           comment.removeAllListeners()
           r(undefined)
         }
-      })
+      }),
     )
   })
 })

@@ -48,7 +48,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
         log.error(
           `startUpdatingAccountCommentOnCommentUpdateEvents comment.on('update') invalid accountsStore.accountsComments['${account.id}'] '${
             accountsComments[account.id]
-          }', account may have been deleted`
+          }', account may have been deleted`,
         )
         return {}
       }
@@ -79,7 +79,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
           log.error(
             `startUpdatingAccountCommentOnCommentUpdateEvents comment.on('update') invalid accountsStore.accountsCommentsReplies['${account.id}'] '${
               accountsCommentsReplies[account.id]
-            }', account may have been deleted`
+            }', account may have been deleted`,
           )
           return {}
         }
@@ -140,7 +140,7 @@ export const addCidToAccountComment = async (comment: Comment) => {
           account: accounts[accountComment.accountId],
           accountCommentIndex: accountComment.index,
           error,
-        })
+        }),
       )
       break
     }

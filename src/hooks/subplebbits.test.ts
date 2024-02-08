@@ -130,7 +130,7 @@ describe('subplebbits', () => {
         () =>
           typeof rendered.result.current.subplebbits[0].address === 'string' &&
           typeof rendered.result.current.subplebbits[1].address === 'string' &&
-          typeof rendered.result.current.subplebbits[2].address === 'string'
+          typeof rendered.result.current.subplebbits[2].address === 'string',
       )
       expect(rendered.result.current.subplebbits[0].address).toBe('subplebbit address 1')
       expect(rendered.result.current.subplebbits[1].address).toBe('subplebbit address 2')
@@ -140,7 +140,7 @@ describe('subplebbits', () => {
         () =>
           typeof rendered.result.current.subplebbits[0].description === 'string' &&
           typeof rendered.result.current.subplebbits[1].description === 'string' &&
-          typeof rendered.result.current.subplebbits[2].description === 'string'
+          typeof rendered.result.current.subplebbits[2].description === 'string',
       )
       expect(rendered.result.current.subplebbits[0].description).toBe('subplebbit address 1 description updated')
       expect(rendered.result.current.subplebbits[1].description).toBe('subplebbit address 2 description updated')

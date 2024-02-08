@@ -36,7 +36,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
     }
     const isBufferedFeed = false
     addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan).catch((error: unknown) =>
-      log.error('useFeed addFeedToStore error', {feedName, error})
+      log.error('useFeed addFeedToStore error', {feedName, error}),
     )
   }, [feedName])
 
@@ -102,7 +102,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       error: errors[errors.length - 1],
       errors,
     }),
-    [feed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]
+    [feed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts],
   )
 }
 
@@ -164,7 +164,7 @@ export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBuffered
       if (!bufferedFeeds[feedName || '']) {
         const isBufferedFeed = true
         addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed).catch((error: unknown) =>
-          log.error('useBufferedFeeds addFeedToStore error', {feedName, error})
+          log.error('useBufferedFeeds addFeedToStore error', {feedName, error}),
         )
       }
     }
@@ -199,7 +199,7 @@ export function useBufferedFeeds(options?: UseBufferedFeedsOptions): UseBuffered
       error: undefined,
       errors: [],
     }),
-    [bufferedFeedsArray, feedsOptions]
+    [bufferedFeedsArray, feedsOptions],
   )
 }
 
@@ -252,7 +252,7 @@ function useFeedNames(
   uniqueSubplebbitAddressesArrays: string[][],
   postsPerPages: (number | undefined)[],
   filters: (CommentsFilter | undefined)[],
-  newerThans: (number | undefined)[]
+  newerThans: (number | undefined)[],
 ) {
   return useMemo(() => {
     const feedNames = []
@@ -260,7 +260,7 @@ function useFeedNames(
       // @ts-ignore
       const filterName = filters[i] ? getFilterName(filters[i]) : undefined
       feedNames.push(
-        accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName + '-' + newerThans[i]
+        accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName + '-' + newerThans[i],
       )
     }
     return feedNames

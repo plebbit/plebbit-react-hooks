@@ -102,7 +102,7 @@ export function useAuthorComments(options?: UseAuthorCommentsOptions): UseAuthor
       error: errors[errors.length - 1],
       errors,
     }),
-    [authorComments, lastCommentCid, hasMore, errors, state]
+    [authorComments, lastCommentCid, hasMore, errors, state],
   )
 }
 
@@ -162,7 +162,7 @@ export function useAuthor(options?: UseAuthorOptions): UseAuthorResult {
       error: errors[errors.length - 1],
       errors,
     }),
-    [author, errors, state]
+    [author, errors, state],
   )
 }
 
@@ -220,7 +220,7 @@ export function useAuthorAvatar(options?: UseAuthorAvatarOptions): UseAuthorAvat
       error,
       errors,
     }),
-    [imageUrl, metadataUrl, chainProvider, state, error]
+    [imageUrl, metadataUrl, chainProvider, state, error],
   )
 }
 
@@ -306,7 +306,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
       error: undefined,
       errors: [],
     }),
-    [authorAddress, shortAuthorAddress]
+    [authorAddress, shortAuthorAddress],
   )
 }
 // TODO: figure out how to upgrade to quick-lru 6+ to use maxAge
@@ -405,7 +405,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
     },
     interval,
     true,
-    [author?.address, chainProviders]
+    [author?.address, chainProviders],
   )
 
   // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, chainProviders})
@@ -421,7 +421,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
       error: errors[errors.length - 1],
       errors,
     }),
-    [resolvedAddress, chainProvider, state, errors]
+    [resolvedAddress, chainProvider, state, errors],
   )
 }
 

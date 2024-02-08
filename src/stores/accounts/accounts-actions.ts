@@ -157,7 +157,7 @@ export const importAccount = async (serializedAccount: string) => {
   } catch (e) {}
   assert(
     imported?.account && imported?.account?.id && imported?.account?.name,
-    `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`
+    `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`,
   )
 
   // add subplebbit roles already in subplebbits store to imported account
@@ -225,7 +225,7 @@ export const importAccount = async (serializedAccount: string) => {
           accountCommentIndex: accountComment.index,
           importedAccount: newAccount,
           error,
-        })
+        }),
       )
   }
 
@@ -508,7 +508,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
           accountsActionsInternal
             .startUpdatingAccountCommentOnCommentUpdateEvents(updatingComment, account, accountCommentIndex)
             .catch((error: unknown) =>
-              log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error})
+              log.error('accountsActions.publishComment startUpdatingAccountCommentOnCommentUpdateEvents error', {comment, account, accountCommentIndex, error}),
             )
         }
       }
@@ -740,7 +740,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
 
   assert(
     !publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress,
-    `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`
+    `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`,
   )
   let createSubplebbitEditOptions: any = {
     timestamp: Math.round(Date.now() / 1000),

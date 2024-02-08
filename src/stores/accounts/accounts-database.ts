@@ -226,7 +226,7 @@ const getAccountVotesDatabase = (accountId: string) => {
 const addAccountVote = async (accountId: string, createVoteOptions: CreateCommentOptions) => {
   assert(
     createVoteOptions?.commentCid && typeof createVoteOptions?.commentCid === 'string',
-    `addAccountVote createVoteOptions.commentCid '${createVoteOptions?.commentCid}' not a string`
+    `addAccountVote createVoteOptions.commentCid '${createVoteOptions?.commentCid}' not a string`,
   )
   const accountVotesDatabase = getAccountVotesDatabase(accountId)
   const length = (await accountVotesDatabase.getItem('length')) || 0
@@ -333,7 +333,7 @@ const getAccountEditsDatabase = (accountId: string) => {
 const addAccountEdit = async (accountId: string, createEditOptions: CreateCommentOptions) => {
   assert(
     createEditOptions?.commentCid && typeof createEditOptions?.commentCid === 'string',
-    `addAccountEdit createEditOptions.commentCid '${createEditOptions?.commentCid}' not a string`
+    `addAccountEdit createEditOptions.commentCid '${createEditOptions?.commentCid}' not a string`,
   )
   const accountEditsDatabase = getAccountEditsDatabase(accountId)
   const length = (await accountEditsDatabase.getItem('length')) || 0

@@ -96,7 +96,7 @@ export function useAccounts() {
       error: undefined,
       errors: [],
     }),
-    [accountsArray, state]
+    [accountsArray, state],
   )
 }
 
@@ -169,7 +169,7 @@ export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): U
       error: undefined,
       errors: [],
     }),
-    [accountSubplebbits, state]
+    [accountSubplebbits, state],
   )
 }
 
@@ -215,7 +215,7 @@ export function useNotifications(options?: UseNotificationsOptions): UseNotifica
       error: errors[errors.length - 1],
       errors,
     }),
-    [notifications, errors]
+    [notifications, errors],
   )
 }
 
@@ -269,7 +269,7 @@ export function useAccountComments(options?: UseAccountCommentsOptions): UseAcco
       }
     },
     delay,
-    immediate
+    immediate,
   )
 
   const filteredAccountCommentsWithStates = useMemo(() => {
@@ -290,7 +290,7 @@ export function useAccountComments(options?: UseAccountCommentsOptions): UseAcco
       error: undefined,
       errors: [],
     }),
-    [filteredAccountCommentsWithStates, state]
+    [filteredAccountCommentsWithStates, state],
   )
 }
 
@@ -311,7 +311,7 @@ export function useAccountComment(options?: UseAccountCommentOptions): UseAccoun
       error: accountComment?.error,
       errors: accountComment?.errors || [],
     }),
-    [accountComment, state]
+    [accountComment, state],
   )
 }
 
@@ -355,7 +355,7 @@ export function useAccountVotes(options?: UseAccountVotesOptions): UseAccountVot
       error: undefined,
       errors: [],
     }),
-    [filteredAccountVotesArray, state]
+    [filteredAccountVotesArray, state],
   )
 }
 
@@ -379,7 +379,7 @@ export function useAccountVote(options?: UseAccountVoteOptions): UseAccountVoteR
       error: undefined,
       errors: [],
     }),
-    [accountVote, state]
+    [accountVote, state],
   )
 }
 
@@ -420,7 +420,7 @@ export function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEdi
       error: undefined,
       errors: [],
     }),
-    [accountEditsArray, filter, state]
+    [accountEditsArray, filter, state],
   )
 }
 
@@ -580,7 +580,7 @@ export function useEditedComment(options?: UseEditedCommentOptions): UseEditedCo
       error: undefined,
       errors: [],
     }),
-    [editedResult, initialState]
+    [editedResult, initialState],
   )
 }
 
@@ -630,6 +630,6 @@ export function usePubsubSubscribe(options?: UsePubsubSubscribeOptions): UsePubs
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, errors]
+    [state, errors],
   )
 }

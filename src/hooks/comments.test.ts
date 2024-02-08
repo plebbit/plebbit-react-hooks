@@ -111,7 +111,7 @@ describe('comments', () => {
         () =>
           typeof rendered.result.current.comments[0].cid === 'string' &&
           typeof rendered.result.current.comments[1].cid === 'string' &&
-          typeof rendered.result.current.comments[2].cid === 'string'
+          typeof rendered.result.current.comments[2].cid === 'string',
       )
       expect(rendered.result.current.comments[0].cid).toBe('comment cid 1')
       expect(rendered.result.current.comments[1].cid).toBe('comment cid 2')
@@ -122,7 +122,7 @@ describe('comments', () => {
         () =>
           typeof rendered.result.current.comments[0].upvoteCount === 'number' &&
           typeof rendered.result.current.comments[1].upvoteCount === 'number' &&
-          typeof rendered.result.current.comments[2].upvoteCount === 'number'
+          typeof rendered.result.current.comments[2].upvoteCount === 'number',
       )
       expect(rendered.result.current.comments[0].upvoteCount).toBe(3)
       expect(rendered.result.current.comments[1].upvoteCount).toBe(3)
@@ -166,7 +166,7 @@ describe('comments', () => {
         () =>
           typeof rendered.result.current.comments[0].cid === 'string' &&
           typeof rendered.result.current.comments[1].cid === 'string' &&
-          typeof rendered.result.current.comments[2].cid === 'string'
+          typeof rendered.result.current.comments[2].cid === 'string',
       )
       expect(rendered.result.current.comments[0].cid).toBe('comment cid 1')
       expect(rendered.result.current.comments[1].cid).toBe('comment cid 2')

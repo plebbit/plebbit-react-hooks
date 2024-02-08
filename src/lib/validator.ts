@@ -55,13 +55,13 @@ export const validateAccountsActionsPublishCommentEditArguments = ({publishComme
   assert(typeof publishCommentEditOptions.onChallengeVerification === 'function', 'publishCommentEdit publishCommentEditOptions.onChallengeVerification not a function')
   assert(
     !publishCommentEditOptions.onError || typeof publishCommentEditOptions.onError === 'function',
-    'publishCommentEditOptions publishCommentEditOptions.onError not a function'
+    'publishCommentEditOptions publishCommentEditOptions.onError not a function',
   )
   assert(typeof publishCommentEditOptions.subplebbitAddress === 'string', 'publishCommentEdit publishCommentEditOptions.subplebbitAddress not a string')
   assert(typeof publishCommentEditOptions.commentCid === 'string', 'publishCommentEdit publishCommentEditOptions.commentCid not a string')
   assert(
     !publishCommentEditOptions.timestamp || typeof publishCommentEditOptions.timestamp === 'number',
-    'publishCommentEdit publishCommentEditOptions.timestamp is not a number'
+    'publishCommentEdit publishCommentEditOptions.timestamp is not a number',
   )
 }
 
@@ -73,17 +73,17 @@ export const validateAccountsActionsPublishSubplebbitEditArguments = ({subplebbi
   assert(typeof publishSubplebbitEditOptions.onChallenge === 'function', 'publishSubplebbitEdit publishSubplebbitEditOptions.onChallenge not a function')
   assert(
     typeof publishSubplebbitEditOptions.onChallengeVerification === 'function',
-    'publishSubplebbitEdit publishSubplebbitEditOptions.onChallengeVerification not a function'
+    'publishSubplebbitEdit publishSubplebbitEditOptions.onChallengeVerification not a function',
   )
   assert(
     !publishSubplebbitEditOptions.onError || typeof publishSubplebbitEditOptions.onError === 'function',
-    'publishSubplebbitEdit publishSubplebbitEditOptions.onError not a function'
+    'publishSubplebbitEdit publishSubplebbitEditOptions.onError not a function',
   )
   assert(subplebbitAddress !== '', `publishSubplebbitEdit subplebbitAddress argument is empty string`)
   assert(typeof subplebbitAddress === 'string', 'publishSubplebbitEdit subplebbitAddress not a string')
   assert(
     !publishSubplebbitEditOptions.timestamp || typeof publishSubplebbitEditOptions.timestamp === 'number',
-    'publishSubplebbitEdit publishSubplebbitEditOptions.timestamp is not a number'
+    'publishSubplebbitEdit publishSubplebbitEditOptions.timestamp is not a number',
   )
 }
 
@@ -95,7 +95,7 @@ export const validateAccountsActionsExportAccountArguments = (accountName: any) 
 export const validateAccountsActionsSetAccountsOrderArguments = (newOrderedAccountNames: any, accountNames: any) => {
   assert(
     JSON.stringify([...accountNames].sort()) === JSON.stringify([...newOrderedAccountNames].sort()),
-    `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`
+    `previous account names '${accountNames} contain different account names than argument newOrderedAccountNames '${newOrderedAccountNames}'`,
   )
 }
 
@@ -159,7 +159,7 @@ export const validateUseSubplebbitsArguments = (subplebbitAddresses: any, accoun
   for (const subplebbitAddress of subplebbitAddresses) {
     assert(
       typeof subplebbitAddress === 'string',
-      `useSubplebbits subplebbitAddresses '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`
+      `useSubplebbits subplebbitAddresses '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`,
     )
   }
   assert(account?.plebbit && typeof account?.plebbit === 'object', `useSubplebbit account.plebbit '${account?.plebbit}' not an object`)
@@ -191,7 +191,7 @@ export const validateUseFeedArguments = (subplebbitAddresses?: any, sortType?: a
     for (const subplebbitAddress of subplebbitAddresses) {
       assert(
         typeof subplebbitAddress === 'string',
-        `useFeed subplebbitAddresses argument '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`
+        `useFeed subplebbitAddresses argument '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`,
       )
     }
   }
@@ -208,7 +208,7 @@ export const validateUseBufferedFeedsArguments = (feedsOptions?: any, accountNam
       for (const subplebbitAddress of subplebbitAddresses) {
         assert(
           typeof subplebbitAddress === 'string',
-          `useBufferedFeeds feedOptions.subplebbitAddresses argument '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`
+          `useBufferedFeeds feedOptions.subplebbitAddresses argument '${toString(subplebbitAddresses)}' subplebbitAddress '${toString(subplebbitAddress)}' not a string`,
         )
       }
     }

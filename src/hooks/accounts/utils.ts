@@ -88,7 +88,7 @@ export const useCalculatedAccountsNotifications = (accounts?: Accounts, accounts
       accountsNotifications[accountId] = getReplyNotificationsFromAccountCommentsReplies(
         accountsCommentsReplies[accountId],
         accountsBlockedAddresses[accountId],
-        accountsBlockedCids[accountId]
+        accountsBlockedCids[accountId],
       )
     }
     return accountsNotifications
@@ -98,7 +98,7 @@ export const useCalculatedAccountsNotifications = (accounts?: Accounts, accounts
 const getReplyNotificationsFromAccountCommentsReplies = (
   accountCommentsReplies: AccountCommentsReplies,
   accountBlockedAddresses?: {[address: string]: boolean},
-  accountBlockedCids?: {[cid: string]: boolean}
+  accountBlockedCids?: {[cid: string]: boolean},
 ) => {
   // get reply notifications
   const replyNotifications: AccountCommentReply[] = []

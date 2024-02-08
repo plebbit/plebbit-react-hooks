@@ -166,7 +166,7 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
 export const getFeedsSubplebbitAddressesWithNewerPosts = (
   filteredSortedFeeds: Feeds,
   loadedFeeds: Feeds,
-  previousFeedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]}
+  previousFeedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]},
 ) => {
   const feedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]} = {}
   for (const feedName in loadedFeeds) {
@@ -282,7 +282,7 @@ export const getFeedAfterIncrementPageNumber = (
   loadedFeed: Feed,
   subplebbits: Subplebbits,
   subplebbitsPages: SubplebbitsPages,
-  accounts: Accounts
+  accounts: Accounts,
 ) => {
   // transform arguments into objects
   const feedsOptions = {[feedName]: feedOptions}
@@ -388,7 +388,7 @@ export const getAccountsBlockedAddresses = (accounts: Accounts) => {
 
 export const accountsBlockedAddressesChanged = (
   previousAccountsBlockedAddresses: {[address: string]: boolean}[],
-  accountsBlockedAddresses: {[address: string]: boolean}[]
+  accountsBlockedAddresses: {[address: string]: boolean}[],
 ) => {
   if (previousAccountsBlockedAddresses.length !== accountsBlockedAddresses.length) {
     return true

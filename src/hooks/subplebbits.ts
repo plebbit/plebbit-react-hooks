@@ -64,7 +64,7 @@ export function useSubplebbit(options?: UseSubplebbitOptions): UseSubplebbitResu
       error: errors?.[errors.length - 1],
       errors: errors || [],
     }),
-    [subplebbit, subplebbitAddress, errors]
+    [subplebbit, subplebbitAddress, errors],
   )
 }
 
@@ -111,7 +111,7 @@ export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubp
       error: undefined,
       errors: [],
     }),
-    [subplebbitStats, subplebbitStatsCid, subplebbitAddress]
+    [subplebbitStats, subplebbitStatsCid, subplebbitAddress],
   )
 }
 
@@ -137,7 +137,7 @@ export function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsR
   const account = useAccount({accountName})
   const subplebbits: (Subplebbit | undefined)[] = useSubplebbitsStore(
     (state: any) => (subplebbitAddresses || []).map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']),
-    shallow
+    shallow,
   )
   const addSubplebbitToStore = useSubplebbitsStore((state: any) => state.addSubplebbitToStore)
 
@@ -166,7 +166,7 @@ export function useSubplebbits(options?: UseSubplebbitsOptions): UseSubplebbitsR
       error: undefined,
       errors: [],
     }),
-    [subplebbits, subplebbitAddresses?.toString()]
+    [subplebbits, subplebbitAddresses?.toString()],
   )
 }
 
@@ -193,7 +193,7 @@ export function useListSubplebbits() {
       })
     },
     delay,
-    immediate
+    immediate,
   )
 
   return subplebbitAddresses
@@ -288,7 +288,7 @@ export function useResolvedSubplebbitAddress(options?: UseResolvedSubplebbitAddr
     },
     interval,
     true,
-    [subplebbitAddress, chainProviders]
+    [subplebbitAddress, chainProviders],
   )
 
   // only support ENS at the moment
@@ -313,7 +313,7 @@ export const resolveSubplebbitAddress = async (subplebbitAddress: string, chainP
       'subplebbit-address',
       'eth',
       chainProviders?.['eth']?.urls?.[0],
-      chainProviders?.['eth']?.chainId
+      chainProviders?.['eth']?.chainId,
     )
   } else {
     throw Error(`resolveSubplebbitAddress invalid subplebbitAddress '${subplebbitAddress}'`)

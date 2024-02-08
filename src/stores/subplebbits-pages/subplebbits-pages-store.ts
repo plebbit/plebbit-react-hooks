@@ -35,7 +35,7 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
     const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
     assert(
       subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string',
-      `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit?.address}' sortType '${sortType}' subplebbitFirstPageCid '${subplebbitFirstPageCid}' invalid`
+      `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit?.address}' sortType '${sortType}' subplebbitFirstPageCid '${subplebbitFirstPageCid}' invalid`,
     )
 
     // all subplebbits pages in store

@@ -173,7 +173,7 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
     nft?.id,
     nft?.chainTicker,
     chainProviders?.[nft?.chainTicker]?.urls?.[0],
-    chainProviders?.[nft?.chainTicker]?.chainId
+    chainProviders?.[nft?.chainTicker]?.chainId,
   )
 
   let messageThatShouldBeSigned: any = {}

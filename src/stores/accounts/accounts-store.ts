@@ -84,8 +84,8 @@ const initializeAccountsStore = async () => {
     assert(
       accountIds && activeAccountId && accountNamesToAccountIds,
       `accountsStore error creating a default account during initialization accountsMetadataDatabase.accountIds '${accountIds}' accountsMetadataDatabase.activeAccountId '${activeAccountId}' accountsMetadataDatabase.accountNamesToAccountIds '${JSON.stringify(
-        accountNamesToAccountIds
-      )}'`
+        accountNamesToAccountIds,
+      )}'`,
     )
   }
   const [accountsComments, accountsVotes, accountsCommentsReplies, accountsEdits] = await Promise.all<any>([
@@ -119,7 +119,7 @@ const initializeAccountsStore = async () => {
             accountCommentIndex: accountComment.index,
             accounts,
             error,
-          })
+          }),
         )
     }
   }

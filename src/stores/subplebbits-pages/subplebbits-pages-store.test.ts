@@ -137,7 +137,7 @@ describe('subplebbits pages store', () => {
       rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
     })
     await expect(rendered.waitFor(() => Object.keys(rendered.result.current.subplebbitsPages).length > previousSubplebbitPagesFetchedCount)).rejects.toThrow(
-      'Timed out in waitFor after 1000ms.'
+      'Timed out in waitFor after 1000ms.',
     )
     expect(Object.keys(rendered.result.current.subplebbitsPages).length).toBe(previousSubplebbitPagesFetchedCount)
 
@@ -190,7 +190,7 @@ describe('subplebbits pages store', () => {
       rendered.result.current.addNextSubplebbitPageToStore(mockSubplebbit, sortType, mockAccount)
     })
     await expect(rendered.waitFor(() => Object.keys(rendered.result.current.subplebbitsPages).length > previousSubplebbitPagesFetchedCount)).rejects.toThrow(
-      'Timed out in waitFor after 1000ms.'
+      'Timed out in waitFor after 1000ms.',
     )
     expect(Object.keys(rendered.result.current.subplebbitsPages).length).toBe(previousSubplebbitPagesFetchedCount)
 

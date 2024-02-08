@@ -71,7 +71,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     isBufferedFeed?: boolean,
     postsPerPage?: number,
     filter?: CommentsFilter,
-    newerThan?: number
+    newerThan?: number,
   ) {
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
     assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`)
@@ -79,7 +79,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     assert(typeof account?.plebbit?.getSubplebbit === 'function', `addFeedToStore.addFeedToStore account '${account}' invalid`)
     assert(
       typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null,
-      `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
+      `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`,
     )
     assert(!filter || typeof filter === 'function', `addFeedToStore.addFeedToStore filter '${filter}' invalid`)
     assert(!newerThan || typeof newerThan === 'number', `addFeedToStore.addFeedToStore newerThan '${newerThan}' invalid`)
@@ -133,7 +133,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
 
     assert(
       feedsOptions[feedName].pageNumber * feedsOptions[feedName].postsPerPage <= loadedFeeds[feedName].length,
-      `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
+      `feedsActions.incrementFeedPageNumber cannot increment feed page number before current page has loaded`,
     )
     setState(({feedsOptions, loadedFeeds}: any) => {
       // don't increment page number before the current page has loaded
@@ -201,7 +201,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       const feedsSubplebbitAddressesWithNewerPosts = getFeedsSubplebbitAddressesWithNewerPosts(
         filteredSortedFeeds,
         loadedFeeds,
-        previousState.feedsSubplebbitAddressesWithNewerPosts
+        previousState.feedsSubplebbitAddressesWithNewerPosts,
       )
       // set new feeds
       setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, feedsSubplebbitAddressesWithNewerPosts}))
@@ -361,7 +361,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
       // subplebbit post count is low, fetch next subplebbit page
       if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
         addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error: unknown) =>
-          log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, subplebbit: subplebbits[subplebbitAddress], sortType, error})
+          log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, subplebbit: subplebbits[subplebbitAddress], sortType, error}),
         )
       }
     }
@@ -406,7 +406,7 @@ const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses: string[], account
   const addSubplebbitToStore = subplebbitsStore.getState().addSubplebbitToStore
   for (const subplebbitAddress of subplebbitAddresses) {
     addSubplebbitToStore(subplebbitAddress, account).catch((error: unknown) =>
-      log.error('feedsStore subplebbitsActions.addSubplebbitToStore error', {subplebbitAddress, error})
+      log.error('feedsStore subplebbitsActions.addSubplebbitToStore error', {subplebbitAddress, error}),
     )
   }
 }

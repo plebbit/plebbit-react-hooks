@@ -128,7 +128,7 @@ export const memo = (functionToMemo: Function, memoOptions: any) => {
           if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
             const argumentIndex = args.indexOf(arg)
             throw Error(
-              `memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`
+              `memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`,
             )
           }
           cacheKey += arg
@@ -187,7 +187,7 @@ export const memoSync = (functionToMemo: Function, memoOptions: any) => {
           if (typeof arg !== 'string' && typeof arg !== 'number' && arg !== undefined && arg !== null) {
             const argumentIndex = args.indexOf(arg)
             throw Error(
-              `memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`
+              `memoed function '${memoedFunctionName}' invalid argument number '${argumentIndex}' '${arg}', memoed function can only use multiple arguments if they are all of type string, number, undefined or null`,
             )
           }
           cacheKey += arg

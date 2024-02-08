@@ -104,7 +104,7 @@ export function useClientsStates(options?: UseClientsStatesOptions): UseClientsS
       error: undefined,
       errors: [],
     }),
-    [states, peers]
+    [states, peers],
   )
 }
 
@@ -120,7 +120,7 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
   for (const subplebbitAddress of subplebbitAddresses || []) {
     assert(
       typeof subplebbitAddress === 'string',
-      `useClientsStatesCounts subplebbitAddresses '${subplebbitAddresses}' subplebbitAddress '${subplebbitAddress}' not a string`
+      `useClientsStatesCounts subplebbitAddresses '${subplebbitAddresses}' subplebbitAddress '${subplebbitAddress}' not a string`,
     )
   }
   const {subplebbits} = useSubplebbits({subplebbitAddresses})
@@ -213,6 +213,6 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
       error: undefined,
       errors: [],
     }),
-    [states, peers]
+    [states, peers],
   )
 }

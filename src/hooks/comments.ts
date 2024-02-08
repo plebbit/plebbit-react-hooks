@@ -94,7 +94,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       error: errors?.[errors.length - 1],
       errors: errors || [],
     }),
-    [comment, commentCid, errors]
+    [comment, commentCid, errors],
   )
 }
 
@@ -109,11 +109,11 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
   const account = useAccount({accountName})
   const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(
     (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
-    shallow
+    shallow,
   )
   const subplebbitsPagesComments: (Comment | undefined)[] = useSubplebbitsPagesStore(
     (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
-    shallow
+    shallow,
   )
 
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
@@ -154,6 +154,6 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
       error: undefined,
       errors: [],
     }),
-    [comments, commentCids?.toString()]
+    [comments, commentCids?.toString()],
   )
 }

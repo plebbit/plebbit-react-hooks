@@ -201,7 +201,7 @@ export class Subplebbit extends EventEmitter {
     this.updateCalledTimes++
     if (this.updateCalledTimes > 1) {
       throw Error(
-        'with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
+        'with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times',
       )
     }
     // is ipnsName is known, look for updates and emit updates immediately after creation
@@ -459,7 +459,7 @@ export class Comment extends Publication {
     this.updateCalledTimes++
     if (this.updateCalledTimes > 2) {
       throw Error(
-        'with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
+        'with the current hooks, comment.update() should be called maximum 2 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times',
       )
     }
     // don't update twice

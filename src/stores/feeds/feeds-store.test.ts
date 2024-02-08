@@ -192,7 +192,7 @@ describe('feeds store', () => {
 
     // make sure no more subplebbits pages get added for the blocked address
     await expect(rendered.waitFor(() => Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length > subplebbitsPagesCount)).rejects.toThrow(
-      'Timed out in waitFor after 1000ms.'
+      'Timed out in waitFor after 1000ms.',
     )
     expect(Object.keys(subplebbitsPagesStore.getState().subplebbitsPages).length).toBe(subplebbitsPagesCount)
   })

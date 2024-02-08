@@ -75,7 +75,7 @@ export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult 
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, subscribed, errors, subplebbitAddress, accountName]
+    [state, subscribed, errors, subplebbitAddress, accountName],
   )
 }
 
@@ -137,7 +137,7 @@ export function useBlock(options?: UseBlockOptions): UseBlockResult {
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, blocked, errors, address, accountName]
+    [state, blocked, errors, address, accountName],
   )
 }
 
@@ -211,7 +211,7 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
       error: errors[errors.length - 1],
       errors,
     }),
-    [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers],
   )
 }
 
@@ -282,7 +282,7 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
       error: errors[errors.length - 1],
       errors,
     }),
-    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers],
   )
 }
 
@@ -353,7 +353,7 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
       error: errors[errors.length - 1],
       errors,
     }),
-    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers],
   )
 }
 
@@ -424,7 +424,7 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
       error: errors[errors.length - 1],
       errors,
     }),
-    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers],
   )
 }
 
@@ -464,6 +464,6 @@ export function useCreateSubplebbit(options?: UseCreateSubplebbitOptions): UseCr
       error: errors[errors.length - 1],
       errors,
     }),
-    [state, errors, createdSubplebbit, options, accountName]
+    [state, errors, createdSubplebbit, options, accountName],
   )
 }

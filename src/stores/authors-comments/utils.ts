@@ -8,7 +8,7 @@ export const getUpdatedLoadedAndBufferedComments = (
   bufferedComments: Comment[],
   pageNumber: number,
   filter: CommentsFilter | undefined,
-  comments: Comments
+  comments: Comments,
 ) => {
   const newBufferedComments = getUpdatedBufferedComments(loadedComments, bufferedComments, filter, comments)
 

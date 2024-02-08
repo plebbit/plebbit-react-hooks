@@ -38,7 +38,7 @@ export function usePlebbitRpcSettings(options?: UsePlebbitRpcSettingsOptions): U
     assert(account, `can't use usePlebbitRpcSettings.setPlebbitRpcSettings before initialized`)
     assert(
       plebbitRpcSettings && typeof plebbitRpcSettings === 'object',
-      `usePlebbitRpcSettings.setPlebbitRpcSettings plebbitRpcSettings argument '${plebbitRpcSettings}' not an object`
+      `usePlebbitRpcSettings.setPlebbitRpcSettings plebbitRpcSettings argument '${plebbitRpcSettings}' not an object`,
     )
     setState('calling-rpc')
     try {
@@ -59,6 +59,6 @@ export function usePlebbitRpcSettings(options?: UsePlebbitRpcSettingsOptions): U
       error: errors?.[errors.length - 1],
       errors,
     }),
-    [plebbitRpcSettingsState, setPlebbitRpcSettings, state, errors]
+    [plebbitRpcSettingsState, setPlebbitRpcSettings, state, errors],
   )
 }

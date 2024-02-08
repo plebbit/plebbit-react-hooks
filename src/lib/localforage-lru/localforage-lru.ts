@@ -95,8 +95,8 @@ function createLocalForageInstance(localForageLruOptions: any): any {
         keys.map((key, i) =>
           getItem(key).then((value) => {
             entries[i] = [key, value]
-          })
-        )
+          }),
+        ),
       )
       return entries
     },

@@ -42,7 +42,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
   addAuthorCommentsToStore: (authorCommentsName: string, authorAddress: string, commentCid: string, filter: CommentsFilter | undefined, account: Account) => {
     assert(
       authorCommentsName && typeof authorCommentsName === 'string',
-      `addAuthorCommentsToStore.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`
+      `addAuthorCommentsToStore.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`,
     )
     assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument authorAddress '${authorAddress}'`)
     assert(commentCid && typeof commentCid === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument commentCid '${commentCid}'`)
@@ -104,7 +104,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
   incrementPageNumber: (authorCommentsName: string) => {
     assert(
       authorCommentsName && typeof authorCommentsName === 'string',
-      `authorsCommentsActions.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`
+      `authorsCommentsActions.incrementPageNumber invalid argument authorCommentsName '${authorCommentsName}'`,
     )
     const {options, updateLoadedComments, loadedComments, nextCommentCidsToFetch} = getState()
     if (!options[authorCommentsName]) {
@@ -112,7 +112,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     }
     assert(
       options[authorCommentsName].pageNumber * commentsPerPage <= loadedComments[authorCommentsName].length,
-      `authorsCommentsActions.incrementPageNumber cannot increment page number before current page has loaded`
+      `authorsCommentsActions.incrementPageNumber cannot increment page number before current page has loaded`,
     )
 
     log('authorsCommentsActions.incrementPageNumber', {
@@ -166,7 +166,7 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
         unfilteredBufferedComments,
         pageNumber,
         filter,
-        comments
+        comments,
       )
       newAuthorsLoadedComments[name] = loadedComments
       newHasMoreBufferedComments[name] = filteredBufferedComments.length > loadedComments.length
@@ -242,7 +242,7 @@ const fetchCommentOnShouldFetchOrNextCidChange = (options: AuthorCommentsOptions
   const account = accountsStore.getState().accounts[options.accountId]
   const addCommentToStore = commentsStore.getState().addCommentToStore
   addCommentToStore(nextCommentCidToFetch, account).catch((error: unknown) =>
-    log.error('authorsCommentsStore fetchCommentOnShouldFetchOrNextCidChange addCommentToStore error', {error, nextCommentCidToFetch, account})
+    log.error('authorsCommentsStore fetchCommentOnShouldFetchOrNextCidChange addCommentToStore error', {error, nextCommentCidToFetch, account}),
   )
 }
 

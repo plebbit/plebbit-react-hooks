@@ -481,7 +481,7 @@ describe('feeds', () => {
 
       // at this point the buffered feed has gotten page 1 from all subs
       await waitFor(
-        () => getPageCalledTimes['subplebbit address 1'] === 1 && getPageCalledTimes['subplebbit address 2'] === 1 && getPageCalledTimes['subplebbit address 3'] === 1
+        () => getPageCalledTimes['subplebbit address 1'] === 1 && getPageCalledTimes['subplebbit address 2'] === 1 && getPageCalledTimes['subplebbit address 3'] === 1,
       )
 
       expect(getPageCalledTimes['subplebbit address 1']).toBe(1)
@@ -503,7 +503,7 @@ describe('feeds', () => {
 
       // at this point the buffered feed has gotten page 2 from all subs
       await waitFor(
-        () => getPageCalledTimes['subplebbit address 1'] === 2 && getPageCalledTimes['subplebbit address 2'] === 2 && getPageCalledTimes['subplebbit address 3'] === 2
+        () => getPageCalledTimes['subplebbit address 1'] === 2 && getPageCalledTimes['subplebbit address 2'] === 2 && getPageCalledTimes['subplebbit address 3'] === 2,
       )
       expect(getPageCalledTimes['subplebbit address 1']).toBe(2)
       expect(getPageCalledTimes['subplebbit address 2']).toBe(2)
@@ -642,7 +642,7 @@ describe('feeds', () => {
             },
             {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
           ],
-        })
+        }),
       )
 
       // should get empty arrays after first render
@@ -653,7 +653,7 @@ describe('feeds', () => {
         () =>
           rendered.result.current.bufferedFeeds[0].length > 299 &&
           rendered.result.current.bufferedFeeds[1].length > 299 &&
-          rendered.result.current.bufferedFeeds[2].length > 299
+          rendered.result.current.bufferedFeeds[2].length > 299,
       )
 
       expect(rendered.result.current.bufferedFeeds[0].length).toBeGreaterThan(299)
@@ -751,7 +751,7 @@ describe('feeds', () => {
             },
             {subplebbitAddresses: ['subplebbit address 7', 'subplebbit address 8', 'subplebbit address 9']},
           ],
-        })
+        }),
       )
 
       await waitFor(() => rendered2.result.error?.message)
@@ -1048,7 +1048,7 @@ describe('feeds', () => {
       await waitFor(
         () =>
           Object.keys(rendered.result.current.account.blockedAddresses).length === 1 &&
-          expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [unblockedSubplebbitAddress])
+          expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [unblockedSubplebbitAddress]),
       )
       expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [unblockedSubplebbitAddress])
 
@@ -1059,7 +1059,7 @@ describe('feeds', () => {
       await waitFor(
         () =>
           Object.keys(rendered.result.current.account.blockedAddresses).length === 0 &&
-          expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [blockedSubplebbitAddress, unblockedSubplebbitAddress])
+          expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [blockedSubplebbitAddress, unblockedSubplebbitAddress]),
       )
       expectFeedToHaveSubplebbitAddresses(rendered.result.current.bufferedFeed, [blockedSubplebbitAddress, unblockedSubplebbitAddress])
 
@@ -1073,7 +1073,7 @@ describe('feeds', () => {
       await waitFor(
         () =>
           Object.keys(rendered.result.current.account.blockedAddresses).length === 1 &&
-          expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress)
+          expectFeedNotToHaveAuthorAddresses(rendered.result.current.bufferedFeed, blockedAuthorAddress),
       )
       // feed doesnt have blocked author address
       expect(rendered.result.current.account.blockedAddresses[blockedAuthorAddress]).toBe(true)
@@ -1114,7 +1114,7 @@ describe('feeds', () => {
         await rendered.result.current.blockCid(blockedCid)
       })
       await waitFor(
-        () => Object.keys(rendered.result.current.account.blockedCids).length === 1 && expectFeedNotToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
+        () => Object.keys(rendered.result.current.account.blockedCids).length === 1 && expectFeedNotToHaveCid(rendered.result.current.bufferedFeed, blockedCid),
       )
       expect(Object.keys(rendered.result.current.account.blockedCids).length).toBe(1)
       expectFeedNotToHaveCid(rendered.result.current.bufferedFeed, blockedCid)

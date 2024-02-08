@@ -17,7 +17,7 @@ const getAuthorAddressRolesFromSubplebbits = (authorAddress: string, subplebbits
 export const getAccountSubplebbits = (account: Account, subplebbits: Subplebbits) => {
   assert(
     account?.author?.address && typeof account?.author?.address === 'string',
-    `accountsStore utils getAccountSubplebbits invalid account.author.address '${account?.author?.address}'`
+    `accountsStore utils getAccountSubplebbits invalid account.author.address '${account?.author?.address}'`,
   )
   assert(subplebbits && typeof subplebbits === 'object', `accountsStore utils getAccountSubplebbits invalid subplebbits '${subplebbits}'`)
 

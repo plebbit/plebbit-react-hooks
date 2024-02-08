@@ -30,7 +30,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
   async addSubplebbitToStore(subplebbitAddress: string, account: Account) {
     assert(
       subplebbitAddress !== '' && typeof subplebbitAddress === 'string',
-      `subplebbitsStore.addSubplebbitToStore invalid subplebbitAddress argument '${subplebbitAddress}'`
+      `subplebbitsStore.addSubplebbitToStore invalid subplebbitAddress argument '${subplebbitAddress}'`,
     )
     assert(typeof account?.plebbit?.getSubplebbit === 'function', `subplebbitsStore.addSubplebbitToStore invalid account argument '${account}'`)
 
@@ -148,7 +148,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     assert(subplebbitAddress !== '' && typeof subplebbitAddress === 'string', `subplebbitsStore.editSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`)
     assert(
       subplebbitEditOptions && typeof subplebbitEditOptions === 'object',
-      `subplebbitsStore.editSubplebbit invalid subplebbitEditOptions argument '${subplebbitEditOptions}'`
+      `subplebbitsStore.editSubplebbit invalid subplebbitEditOptions argument '${subplebbitEditOptions}'`,
     )
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsStore.editSubplebbit invalid account argument '${account}'`)
 
@@ -175,12 +175,12 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
   async createSubplebbit(createSubplebbitOptions: CreateSubplebbitOptions, account: Account) {
     assert(
       !createSubplebbitOptions || typeof createSubplebbitOptions === 'object',
-      `subplebbitsStore.createSubplebbit invalid createSubplebbitOptions argument '${createSubplebbitOptions}'`
+      `subplebbitsStore.createSubplebbit invalid createSubplebbitOptions argument '${createSubplebbitOptions}'`,
     )
     if (!createSubplebbitOptions?.signer) {
       assert(
         !createSubplebbitOptions?.address,
-        `subplebbitsStore.createSubplebbit createSubplebbitOptions.address '${createSubplebbitOptions?.address}' must be undefined to create a subplebbit`
+        `subplebbitsStore.createSubplebbit createSubplebbitOptions.address '${createSubplebbitOptions?.address}' must be undefined to create a subplebbit`,
       )
     }
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsStore.createSubplebbit invalid account argument '${account}'`)

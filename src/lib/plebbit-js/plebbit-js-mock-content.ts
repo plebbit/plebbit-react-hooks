@@ -268,13 +268,13 @@ export const getImageUrl = async (_seed: number) => {
   const jpg = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed.increment())}/${await getNumberBetween(
     10,
     2000,
-    seed.increment()
+    seed.increment(),
   )}/${await getNumberBetween(10, 2000, seed.increment())}.jpg`
 
   const webp = `https://picsum.photos/seed/${await getNumberBetween(10, 2000, seed.increment())}/${await getNumberBetween(
     10,
     2000,
-    seed.increment()
+    seed.increment(),
   )}/${await getNumberBetween(10, 2000, seed.increment())}.webp`
 
   const imageUrls = [
@@ -329,7 +329,7 @@ const getAuthor = async (seed: string) => {
           '0x79fcdef22feed20eddacbb2587640e45491b757f',
           '0x0000000000000000000000000000000000000dead',
         ],
-        authorNumberSeed.increment()
+        authorNumberSeed.increment(),
       ),
       index: await getNumberBetween(1, 2000, authorNumberSeed.increment()),
     }
