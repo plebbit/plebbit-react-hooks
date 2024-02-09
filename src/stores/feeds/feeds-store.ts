@@ -344,7 +344,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
     const sortType = feedsOptions[feedName].sortType
     for (const subplebbitAddress in subplebbitsPostCounts) {
       // don't fetch more pages if subplebbit address is blocked
-      if (account.blockedAddresses[subplebbitAddress]) {
+      if (account?.blockedAddresses[subplebbitAddress]) {
         continue
       }
 

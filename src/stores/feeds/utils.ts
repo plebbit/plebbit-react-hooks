@@ -62,12 +62,12 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
     // filter the feed
     const filteredSortedBufferedFeedPosts = []
     for (const post of sortedBufferedFeedPosts) {
-      // address is blocked (accounts[accountId] is undefined in rare cases)
+      // address is blocked
       if (accounts[accountId]?.blockedAddresses[post.subplebbitAddress] || (post.author?.address && accounts[accountId]?.blockedAddresses[post.author.address])) {
         continue
       }
 
-      // comment cid is blocked (accounts[accountId] is undefined in rare cases)
+      // comment cid is blocked
       if (accounts[accountId]?.blockedCids[post.cid]) {
         continue
       }
@@ -231,7 +231,7 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
     const {subplebbitAddresses, sortType, accountId} = feedsOptions[feedName]
     subplebbitAddressesLoop: for (const subplebbitAddress of subplebbitAddresses) {
       // don't consider the sub if the address is blocked
-      if (accounts[accountId].blockedAddresses[subplebbitAddress]) {
+      if (accounts[accountId]?.blockedAddresses[subplebbitAddress]) {
         continue subplebbitAddressesLoop
       }
 
