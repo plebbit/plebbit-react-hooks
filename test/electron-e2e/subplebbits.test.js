@@ -1,6 +1,6 @@
 import {assertTestServerDidntCrash} from '../test-server/monitor-test-server'
 import {act, renderHook} from '@testing-library/react-hooks/dom'
-import {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} from '../../dist'
+import {useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} from '../../dist'
 import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
 import Plebbit from '@plebbit/plebbit-js'
 import {default as testUtils} from '../../dist/lib/test-utils'
@@ -52,18 +52,15 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       let rendered, waitFor, commentCid
 
       before(async () => {
-        rendered = renderHook(
-          ({subplebbitAddress, commentCid} = {}) => {
-            const account = useAccount()
-            const subplebbit = useSubplebbit({subplebbitAddress})
-            const subplebbitStats = useSubplebbitStats({subplebbitAddress})
-            const {accountVotes} = useAccountVotes()
-            const comment = useComment({commentCid})
+        rendered = renderHook(({subplebbitAddress, commentCid} = {}) => {
+          const account = useAccount()
+          const subplebbit = useSubplebbit({subplebbitAddress})
+          const subplebbitStats = useSubplebbitStats({subplebbitAddress})
+          const {accountVotes} = useAccountVotes()
+          const comment = useComment({commentCid})
 
-            return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
-          },
-          {wrapper: PlebbitProvider},
-        )
+          return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
+        })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')
