@@ -8,7 +8,7 @@
     "moduleResolution": "Bundler",
     "outDir": "../dist",
     "jsx": "react",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "exclude": ["../**/*.spec.ts", "../**/*.test.ts", "../**/*.donttest.ts"]
 }
