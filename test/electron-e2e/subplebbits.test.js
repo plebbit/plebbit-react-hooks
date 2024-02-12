@@ -3,7 +3,6 @@ import {act, renderHook} from '@testing-library/react-hooks/dom'
 import {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} from '../../dist'
 import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
 import Plebbit from '@plebbit/plebbit-js'
-Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 import {default as testUtils} from '../../dist/lib/test-utils'
 import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
