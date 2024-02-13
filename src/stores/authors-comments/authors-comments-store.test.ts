@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach, beforeEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import useAuthorsCommentsStore, {resetAuthorsCommentsDatabaseAndStore, commentsPerPage, commentBufferSize} from './authors-comments-store'
@@ -12,9 +13,6 @@ setPlebbitJs(PlebbitJsMock)
 const authorAddress = 'author.eth'
 
 describe('authors comments store', () => {
-  // tests take longer than default jest 5 seconds because it takes a while to fetch all comments
-  jest.setTimeout(20000)
-
   beforeAll(() => {
     testUtils.silenceReactWarnings()
   })

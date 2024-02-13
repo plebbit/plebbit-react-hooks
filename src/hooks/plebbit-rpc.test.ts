@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {usePlebbitRpcSettings, setPlebbitJs} from '..'

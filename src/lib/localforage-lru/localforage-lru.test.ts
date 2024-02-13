@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach} from 'vitest'
 import localForageLru, {instances} from './localforage-lru'
 
 let dbCount = 0

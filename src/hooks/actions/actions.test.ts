@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach, beforeEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {
@@ -402,8 +403,8 @@ describe('actions', () => {
     })
 
     test(`can publish comment`, async () => {
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
@@ -457,8 +458,8 @@ describe('actions', () => {
     })
 
     test(`can publish post`, async () => {
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
@@ -520,7 +521,7 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
-      const onError = jest.fn()
+      const onError = vi.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         parentCid: 'Qm... acions.test',
@@ -571,8 +572,8 @@ describe('actions', () => {
     })
 
     test(`can publish comment edit`, async () => {
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       const publishCommentEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
@@ -631,7 +632,7 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
-      const onError = jest.fn()
+      const onError = vi.fn()
       const publishCommentEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
@@ -682,8 +683,8 @@ describe('actions', () => {
     })
 
     test(`can publish subplebbit edit`, async () => {
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       const publishSubplebbitEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         title: 'new title',
@@ -741,7 +742,7 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
-      const onError = jest.fn()
+      const onError = vi.fn()
       const publishSubplebbitEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         title: 'new title',
@@ -792,8 +793,8 @@ describe('actions', () => {
     })
 
     test(`can publish vote`, async () => {
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       const publishVoteOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
@@ -855,7 +856,7 @@ describe('actions', () => {
         throw Error('publish error')
       }
 
-      const onError = jest.fn()
+      const onError = vi.fn()
       const publishVoteOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',

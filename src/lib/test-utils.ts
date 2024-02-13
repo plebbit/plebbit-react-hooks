@@ -4,8 +4,6 @@ import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accou
 import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
 import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../stores/subplebbits-pages'
 import {resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore} from '../stores/authors-comments'
-import localForageLru from './localforage-lru'
-import localForage from 'localforage'
 
 const restorables: any = []
 

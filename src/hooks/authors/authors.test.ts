@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach, beforeEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount, useAuthorAddress} from '../..'
@@ -454,7 +455,6 @@ describe('authors', () => {
 
   describe('author avatar', () => {
     const timeout = 30000
-    jest.setTimeout(timeout)
 
     test('useAuthorAvatar avatar has no signature', async () => {
       const author = {
@@ -550,7 +550,6 @@ describe('authors', () => {
 
   describe('author address', () => {
     const timeout = 60000
-    jest.setTimeout(timeout)
 
     // skip because uses internet and not deterministic
     test.skip('useResolvedAuthorAddress', async () => {

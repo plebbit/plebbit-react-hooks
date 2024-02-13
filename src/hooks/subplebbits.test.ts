@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach, beforeEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useSubplebbit, useSubplebbitStats, useSubplebbits, setPlebbitJs, useResolvedSubplebbitAddress, useAccount} from '..'
@@ -211,7 +212,6 @@ describe('subplebbits', () => {
 
   describe('subplebbit address', () => {
     const timeout = 60000
-    jest.setTimeout(timeout)
 
     // skip because uses internet and not deterministic
     test.skip('useResolvedSubplebbitAddress', async () => {

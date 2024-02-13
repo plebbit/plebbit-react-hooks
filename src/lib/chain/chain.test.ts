@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach, beforeEach} from 'vitest'
 import {getNftImageUrl} from '.'
 
 const avatarNft1 = {
@@ -31,9 +32,6 @@ const chainProviders = {
 
 describe('chain', () => {
   describe('nft', () => {
-    const timeout = 30000
-    jest.setTimeout(timeout)
-
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
     test.skip('getNftImageUrl (cache and pending)', async () => {

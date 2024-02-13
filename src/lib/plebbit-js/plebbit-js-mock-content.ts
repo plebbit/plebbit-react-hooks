@@ -1,7 +1,6 @@
 import markdownExample from './fixtures/markdown-example'
 import EventEmitter from 'events'
 import assert from 'assert'
-import {sha256} from 'multiformats/hashes/sha2'
 import {fromString as uint8ArrayFromString} from 'uint8arrays/from-string'
 import {toString as uint8ArrayToString} from 'uint8arrays/to-string'
 

@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useComment, useSubplebbit, useFeed, setPlebbitJs, useClientsStates, useSubplebbitsStates, useAccountComment, usePublishComment, useAccount} from '..'
@@ -395,7 +396,7 @@ describe('states', () => {
 
     test('publish comment', async () => {
       const onChallenge = (challenge: any, comment: Comment) => comment.publishChallengeAnswers()
-      const onChallengeVerification = jest.fn()
+      const onChallengeVerification = vi.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... states.test',
         title: 'some title states.test',

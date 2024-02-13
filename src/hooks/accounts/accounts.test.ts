@@ -1,3 +1,4 @@
+import {describe, expect, test, vi, beforeAll, afterAll, afterEach, beforeEach} from 'vitest'
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import {AccountComment, AccountVote} from '../../types'
@@ -792,8 +793,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish comment', async () => {
         const publishCommentOptions = {
@@ -883,8 +884,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish vote', async () => {
         const publishVoteOptions = {
@@ -935,8 +936,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish comment edit', async () => {
         const commentEditOptions = {
@@ -1014,8 +1015,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish subplebbit edit', async () => {
         const subplebbitAddress = '12D3KooW...'
@@ -1066,8 +1067,8 @@ describe('accounts', () => {
     let waitFor: any
 
     beforeEach(async () => {
-      onChallenge = jest.fn()
-      onChallengeVerification = jest.fn()
+      onChallenge = vi.fn()
+      onChallengeVerification = vi.fn()
       publishOptions = {onChallenge, onChallengeVerification}
       rendered = renderHook<any, any>((props: any) => {
         const account = useAccount({accountName: props?.accountName})
@@ -1239,11 +1240,9 @@ describe('accounts', () => {
       beforeAll(() => {
         // this test seems to depend on a race condition and must be retried
         // most likely not a bug with the hook
-        jest.retryTimes(10)
         testUtils.silenceWaitForWarning = true
       })
       afterAll(() => {
-        jest.retryTimes(0)
         testUtils.silenceWaitForWarning = false
       })
       test(`cid gets added to account comment after fetched in useComment`, async () => {
@@ -1756,11 +1755,9 @@ describe('accounts', () => {
         // roles tests depend on race conditions as part of the test
         // so not possible to make them deterministic, add a retry
         // the hooks don't have the race condition, only the tests do
-        jest.retryTimes(20)
         testUtils.silenceWaitForWarning = true
       })
       afterAll(() => {
-        jest.retryTimes(0)
         testUtils.silenceWaitForWarning = false
       })
       afterEach(async () => {
@@ -1899,8 +1896,8 @@ describe('accounts', () => {
 
       // publishSubplebbitEdit
       const editedTitle = 'edited title'
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       await act(async () => {
         await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
       })
@@ -1991,8 +1988,8 @@ describe('accounts', () => {
 
       // publishSubplebbitEdit
       const editedTitle = 'edited title'
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       await act(async () => {
         await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
       })
