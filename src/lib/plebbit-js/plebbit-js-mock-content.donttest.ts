@@ -2,7 +2,6 @@
 // only use it to log the content mock and see if the outputs make sense
 // use `jest --testRegex plebbit-js-mock-content.donttest.ts` to run
 
-jest.setTimeout(300000)
 const timeout = 180000
 
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE = '1'
@@ -17,120 +16,144 @@ import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMockContent, {getImageUrl, SeedIncrementer} from './plebbit-js-mock-content'
 
 describe('PlebbitJsMockContent', () => {
-  test.skip('SeedIncrementer', async () => {
-    while (true) {
-      const seed = Number(String(Math.random()).replace('0.', '').substring(0, 8))
-      const seedIncrementer = SeedIncrementer(seed)
-      let count = 11
-      while (count--) {
-        seedIncrementer.increment()
+  test.skip(
+    'SeedIncrementer',
+    async () => {
+      while (true) {
+        const seed = Number(String(Math.random()).replace('0.', '').substring(0, 8))
+        const seedIncrementer = SeedIncrementer(seed)
+        let count = 11
+        while (count--) {
+          seedIncrementer.increment()
+        }
+        const incremented = seedIncrementer.increment()
+        console.log(seed, incremented, incremented % 12)
       }
-      const incremented = seedIncrementer.increment()
-      console.log(seed, incremented, incremented % 12)
-    }
-  })
+    },
+    {timeout}
+  )
 
-  test('comment updates', async () => {
-    const plebbit = await PlebbitJsMockContent()
-    let count = 10
-    const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP8'
-    const comment: any = await plebbit.createComment({cid})
-    comment.update()
-    await new Promise((r) =>
-      comment.on('update', () => {
-        console.log(comment.replies?.pages?.topAll?.comments)
-        if (!count--) {
-          comment.removeAllListeners()
-          r(undefined)
-        }
-      })
-    )
-  })
-
-  test.skip('new page', async () => {
-    const plebbit = await PlebbitJsMockContent()
-    const address = 'news.eth'
-    const subplebbit: any = await plebbit.createSubplebbit({address})
-    console.log(subplebbit)
-    subplebbit.update().catch(console.error)
-    await new Promise((r) =>
-      subplebbit.on('update', async () => {
-        console.log(subplebbit)
-        console.log(subplebbit.posts.pages)
-        // subplebbit.removeAllListeners()
-        try {
-          // const page = await subplebbit.posts.getPage(subplebbit.posts.pageCids.new)
-          // console.log(page)
-          // const comment = page.comments[0]
-          // console.log({comment})
-          // const comment2 = await plebbit.getComment(comment.cid)
-          // console.log({comment2})
-        } catch (e) {
-          console.log(e)
-        }
-        // r(undefined)
-      })
-    )
-  })
-
-  test.skip('comment edit updates', async () => {
-    const plebbit = await PlebbitJsMockContent()
-    let count = 10
-    const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP7'
-    const comment: any = await plebbit.createComment({cid})
-    comment.update()
-    await new Promise((r) =>
-      comment.on('update', () => {
-        console.log(comment)
-        if (!count--) {
-          comment.removeAllListeners()
-          r(undefined)
-        }
-      })
-    )
-  })
-
-  test.skip('create comment', async () => {
-    const plebbit = await PlebbitJsMockContent()
-    let count = 100
-    let linkCount = 0
-    while (count--) {
-      const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa' + count
-      // console.log(cid)
-      const random = (Math.random().toString() + Math.random().toString() + Math.random().toString()).replace(/0\./g, '')
-      const comment: any = await plebbit.createComment({cid: random})
+  test(
+    'comment updates',
+    async () => {
+      const plebbit = await PlebbitJsMockContent()
+      let count = 10
+      const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP8'
+      const comment: any = await plebbit.createComment({cid})
       comment.update()
       await new Promise((r) =>
         comment.on('update', () => {
-          if (comment.updatedAt) {
-            if (comment.link) linkCount++
-            // console.log(comment.link)
+          console.log(comment.replies?.pages?.topAll?.comments)
+          if (!count--) {
             comment.removeAllListeners()
             r(undefined)
           }
         })
       )
-      // if (count === 92)
-      //   break
-    }
-    console.log({linkCount})
-  })
+    },
+    {timeout}
+  )
 
-  test.skip('create comment with replies', async () => {
-    const plebbit = await PlebbitJsMockContent()
-    const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa65'
-    const comment: any = await plebbit.createComment({cid})
-    comment.update()
-    await new Promise((r) =>
-      comment.on('update', () => {
-        if (comment.updatedAt) {
-          console.log(comment.replies.pages.topAll.comments)
-          comment.removeAllListeners()
-          r(undefined)
-        }
-      })
-    )
-  })
+  test.skip(
+    'new page',
+    async () => {
+      const plebbit = await PlebbitJsMockContent()
+      const address = 'news.eth'
+      const subplebbit: any = await plebbit.createSubplebbit({address})
+      console.log(subplebbit)
+      subplebbit.update().catch(console.error)
+      await new Promise((r) =>
+        subplebbit.on('update', async () => {
+          console.log(subplebbit)
+          console.log(subplebbit.posts.pages)
+          // subplebbit.removeAllListeners()
+          try {
+            // const page = await subplebbit.posts.getPage(subplebbit.posts.pageCids.new)
+            // console.log(page)
+            // const comment = page.comments[0]
+            // console.log({comment})
+            // const comment2 = await plebbit.getComment(comment.cid)
+            // console.log({comment2})
+          } catch (e) {
+            console.log(e)
+          }
+          // r(undefined)
+        })
+      )
+    },
+    {timeout}
+  )
+
+  test.skip(
+    'comment edit updates',
+    async () => {
+      const plebbit = await PlebbitJsMockContent()
+      let count = 10
+      const cid = 'UYdJj598pR4VKi3yoKP4oR4UQAyyQBQWfCtL6fLegCFP7'
+      const comment: any = await plebbit.createComment({cid})
+      comment.update()
+      await new Promise((r) =>
+        comment.on('update', () => {
+          console.log(comment)
+          if (!count--) {
+            comment.removeAllListeners()
+            r(undefined)
+          }
+        })
+      )
+    },
+    {timeout}
+  )
+
+  test.skip(
+    'create comment',
+    async () => {
+      const plebbit = await PlebbitJsMockContent()
+      let count = 100
+      let linkCount = 0
+      while (count--) {
+        const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa' + count
+        // console.log(cid)
+        const random = (Math.random().toString() + Math.random().toString() + Math.random().toString()).replace(/0\./g, '')
+        const comment: any = await plebbit.createComment({cid: random})
+        comment.update()
+        await new Promise((r) =>
+          comment.on('update', () => {
+            if (comment.updatedAt) {
+              if (comment.link) linkCount++
+              // console.log(comment.link)
+              comment.removeAllListeners()
+              r(undefined)
+            }
+          })
+        )
+        // if (count === 92)
+        //   break
+      }
+      console.log({linkCount})
+    },
+    {timeout}
+  )
+
+  test.skip(
+    'create comment with replies',
+    async () => {
+      const plebbit = await PlebbitJsMockContent()
+      const cid = 'QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa65'
+      const comment: any = await plebbit.createComment({cid})
+      comment.update()
+      await new Promise((r) =>
+        comment.on('update', () => {
+          if (comment.updatedAt) {
+            console.log(comment.replies.pages.topAll.comments)
+            comment.removeAllListeners()
+            r(undefined)
+          }
+        })
+      )
+    },
+    {timeout}
+  )
 })
 
 describe('mock content', () => {

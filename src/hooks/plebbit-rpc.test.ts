@@ -2,10 +2,13 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {usePlebbitRpcSettings, setPlebbitJs} from '..'
 import PlebbitJsMock from '../lib/plebbit-js/plebbit-js-mock'
-setPlebbitJs(PlebbitJsMock)
 
 describe('plebbit-rpc', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {

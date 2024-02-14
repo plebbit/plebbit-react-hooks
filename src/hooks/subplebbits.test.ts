@@ -6,10 +6,13 @@ import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import {useListSubplebbits, resolveSubplebbitAddress} from './subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
-setPlebbitJs(PlebbitJsMock)
 
 describe('subplebbits', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
@@ -211,37 +214,48 @@ describe('subplebbits', () => {
 
   describe('subplebbit address', () => {
     const timeout = 60000
-    jest.setTimeout(timeout)
 
     // skip because uses internet and not deterministic
-    test.skip('useResolvedSubplebbitAddress', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
-      const waitFor = testUtils.createWaitFor(rendered, {timeout})
-      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test.skip(
+      'useResolvedSubplebbitAddress',
+      async () => {
+        const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+        const waitFor = testUtils.createWaitFor(rendered, {timeout})
+        expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-      rendered.rerender('plebbit.eth')
-      await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
-      expect(rendered.result.current.resolvedAddress).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
-    })
+        rendered.rerender('plebbit.eth')
+        await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
+        expect(rendered.result.current.resolvedAddress).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
+      },
+      {timeout}
+    )
 
-    test('useResolvedSubplebbitAddress unsupported crypto domain', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
-      const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test(
+      'useResolvedSubplebbitAddress unsupported crypto domain',
+      async () => {
+        const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+        const waitFor = testUtils.createWaitFor(rendered)
+        expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-      rendered.rerender('plebbit.com')
-      await waitFor(() => rendered.result.current.error)
-      expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
-    })
+        rendered.rerender('plebbit.com')
+        await waitFor(() => rendered.result.current.error)
+        expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
+      },
+      {timeout}
+    )
 
-    test('useResolvedSubplebbitAddress not a crypto domain', async () => {
-      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
-      const waitFor = testUtils.createWaitFor(rendered)
-      expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test(
+      'useResolvedSubplebbitAddress not a crypto domain',
+      async () => {
+        const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+        const waitFor = testUtils.createWaitFor(rendered)
+        expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-      rendered.rerender('abc')
-      await waitFor(() => rendered.result.current.error)
-      expect(rendered.result.current.error.message).toBe('not a crypto domain')
-    })
+        rendered.rerender('abc')
+        await waitFor(() => rendered.result.current.error)
+        expect(rendered.result.current.error.message).toBe('not a crypto domain')
+      },
+      {timeout}
+    )
   })
 })

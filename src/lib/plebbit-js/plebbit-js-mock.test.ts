@@ -9,8 +9,8 @@ describe('PlebbitJsMock', () => {
     expect(comment.state).toBe('stopped')
     expect(comment.updatingState).toBe('stopped')
 
-    const onStatechange = jest.fn(() => comment.state)
-    const onUpdatingstatechange = jest.fn(() => comment.updatingState)
+    const onStatechange = vi.fn(() => comment.state)
+    const onUpdatingstatechange = vi.fn(() => comment.updatingState)
 
     comment.on('statechange', onStatechange)
     comment.on('updatingstatechange', onUpdatingstatechange)
@@ -47,8 +47,8 @@ describe('PlebbitJsMock', () => {
     expect(subplebbit.state).toBe('stopped')
     expect(subplebbit.updatingState).toBe('stopped')
 
-    const onStatechange = jest.fn(() => subplebbit.state)
-    const onUpdatingstatechange = jest.fn(() => subplebbit.updatingState)
+    const onStatechange = vi.fn(() => subplebbit.state)
+    const onUpdatingstatechange = vi.fn(() => subplebbit.updatingState)
 
     subplebbit.on('statechange', onStatechange)
     subplebbit.on('updatingstatechange', onUpdatingstatechange)
@@ -88,8 +88,8 @@ describe('PlebbitJsMock', () => {
     expect(comment.state).toBe('stopped')
     expect(comment.publishingState).toBe('stopped')
 
-    const onStatechange = jest.fn(() => comment.state)
-    const onPublishingstatechange = jest.fn(() => comment.publishingState)
+    const onStatechange = vi.fn(() => comment.state)
+    const onPublishingstatechange = vi.fn(() => comment.publishingState)
 
     comment.on('statechange', onStatechange)
     comment.on('publishingstatechange', onPublishingstatechange)

@@ -7,10 +7,13 @@ import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 import feedsStore, {defaultPostsPerPage as postsPerPage} from '../../stores/feeds'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
-setPlebbitJs(PlebbitJsMock)
 
 describe('feeds', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {

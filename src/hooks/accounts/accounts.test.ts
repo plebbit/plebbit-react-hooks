@@ -23,10 +23,13 @@ import commentsStore from '../../stores/comments'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
-setPlebbitJs(PlebbitJsMock)
 
 describe('accounts', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
@@ -792,8 +795,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish comment', async () => {
         const publishCommentOptions = {
@@ -883,8 +886,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish vote', async () => {
         const publishVoteOptions = {
@@ -935,8 +938,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish comment edit', async () => {
         const commentEditOptions = {
@@ -1014,8 +1017,8 @@ describe('accounts', () => {
         await testUtils.resetDatabasesAndStores()
       })
 
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
 
       test('publish subplebbit edit', async () => {
         const subplebbitAddress = '12D3KooW...'
@@ -1066,8 +1069,8 @@ describe('accounts', () => {
     let waitFor: any
 
     beforeEach(async () => {
-      onChallenge = jest.fn()
-      onChallengeVerification = jest.fn()
+      onChallenge = vi.fn()
+      onChallengeVerification = vi.fn()
       publishOptions = {onChallenge, onChallengeVerification}
       rendered = renderHook<any, any>((props: any) => {
         const account = useAccount({accountName: props?.accountName})
@@ -1235,86 +1238,88 @@ describe('accounts', () => {
       expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments, activeAccountId)
     })
 
-    describe('retry on fail', () => {
-      beforeAll(() => {
+    describe(
+      'retry on fail',
+      () => {
+        beforeAll(() => {
+          testUtils.silenceWaitForWarning = true
+        })
+        afterAll(() => {
+          testUtils.silenceWaitForWarning = false
+        })
+        test(`cid gets added to account comment after fetched in useComment`, async () => {
+          const rendered = renderHook<any, any>((commentCid) => {
+            const {accountComments} = useAccountComments()
+            const comment = useComment({commentCid})
+            return accountComments
+          })
+          await waitFor(() => rendered.result.current[0].content)
+
+          expect(rendered.result.current[0].content).toBe('content 1')
+          expect(rendered.result.current[1].content).toBe('content 2')
+          expect(rendered.result.current[0].cid).toBe(undefined)
+          expect(rendered.result.current[1].cid).toBe(undefined)
+          expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
+
+          // mock the comment to get from plebbit.getComment()
+          // to simulate getting a comment that the account published
+          const commentToGet = Plebbit.prototype.commentToGet
+          Plebbit.prototype.commentToGet = () => ({
+            author: rendered.result.current[0].author,
+            timestamp: rendered.result.current[0].timestamp,
+            content: rendered.result.current[0].content,
+          })
+
+          rendered.rerender('content 1 cid')
+          await waitFor(() => !!rendered.result.current[0].cid)
+
+          expect(rendered.result.current[0].content).toBe('content 1')
+          expect(rendered.result.current[1].content).toBe('content 2')
+          expect(rendered.result.current[0].cid).toBe('content 1 cid')
+          expect(rendered.result.current[1].cid).toBe(undefined)
+          expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
+
+          // make sure the account comment starts updating by checking if it received upvotes
+          await waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
+          expect(rendered.result.current[0].upvoteCount).toBe(3)
+
+          // mock the second comment to get from plebbit.getComment()
+          Plebbit.prototype.commentToGet = () => ({
+            author: rendered.result.current[1].author,
+            timestamp: rendered.result.current[1].timestamp,
+            content: rendered.result.current[1].content,
+          })
+
+          rendered.rerender('content 2 cid')
+          await waitFor(() => !!rendered.result.current[1].cid)
+
+          expect(rendered.result.current[0].content).toBe('content 1')
+          expect(rendered.result.current[1].content).toBe('content 2')
+          expect(rendered.result.current[0].cid).toBe('content 1 cid')
+          expect(rendered.result.current[1].cid).toBe('content 2 cid')
+          expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
+
+          // restore mock
+          Plebbit.prototype.commentToGet = commentToGet
+
+          // reset stores to force using the db
+          await testUtils.resetStores()
+
+          // check if cids are still in database after new store
+          const rendered2 = renderHook<any, any>(() => useAccountComments())
+          const waitFor2 = testUtils.createWaitFor(rendered2)
+          await waitFor2(() => rendered2.result.current[0].cid)
+
+          expect(rendered2.result.current.accountComments[0].cid).toBe('content 1 cid')
+          expect(rendered2.result.current.accountComments[1].cid).toBe('content 2 cid')
+          expect(rendered2.result.current.accountComments[2].cid).toBe(undefined)
+          expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments)
+        })
         // this test seems to depend on a race condition and must be retried
         // most likely not a bug with the hook
-        jest.retryTimes(10)
-        testUtils.silenceWaitForWarning = true
-      })
-      afterAll(() => {
-        jest.retryTimes(0)
-        testUtils.silenceWaitForWarning = false
-      })
-      test(`cid gets added to account comment after fetched in useComment`, async () => {
-        const rendered = renderHook<any, any>((commentCid) => {
-          const {accountComments} = useAccountComments()
-          const comment = useComment({commentCid})
-          return accountComments
-        })
-        await waitFor(() => rendered.result.current[0].content)
-
-        expect(rendered.result.current[0].content).toBe('content 1')
-        expect(rendered.result.current[1].content).toBe('content 2')
-        expect(rendered.result.current[0].cid).toBe(undefined)
-        expect(rendered.result.current[1].cid).toBe(undefined)
-        expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
-
-        // mock the comment to get from plebbit.getComment()
-        // to simulate getting a comment that the account published
-        const commentToGet = Plebbit.prototype.commentToGet
-        Plebbit.prototype.commentToGet = () => ({
-          author: rendered.result.current[0].author,
-          timestamp: rendered.result.current[0].timestamp,
-          content: rendered.result.current[0].content,
-        })
-
-        rendered.rerender('content 1 cid')
-        await waitFor(() => !!rendered.result.current[0].cid)
-
-        expect(rendered.result.current[0].content).toBe('content 1')
-        expect(rendered.result.current[1].content).toBe('content 2')
-        expect(rendered.result.current[0].cid).toBe('content 1 cid')
-        expect(rendered.result.current[1].cid).toBe(undefined)
-        expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
-
-        // make sure the account comment starts updating by checking if it received upvotes
-        await waitFor(() => typeof rendered.result.current[0].upvoteCount === 'number')
-        expect(rendered.result.current[0].upvoteCount).toBe(3)
-
-        // mock the second comment to get from plebbit.getComment()
-        Plebbit.prototype.commentToGet = () => ({
-          author: rendered.result.current[1].author,
-          timestamp: rendered.result.current[1].timestamp,
-          content: rendered.result.current[1].content,
-        })
-
-        rendered.rerender('content 2 cid')
-        await waitFor(() => !!rendered.result.current[1].cid)
-
-        expect(rendered.result.current[0].content).toBe('content 1')
-        expect(rendered.result.current[1].content).toBe('content 2')
-        expect(rendered.result.current[0].cid).toBe('content 1 cid')
-        expect(rendered.result.current[1].cid).toBe('content 2 cid')
-        expectAccountCommentsToHaveIndexAndAccountId(rendered.result.current)
-
-        // restore mock
-        Plebbit.prototype.commentToGet = commentToGet
-
-        // reset stores to force using the db
-        await testUtils.resetStores()
-
-        // check if cids are still in database after new store
-        const rendered2 = renderHook<any, any>(() => useAccountComments())
-        const waitFor2 = testUtils.createWaitFor(rendered2)
-        await waitFor2(() => rendered2.result.current[0].cid)
-
-        expect(rendered2.result.current.accountComments[0].cid).toBe('content 1 cid')
-        expect(rendered2.result.current.accountComments[1].cid).toBe('content 2 cid')
-        expect(rendered2.result.current.accountComments[2].cid).toBe(undefined)
-        expectAccountCommentsToHaveIndexAndAccountId(rendered2.result.current.accountComments)
-      })
-    })
+      },
+      {retry: 20}
+    )
 
     test(`cid gets added to account comment after feed is fetched`, async () => {
       const getPage = Pages.prototype.getPage
@@ -1751,72 +1756,74 @@ describe('accounts', () => {
   })
 
   describe('useAccountSubplebbits', () => {
-    describe('with setup', () => {
-      beforeAll(() => {
+    describe(
+      'with setup',
+      () => {
+        beforeAll(() => {
+          testUtils.silenceWaitForWarning = true
+        })
+        afterAll(() => {
+          testUtils.silenceWaitForWarning = false
+        })
+        afterEach(async () => {
+          await testUtils.resetDatabasesAndStores()
+        })
+
+        let rendered: any
+        let waitFor: Function
+
+        beforeEach(async () => {
+          rendered = renderHook<any, any>(() => {
+            const {accountSubplebbits} = useAccountSubplebbits()
+            const account = useAccount()
+            const {setAccount} = accountsActions
+            return {accountSubplebbits, setAccount, account}
+          })
+          waitFor = testUtils.createWaitFor(rendered)
+
+          await waitFor(() => rendered.result.current.account.name)
+          const {account, setAccount} = rendered.result.current
+          const role = {role: 'moderator'}
+          const subplebbits = {'subplebbit address 1': {role}}
+          await act(async () => {
+            await setAccount({...account, subplebbits})
+          })
+        })
+
+        test('returns owner subplebbits', async () => {
+          await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+          expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
+          expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
+        })
+
+        test('not yet fetched accounts subplebbits have address', async () => {
+          await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+          expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].address).toBe('list subplebbit address 1')
+          expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].address).toBe('list subplebbit address 2')
+        })
+
+        test('returns moderator subplebbits after setting them', async () => {
+          await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role === 'moderator')
+          expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
+          await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
+          expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
+          expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
+        })
+
+        test('remove subplebbit role to account.subplebbits[subplebbitAddress].role after encountering it removed a subplebbit', async () => {
+          await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
+          expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
+          // subplebbit address 1 doesn't have account.author.address as role, so it gets removed from accountSubplebbits
+          // after a render
+          await waitFor(() => !rendered.result.current.accountSubplebbits['subplebbit address 1'])
+          expect(rendered.result.current.accountSubplebbits['subplebbit address 1']).toBe(undefined)
+        })
         // roles tests depend on race conditions as part of the test
         // so not possible to make them deterministic, add a retry
         // the hooks don't have the race condition, only the tests do
-        jest.retryTimes(20)
-        testUtils.silenceWaitForWarning = true
-      })
-      afterAll(() => {
-        jest.retryTimes(0)
-        testUtils.silenceWaitForWarning = false
-      })
-      afterEach(async () => {
-        await testUtils.resetDatabasesAndStores()
-      })
-
-      let rendered: any
-      let waitFor: Function
-
-      beforeEach(async () => {
-        rendered = renderHook<any, any>(() => {
-          const {accountSubplebbits} = useAccountSubplebbits()
-          const account = useAccount()
-          const {setAccount} = accountsActions
-          return {accountSubplebbits, setAccount, account}
-        })
-        waitFor = testUtils.createWaitFor(rendered)
-
-        await waitFor(() => rendered.result.current.account.name)
-        const {account, setAccount} = rendered.result.current
-        const role = {role: 'moderator'}
-        const subplebbits = {'subplebbit address 1': {role}}
-        await act(async () => {
-          await setAccount({...account, subplebbits})
-        })
-      })
-
-      test('returns owner subplebbits', async () => {
-        await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
-        expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
-        expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
-      })
-
-      test('not yet fetched accounts subplebbits have address', async () => {
-        await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
-        expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].address).toBe('list subplebbit address 1')
-        expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].address).toBe('list subplebbit address 2')
-      })
-
-      test('returns moderator subplebbits after setting them', async () => {
-        await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role === 'moderator')
-        expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
-        await waitFor(() => rendered.result.current.accountSubplebbits['list subplebbit address 1'])
-        expect(rendered.result.current.accountSubplebbits['list subplebbit address 1'].role.role).toBe('owner')
-        expect(rendered.result.current.accountSubplebbits['list subplebbit address 2'].role.role).toBe('owner')
-      })
-
-      test('remove subplebbit role to account.subplebbits[subplebbitAddress].role after encountering it removed a subplebbit', async () => {
-        await waitFor(() => rendered.result.current.accountSubplebbits['subplebbit address 1'])
-        expect(rendered.result.current.accountSubplebbits['subplebbit address 1'].role.role).toBe('moderator')
-        // subplebbit address 1 doesn't have account.author.address as role, so it gets removed from accountSubplebbits
-        // after a render
-        await waitFor(() => !rendered.result.current.accountSubplebbits['subplebbit address 1'])
-        expect(rendered.result.current.accountSubplebbits['subplebbit address 1']).toBe(undefined)
-      })
-    })
+      },
+      {retry: 20}
+    )
 
     test('add subplebbit role to account.subplebbits[subplebbitAddress].role after encountering it in a subplebbit', async () => {
       // don't use the same setup or test doesnt work
@@ -1899,8 +1906,8 @@ describe('accounts', () => {
 
       // publishSubplebbitEdit
       const editedTitle = 'edited title'
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       await act(async () => {
         await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
       })
@@ -1991,8 +1998,8 @@ describe('accounts', () => {
 
       // publishSubplebbitEdit
       const editedTitle = 'edited title'
-      const onChallenge = jest.fn()
-      const onChallengeVerification = jest.fn()
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
       await act(async () => {
         await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {title: editedTitle, onChallenge, onChallengeVerification})
       })

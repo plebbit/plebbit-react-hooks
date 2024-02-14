@@ -6,7 +6,6 @@ import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import utils from '../lib/utils'
 import EventEmitter from 'events'
 import PlebbitJsMock, {Plebbit} from '../lib/plebbit-js/plebbit-js-mock'
-setPlebbitJs(PlebbitJsMock)
 
 const ipfsGatewayUrl1 = 'https://ipfsgateway1.com'
 const ipfsGatewayUrl2 = 'https://ipfsgateway2.com'
@@ -247,7 +246,11 @@ const createComment = Plebbit.prototype.createComment
 const createSubplebbit = Plebbit.prototype.createSubplebbit
 
 describe('states', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
     // mock create to add clients states
     Plebbit.prototype.createComment = async ({cid}: any) => {
       const comment: any = new Comment({cid})
@@ -395,7 +398,7 @@ describe('states', () => {
 
     test('publish comment', async () => {
       const onChallenge = (challenge: any, comment: Comment) => comment.publishChallengeAnswers()
-      const onChallengeVerification = jest.fn()
+      const onChallengeVerification = vi.fn()
       const publishCommentOptions = {
         subplebbitAddress: '12D3KooW... states.test',
         title: 'some title states.test',

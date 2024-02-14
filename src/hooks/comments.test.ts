@@ -5,10 +5,13 @@ import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
-setPlebbitJs(PlebbitJsMock)
 
 describe('comments', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
