@@ -10,7 +10,8 @@ import utils from '../lib/utils'
 setPlebbitJs(PlebbitJsMock)
 
 describe('subplebbits', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    await testUtils.resetDatabasesAndStores() // Make sure we're using mocked Plebbit in account
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {

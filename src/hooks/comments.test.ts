@@ -9,8 +9,9 @@ import utils from '../lib/utils'
 setPlebbitJs(PlebbitJsMock)
 
 describe('comments', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     testUtils.silenceReactWarnings()
+    await testUtils.resetDatabasesAndStores() // Make sure we're using mocked Plebbit in account
   })
   afterAll(() => {
     testUtils.restoreAll()

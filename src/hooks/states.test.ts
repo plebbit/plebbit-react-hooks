@@ -248,7 +248,7 @@ const createComment = Plebbit.prototype.createComment
 const createSubplebbit = Plebbit.prototype.createSubplebbit
 
 describe('states', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     // mock create to add clients states
     Plebbit.prototype.createComment = async ({cid}: any) => {
       const comment: any = new Comment({cid})
@@ -258,6 +258,7 @@ describe('states', () => {
       const subplebbit: any = new Subplebbit({address})
       return subplebbit
     }
+    await testUtils.resetDatabasesAndStores() // Make sure default account uses mocked plebbit
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
