@@ -41,11 +41,11 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
         // filter the feed
         const filteredSortedBufferedFeedPosts = [];
         for (const post of sortedBufferedFeedPosts) {
-            // address is blocked (accounts[accountId] is undefined in rare cases)
+            // address is blocked
             if (((_d = accounts[accountId]) === null || _d === void 0 ? void 0 : _d.blockedAddresses[post.subplebbitAddress]) || (((_e = post.author) === null || _e === void 0 ? void 0 : _e.address) && ((_f = accounts[accountId]) === null || _f === void 0 ? void 0 : _f.blockedAddresses[post.author.address]))) {
                 continue;
             }
-            // comment cid is blocked (accounts[accountId] is undefined in rare cases)
+            // comment cid is blocked
             if ((_g = accounts[accountId]) === null || _g === void 0 ? void 0 : _g.blockedCids[post.cid]) {
                 continue;
             }
@@ -180,7 +180,7 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions, feeds) => {
  * Get which feeds have more posts, i.e. have no reached the final page of all subs
  */
 export const getFeedsHaveMore = (feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts) => {
-    var _a;
+    var _a, _b;
     const feedsHaveMore = {};
     feedsLoop: for (const feedName in feedsOptions) {
         // if the feed still has buffered posts, then it still has more
@@ -191,7 +191,7 @@ export const getFeedsHaveMore = (feedsOptions, bufferedFeeds, subplebbits, subpl
         const { subplebbitAddresses, sortType, accountId } = feedsOptions[feedName];
         subplebbitAddressesLoop: for (const subplebbitAddress of subplebbitAddresses) {
             // don't consider the sub if the address is blocked
-            if (accounts[accountId].blockedAddresses[subplebbitAddress]) {
+            if ((_b = accounts[accountId]) === null || _b === void 0 ? void 0 : _b.blockedAddresses[subplebbitAddress]) {
                 continue subplebbitAddressesLoop;
             }
             const subplebbit = subplebbits[subplebbitAddress];

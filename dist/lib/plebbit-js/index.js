@@ -1,7 +1,7 @@
 // NOTE: don't import plebbit-js directly to be able to replace the implementation
 import PlebbitJsMockContent from './plebbit-js-mock-content';
 import Logger from '@plebbit/plebbit-logger';
-import Plebbit from '@plebbit/plebbit-js';
+import Plebbit from '@plebbit/plebbit-js/dist/browser/index';
 import assert from 'assert';
 const log = Logger('plebbit-react-hooks:plebbit-js');
 const PlebbitJs = {

@@ -1,9 +1,7 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {PlebbitProvider, useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} = require('../../dist')
+const {useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} = require('../../dist')
 const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const Plebbit = require('@plebbit/plebbit-js')
-Plebbit.setNativeFunctions(window.plebbitJsNativeFunctions)
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
@@ -53,18 +51,15 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       let rendered, waitFor, commentCid
 
       before(async () => {
-        rendered = renderHook(
-          ({subplebbitAddress, commentCid} = {}) => {
-            const account = useAccount()
-            const subplebbit = useSubplebbit({subplebbitAddress})
-            const subplebbitStats = useSubplebbitStats({subplebbitAddress})
-            const {accountVotes} = useAccountVotes()
-            const comment = useComment({commentCid})
+        rendered = renderHook(({subplebbitAddress, commentCid} = {}) => {
+          const account = useAccount()
+          const subplebbit = useSubplebbit({subplebbitAddress})
+          const subplebbitStats = useSubplebbitStats({subplebbitAddress})
+          const {accountVotes} = useAccountVotes()
+          const comment = useComment({commentCid})
 
-            return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
-          },
-          {wrapper: PlebbitProvider}
-        )
+          return {account, subplebbit, subplebbitStats, comment, accountVotes, ...accountsActions}
+        })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
         await waitFor(() => rendered.result.current.account.name === 'Account 1')

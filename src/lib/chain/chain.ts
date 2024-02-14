@@ -12,7 +12,7 @@ const getNftImageUrlNoCache = async (nftMetadataUrl: string, ipfsGatewayUrl: str
   let nftImageUrl
 
   // if the ipfs file is json, it probably has an 'image' property
-  const text = await fetch(nftMetadataUrl).then((resp) => resp.text())
+  const text = await fetch(nftMetadataUrl).then((resp: any) => resp.text())
   try {
     nftImageUrl = JSON.parse(text).image
   } catch (e) {

@@ -1,6 +1,5 @@
 // script to start IPFS and plebbit-js for testing
 
-const Plebbit = require('@plebbit/plebbit-js')
 const getTmpFolderPath = require('tempy').directory
 const plebbitDataPath = getTmpFolderPath()
 const startIpfs = require('./start-ipfs')
@@ -26,6 +25,7 @@ const privateKey = signers[0].privateKey
     updateInterval: 1000,
   }
 
+  const {default: Plebbit} = await import('@plebbit/plebbit-js')
   const plebbit = await Plebbit(plebbitOptions)
   const plebbit2 = await Plebbit(plebbitOptions)
   const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
