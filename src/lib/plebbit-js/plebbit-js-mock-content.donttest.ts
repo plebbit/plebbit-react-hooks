@@ -1,6 +1,5 @@
 // this file is not part of the tests
 // only use it to log the content mock and see if the outputs make sense
-// use `jest --testRegex plebbit-js-mock-content.donttest.ts` to run
 import {describe, expect, test, vi, beforeAll, afterAll, afterEach} from 'vitest'
 
 const timeout = 180000

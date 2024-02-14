@@ -7,7 +7,5 @@ export default defineConfig({
     environment: 'jsdom',
     root: 'src/',
     setupFiles: ['../config/vitest.setup.cjs'],
-    // retry:  10,
-    // testTimeout: 60000
   },
 })
