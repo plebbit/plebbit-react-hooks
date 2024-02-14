@@ -1,4 +1,3 @@
-import {expect, test, vi} from 'vitest'
 import {assertTestServerDidntCrash} from '../test-server/monitor-test-server'
 import {act, renderHook} from '@testing-library/react-hooks/dom'
 import {useAccount, useSubplebbit, useSubplebbitStats, useAccountVotes, useComment, debugUtils} from '../../dist'
