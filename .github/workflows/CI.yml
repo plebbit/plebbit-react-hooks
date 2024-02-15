@@ -41,7 +41,7 @@ jobs:
           node-version: 18
 
       - run: yarn install --frozen-lockfile
-      - run: yarn test
+      - run: yarn test --pool=forks # --pool=forks fixes "Segmentation fault" error in CI
       - run: yarn build
       - run: yarn webpack
 
