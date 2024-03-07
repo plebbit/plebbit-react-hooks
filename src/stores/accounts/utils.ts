@@ -1,4 +1,4 @@
-import {Account, Role, Subplebbits, AccountsComment, AccountsComments, CommentCidsToAccountsComments} from '../../types'
+import {Account, Role, Subplebbits, AccountComment, AccountsComments, CommentCidsToAccountsComments} from '../../types'
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
@@ -114,7 +114,7 @@ export const fetchCommentLinkDimensions = async (link: string) => {
   return {}
 }
 
-export const getInitAccountCommentsToUpdate = (accountsComments) => {
+export const getInitAccountCommentsToUpdate = (accountsComments: AccountsComments) => {
   const accountCommentsToUpdate: {accountComment: AccountComment; accountId: string}[] = []
   for (const accountId in accountsComments) {
     for (const accountComment of accountsComments[accountId]) {
