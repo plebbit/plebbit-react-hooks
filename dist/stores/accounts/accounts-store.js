@@ -16,7 +16,7 @@ import createStore from 'zustand';
 import * as accountsActions from './accounts-actions';
 import * as accountsActionsInternal from './accounts-actions-internal';
 import localForage from 'localforage';
-import { getCommentCidsToAccountsComments } from './utils';
+import { getCommentCidsToAccountsComments, getInitAccountCommentsToUpdate } from './utils';
 // reset all event listeners in between tests
 export const listeners = [];
 const accountsStore = createStore((setState, getState) => ({
@@ -80,18 +80,16 @@ const initializeAccountsStore = () => __awaiter(void 0, void 0, void 0, function
         accountsEdits,
     }));
     // start looking for updates for all accounts comments in database
-    for (const accountId in accountsComments) {
-        for (const accountComment of accountsComments[accountId]) {
-            accountsStore
-                .getState()
-                .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
-                .catch((error) => log.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
-                accountComment,
-                accountCommentIndex: accountComment.index,
-                accounts,
-                error,
-            }));
-        }
+    for (const { accountComment, accountId } of getInitAccountCommentsToUpdate(accountsComments)) {
+        accountsStore
+            .getState()
+            .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
+            .catch((error) => log.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
+            accountComment,
+            accountCommentIndex: accountComment.index,
+            accounts,
+            error,
+        }));
     }
 });
 // TODO: find way to test started subplebbits

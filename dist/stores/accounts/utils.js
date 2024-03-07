@@ -110,9 +110,27 @@ export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, vo
     }
     return {};
 });
+export const getInitAccountCommentsToUpdate = (accountsComments) => {
+    const accountCommentsToUpdate = [];
+    for (const accountId in accountsComments) {
+        for (const accountComment of accountsComments[accountId]) {
+            accountCommentsToUpdate.push({ accountComment, accountId });
+        }
+    }
+    // update newer comments first, more likely to have notifications
+    accountCommentsToUpdate.sort((a, b) => b.accountComment.timestamp - a.accountComment.timestamp);
+    // updating too many comments during init slows down fetching comments/subs
+    if (accountCommentsToUpdate.length > 10) {
+        accountCommentsToUpdate.length = 10;
+    }
+    // TODO: add some algo to fetch all notifications (even old), but not on init
+    // during downtimes when we're not fetching anything else
+    return accountCommentsToUpdate;
+};
 const utils = {
     getAccountSubplebbits,
     getCommentCidsToAccountsComments,
     fetchCommentLinkDimensions,
+    getInitAccountCommentsToUpdate,
 };
 export default utils;

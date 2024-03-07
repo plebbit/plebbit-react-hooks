@@ -1,4 +1,4 @@
-import { Account, Subplebbits, AccountsComments, CommentCidsToAccountsComments } from '../../types';
+import { Account, Subplebbits, AccountComment, AccountsComments, CommentCidsToAccountsComments } from '../../types';
 export declare const getAccountSubplebbits: (account: Account, subplebbits: Subplebbits) => any;
 export declare const getCommentCidsToAccountsComments: (accountsComments: AccountsComments) => CommentCidsToAccountsComments;
 export declare const fetchCommentLinkDimensions: (link: string) => Promise<{
@@ -8,6 +8,10 @@ export declare const fetchCommentLinkDimensions: (link: string) => Promise<{
     linkWidth?: undefined;
     linkHeight?: undefined;
 }>;
+export declare const getInitAccountCommentsToUpdate: (accountsComments: AccountsComments) => {
+    accountComment: AccountComment;
+    accountId: string;
+}[];
 declare const utils: {
     getAccountSubplebbits: (account: Account, subplebbits: Subplebbits) => any;
     getCommentCidsToAccountsComments: (accountsComments: AccountsComments) => CommentCidsToAccountsComments;
@@ -18,5 +22,9 @@ declare const utils: {
         linkWidth?: undefined;
         linkHeight?: undefined;
     }>;
+    getInitAccountCommentsToUpdate: (accountsComments: AccountsComments) => {
+        accountComment: AccountComment;
+        accountId: string;
+    }[];
 };
 export default utils;
