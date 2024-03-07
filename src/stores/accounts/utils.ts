@@ -1,4 +1,4 @@
-import {Account, Role, Subplebbits, AccountsComments, CommentCidsToAccountsComments} from '../../types'
+import {Account, Role, Subplebbits, AccountsComment, AccountsComments, CommentCidsToAccountsComments} from '../../types'
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
@@ -114,10 +114,32 @@ export const fetchCommentLinkDimensions = async (link: string) => {
   return {}
 }
 
+export const getInitAccountCommentsToUpdate = (accountsComments) => {
+  const accountCommentsToUpdate: {accountComment: AccountComment; accountId: string}[] = []
+  for (const accountId in accountsComments) {
+    for (const accountComment of accountsComments[accountId]) {
+      accountCommentsToUpdate.push({accountComment, accountId})
+    }
+  }
+
+  // update newer comments first, more likely to have notifications
+  accountCommentsToUpdate.sort((a, b) => b.accountComment.timestamp - a.accountComment.timestamp)
+
+  // updating too many comments during init slows down fetching comments/subs
+  if (accountCommentsToUpdate.length > 10) {
+    accountCommentsToUpdate.length = 10
+  }
+
+  // TODO: add some algo to fetch all notifications (even old), but not on init
+  // during downtimes when we're not fetching anything else
+  return accountCommentsToUpdate
+}
+
 const utils = {
   getAccountSubplebbits,
   getCommentCidsToAccountsComments,
   fetchCommentLinkDimensions,
+  getInitAccountCommentsToUpdate,
 }
 
 export default utils

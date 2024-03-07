@@ -21,7 +21,7 @@ import createStore from 'zustand'
 import * as accountsActions from './accounts-actions'
 import * as accountsActionsInternal from './accounts-actions-internal'
 import localForage from 'localforage'
-import {getCommentCidsToAccountsComments} from './utils'
+import {getCommentCidsToAccountsComments, getInitAccountCommentsToUpdate} from './utils'
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -108,20 +108,18 @@ const initializeAccountsStore = async () => {
   }))
 
   // start looking for updates for all accounts comments in database
-  for (const accountId in accountsComments) {
-    for (const accountComment of accountsComments[accountId]) {
-      accountsStore
-        .getState()
-        .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
-        .catch((error: unknown) =>
-          log.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
-            accountComment,
-            accountCommentIndex: accountComment.index,
-            accounts,
-            error,
-          })
-        )
-    }
+  for (const {accountComment, accountId} of getInitAccountCommentsToUpdate(accountsComments)) {
+    accountsStore
+      .getState()
+      .accountsActionsInternal.startUpdatingAccountCommentOnCommentUpdateEvents(accountComment, accounts[accountId], accountComment.index)
+      .catch((error: unknown) =>
+        log.error('accountsStore.initializeAccountsStore startUpdatingAccountCommentOnCommentUpdateEvents error', {
+          accountComment,
+          accountCommentIndex: accountComment.index,
+          accounts,
+          error,
+        })
+      )
   }
 }
 
