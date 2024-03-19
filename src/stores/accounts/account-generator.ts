@@ -21,6 +21,10 @@ const chainProviders: ChainProviders = {
     urls: ['https://polygon-rpc.com'],
     chainId: 137,
   },
+  sol: {
+    urls: ['https://solrpc.xyz'],
+    chainId: 1,
+  },
 }
 
 // default options aren't saved to database so they can be changed
