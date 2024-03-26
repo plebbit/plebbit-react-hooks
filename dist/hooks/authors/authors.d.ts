@@ -1,4 +1,4 @@
-import { ChainProviders, UseAuthorOptions, UseAuthorResult, UseAuthorCommentsOptions, UseAuthorCommentsResult, UseAuthorAvatarOptions, UseAuthorAvatarResult, UseResolvedAuthorAddressOptions, UseResolvedAuthorAddressResult, UseAuthorAddressOptions, UseAuthorAddressResult } from '../../types';
+import { UseAuthorOptions, UseAuthorResult, UseAuthorCommentsOptions, UseAuthorCommentsResult, UseAuthorAvatarOptions, UseAuthorAvatarResult, UseResolvedAuthorAddressOptions, UseResolvedAuthorAddressResult, UseAuthorAddressOptions, UseAuthorAddressResult } from '../../types';
 /**
  * @param authorAddress - The address of the author
  * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)
@@ -31,4 +31,3 @@ export declare function useAuthorAddress(options?: UseAuthorAddressOptions): Use
  * the active account.
  */
 export declare function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptions): UseResolvedAuthorAddressResult;
-export declare const resolveAuthorAddress: (authorAddress: string, chainProviders: ChainProviders, cache?: boolean) => Promise<any>;

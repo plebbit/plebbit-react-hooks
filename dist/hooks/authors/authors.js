@@ -13,7 +13,6 @@ import { useAccount } from '../accounts';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:authors:hooks');
 import assert from 'assert';
-import { resolveEnsTxtRecord, resolveEnsTxtRecordNoCache } from '../../lib/chain';
 import { useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted } from './author-avatars';
 import { useComment } from '../comments';
 import { useAuthorCommentsName, usePlebbitAddress } from './utils';
@@ -288,7 +287,7 @@ const resolveAuthorAddressPromises = {};
  */
 // NOTE: useResolvedAuthorAddress tests are skipped, if changes are made they must be tested manually
 export function useResolvedAuthorAddress(options) {
-    var _a;
+    var _a, _b;
     assert(!options || typeof options === 'object', `useResolvedAuthorAddress options argument '${options}' not an object`);
     let { author, accountName, cache } = options || {};
     // cache by default
@@ -312,8 +311,26 @@ export function useResolvedAuthorAddress(options) {
     if (options && account && (author === null || author === void 0 ? void 0 : author.address)) {
         initialState = 'ready';
     }
+    const isCryptoName = author === null || author === void 0 ? void 0 : author.address.includes('.');
+    const tld = isCryptoName ? (_b = author === null || author === void 0 ? void 0 : author.address) === null || _b === void 0 ? void 0 : _b.split('.').pop() : undefined;
+    const resolveAuthorAddressNoCache = () => {
+        if (Boolean(resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address])) {
+            return resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address];
+        }
+        log('useResolvedAuthorAddress plebbit.resolveAuthorAddress', { address: author === null || author === void 0 ? void 0 : author.address });
+        resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address] = account.plebbit.resolveAuthorAddress(author === null || author === void 0 ? void 0 : author.address);
+        return resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address];
+    };
+    const resolveAuthorAddress = () => __awaiter(this, void 0, void 0, function* () {
+        const cached = resolvedAuthorAddressCache.get(author === null || author === void 0 ? void 0 : author.address);
+        if (cached) {
+            return cached;
+        }
+        const res = yield resolveAuthorAddressNoCache();
+        resolvedAuthorAddressCache.set(author === null || author === void 0 ? void 0 : author.address, res);
+        return res;
+    });
     useInterval(() => {
-        var _a;
         // no options, do nothing or reset
         if (!account || !(author === null || author === void 0 ? void 0 : author.address)) {
             if (resolvedAddress !== undefined) {
@@ -328,7 +345,7 @@ export function useResolvedAuthorAddress(options) {
             return;
         }
         // address isn't a crypto domain, can't be resolved
-        if (!(author === null || author === void 0 ? void 0 : author.address.includes('.'))) {
+        if (!isCryptoName) {
             if (state !== 'failed') {
                 setErrors([Error('not a crypto domain')]);
                 setState('failed');
@@ -336,8 +353,8 @@ export function useResolvedAuthorAddress(options) {
             }
             return;
         }
-        // only support resolving '.eth' for now
-        if (!((_a = author === null || author === void 0 ? void 0 : author.address) === null || _a === void 0 ? void 0 : _a.endsWith('.eth'))) {
+        // only support resolving '.eth/.sol' for now
+        if (tld !== 'eth' && tld !== 'sol') {
             if (state !== 'failed') {
                 setErrors([Error('crypto domain type unsupported')]);
                 setState('failed');
@@ -349,7 +366,13 @@ export function useResolvedAuthorAddress(options) {
         (() => __awaiter(this, void 0, void 0, function* () {
             try {
                 setState('resolving');
-                const res = yield resolveAuthorAddress(author === null || author === void 0 ? void 0 : author.address, chainProviders, cache);
+                let res;
+                if (cache) {
+                    res = yield resolveAuthorAddress();
+                }
+                else {
+                    res = yield resolveAuthorAddressNoCache();
+                }
                 setState('succeeded');
                 // TODO: check if resolved address is the same as author.signer.publicKey
                 if (res !== resolvedAddress) {
@@ -364,9 +387,8 @@ export function useResolvedAuthorAddress(options) {
             }
         }))();
     }, interval, true, [author === null || author === void 0 ? void 0 : author.address, chainProviders]);
-    // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, chainProviders})
-    // only support ENS at the moment
-    const chainProvider = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth'];
+    log('useResolvedAuthorAddress', { author, state, errors, resolvedAddress, chainProviders });
+    const chainProvider = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[tld];
     return useMemo(() => ({
         resolvedAddress,
         chainProvider,
@@ -375,16 +397,3 @@ export function useResolvedAuthorAddress(options) {
         errors,
     }), [resolvedAddress, chainProvider, state, errors]);
 }
-// NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
-export const resolveAuthorAddress = (authorAddress, chainProviders, cache) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
-    let resolvedAuthorAddress;
-    if (authorAddress.endsWith('.eth')) {
-        const resolve = cache ? resolveEnsTxtRecord : resolveEnsTxtRecordNoCache;
-        resolvedAuthorAddress = yield resolve(authorAddress, 'plebbit-author-address', 'eth', (_b = (_a = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth']) === null || _a === void 0 ? void 0 : _a.urls) === null || _b === void 0 ? void 0 : _b[0], (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders['eth']) === null || _c === void 0 ? void 0 : _c.chainId);
-    }
-    else {
-        throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`);
-    }
-    return resolvedAuthorAddress;
-});
