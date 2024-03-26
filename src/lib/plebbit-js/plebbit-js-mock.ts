@@ -18,7 +18,9 @@ export const debugPlebbitJsMock = () => {
 }
 
 export class Plebbit extends EventEmitter {
-  async resolveAuthorAddress(authorAddress: string) {}
+  async resolveAuthorAddress(authorAddress: string) {
+    return 'resolved author address'
+  }
 
   async createSigner() {
     return {

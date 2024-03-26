@@ -574,16 +574,17 @@ describe('authors', () => {
     const timeout = 60000
 
     // skip because uses internet and not deterministic
-    test.skip(
+    test(
       'useResolvedAuthorAddress',
       async () => {
         const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
         const waitFor = testUtils.createWaitFor(rendered, {timeout})
         expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender({address: 'plebbit.eth'})
+        rendered.rerender({address: 'subplebbit.eth'})
         await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
-        expect(rendered.result.current.resolvedAddress).toBe('QmX18Ls7iss1BLXYjZqP5faFoXih7YYSUkADdATHxiXmnu')
+        console.log(rendered.result.current)
+        expect(rendered.result.current.resolvedAddress).toBe('resolved author address')
       },
       {timeout}
     )
@@ -612,6 +613,32 @@ describe('authors', () => {
         rendered.rerender({address: 'abc'})
         await waitFor(() => rendered.result.current.error)
         expect(rendered.result.current.error.message).toBe('not a crypto domain')
+      },
+      {timeout}
+    )
+
+    test(
+      'useResolvedAuthorAddress .eth has no error',
+      async () => {
+        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+        const waitFor = testUtils.createWaitFor(rendered)
+        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+
+        rendered.rerender({address: 'abc.eth'})
+        expect(rendered.result.current.error).toBe(undefined)
+      },
+      {timeout}
+    )
+
+    test(
+      'useResolvedAuthorAddress .sol has no error',
+      async () => {
+        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+        const waitFor = testUtils.createWaitFor(rendered)
+        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+
+        rendered.rerender({address: 'abc.sol'})
+        expect(rendered.result.current.error).toBe(undefined)
       },
       {timeout}
     )

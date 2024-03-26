@@ -18,7 +18,6 @@ import {
   UseAuthorAddressOptions,
   UseAuthorAddressResult,
 } from '../../types'
-import {resolveEnsTxtRecord, resolveEnsTxtRecordNoCache} from '../../lib/chain'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, useAuthorAvatarIsWhitelisted} from './author-avatars'
 import {useComment, useComments} from '../comments'
 import {useAuthorCommentsName, usePlebbitAddress} from './utils'
@@ -348,6 +347,27 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
     initialState = 'ready'
   }
 
+  const isCryptoName = author?.address.includes('.')
+  const tld = isCryptoName ? author?.address?.split('.').pop() : undefined
+
+  const resolveAuthorAddressNoCache = () => {
+    if (Boolean(resolveAuthorAddressPromises[author?.address])) {
+      return resolveAuthorAddressPromises[author?.address]
+    }
+    log('useResolvedAuthorAddress plebbit.resolveAuthorAddress', {address: author?.address})
+    resolveAuthorAddressPromises[author?.address] = account.plebbit.resolveAuthorAddress(author?.address)
+    return resolveAuthorAddressPromises[author?.address]
+  }
+  const resolveAuthorAddress = async () => {
+    const cached = resolvedAuthorAddressCache.get(author?.address)
+    if (cached) {
+      return cached
+    }
+    const res = await resolveAuthorAddressNoCache()
+    resolvedAuthorAddressCache.set(author?.address, res)
+    return res
+  }
+
   useInterval(
     () => {
       // no options, do nothing or reset
@@ -365,7 +385,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
       }
 
       // address isn't a crypto domain, can't be resolved
-      if (!author?.address.includes('.')) {
+      if (!isCryptoName) {
         if (state !== 'failed') {
           setErrors([Error('not a crypto domain')])
           setState('failed')
@@ -374,8 +394,8 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
         return
       }
 
-      // only support resolving '.eth' for now
-      if (!author?.address?.endsWith('.eth')) {
+      // only support resolving '.eth/.sol' for now
+      if (tld !== 'eth' && tld !== 'sol') {
         if (state !== 'failed') {
           setErrors([Error('crypto domain type unsupported')])
           setState('failed')
@@ -387,7 +407,12 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
       ;(async () => {
         try {
           setState('resolving')
-          const res = await resolveAuthorAddress(author?.address, chainProviders, cache)
+          let res
+          if (cache) {
+            res = await resolveAuthorAddress()
+          } else {
+            res = await resolveAuthorAddressNoCache()
+          }
           setState('succeeded')
 
           // TODO: check if resolved address is the same as author.signer.publicKey
@@ -408,10 +433,9 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
     [author?.address, chainProviders]
   )
 
-  // log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, chainProviders})
+  log('useResolvedAuthorAddress', {author, state, errors, resolvedAddress, chainProviders})
 
-  // only support ENS at the moment
-  const chainProvider = chainProviders?.['eth']
+  const chainProvider = chainProviders?.[tld]
 
   return useMemo(
     () => ({
@@ -423,16 +447,4 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
     }),
     [resolvedAddress, chainProvider, state, errors]
   )
-}
-
-// NOTE: resolveAuthorAddress tests are skipped, if changes are made they must be tested manually
-export const resolveAuthorAddress = async (authorAddress: string, chainProviders: ChainProviders, cache?: boolean) => {
-  let resolvedAuthorAddress
-  if (authorAddress.endsWith('.eth')) {
-    const resolve = cache ? resolveEnsTxtRecord : resolveEnsTxtRecordNoCache
-    resolvedAuthorAddress = await resolve(authorAddress, 'plebbit-author-address', 'eth', chainProviders?.['eth']?.urls?.[0], chainProviders?.['eth']?.chainId)
-  } else {
-    throw Error(`resolveAuthorAddress invalid authorAddress '${authorAddress}'`)
-  }
-  return resolvedAuthorAddress
 }
