@@ -2,11 +2,11 @@ import { Account, Subplebbits, AccountComment, AccountsComments, CommentCidsToAc
 export declare const getAccountSubplebbits: (account: Account, subplebbits: Subplebbits) => any;
 export declare const getCommentCidsToAccountsComments: (accountsComments: AccountsComments) => CommentCidsToAccountsComments;
 export declare const fetchCommentLinkDimensions: (link: string) => Promise<{
-    linkWidth: any;
-    linkHeight: any;
-} | {
     linkWidth?: undefined;
     linkHeight?: undefined;
+} | {
+    linkWidth: any;
+    linkHeight: any;
 }>;
 export declare const getInitAccountCommentsToUpdate: (accountsComments: AccountsComments) => {
     accountComment: AccountComment;
@@ -16,11 +16,11 @@ declare const utils: {
     getAccountSubplebbits: (account: Account, subplebbits: Subplebbits) => any;
     getCommentCidsToAccountsComments: (accountsComments: AccountsComments) => CommentCidsToAccountsComments;
     fetchCommentLinkDimensions: (link: string) => Promise<{
-        linkWidth: any;
-        linkHeight: any;
-    } | {
         linkWidth?: undefined;
         linkHeight?: undefined;
+    } | {
+        linkWidth: any;
+        linkHeight: any;
     }>;
     getInitAccountCommentsToUpdate: (accountsComments: AccountsComments) => {
         accountComment: AccountComment;
