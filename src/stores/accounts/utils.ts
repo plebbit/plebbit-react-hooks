@@ -103,6 +103,10 @@ export const fetchCommentLinkDimensions = async (link: string) => {
         throw Error(`failed fetching comment.link dimensions for link '${link}' not https protocol`)
       }
       const dimensions: any = await Promise.race([fetchImageDimensions(link), fetchVideoDimensions(link)])
+      // don't accept 0px value
+      if (!dimensions.width || !dimensions.height) {
+        return {}
+      }
       return {
         linkWidth: dimensions.width,
         linkHeight: dimensions.height,
