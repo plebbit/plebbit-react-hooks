@@ -44,6 +44,7 @@ useAuthorAddress({comment: Comment}): {authorAddress: string | undefined, shortA
 useAuthorComments({authorAddress: string, commentCid: string, filter?: CommentsFilter}): {authorComments: Comment[], hasMore: boolean, loadMore: Promise<void>}
 useResolvedAuthorAddress({author?: Author, cache?: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own author address
 useAuthorAvatar({author?: Author}): {imageUrl: string | undefined}
+setAuthorAvatarsWhitelistedTokenAddresses(tokenAddresses: string[])
 ```
 #### Feeds Hooks
 ```

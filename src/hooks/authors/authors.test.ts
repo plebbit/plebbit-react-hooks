@@ -1,6 +1,15 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, setPlebbitJs, useAccount, useAuthorAddress} from '../..'
+import {
+  useAuthor,
+  useAuthorComments,
+  useAuthorAvatar,
+  useResolvedAuthorAddress,
+  setPlebbitJs,
+  useAccount,
+  useAuthorAddress,
+  setAuthorAvatarsWhitelistedTokenAddresses,
+} from '../..'
 import {commentsPerPage} from '../../stores/authors-comments'
 import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
@@ -458,6 +467,21 @@ describe('authors', () => {
   describe('author avatar', () => {
     const timeout = 30000
 
+    beforeAll(() => {
+      setAuthorAvatarsWhitelistedTokenAddresses([
+        // xpleb nfts
+        '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed',
+        // plebsquat
+        '0x52e6cd20f5fca56da5a0e489574c92af118b8188',
+        // random nfts contracts used in mock content and tests
+        '0xed5af388653567af2f388e6224dc7c4b3241c544',
+        '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
+        '0x60e4d786628fea6478f785a6d7e704777c86a7c6',
+        '0x79fcdef22feed20eddacbb2587640e45491b757f',
+        '0xf6d8e606c862143556b342149a7fe0558c220375',
+      ])
+    })
+
     test(
       'useAuthorAvatar avatar has no signature',
       async () => {
@@ -583,7 +607,6 @@ describe('authors', () => {
 
         rendered.rerender({address: 'subplebbit.eth'})
         await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
-        console.log(rendered.result.current)
         expect(rendered.result.current.resolvedAddress).toBe('resolved author address')
       },
       {timeout}

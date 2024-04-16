@@ -36,7 +36,7 @@ import {useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbit
 import {useFeed, useBufferedFeeds} from './hooks/feeds'
 
 // authors
-import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress} from './hooks/authors'
+import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, setAuthorAvatarsWhitelistedTokenAddresses} from './hooks/authors'
 
 // actions
 import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
@@ -94,6 +94,7 @@ export {
   useAuthorAvatar,
   useResolvedAuthorAddress,
   useAuthorAddress,
+  setAuthorAvatarsWhitelistedTokenAddresses,
   // feeds
   useFeed,
   useBufferedFeeds,
@@ -154,6 +155,7 @@ const hooks = {
   useAuthorAvatar,
   useResolvedAuthorAddress,
   useAuthorAddress,
+  setAuthorAvatarsWhitelistedTokenAddresses,
   // feeds
   useFeed,
   useBufferedFeeds,
