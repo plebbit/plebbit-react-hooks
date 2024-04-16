@@ -1,4 +1,5 @@
 import { UseAuthorOptions, UseAuthorResult, UseAuthorCommentsOptions, UseAuthorCommentsResult, UseAuthorAvatarOptions, UseAuthorAvatarResult, UseResolvedAuthorAddressOptions, UseResolvedAuthorAddressResult, UseAuthorAddressOptions, UseAuthorAddressResult } from '../../types';
+export { setAuthorAvatarsWhitelistedTokenAddresses } from './author-avatars';
 /**
  * @param authorAddress - The address of the author
  * @param commentCid - The last known comment cid of the author (not possible to get an author without providing at least 1 comment cid)

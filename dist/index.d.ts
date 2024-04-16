@@ -2,7 +2,7 @@ import { useAccount, useAccounts, useAccountComment, useAccountComments, useAcco
 import { useComment, useComments } from './hooks/comments';
 import { useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress } from './hooks/subplebbits';
 import { useFeed, useBufferedFeeds } from './hooks/feeds';
-import { useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress } from './hooks/authors';
+import { useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, setAuthorAvatarsWhitelistedTokenAddresses } from './hooks/authors';
 import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit } from './hooks/actions';
 import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit } from './stores/accounts/accounts-actions';
 import { useClientsStates, useSubplebbitsStates } from './hooks/states';
@@ -10,7 +10,7 @@ import { usePlebbitRpcSettings } from './hooks/plebbit-rpc';
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
 export * from './types';
-export { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, useComment, useComments, useEditedComment, useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, useFeed, useBufferedFeeds, useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishSubplebbitEdit, useCreateSubplebbit, createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, useClientsStates, useSubplebbitsStates, usePlebbitRpcSettings, setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
+export { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, useComment, useComments, useEditedComment, useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, setAuthorAvatarsWhitelistedTokenAddresses, useFeed, useBufferedFeeds, useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishSubplebbitEdit, useCreateSubplebbit, createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, useClientsStates, useSubplebbitsStates, usePlebbitRpcSettings, setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 declare const hooks: {
     useAccount: typeof useAccount;
     useAccounts: typeof useAccounts;
@@ -34,6 +34,7 @@ declare const hooks: {
     useAuthorAvatar: typeof useAuthorAvatar;
     useResolvedAuthorAddress: typeof useResolvedAuthorAddress;
     useAuthorAddress: typeof useAuthorAddress;
+    setAuthorAvatarsWhitelistedTokenAddresses: (tokenAddresses: string[]) => void;
     useFeed: typeof useFeed;
     useBufferedFeeds: typeof useBufferedFeeds;
     useSubscribe: typeof useSubscribe;

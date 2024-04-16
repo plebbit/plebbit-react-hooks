@@ -21,5 +21,6 @@ export declare function useVerifiedAuthorAvatarSignature(author?: Author, accoun
     verified: boolean | undefined;
     error: Error | undefined;
 };
+export declare const setAuthorAvatarsWhitelistedTokenAddresses: (tokenAddresses: string[]) => void;
 export declare function useAuthorAvatarIsWhitelisted(nft?: Nft): any;
 export declare const verifyAuthorAvatarSignature: (nft: Nft, authorAddress: string, chainProviders: ChainProviders) => Promise<boolean>;

@@ -15,6 +15,7 @@ import assert from 'assert';
 import { ethers } from 'ethers';
 import { getNftMetadataUrl, getNftImageUrl, getNftOwner } from '../../lib/chain';
 import { defaultMediaIpfsGatewayUrl } from '../../stores/accounts/account-generator';
+import createStore from 'zustand';
 /**
  * @param nft - The NFT object to resolve the URL of.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -128,29 +129,34 @@ export function useVerifiedAuthorAvatarSignature(author, accountName) {
     // log('useVerifiedAuthorAvatarSignature', {author, verified, chainProviders})
     return { verified, error };
 }
-const whitelistedTokenAddresses = {
+const defaultWhitelistedTokenAddresses = [
     // xpleb nfts
-    '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed': true,
+    '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed',
     // plebsquat
-    '0x52e6cd20f5fca56da5a0e489574c92af118b8188': true,
-    // random nfts contracts used in mock content and tests
-    '0xed5af388653567af2f388e6224dc7c4b3241c544': true,
-    '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d': true,
-    '0x60e4d786628fea6478f785a6d7e704777c86a7c6': true,
-    '0x79fcdef22feed20eddacbb2587640e45491b757f': true,
-    '0xf6d8e606c862143556b342149a7fe0558c220375': true,
-};
-// make sure lower case version exists
-for (const i in whitelistedTokenAddresses) {
-    whitelistedTokenAddresses[i.toLowerCase()] = whitelistedTokenAddresses[i];
-}
+    '0x52e6cd20f5fca56da5a0e489574c92af118b8188',
+];
+const useAuthorAvatarsWhitelistedTokenAddressesStore = createStore((setState, getState) => ({
+    authorAvatarsWhitelistedTokenAddresses: {},
+    setAuthorAvatarsWhitelistedTokenAddresses: (tokenAddresses) => {
+        const authorAvatarsWhitelistedTokenAddresses = {};
+        for (const tokenAddress of tokenAddresses) {
+            authorAvatarsWhitelistedTokenAddresses[tokenAddress] = true;
+            // make sure lower case version exists
+            authorAvatarsWhitelistedTokenAddresses[tokenAddress.toLowerCase()] = true;
+        }
+        setState({ authorAvatarsWhitelistedTokenAddresses });
+    },
+}));
+export const setAuthorAvatarsWhitelistedTokenAddresses = useAuthorAvatarsWhitelistedTokenAddressesStore.getState().setAuthorAvatarsWhitelistedTokenAddresses;
+setAuthorAvatarsWhitelistedTokenAddresses(defaultWhitelistedTokenAddresses); // init default
 export function useAuthorAvatarIsWhitelisted(nft) {
     // TODO: make a list that a dao can vote it, get the list from plebbit.getDefaults()
     // TODO: make subplebbit owners able to whitelist their own nfts in their subplebbits
     // TODO: make each user able to whitelist/blacklist any nft they want for their own client
     // TODO: make hook to list which default nfts are whitelisted to display to the user
     var _a;
-    const isWhitelisted = (nft === null || nft === void 0 ? void 0 : nft.address) && Boolean(whitelistedTokenAddresses[(_a = nft === null || nft === void 0 ? void 0 : nft.address) === null || _a === void 0 ? void 0 : _a.toLowerCase()]);
+    const authorAvatarsWhitelistedTokenAddresses = useAuthorAvatarsWhitelistedTokenAddressesStore((state) => state.authorAvatarsWhitelistedTokenAddresses);
+    const isWhitelisted = (nft === null || nft === void 0 ? void 0 : nft.address) && Boolean(authorAvatarsWhitelistedTokenAddresses[(_a = nft === null || nft === void 0 ? void 0 : nft.address) === null || _a === void 0 ? void 0 : _a.toLowerCase()]);
     return isWhitelisted;
 }
 // NOTE: verifyAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
