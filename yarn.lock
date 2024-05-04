@@ -998,10 +998,10 @@
     bs58 "5.0.0"
     buffer "^6.0.3"
 
-"@bonfida/spl-name-service@2.3.8":
-  version "2.3.8"
-  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-2.3.8.tgz#be0f0806c9e504cb053e69faaa2f9972d6e445f0"
-  integrity sha512-X/rqQf7WWZrQlkFgfdRh02afv3vahbDjzRHj1wOrw2jaBXWCmCrLnmqKUhKeAv12IoZyPM+AIg8AXemXShX8Hg==
+"@bonfida/spl-name-service@2.4.2":
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-2.4.2.tgz#a5802320781fa4c0a1be1b6d2f889746e53f7705"
+  integrity sha512-LfxHVIN8dxStUFJy963S1hlkDpUG/X4v5JFUGcZNNIuGpPREqd7+C2dxjNe2/gGOV/a3pyljwoTI5S+Qhmy8Eg==
   dependencies:
     "@bonfida/sns-records" "0.0.1"
     "@noble/curves" "^1.3.0"
@@ -2935,11 +2935,11 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#347579798478c27eea4808b923ab6f21799fce89":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#3debda4034d18cf62ae46a4257a47284a8281e31":
   version "0.0.3"
-  resolved "https://github.com/plebbit/plebbit-js.git#347579798478c27eea4808b923ab6f21799fce89"
+  resolved "https://github.com/plebbit/plebbit-js.git#3debda4034d18cf62ae46a4257a47284a8281e31"
   dependencies:
-    "@bonfida/spl-name-service" "2.3.8"
+    "@bonfida/spl-name-service" "2.4.2"
     "@chainsafe/libp2p-gossipsub" "12.0.0"
     "@chainsafe/libp2p-noise" "15.0.0"
     "@chainsafe/libp2p-yamux" "6.0.2"
@@ -2972,6 +2972,7 @@
     ipfs-only-hash "4.0.0"
     jose "4.11.0"
     js-sha256 "0.9.0"
+    js-sha512 "0.9.0"
     keyv "4.5.4"
     knex "3.1.0"
     kubo-rpc-client "3.0.3"
@@ -2987,7 +2988,7 @@
     peer-id "0.16.0"
     probe-image-size "7.2.3"
     retry "0.13.1"
-    rpc-websockets "7.9.0"
+    rpc-websockets "7.10.0"
     safe-stable-stringify "2.4.3"
     sha1-uint8array "0.10.7"
     skia-canvas "1.0.0"
@@ -8788,6 +8789,11 @@ js-sha3@0.8.0, js-sha3@^0.8.0:
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.8.0.tgz#b9b7a5da73afad7dedd0f8c463954cbde6818840"
   integrity sha512-gF1cRrHhIzNfToc802P800N8PpXS+evLLXfsVpowqmAFR9uwbi89WvXg2QspOmXL8QL86J4T1EpFu+yUkwJY3Q==
 
+js-sha512@0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/js-sha512/-/js-sha512-0.9.0.tgz#ed569aa1e4bdaf0b83363c29db1ab87b1192d9ae"
+  integrity sha512-mirki9WS/SUahm+1TbAPkqvbCiCfOAAsyXeHxK1UkullnJVVqoJG2pL9ObvT05CN+tM7fxhfYm0NbXn+1hWoZg==
+
 js-sizeof@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/js-sizeof/-/js-sizeof-0.0.1.tgz#bf35bb93b59abe02e4f44dd8239dbf447ea62334"
@@ -11364,7 +11370,20 @@ rollup@^4.2.0:
     "@rollup/rollup-win32-x64-msvc" "4.10.0"
     fsevents "~2.3.2"
 
-rpc-websockets@7.9.0, rpc-websockets@^7.5.1:
+rpc-websockets@7.10.0:
+  version "7.10.0"
+  resolved "https://registry.yarnpkg.com/rpc-websockets/-/rpc-websockets-7.10.0.tgz#8ffaf6aaab3eb18e603c7549988cf49feeddcd29"
+  integrity sha512-cemZ6RiDtYZpPiBzYijdOrkQQzmBCmug0E9SdRH2gIUNT15ql4mwCYWIp0VnSZq6Qrw/JkGUygp4PrK1y9KfwQ==
+  dependencies:
+    "@babel/runtime" "^7.17.2"
+    eventemitter3 "^4.0.7"
+    uuid "^8.3.2"
+    ws "^8.5.0"
+  optionalDependencies:
+    bufferutil "^4.0.1"
+    utf-8-validate "^5.0.2"
+
+rpc-websockets@^7.5.1:
   version "7.9.0"
   resolved "https://registry.yarnpkg.com/rpc-websockets/-/rpc-websockets-7.9.0.tgz#a3938e16d6f134a3999fdfac422a503731bf8973"
   integrity sha512-DwKewQz1IUA5wfLvgM8wDpPRcr+nWSxuFxx5CbrI2z/MyyZ4nXLM86TvIA+cI1ZAdqC8JIBR1mZR55dzaLU+Hw==
