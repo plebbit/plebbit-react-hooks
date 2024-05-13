@@ -138,7 +138,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         const onChallengeVerificationCalls = []
         let onChallengeVerification = (...args) => onChallengeVerificationCalls.push([...args])
         // mock plebbit.resolver to return the test sub's address without using Ethereum
-        rendered.result.current.account.plebbit.resolver.resolveSubplebbitAddressIfNeeded = () => createdSubplebbitAddress
+        // rendered.result.current.account.plebbit.resolver.resolveSubplebbitAddressIfNeeded = () => createdSubplebbitAddress
 
         await act(async () => {
           await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedSubplebbitAddress, onChallenge, onChallengeVerification})
