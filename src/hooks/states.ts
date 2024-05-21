@@ -145,7 +145,9 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
             for (const chainTicker in subplebbit.clients.chainProviders) {
               for (const clientUrl in subplebbit.clients.chainProviders[chainTicker]) {
                 const state = subplebbit.clients.chainProviders[chainTicker][clientUrl].state
-                if (state !== 'stopped') {
+                // match 'resolving' in case plebbit-js has clients with incorrect states
+                // TODO: this should in theory never happen, but it does, and difficult to debug
+                if (state !== 'stopped' && state?.startsWith('resolving')) {
                   states[subplebbit.updatingState].clientUrls.add(clientUrl)
                 }
               }
@@ -153,7 +155,9 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
           } else {
             for (const clientUrl in subplebbit.clients[clientType]) {
               const state = subplebbit.clients[clientType][clientUrl].state
-              if (state !== 'stopped') {
+              // match 'resolving' in case plebbit-js has clients with incorrect states
+              // TODO: this should in theory never happen, but it does, and difficult to debug
+              if (state !== 'stopped' && state?.startsWith('resolving') === false) {
                 states[subplebbit.updatingState].clientUrls.add(clientUrl)
               }
             }
