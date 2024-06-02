@@ -236,5 +236,26 @@ describe('comments', () => {
       // restore mock
       Comment.prototype.update = commentUpdate
     })
+
+    test('plebbit.createComment throws adds useComment().error', async () => {
+      // mock update to save comment instance
+      const createComment = Plebbit.prototype.createComment
+      Plebbit.prototype.createComment = async function () {
+        throw Error('plebbit.createComment error')
+      }
+
+      const rendered = renderHook<any, any>((commentCid) => useComment({commentCid}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      rendered.rerender('comment cid')
+
+      // first error
+      await waitFor(() => rendered.result.current.error.message === 'plebbit.createComment error')
+      expect(rendered.result.current.error.message).toBe('plebbit.createComment error')
+      expect(rendered.result.current.errors[0].message).toBe('plebbit.createComment error')
+      expect(rendered.result.current.errors.length).toBe(1)
+
+      // restore mock
+      Plebbit.prototype.createComment = createComment
+    })
   })
 })

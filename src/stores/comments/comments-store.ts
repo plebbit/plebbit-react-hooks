@@ -45,6 +45,11 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       log('commentsStore.addCommentToStore', {commentCid, comment, account})
       setState((state: CommentsState) => ({comments: {...state.comments, [commentCid]: utils.clone(comment)}}))
     } catch (e) {
+      setState((state: CommentsState) => {
+        let commentErrors = state.errors[commentCid] || []
+        commentErrors = [...commentErrors, e]
+        return {...state, errors: {...state.errors, [commentCid]: commentErrors}}
+      })
       throw e
     } finally {
       plebbitGetCommentPending[commentCid + account.id] = false
