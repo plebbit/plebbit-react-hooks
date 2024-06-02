@@ -67,6 +67,13 @@ const subplebbitsStore = createStore((setState, getState) => ({
             plebbitGetSubplebbitPending[subplebbitAddress + account.id] = false;
             // failure getting subplebbit
             if (!subplebbit) {
+                if (errorGettingSubplebbit) {
+                    setState((state) => {
+                        let subplebbitErrors = state.errors[subplebbitAddress] || [];
+                        subplebbitErrors = [...subplebbitErrors, errorGettingSubplebbit];
+                        return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [subplebbitAddress]: subplebbitErrors }) });
+                    });
+                }
                 throw errorGettingSubplebbit || Error(`subplebbitsStore.addSubplebbitToStore failed getting subplebbit '${subplebbitAddress}'`);
             }
             // success getting subplebbit
