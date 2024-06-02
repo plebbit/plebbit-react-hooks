@@ -79,6 +79,14 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
 
     // failure getting subplebbit
     if (!subplebbit) {
+      if (errorGettingSubplebbit) {
+        setState((state: SubplebbitsState) => {
+          let subplebbitErrors = state.errors[subplebbitAddress] || []
+          subplebbitErrors = [...subplebbitErrors, errorGettingSubplebbit]
+          return {...state, errors: {...state.errors, [subplebbitAddress]: subplebbitErrors}}
+        })
+      }
+
       throw errorGettingSubplebbit || Error(`subplebbitsStore.addSubplebbitToStore failed getting subplebbit '${subplebbitAddress}'`)
     }
 

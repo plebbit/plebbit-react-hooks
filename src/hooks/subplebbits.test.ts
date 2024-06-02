@@ -196,6 +196,27 @@ describe('subplebbits', () => {
       // restore mock
       Subplebbit.prototype.update = subplebbitUpdate
     })
+
+    test('plebbit.createSubplebbit throws adds useSubplebbit().error', async () => {
+      // mock update to save subplebbit instance
+      const createSubplebbit = Plebbit.prototype.createSubplebbit
+      Plebbit.prototype.createSubplebbit = async function () {
+        throw Error('plebbit.createSubplebbit error')
+      }
+
+      const rendered = renderHook<any, any>((subplebbitAddress) => useSubplebbit({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      rendered.rerender('subplebbit address')
+
+      // plebbit.createSubplebbit error
+      await waitFor(() => rendered.result.current.error.message === 'plebbit.createSubplebbit error')
+      expect(rendered.result.current.error.message).toBe('plebbit.createSubplebbit error')
+      expect(rendered.result.current.errors[0].message).toBe('plebbit.createSubplebbit error')
+      expect(rendered.result.current.errors.length).toBe(1)
+
+      // restore mock
+      Plebbit.prototype.createSubplebbit = createSubplebbit
+    })
   })
 
   test('useListSubplebbits', async () => {
@@ -212,7 +233,7 @@ describe('subplebbits', () => {
     expect(rendered.result.current.hourActiveUserCount).toBe(1)
   })
 
-  describe('subplebbit address', () => {
+  describe('useResolvedSubplebbitAddress', () => {
     const timeout = 60000
 
     // skip because uses internet and not deterministic
@@ -231,7 +252,7 @@ describe('subplebbits', () => {
     )
 
     test(
-      'useResolvedSubplebbitAddress unsupported crypto domain',
+      'unsupported crypto domain',
       async () => {
         const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
         const waitFor = testUtils.createWaitFor(rendered)
@@ -245,7 +266,7 @@ describe('subplebbits', () => {
     )
 
     test(
-      'useResolvedSubplebbitAddress not a crypto domain',
+      'not a crypto domain',
       async () => {
         const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
         const waitFor = testUtils.createWaitFor(rendered)
