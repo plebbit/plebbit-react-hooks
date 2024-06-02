@@ -44,7 +44,7 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       }
       log('commentsStore.addCommentToStore', {commentCid, comment, account})
       setState((state: CommentsState) => ({comments: {...state.comments, [commentCid]: utils.clone(comment)}}))
-    } catch (e) {
+    } catch (e: any) {
       setState((state: CommentsState) => {
         let commentErrors = state.errors[commentCid] || []
         commentErrors = [...commentErrors, e]
