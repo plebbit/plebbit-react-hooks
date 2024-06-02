@@ -41,6 +41,11 @@ const commentsStore = createStore((setState, getState) => ({
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: utils.clone(comment) }) }));
             }
             catch (e) {
+                setState((state) => {
+                    let commentErrors = state.errors[commentCid] || [];
+                    commentErrors = [...commentErrors, e];
+                    return Object.assign(Object.assign({}, state), { errors: Object.assign(Object.assign({}, state.errors), { [commentCid]: commentErrors }) });
+                });
                 throw e;
             }
             finally {
