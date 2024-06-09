@@ -548,7 +548,7 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         // console.log({replyLoopCount: replyLoopCount++, replyCount: commentUpdateContent.replyCount, depth: comment.depth, cid: comment.cid, index: replyCount})
         const cid = yield seedToCid(yield getNumberHash(comment.cid + replyCount));
         const replyContent = yield getReplyContent(getReplyContentOptions, cid + 'replycontent' + replyCount);
-        const reply = Object.assign(Object.assign({ cid, shortCid: cid.substring(2, 14), ipnsName: yield seedToCid(commentUpdateSeedNumber.increment()), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()) }, replyContent), { subplebbitAddress: comment.subplebbitAddress || 'memes.eth' });
+        const reply = Object.assign(Object.assign({ cid, shortCid: cid.substring(2, 14), timestamp: yield getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()) }, replyContent), { subplebbitAddress: comment.subplebbitAddress || 'memes.eth' });
         if (replyCids.has(reply.cid)) {
             console.error(`mock content error: duplicate reply cid '${reply.cid}'`);
         }
@@ -703,7 +703,7 @@ class Plebbit extends EventEmitter {
                 const getReplyContentOptions = { depth, parentCid, postCid };
                 commentContent = yield getReplyContent(getReplyContentOptions, commentCid + 'replycontent');
             }
-            const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: yield seedToCid(commentSeedNumber.increment()), timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()), subplebbitAddress: 'memes.eth' }, commentContent);
+            const createCommentOptions = Object.assign({ cid: commentCid, timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()), subplebbitAddress: 'memes.eth' }, commentContent);
             const comment = new Comment(createCommentOptions);
             // add missing props from createCommentOptions
             for (const prop in createCommentOptions) {
@@ -839,7 +839,6 @@ class Subplebbit extends EventEmitter {
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
-            // is ipnsName is known, look for updates and emit updates immediately after creation
             if (!this.address) {
                 throw Error(`can't update without subplebbit.address`);
             }
@@ -955,7 +954,6 @@ class Comment extends Publication {
     constructor(createCommentOptions) {
         super();
         this._getCommentOnFirstUpdate = false;
-        this.ipnsName = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.ipnsName;
         this.cid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.cid;
         this.upvoteCount = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.upvoteCount;
         this.downvoteCount = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.downvoteCount;

@@ -99,7 +99,7 @@ export class Plebbit extends EventEmitter {
     getComment(commentCid) {
         return __awaiter(this, void 0, void 0, function* () {
             yield simulateLoadingTime();
-            const createCommentOptions = Object.assign({ cid: commentCid, ipnsName: commentCid + ' ipns name', 
+            const createCommentOptions = Object.assign({ cid: commentCid, 
                 // useComment() requires timestamp or will use account comment instead of comment from store
                 timestamp: 1670000000 }, this.commentToGet(commentCid));
             return new Comment(createCommentOptions);
@@ -202,7 +202,6 @@ export class Subplebbit extends EventEmitter {
             if (this.updateCalledTimes > 1) {
                 throw Error('with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times');
             }
-            // is ipnsName is known, look for updates and emit updates immediately after creation
             if (!this.address) {
                 throw Error(`can't update without subplebbit.address`);
             }
@@ -397,7 +396,6 @@ export class Comment extends Publication {
         super();
         this.updateCalledTimes = 0;
         this.updating = false;
-        this.ipnsName = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.ipnsName;
         this.cid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.cid;
         this.upvoteCount = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.upvoteCount;
         this.downvoteCount = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.downvoteCount;
@@ -452,7 +450,6 @@ export class Comment extends Publication {
         return __awaiter(this, void 0, void 0, function* () {
             // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
             const commentIpfs = yield new Plebbit().getComment(this.cid || '');
-            this.ipnsName = commentIpfs.ipnsName;
             this.content = commentIpfs.content;
             this.author = commentIpfs.author;
             this.timestamp = commentIpfs.timestamp;

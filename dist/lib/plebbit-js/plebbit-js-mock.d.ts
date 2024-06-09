@@ -73,7 +73,6 @@ export declare class Comment extends Publication {
     updateCalledTimes: number;
     updating: boolean;
     author: any;
-    ipnsName: string | undefined;
     upvoteCount: number | undefined;
     downvoteCount: number | undefined;
     content: string | undefined;
