@@ -92,7 +92,6 @@ export class Plebbit extends EventEmitter {
     await simulateLoadingTime()
     const createCommentOptions = {
       cid: commentCid,
-      ipnsName: commentCid + ' ipns name',
       // useComment() requires timestamp or will use account comment instead of comment from store
       timestamp: 1670000000,
       ...this.commentToGet(commentCid),
@@ -206,7 +205,6 @@ export class Subplebbit extends EventEmitter {
         'with the current hooks, subplebbit.update() should be called maximum 1 times, this number might change if the hooks change and is only there to catch bugs, the real comment.update() can be called infinite times'
       )
     }
-    // is ipnsName is known, look for updates and emit updates immediately after creation
     if (!this.address) {
       throw Error(`can't update without subplebbit.address`)
     }
@@ -424,7 +422,6 @@ export class Comment extends Publication {
   updateCalledTimes = 0
   updating = false
   author: any
-  ipnsName: string | undefined
   upvoteCount: number | undefined
   downvoteCount: number | undefined
   content: string | undefined
@@ -438,7 +435,6 @@ export class Comment extends Publication {
 
   constructor(createCommentOptions?: any) {
     super()
-    this.ipnsName = createCommentOptions?.ipnsName
     this.cid = createCommentOptions?.cid
     this.upvoteCount = createCommentOptions?.upvoteCount
     this.downvoteCount = createCommentOptions?.downvoteCount
@@ -500,7 +496,6 @@ export class Comment extends Publication {
   async simulateFetchCommentIpfsUpdateEvent() {
     // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
     const commentIpfs = await new Plebbit().getComment(this.cid || '')
-    this.ipnsName = commentIpfs.ipnsName
     this.content = commentIpfs.content
     this.author = commentIpfs.author
     this.timestamp = commentIpfs.timestamp

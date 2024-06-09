@@ -606,7 +606,6 @@ const getCommentUpdateContent = async (comment: any) => {
     const reply = {
       cid,
       shortCid: cid.substring(2, 14),
-      ipnsName: await seedToCid(commentUpdateSeedNumber.increment()),
       timestamp: await getNumberBetween(comment.timestamp, NOW, commentUpdateSeedNumber.increment()),
       ...replyContent,
       subplebbitAddress: comment.subplebbitAddress || 'memes.eth',
@@ -772,7 +771,6 @@ class Plebbit extends EventEmitter {
     }
     const createCommentOptions = {
       cid: commentCid,
-      ipnsName: await seedToCid(commentSeedNumber.increment()),
       timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()),
       subplebbitAddress: 'memes.eth',
       ...commentContent,
@@ -929,7 +927,6 @@ class Subplebbit extends EventEmitter {
   }
 
   async update() {
-    // is ipnsName is known, look for updates and emit updates immediately after creation
     if (!this.address) {
       throw Error(`can't update without subplebbit.address`)
     }
@@ -1047,7 +1044,6 @@ class Publication extends EventEmitter {
 
 class Comment extends Publication {
   author: any
-  ipnsName: string | undefined
   upvoteCount: number | undefined
   downvoteCount: number | undefined
   content: string | undefined
@@ -1073,7 +1069,6 @@ class Comment extends Publication {
 
   constructor(createCommentOptions?: any) {
     super()
-    this.ipnsName = createCommentOptions?.ipnsName
     this.cid = createCommentOptions?.cid
     this.upvoteCount = createCommentOptions?.upvoteCount
     this.downvoteCount = createCommentOptions?.downvoteCount

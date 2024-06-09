@@ -40,7 +40,6 @@ const comment = {
   },
   content: 'test',
   depth: 0,
-  ipnsName: '12D3KooWHhU9b7wXsFqW2pEqX3mngeWqEBr7NonjVyTY3mC6sk7e',
   previousCid: 'Qmf8Pj7D7jFn2Ue8qwm2RFop3E8Q7LcFT6pz4ssekgVtsj',
   protocolVersion: '1.0.0',
   signature: {
