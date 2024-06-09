@@ -22,14 +22,9 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
     assert(typeof accountCommentIndex === 'number', `startUpdatingAccountCommentOnCommentUpdateEvents accountCommentIndex '${accountCommentIndex}' not a number`);
     assert(typeof (account === null || account === void 0 ? void 0 : account.id) === 'string', `startUpdatingAccountCommentOnCommentUpdateEvents account '${account}' account.id '${account === null || account === void 0 ? void 0 : account.id}' not a string`);
     const commentArgument = comment;
-    if (!comment.ipnsName) {
-        if (!comment.cid) {
-            // comment doesn't have an ipns name yet, so can't receive updates
-            // and doesn't have a cid, so has no way to know the ipns name
-            return;
-        }
-        const onError = (error) => log.error(`startUpdatingAccountCommentOnCommentUpdateEvents failed plebbit.getComment cid '${comment === null || comment === void 0 ? void 0 : comment.cid}' index '${accountCommentIndex}':`, error);
-        comment = yield utils.retryInfinity(() => account.plebbit.getComment(comment.cid, { onError }));
+    // comment doesn't have a cid yet, so can't receive updates
+    if (!comment.cid) {
+        return;
     }
     // account comment already updating
     if (accountsStore.getState().accountsCommentsUpdating[comment.cid]) {
