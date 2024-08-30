@@ -728,10 +728,16 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   }
   validator.validateAccountsActionsPublishSubplebbitEditArguments({subplebbitAddress, publishSubplebbitEditOptions, accountName, account})
 
+  const subplebbitEditOptions = {...publishSubplebbitEditOptions}
+  delete subplebbitEditOptions.onChallenge
+  delete subplebbitEditOptions.onChallengeVerification
+  delete subplebbitEditOptions.onError
+  delete subplebbitEditOptions.onPublishingStateChange
+
   // account is the owner of the subplebbit and can edit it locally, no need to publish
   const localSubplebbitAddresses = await account.plebbit.listSubplebbits()
   if (localSubplebbitAddresses.includes(subplebbitAddress)) {
-    await subplebbitsStore.getState().editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account)
+    await subplebbitsStore.getState().editSubplebbit(subplebbitAddress, subplebbitEditOptions, account)
     // create fake success challenge verification for consistent behavior with remote subplebbit edit
     publishSubplebbitEditOptions.onChallengeVerification({challengeSuccess: true})
     publishSubplebbitEditOptions.onPublishingStateChange?.('succeeded')
@@ -746,14 +752,10 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
-    ...publishSubplebbitEditOptions,
+    ...subplebbitEditOptions,
     // not possible to edit subplebbit.address over pubsub, only locally
     address: subplebbitAddress,
   }
-  delete createSubplebbitEditOptions.onChallenge
-  delete createSubplebbitEditOptions.onChallengeVerification
-  delete createSubplebbitEditOptions.onError
-  delete createSubplebbitEditOptions.onPublishingStateChange
 
   let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
   let lastChallenge: Challenge | undefined
