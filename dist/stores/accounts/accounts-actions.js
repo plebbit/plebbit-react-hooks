@@ -638,23 +638,24 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         account = accounts[accountId];
     }
     validator.validateAccountsActionsPublishSubplebbitEditArguments({ subplebbitAddress, publishSubplebbitEditOptions, accountName, account });
+    const subplebbitEditOptions = Object.assign({}, publishSubplebbitEditOptions);
+    delete subplebbitEditOptions.onChallenge;
+    delete subplebbitEditOptions.onChallengeVerification;
+    delete subplebbitEditOptions.onError;
+    delete subplebbitEditOptions.onPublishingStateChange;
     // account is the owner of the subplebbit and can edit it locally, no need to publish
     const localSubplebbitAddresses = yield account.plebbit.listSubplebbits();
     if (localSubplebbitAddresses.includes(subplebbitAddress)) {
-        yield subplebbitsStore.getState().editSubplebbit(subplebbitAddress, publishSubplebbitEditOptions, account);
+        yield subplebbitsStore.getState().editSubplebbit(subplebbitAddress, subplebbitEditOptions, account);
         // create fake success challenge verification for consistent behavior with remote subplebbit edit
         publishSubplebbitEditOptions.onChallengeVerification({ challengeSuccess: true });
         (_g = publishSubplebbitEditOptions.onPublishingStateChange) === null || _g === void 0 ? void 0 : _g.call(publishSubplebbitEditOptions, 'succeeded');
         return;
     }
     assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
-    let createSubplebbitEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishSubplebbitEditOptions), { 
+    let createSubplebbitEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, subplebbitEditOptions), { 
         // not possible to edit subplebbit.address over pubsub, only locally
         address: subplebbitAddress });
-    delete createSubplebbitEditOptions.onChallenge;
-    delete createSubplebbitEditOptions.onChallengeVerification;
-    delete createSubplebbitEditOptions.onError;
-    delete createSubplebbitEditOptions.onPublishingStateChange;
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
