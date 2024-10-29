@@ -430,7 +430,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 else {
                     // the challengeverification message of a comment publication should in theory send back the CID
                     // of the published comment which is needed to resolve it for replies, upvotes, etc
-                    if ((_b = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _b === void 0 ? void 0 : _b.cid) {
+                    if ((_b = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.commentUpdate) === null || _b === void 0 ? void 0 : _b.cid) {
                         const commentWithCid = comment;
                         yield accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex);
                         accountsStore.setState(({ accountsComments, commentCidsToAccountsComments }) => {
@@ -440,7 +440,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                             updatedAccountComments[accountCommentIndex] = updatedAccountComment;
                             return {
                                 accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: updatedAccountComments }),
-                                commentCidsToAccountsComments: Object.assign(Object.assign({}, commentCidsToAccountsComments), { [(_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.publication) === null || _a === void 0 ? void 0 : _a.cid]: { accountId: account.id, accountCommentIndex } }),
+                                commentCidsToAccountsComments: Object.assign(Object.assign({}, commentCidsToAccountsComments), { [(_a = challengeVerification === null || challengeVerification === void 0 ? void 0 : challengeVerification.commentUpdate) === null || _a === void 0 ? void 0 : _a.cid]: { accountId: account.id, accountCommentIndex } }),
                             };
                         });
                         // clone the comment or it bugs publishing callbacks
@@ -644,7 +644,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     delete subplebbitEditOptions.onError;
     delete subplebbitEditOptions.onPublishingStateChange;
     // account is the owner of the subplebbit and can edit it locally, no need to publish
-    const localSubplebbitAddresses = yield account.plebbit.listSubplebbits();
+    const localSubplebbitAddresses = account.plebbit.subplebbits;
     if (localSubplebbitAddresses.includes(subplebbitAddress)) {
         yield subplebbitsStore.getState().editSubplebbit(subplebbitAddress, subplebbitEditOptions, account);
         // create fake success challenge verification for consistent behavior with remote subplebbit edit

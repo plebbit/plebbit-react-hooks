@@ -80,6 +80,39 @@ const sortByActive = (feed) => {
         .sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0))
         .sort((a, b) => (b.lastReplyTimestamp || b.timestamp || 0) - (a.lastReplyTimestamp || a.timestamp || 0));
 };
+const sortByOld = (feed) => {
+    // sort by upvoteCount first for tiebreaker, then timestamp
+    return feed.sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0)).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+};
+// "best" sort from reddit replies
+// https://web.archive.org/web/20100305052116/http://blog.reddit.com/2009/10/reddits-new-comment-sorting-system.html
+// https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
+// http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
+// https://github.com/reddit-archive/reddit/blob/753b17407e9a9dca09558526805922de24133d53/r2/r2/lib/db/_sorts.pyx#L70
+const sortByBest = (feed) => {
+    const postScores = {};
+    for (const post of feed) {
+        let upvoteCount = post.upvoteCount || 0;
+        upvoteCount++; // reddit initial upvotes is 1, plebbit is 0
+        const downvoteCount = post.downvoteCount || 0;
+        // n is the total number of ratings
+        const n = upvoteCount + downvoteCount;
+        if (n === 0) {
+            postScores[post.cid] = 0;
+            continue;
+        }
+        // zα/2 is the (1-α/2) quantile of the standard normal distribution
+        const z = 1.281551565545;
+        // p is the observed fraction of positive ratings
+        const p = upvoteCount / n;
+        const left = p + (1 / (2 * n)) * z * z;
+        const right = z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n));
+        const under = 1 + (1 / n) * z * z;
+        postScores[post.cid] = (left - right) / under;
+    }
+    // sort by old first for tiebreaker (like reddit does)
+    return feed.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).sort((a, b) => (postScores[b.cid] || 0) - (postScores[a.cid] || 0));
+};
 export const sort = (sortType, feed) => {
     // pinned posts are not sorted, maybe in a future version we can sort them based on something
     const pinnedPosts = feed.filter((post) => post.pinned);
@@ -98,6 +131,12 @@ export const sort = (sortType, feed) => {
     }
     if (sortType.match('active')) {
         return [...pinnedPosts, ...sortByActive(feed)];
+    }
+    if (sortType.match('old')) {
+        return [...pinnedPosts, ...sortByOld(feed)];
+    }
+    if (sortType.match('best')) {
+        return [...pinnedPosts, ...sortByBest(feed)];
     }
     throw Error(`feedsStore feedSorter sort type '${sortType}' doesn't exist`);
 };

@@ -651,7 +651,7 @@ class Plebbit extends EventEmitter {
             }
             const signer = yield this.createSigner();
             const subplebbit = new Subplebbit(Object.assign({ signer }, createSubplebbitOptions));
-            // keep a list of subplebbits the user probably created himself to use with listSubplebbits
+            // keep a list of subplebbits the user probably created himself to use with plebbit.subplebbits
             if (!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address)) {
                 createdSubplebbits[subplebbit.address || ''] = subplebbit;
             }
@@ -680,11 +680,10 @@ class Plebbit extends EventEmitter {
             return subplebbit;
         });
     }
-    listSubplebbits() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const subplebbitAddresses = Object.keys(createdSubplebbits);
-            return subplebbitAddresses;
-        });
+    // TODO: implement event subplebbitschange
+    get subplebbits() {
+        const subplebbitAddresses = Object.keys(createdSubplebbits);
+        return subplebbitAddresses;
     }
     createComment(createCommentOptions) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -936,7 +935,7 @@ class Publication extends EventEmitter {
             // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
             // @ts-ignore
             this.cid = this.content || this.title || this.link ? yield getCidHash(this.content + this.title + this.link + 'cid') : undefined;
-            const publication = this.cid && { cid: this.cid };
+            const commentUpdate = this.cid && { cid: this.cid };
             const challengeVerificationMessage = {
                 type: 'CHALLENGEVERIFICATION',
                 // @ts-ignore
@@ -944,7 +943,7 @@ class Publication extends EventEmitter {
                 // @ts-ignore
                 challengeAnswerId: this.challengeAnswerId,
                 challengeSuccess: true,
-                publication,
+                commentUpdate,
             };
             this.emit('challengeverification', challengeVerificationMessage, this);
         });

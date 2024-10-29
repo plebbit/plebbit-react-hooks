@@ -115,32 +115,30 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
     startedSubplebbits = {};
     pendingStartedSubplebbits = {};
     const startSubplebbitsPollTime = 10000;
-    startSubplebbitsInterval = setInterval(() => {
+    startSubplebbitsInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const { accounts, activeAccountId } = accountsStore.getState();
         const account = accounts === null || accounts === void 0 ? void 0 : accounts[activeAccountId || ''];
         if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
             return;
         }
-        account.plebbit.listSubplebbits().then((subplebbitAddresses) => __awaiter(void 0, void 0, void 0, function* () {
-            for (const subplebbitAddress of subplebbitAddresses) {
-                if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
-                    continue;
-                }
-                pendingStartedSubplebbits[subplebbitAddress] = true;
-                try {
-                    const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
-                    yield subplebbit.start();
-                    startedSubplebbits[subplebbitAddress] = subplebbit;
-                    log('subplebbit started', { subplebbit });
-                }
-                catch (error) {
-                    // don't log start errors, too much spam
-                    // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
-                }
-                pendingStartedSubplebbits[subplebbitAddress] = false;
+        for (const subplebbitAddress of account.plebbit.subplebbits) {
+            if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
+                continue;
             }
-        }));
-    }, startSubplebbitsPollTime);
+            pendingStartedSubplebbits[subplebbitAddress] = true;
+            try {
+                const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
+                yield subplebbit.start();
+                startedSubplebbits[subplebbitAddress] = subplebbit;
+                log('subplebbit started', { subplebbit });
+            }
+            catch (error) {
+                // don't log start errors, too much spam
+                // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
+            }
+            pendingStartedSubplebbits[subplebbitAddress] = false;
+        }
+    }), startSubplebbitsPollTime);
 });
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING;

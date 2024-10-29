@@ -123,6 +123,7 @@ export function useSubplebbits(options) {
         errors: [],
     }), [subplebbits, subplebbitAddresses === null || subplebbitAddresses === void 0 ? void 0 : subplebbitAddresses.toString()]);
 }
+// TODO: plebbit.listSubplebbits() has been removed, rename this and use event subplebbitschanged instead of polling
 /**
  * Returns all the owner subplebbits created by plebbit-js by calling plebbit.listSubplebbits()
  */
@@ -135,13 +136,11 @@ export function useListSubplebbits() {
         if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
             return;
         }
-        account.plebbit.listSubplebbits().then((_subplebbitAddresses) => {
-            if (_subplebbitAddresses.toString() === subplebbitAddresses.toString()) {
-                return;
-            }
-            log('useListSubplebbits', { subplebbitAddresses });
-            setSubplebbitAddresses(_subplebbitAddresses);
-        });
+        if (account.plebbit.subplebbits.toString() === subplebbitAddresses.toString()) {
+            return;
+        }
+        log('useListSubplebbits', { subplebbitAddresses });
+        setSubplebbitAddresses(account.plebbit.subplebbits);
     }, delay, immediate);
     return subplebbitAddresses;
 }

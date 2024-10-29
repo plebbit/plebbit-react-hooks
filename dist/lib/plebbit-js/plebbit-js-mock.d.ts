@@ -11,7 +11,7 @@ export declare class Plebbit extends EventEmitter {
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
     getSubplebbit(subplebbitAddress: string): Promise<any>;
-    listSubplebbits(): Promise<string[]>;
+    get subplebbits(): string[];
     createComment(createCommentOptions: any): Promise<Comment>;
     getComment(commentCid: string): Promise<Comment>;
     commentToGet(commentCid?: string): {};

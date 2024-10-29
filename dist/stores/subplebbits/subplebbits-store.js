@@ -37,7 +37,7 @@ const subplebbitsStore = createStore((setState, getState) => ({
             plebbitGetSubplebbitPending[subplebbitAddress + account.id] = true;
             let errorGettingSubplebbit;
             // try to find subplebbit in owner subplebbits
-            if ((yield account.plebbit.listSubplebbits()).includes(subplebbitAddress)) {
+            if (account.plebbit.subplebbits.includes(subplebbitAddress)) {
                 subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
             }
             // try to find subplebbit in database
