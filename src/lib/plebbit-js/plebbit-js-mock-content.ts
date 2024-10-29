@@ -719,7 +719,7 @@ class Plebbit extends EventEmitter {
     const signer = await this.createSigner()
     const subplebbit = new Subplebbit({signer, ...createSubplebbitOptions})
 
-    // keep a list of subplebbits the user probably created himself to use with listSubplebbits
+    // keep a list of subplebbits the user probably created himself to use with plebbit.subplebbits
     if (!createSubplebbitOptions?.address) {
       createdSubplebbits[subplebbit.address || ''] = subplebbit
     }
@@ -749,7 +749,8 @@ class Plebbit extends EventEmitter {
     return subplebbit
   }
 
-  async listSubplebbits() {
+  // TODO: implement event subplebbitschange
+  get subplebbits() {
     const subplebbitAddresses = Object.keys(createdSubplebbits)
     return subplebbitAddresses
   }
@@ -1027,7 +1028,7 @@ class Publication extends EventEmitter {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
     // @ts-ignore
     this.cid = this.content || this.title || this.link ? await getCidHash(this.content + this.title + this.link + 'cid') : undefined
-    const publication = this.cid && {cid: this.cid}
+    const commentUpdate = this.cid && {cid: this.cid}
 
     const challengeVerificationMessage = {
       type: 'CHALLENGEVERIFICATION',
@@ -1036,7 +1037,7 @@ class Publication extends EventEmitter {
       // @ts-ignore
       challengeAnswerId: this.challengeAnswerId,
       challengeSuccess: true,
-      publication,
+      commentUpdate,
     }
     this.emit('challengeverification', challengeVerificationMessage, this)
   }

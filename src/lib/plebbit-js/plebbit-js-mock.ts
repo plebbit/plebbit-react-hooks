@@ -80,7 +80,8 @@ export class Plebbit extends EventEmitter {
     return subplebbit
   }
 
-  async listSubplebbits() {
+  // TODO: implement event subplebbitschange
+  get subplebbits() {
     return [...new Set(['list subplebbit address 1', 'list subplebbit address 2', ...Object.keys(createdOwnerSubplebbits)])]
   }
 
@@ -402,14 +403,14 @@ class Publication extends EventEmitter {
   simulateChallengeVerificationEvent() {
     // if publication has content, create cid for this content and add it to comment and challengeVerificationMessage
     this.cid = this.content && `${this.content} cid`
-    const publication = this.cid && {cid: this.cid}
+    const commentUpdate = this.cid && {cid: this.cid}
 
     const challengeVerificationMessage = {
       type: 'CHALLENGEVERIFICATION',
       challengeRequestId: this.challengeRequestId,
       challengeAnswerId: this.challengeAnswerId,
       challengeSuccess: true,
-      publication,
+      commentUpdate,
     }
     this.emit('challengeverification', challengeVerificationMessage, this)
 

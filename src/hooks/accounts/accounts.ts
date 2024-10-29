@@ -147,7 +147,7 @@ export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): U
         }
       }
     }
-    // add listSubplebbits data
+    // add plebbit.subplebbits data
     for (const subplebbitAddress in accountSubplebbits) {
       if (ownerSubplebbitAddresses.includes(subplebbitAddress)) {
         accountSubplebbits[subplebbitAddress].role = {role: 'owner'}

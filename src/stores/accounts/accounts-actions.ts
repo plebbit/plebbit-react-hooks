@@ -490,7 +490,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       } else {
         // the challengeverification message of a comment publication should in theory send back the CID
         // of the published comment which is needed to resolve it for replies, upvotes, etc
-        if (challengeVerification?.publication?.cid) {
+        if (challengeVerification?.commentUpdate?.cid) {
           const commentWithCid = comment
           await accountsDatabase.addAccountComment(account.id, commentWithCid, accountCommentIndex)
           accountsStore.setState(({accountsComments, commentCidsToAccountsComments}) => {
@@ -499,7 +499,10 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
             updatedAccountComments[accountCommentIndex] = updatedAccountComment
             return {
               accountsComments: {...accountsComments, [account.id]: updatedAccountComments},
-              commentCidsToAccountsComments: {...commentCidsToAccountsComments, [challengeVerification?.publication?.cid]: {accountId: account.id, accountCommentIndex}},
+              commentCidsToAccountsComments: {
+                ...commentCidsToAccountsComments,
+                [challengeVerification?.commentUpdate?.cid]: {accountId: account.id, accountCommentIndex},
+              },
             }
           })
 
@@ -735,7 +738,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
   delete subplebbitEditOptions.onPublishingStateChange
 
   // account is the owner of the subplebbit and can edit it locally, no need to publish
-  const localSubplebbitAddresses = await account.plebbit.listSubplebbits()
+  const localSubplebbitAddresses = account.plebbit.subplebbits
   if (localSubplebbitAddresses.includes(subplebbitAddress)) {
     await subplebbitsStore.getState().editSubplebbit(subplebbitAddress, subplebbitEditOptions, account)
     // create fake success challenge verification for consistent behavior with remote subplebbit edit

@@ -46,7 +46,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     let errorGettingSubplebbit: any
 
     // try to find subplebbit in owner subplebbits
-    if ((await account.plebbit.listSubplebbits()).includes(subplebbitAddress)) {
+    if (account.plebbit.subplebbits.includes(subplebbitAddress)) {
       subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
     }
 

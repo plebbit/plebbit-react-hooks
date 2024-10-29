@@ -148,30 +148,28 @@ const initializeStartSubplebbits = async () => {
   pendingStartedSubplebbits = {}
 
   const startSubplebbitsPollTime = 10000
-  startSubplebbitsInterval = setInterval(() => {
+  startSubplebbitsInterval = setInterval(async () => {
     const {accounts, activeAccountId} = accountsStore.getState()
     const account = accounts?.[activeAccountId || '']
     if (!account?.plebbit) {
       return
     }
-    account.plebbit.listSubplebbits().then(async (subplebbitAddresses: string[]) => {
-      for (const subplebbitAddress of subplebbitAddresses) {
-        if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
-          continue
-        }
-        pendingStartedSubplebbits[subplebbitAddress] = true
-        try {
-          const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
-          await subplebbit.start()
-          startedSubplebbits[subplebbitAddress] = subplebbit
-          log('subplebbit started', {subplebbit})
-        } catch (error) {
-          // don't log start errors, too much spam
-          // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
-        }
-        pendingStartedSubplebbits[subplebbitAddress] = false
+    for (const subplebbitAddress of account.plebbit.subplebbits) {
+      if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
+        continue
       }
-    })
+      pendingStartedSubplebbits[subplebbitAddress] = true
+      try {
+        const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+        await subplebbit.start()
+        startedSubplebbits[subplebbitAddress] = subplebbit
+        log('subplebbit started', {subplebbit})
+      } catch (error) {
+        // don't log start errors, too much spam
+        // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
+      }
+      pendingStartedSubplebbits[subplebbitAddress] = false
+    }
   }, startSubplebbitsPollTime)
 }
 

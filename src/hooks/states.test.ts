@@ -149,7 +149,7 @@ class Comment extends EventEmitter {
       const challengeVerificationMessage = {
         type: 'CHALLENGEVERIFICATION',
         challengeSuccess: true,
-        publication: {cid: this.cid},
+        commentUpdate: {cid: this.cid},
       }
       this.emit('challengeverification', challengeVerificationMessage, this)
 
