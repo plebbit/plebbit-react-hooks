@@ -278,7 +278,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           await waitFor(() => onChallengeVerificationCalled > 0)
           expect(onChallengeVerificationCalled).to.equal(1)
           expect(challengeVerification.type).to.equal('CHALLENGEVERIFICATION')
-          expect(typeof challengeVerification.publication.cid).to.equal('string')
+          expect(typeof challengeVerification.commentUpdate.cid).to.equal('string')
           expect(commentVerified.constructor.name).to.match(/Comment|Post/)
           console.log('after onChallengeVerification')
         })
