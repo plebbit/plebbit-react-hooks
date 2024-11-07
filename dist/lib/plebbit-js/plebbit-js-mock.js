@@ -23,6 +23,14 @@ export const debugPlebbitJsMock = () => {
     console.log({ createdOwnerSubplebbits, editedOwnerSubplebbits });
 };
 export class Plebbit extends EventEmitter {
+    constructor() {
+        super(...arguments);
+        this.clients = {
+            plebbitRpcClients: {
+                'http://localhost:9138': new PlebbitRpcClient(),
+            },
+        };
+    }
     resolveAuthorAddress(authorAddress) {
         return __awaiter(this, void 0, void 0, function* () {
             return 'resolved author address';
@@ -141,15 +149,24 @@ export class Plebbit extends EventEmitter {
     pubsubUnsubscribe(subplebbitAddress) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    rpcCall(method, params) {
+}
+class PlebbitRpcClient extends EventEmitter {
+    constructor() {
+        super();
+        this.state = 'connecting';
+        this.settings = undefined;
+        // simulate connecting to the rpc
+        setTimeout(() => {
+            this.state = 'connected';
+            this.settings = { challenges: {} };
+            this.emit('statechange', this.state);
+            this.emit('settingschange', this.settings);
+        }, 10);
+    }
+    setSettings(settings) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (method === 'getSettings') {
-                return {
-                    challenges: {
-                        'text-math': {},
-                    },
-                };
-            }
+            this.settings = settings;
+            this.emit('settingschange', this.settings);
         });
     }
 }

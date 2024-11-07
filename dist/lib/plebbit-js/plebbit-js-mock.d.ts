@@ -21,11 +21,17 @@ export declare class Plebbit extends EventEmitter {
     fetchCid(cid: string): Promise<string>;
     pubsubSubscribe(subplebbitAddress: string): Promise<void>;
     pubsubUnsubscribe(subplebbitAddress: string): Promise<void>;
-    rpcCall(method: string, params: any[]): Promise<{
-        challenges: {
-            'text-math': {};
+    clients: {
+        plebbitRpcClients: {
+            'http://localhost:9138': PlebbitRpcClient;
         };
-    } | undefined>;
+    };
+}
+declare class PlebbitRpcClient extends EventEmitter {
+    state: string;
+    settings: any;
+    constructor();
+    setSettings(settings: any): Promise<void>;
 }
 export declare class Pages {
     pageCids: any;

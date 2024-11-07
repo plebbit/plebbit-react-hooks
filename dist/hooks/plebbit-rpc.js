@@ -24,34 +24,57 @@ export function usePlebbitRpcSettings(options) {
     const [state, setState] = useState('initializing');
     const [errors, setErrors] = useState([]);
     useEffect(() => {
+        var _a, _b;
         if (!account) {
             return;
         }
-        setState('calling-rpc');
-        account.plebbit
-            .rpcCall('getSettings', [])
-            .then((plebbitRpcSettings) => {
+        const rpcClient = Object.values(((_b = (_a = account.plebbit) === null || _a === void 0 ? void 0 : _a.clients) === null || _b === void 0 ? void 0 : _b.plebbitRpcClients) || {})[0];
+        if (!rpcClient) {
+            return;
+        }
+        // set initial state
+        if (rpcClient.state) {
+            setState(rpcClient.state);
+        }
+        const onRpcSettingsChange = (plebbitRpcSettings) => {
             setPlebbitRpcSettingsState(plebbitRpcSettings);
-            setState('succeeded');
-        })
-            .catch((e) => {
+        };
+        const onRpcStateChange = (rpcState) => {
+            setState(rpcState);
+        };
+        const onRpcError = (e) => {
             setErrors([...errors, e]);
-            setState('failed');
-        });
+        };
+        rpcClient.on('settingschange', onRpcSettingsChange);
+        rpcClient.on('statechange', onRpcStateChange);
+        rpcClient.on('error', onRpcError);
+        // clean up
+        return () => {
+            rpcClient.removeListener('settingschange', onRpcSettingsChange);
+            rpcClient.removeListener('statechange', onRpcStateChange);
+            rpcClient.removeListener('error', onRpcError);
+        };
     }, [account === null || account === void 0 ? void 0 : account.id]);
     const setPlebbitRpcSettings = (plebbitRpcSettings) => __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         assert(account, `can't use usePlebbitRpcSettings.setPlebbitRpcSettings before initialized`);
         assert(plebbitRpcSettings && typeof plebbitRpcSettings === 'object', `usePlebbitRpcSettings.setPlebbitRpcSettings plebbitRpcSettings argument '${plebbitRpcSettings}' not an object`);
-        setState('calling-rpc');
+        const rpcClient = Object.values(((_b = (_a = account.plebbit) === null || _a === void 0 ? void 0 : _a.clients) === null || _b === void 0 ? void 0 : _b.plebbitRpcClients) || {})[0];
+        assert(rpcClient, `can't use usePlebbitRpcSettings.setPlebbitRpcSettings no account.plebbit.clients.plebbitRpcClients`);
         try {
-            yield account.plebbit.rpcCall('setSettings', [plebbitRpcSettings]);
-            setPlebbitRpcSettingsState(plebbitRpcSettings);
+            yield rpcClient.setSettings(plebbitRpcSettings);
             setState('succeeded');
         }
         catch (e) {
             setErrors([...errors, e]);
             setState('failed');
         }
+        // go back to original state after some time
+        setTimeout(() => {
+            if (state !== rpcClient.state && rpcClient.state) {
+                setState(rpcClient.state);
+            }
+        }, 10000);
     });
     return useMemo(() => ({
         plebbitRpcSettings: plebbitRpcSettingsState,
@@ -59,5 +82,5 @@ export function usePlebbitRpcSettings(options) {
         state,
         error: errors === null || errors === void 0 ? void 0 : errors[errors.length - 1],
         errors,
-    }), [plebbitRpcSettingsState, setPlebbitRpcSettings, state, errors]);
+    }), [plebbitRpcSettingsState, account === null || account === void 0 ? void 0 : account.id, state, errors]);
 }
