@@ -34,7 +34,7 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#50e843a5cfb2a39fbd497db077b51ee51c6aed94",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#20b3c91b30a589ea5728f9a20f61e63700fe0dd4",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
     "assert": "2.0.0",
     "ethers": "5.6.9",
@@ -118,8 +118,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
- "resolutions": {
-    "skia-canvas": "1.0.2"
   }
 }

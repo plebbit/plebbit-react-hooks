@@ -2917,9 +2917,9 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#50e843a5cfb2a39fbd497db077b51ee51c6aed94":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#20b3c91b30a589ea5728f9a20f61e63700fe0dd4":
   version "0.0.4"
-  resolved "https://github.com/plebbit/plebbit-js.git#50e843a5cfb2a39fbd497db077b51ee51c6aed94"
+  resolved "https://github.com/plebbit/plebbit-js.git#20b3c91b30a589ea5728f9a20f61e63700fe0dd4"
   dependencies:
     "@bonfida/spl-name-service" "2.4.2"
     "@chainsafe/libp2p-gossipsub" "12.0.0"
