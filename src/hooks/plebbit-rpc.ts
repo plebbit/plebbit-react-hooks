@@ -21,17 +21,36 @@ export function usePlebbitRpcSettings(options?: UsePlebbitRpcSettingsOptions): U
     if (!account) {
       return
     }
-    setState('calling-rpc')
-    account.plebbit
-      .rpcCall('getSettings', [])
-      .then((plebbitRpcSettings: PlebbitRpcSettings) => {
-        setPlebbitRpcSettingsState(plebbitRpcSettings)
-        setState('succeeded')
-      })
-      .catch((e: any) => {
-        setErrors([...errors, e])
-        setState('failed')
-      })
+    const rpcClient: any = Object.values(account.plebbit?.clients?.plebbitRpcClients || {})[0]
+    if (!rpcClient) {
+      return
+    }
+
+    // set initial state
+    if (rpcClient.state) {
+      setState(rpcClient.state)
+    }
+
+    const onRpcSettingsChange = (plebbitRpcSettings: PlebbitRpcSettings) => {
+      setPlebbitRpcSettingsState(plebbitRpcSettings)
+    }
+    const onRpcStateChange = (rpcState: string) => {
+      setState(rpcState)
+    }
+    const onRpcError = (e: any) => {
+      setErrors([...errors, e])
+    }
+
+    rpcClient.on('settingschange', onRpcSettingsChange)
+    rpcClient.on('statechange', onRpcStateChange)
+    rpcClient.on('error', onRpcError)
+
+    // clean up
+    return () => {
+      rpcClient.removeListener('settingschange', onRpcSettingsChange)
+      rpcClient.removeListener('statechange', onRpcStateChange)
+      rpcClient.removeListener('error', onRpcError)
+    }
   }, [account?.id])
 
   const setPlebbitRpcSettings = async (plebbitRpcSettings: PlebbitRpcSettings) => {
@@ -40,15 +59,23 @@ export function usePlebbitRpcSettings(options?: UsePlebbitRpcSettingsOptions): U
       plebbitRpcSettings && typeof plebbitRpcSettings === 'object',
       `usePlebbitRpcSettings.setPlebbitRpcSettings plebbitRpcSettings argument '${plebbitRpcSettings}' not an object`
     )
-    setState('calling-rpc')
+    const rpcClient: any = Object.values(account.plebbit?.clients?.plebbitRpcClients || {})[0]
+    assert(rpcClient, `can't use usePlebbitRpcSettings.setPlebbitRpcSettings no account.plebbit.clients.plebbitRpcClients`)
+
     try {
-      await account.plebbit.rpcCall('setSettings', [plebbitRpcSettings])
-      setPlebbitRpcSettingsState(plebbitRpcSettings)
+      await rpcClient.setSettings(plebbitRpcSettings)
       setState('succeeded')
     } catch (e: any) {
       setErrors([...errors, e])
       setState('failed')
     }
+
+    // go back to original state after some time
+    setTimeout(() => {
+      if (state !== rpcClient.state && rpcClient.state) {
+        setState(rpcClient.state)
+      }
+    }, 10000)
   }
 
   return useMemo(
@@ -59,6 +86,6 @@ export function usePlebbitRpcSettings(options?: UsePlebbitRpcSettingsOptions): U
       error: errors?.[errors.length - 1],
       errors,
     }),
-    [plebbitRpcSettingsState, setPlebbitRpcSettings, state, errors]
+    [plebbitRpcSettingsState, account?.id, state, errors]
   )
 }

@@ -131,14 +131,30 @@ export class Plebbit extends EventEmitter {
   async pubsubSubscribe(subplebbitAddress: string) {}
   async pubsubUnsubscribe(subplebbitAddress: string) {}
 
-  async rpcCall(method: string, params: any[]) {
-    if (method === 'getSettings') {
-      return {
-        challenges: {
-          'text-math': {},
-        },
-      }
-    }
+  clients = {
+    plebbitRpcClients: {
+      'http://localhost:9138': new PlebbitRpcClient(),
+    },
+  }
+}
+
+class PlebbitRpcClient extends EventEmitter {
+  state = 'connecting'
+  settings: any = undefined
+  constructor() {
+    super()
+    // simulate connecting to the rpc
+    setTimeout(() => {
+      this.state = 'connected'
+      this.settings = {challenges: {}}
+      this.emit('statechange', this.state)
+      this.emit('settingschange', this.settings)
+    }, 10)
+  }
+
+  async setSettings(settings: any) {
+    this.settings = settings
+    this.emit('settingschange', this.settings)
   }
 }
 

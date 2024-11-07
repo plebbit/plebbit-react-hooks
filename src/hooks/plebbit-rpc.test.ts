@@ -24,8 +24,12 @@ describe('plebbit-rpc', () => {
     const waitFor = testUtils.createWaitFor(rendered)
     expect(rendered.result.current.plebbitRpcSettings).toBe(undefined)
 
+    await waitFor(() => rendered.result.current.state === 'connecting')
+    expect(rendered.result.current.state).toBe('connecting')
+
     await waitFor(() => !!rendered.result.current.plebbitRpcSettings)
     expect(rendered.result.current.plebbitRpcSettings.challenges).not.toBe(undefined)
+    expect(rendered.result.current.state).toBe('connected')
 
     await act(async () => {
       await rendered.result.current.setPlebbitRpcSettings({
@@ -34,5 +38,9 @@ describe('plebbit-rpc', () => {
         },
       })
     })
+
+    await waitFor(() => !!rendered.result.current.plebbitRpcSettings.challenges['some-challenge'])
+    expect(rendered.result.current.plebbitRpcSettings.challenges['some-challenge']).not.toBe(undefined)
+    expect(rendered.result.current.state).toBe('succeeded')
   })
 })
