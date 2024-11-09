@@ -65,6 +65,32 @@ export const validateAccountsActionsPublishCommentEditArguments = ({publishComme
   )
 }
 
+export const validateAccountsActionsPublishCommentModerationArguments = ({publishCommentModerationOptions, accountName, account}: any) => {
+  assert(!accountName || typeof accountName === 'string', `publishCommentModeration accountName '${accountName}' not a string`)
+  assert(accountName !== '', `publishCommentModeration accountName argument is empty string`)
+  assert(!accountName || account, `publishCommentModeration no account with name '${accountName}' in accountsStore`)
+  assert(publishCommentModerationOptions && typeof publishCommentModerationOptions === 'object', 'publishCommentModeration publishCommentModerationOptions not an object')
+  assert(typeof publishCommentModerationOptions.onChallenge === 'function', 'publishCommentModeration publishCommentModerationOptions.onChallenge not a function')
+  assert(
+    typeof publishCommentModerationOptions.onChallengeVerification === 'function',
+    'publishCommentModeration publishCommentModerationOptions.onChallengeVerification not a function'
+  )
+  assert(
+    !publishCommentModerationOptions.onError || typeof publishCommentModerationOptions.onError === 'function',
+    'publishCommentModerationOptions publishCommentModerationOptions.onError not a function'
+  )
+  assert(typeof publishCommentModerationOptions.subplebbitAddress === 'string', 'publishCommentModeration publishCommentModerationOptions.subplebbitAddress not a string')
+  assert(typeof publishCommentModerationOptions.commentCid === 'string', 'publishCommentModeration publishCommentModerationOptions.commentCid not a string')
+  assert(
+    !publishCommentModerationOptions.timestamp || typeof publishCommentModerationOptions.timestamp === 'number',
+    'publishCommentModeration publishCommentModerationOptions.timestamp is not a number'
+  )
+  assert(
+    publishCommentModerationOptions.commentModeration && typeof publishCommentModerationOptions.commentModeration === 'object',
+    'publishCommentModeration publishCommentModerationOptions.commentModeration is not an object'
+  )
+}
+
 export const validateAccountsActionsPublishSubplebbitEditArguments = ({subplebbitAddress, publishSubplebbitEditOptions, accountName, account}: any) => {
   assert(!accountName || typeof accountName === 'string', `publishSubplebbitEdit accountName '${accountName}' not a string`)
   assert(accountName !== '', `publishSubplebbitEdit accountName argument is empty string`)
@@ -224,6 +250,7 @@ export const validateUseBufferedFeedsArguments = (feedsOptions?: any, accountNam
 const validator = {
   validateAccountsActionsPublishCommentArguments,
   validateAccountsActionsPublishCommentEditArguments,
+  validateAccountsActionsPublishCommentModerationArguments,
   validateAccountsActionsPublishSubplebbitEditArguments,
   validateAccountsActionsPublishVoteArguments,
   validateAccountsActionsExportAccountArguments,

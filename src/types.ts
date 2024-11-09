@@ -337,6 +337,19 @@ export interface UsePublishCommentEditResult extends Result {
   publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
 }
 
+// usePublishCommentModeration(options): result
+export interface UsePublishCommentModerationOptions extends Options {
+  onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>
+  onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>
+  [publishOption: string]: any
+}
+export interface UsePublishCommentModerationResult extends Result {
+  challenge: Challenge | undefined
+  challengeVerification: ChallengeVerification | undefined
+  publishCommentModeration(): Promise<void>
+  publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
+}
+
 // usePublishSubplebbitEdit(options): result
 export interface UsePublishSubplebbitEditOptions extends Options {
   subplebbitAddress?: string
@@ -472,6 +485,7 @@ export type AccountsActions = {[key: string]: any}
 export type PublishCommentOptions = {[key: string]: any}
 export type PublishVoteOptions = {[key: string]: any}
 export type PublishCommentEditOptions = {[key: string]: any}
+export type PublishCommentModerationOptions = {[key: string]: any}
 export type PublishSubplebbitEditOptions = {[key: string]: any}
 export type Challenge = {[key: string]: any}
 export type ChallengeVerification = {[key: string]: any}
@@ -481,6 +495,7 @@ export type CreateVoteOptions = {[key: string]: any}
 export type Comment = {[key: string]: any}
 export type Vote = {[key: string]: any}
 export type CommentEdit = {[key: string]: any}
+export type CommentModeration = {[key: string]: any}
 export type SubplebbitEdit = {[key: string]: any}
 export type Subplebbit = {[key: string]: any}
 export type SubplebbitStats = {[key: string]: any}

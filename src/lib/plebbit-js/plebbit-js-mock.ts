@@ -117,6 +117,10 @@ export class Plebbit extends EventEmitter {
     return new CommentEdit(createCommentEditOptions)
   }
 
+  async createCommentModeration(createCommentModerationOptions: any) {
+    return new CommentModeration(createCommentModerationOptions)
+  }
+
   async createSubplebbitEdit(createSubplebbitEditOptions: any) {
     return new SubplebbitEdit(createSubplebbitEditOptions)
   }
@@ -532,6 +536,8 @@ export class Comment extends Publication {
 export class Vote extends Publication {}
 
 export class CommentEdit extends Publication {}
+
+export class CommentModeration extends Publication {}
 
 export class SubplebbitEdit extends Publication {}
 

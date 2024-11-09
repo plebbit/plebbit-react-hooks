@@ -58,6 +58,7 @@ useBlock({address?: string, cid?: string}): {blocked: boolean | undefined, block
 usePublishComment(options: UsePublishCommentOptions): {index: number, ...UsePublishCommentResult}
 usePublishVote(options: UsePublishVoteOptions): UsePublishVoteResult
 usePublishCommentEdit(options: UsePublishCommentEditOptions): UsePublishCommentEditResult
+usePublishCommentModeration(options: UsePublishCommentModerationOptions): UsePublishCommentModerationResult
 usePublishSubplebbitEdit(options: UsePublishSubplebbitEditOptions): UsePublishSubplebbitEditResult
 useCreateSubplebbit(options: CreateSubplebbitOptions): {createdSubplebbit: Subplebbit | undefined, createSubplebbit: Function}
 ```
@@ -420,6 +421,44 @@ console.log(error)
 
 // view the status of a comment edit instantly
 let comment = useComment({commentCid: publishCommentEditOptions.commentCid})
+const {state: editedCommentState, editedComment} = useEditedComment({comment})
+
+// if the comment has a succeeded, failed or pending edit, use the edited comment
+if (editedComment) {
+  comment = editedComment
+}
+
+let editLabel
+if (editedCommentState === 'succeeded') {
+  editLabel = {text: 'EDITED', color: 'green'}
+}
+if (editedCommentState === 'pending') {
+  editLabel = {text: 'PENDING EDIT', color: 'orange'}
+}
+if (editedCommentState === 'failed') {
+  editLabel = {text: 'FAILED EDIT', color: 'red'}
+}
+```
+
+#### Create a comment moderation
+
+```jsx
+const publishCommentModerationOptions = {
+  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+  subplebbitAddress: 'news.eth',
+  commentModeration: {locked: true},
+  onChallenge,
+  onChallengeVerification,
+  onError
+}
+const {state, error, publishCommentModeration} = usePublishCommentModeration(publishCommentModerationOptions)
+
+await publishCommentModeration()
+console.log(state)
+console.log(error)
+
+// view the status of a comment moderation instantly
+let comment = useComment({commentCid: publishCommentModerationOptions.commentCid})
 const {state: editedCommentState, editedComment} = useEditedComment({comment})
 
 // if the comment has a succeeded, failed or pending edit, use the edited comment

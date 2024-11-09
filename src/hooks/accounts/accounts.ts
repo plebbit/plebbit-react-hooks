@@ -457,7 +457,14 @@ export function useEditedComment(options?: UseEditedCommentOptions): UseEditedCo
 
     // iterate over commentEdits and consolidate them into 1 propertyNameEdits object
     const propertyNameEdits: any = {}
-    for (const commentEdit of commentEdits) {
+    for (let commentEdit of commentEdits) {
+      // TODO: commentEdit and commentModeration are now separate, but both still in accountEdits store
+      // merge them until we find a better design
+      if (commentEdit.commentModeration) {
+        commentEdit = {...commentEdit, ...commentEdit.commentModeration}
+        delete commentEdit.commentModeration
+      }
+
       for (const propertyName in commentEdit) {
         // not valid edited properties
         if (commentEdit[propertyName] === undefined || nonEditPropertyNames.has(propertyName)) {

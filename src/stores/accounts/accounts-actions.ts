@@ -16,6 +16,7 @@ import {
   ChallengeVerification,
   PublishVoteOptions,
   PublishCommentEditOptions,
+  PublishCommentModerationOptions,
   PublishSubplebbitEditOptions,
   CreateSubplebbitOptions,
   Subplebbits,
@@ -716,6 +717,74 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
       accountsEdits: {
         ...accountsEdits,
         [account.id]: {...accountsEdits[account.id], [createCommentEditOptions.commentCid]: commentEdits},
+      },
+    }
+  })
+}
+
+export const publishCommentModeration = async (publishCommentModerationOptions: PublishCommentModerationOptions, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`)
+  let account = accounts[activeAccountId]
+  if (accountName) {
+    const accountId = accountNamesToAccountIds[accountName]
+    account = accounts[accountId]
+  }
+  validator.validateAccountsActionsPublishCommentModerationArguments({publishCommentModerationOptions, accountName, account})
+
+  let createCommentModerationOptions: any = {
+    timestamp: Math.round(Date.now() / 1000),
+    author: account.author,
+    signer: account.signer,
+    ...publishCommentModerationOptions,
+  }
+  delete createCommentModerationOptions.onChallenge
+  delete createCommentModerationOptions.onChallengeVerification
+  delete createCommentModerationOptions.onError
+  delete createCommentModerationOptions.onPublishingStateChange
+
+  let commentModeration = await account.plebbit.createCommentModeration(createCommentModerationOptions)
+  let lastChallenge: Challenge | undefined
+  const publishAndRetryFailedChallengeVerification = async () => {
+    commentModeration.once('challenge', async (challenge: Challenge) => {
+      publishCommentModerationOptions.onChallenge(challenge, commentModeration)
+    })
+    commentModeration.once('challengeverification', async (challengeVerification: ChallengeVerification) => {
+      publishCommentModerationOptions.onChallengeVerification(challengeVerification, commentModeration)
+      if (!challengeVerification.challengeSuccess && lastChallenge) {
+        // publish again automatically on fail
+        createCommentModerationOptions = {...createCommentModerationOptions, timestamp: Math.round(Date.now() / 1000)}
+        commentModeration = await account.plebbit.createCommentModeration(createCommentModerationOptions)
+        lastChallenge = undefined
+        publishAndRetryFailedChallengeVerification()
+      }
+    })
+    commentModeration.on('error', (error: Error) => publishCommentModerationOptions.onError?.(error, commentModeration))
+    // TODO: add publishingState to account edits
+    commentModeration.on('publishingstatechange', (publishingState: string) => publishCommentModerationOptions.onPublishingStateChange?.(publishingState))
+    listeners.push(commentModeration)
+    try {
+      // publish will resolve after the challenge request
+      // if it fails before, like failing to resolve ENS, we can emit the error
+      await commentModeration.publish()
+    } catch (error) {
+      publishCommentModerationOptions.onError?.(error, commentModeration)
+    }
+  }
+
+  publishAndRetryFailedChallengeVerification()
+
+  await accountsDatabase.addAccountEdit(account.id, createCommentModerationOptions)
+  log('accountsActions.publishCommentModeration', {createCommentModerationOptions})
+  accountsStore.setState(({accountsEdits}) => {
+    // remove signer and author because not needed and they expose private key
+    const commentModeration = {...createCommentModerationOptions, signer: undefined, author: undefined}
+    let commentModerations = accountsEdits[account.id][createCommentModerationOptions.commentCid] || []
+    commentModerations = [...commentModerations, commentModeration]
+    return {
+      accountsEdits: {
+        ...accountsEdits,
+        [account.id]: {...accountsEdits[account.id], [createCommentModerationOptions.commentCid]: commentModerations},
       },
     }
   })

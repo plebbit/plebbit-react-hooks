@@ -348,7 +348,7 @@ describe('accounts', () => {
         let challengeVerificationCount = 0
         const publishCommentEditOptions = {
           subplebbitAddress,
-          locked: true,
+          spoiler: true,
           onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
           onChallengeVerification: () => challengeVerificationCount++,
         }
@@ -945,7 +945,7 @@ describe('accounts', () => {
         const commentEditOptions = {
           subplebbitAddress: '12D3KooW...',
           commentCid: 'Qm...',
-          locked: true,
+          spoiler: true,
           onChallenge,
           onChallengeVerification,
         }
@@ -984,7 +984,7 @@ describe('accounts', () => {
       test('account edits has comment edit', async () => {
         await waitFor(() => rendered.result.current.accountEdits.length === 1)
         expect(rendered.result.current.accountEdits.length).toBe(1)
-        expect(rendered.result.current.accountEdits[0].locked).toBe(true)
+        expect(rendered.result.current.accountEdits[0].spoiler).toBe(true)
         expect(typeof rendered.result.current.accountEdits[0].timestamp).toBe('number')
 
         // reset stores to force using the db
@@ -992,7 +992,7 @@ describe('accounts', () => {
         const rendered2 = renderHook<any, any>(() => useAccountEdits())
         await waitFor(() => rendered2.result.current.accountEdits.length === 1)
         expect(rendered2.result.current.accountEdits.length).toBe(1)
-        expect(rendered2.result.current.accountEdits[0].locked).toBe(true)
+        expect(rendered2.result.current.accountEdits[0].spoiler).toBe(true)
         expect(typeof rendered2.result.current.accountEdits[0].timestamp).toBe('number')
       })
 
@@ -1004,7 +1004,7 @@ describe('accounts', () => {
         })
         await waitFor(() => rendered2.result.current.editedComment)
         expect(rendered2.result.current.editedComment).not.toBe(undefined)
-        expect(rendered2.result.current.pendingEdits.locked || rendered2.result.current.succeededEdits.locked).toBe(true)
+        expect(rendered2.result.current.pendingEdits.spoiler || rendered2.result.current.succeededEdits.spoiler).toBe(true)
         expect(rendered2.result.current.state).toMatch(/pending|succeeded/)
       })
     })
@@ -2139,7 +2139,7 @@ describe('accounts', () => {
         timestamp: commentEditTimestamp,
         commentCid,
         subplebbitAddress,
-        locked: true,
+        spoiler: true,
         onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
         onChallengeVerification: () => challengeVerificationCount++,
       }
@@ -2149,6 +2149,74 @@ describe('accounts', () => {
       expect(rendered.result.current.editedComment.state).toBe('unedited')
       await act(async () => {
         await accountsActions.publishCommentEdit(publishCommentEditOptions)
+      })
+
+      // edit is pending because the comment from store doesn't yet have spoiler: true
+      await waitFor(() => rendered.result.current.editedComment.editedComment)
+      expect(rendered.result.current.comment.spoiler).toBe(undefined)
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('pending')
+      expect(rendered.result.current.editedComment.editedComment.spoiler).toBe(true)
+      expect(rendered.result.current.editedComment.pendingEdits.spoiler).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+
+      // update comment with edited prop in store
+      const updatedComment = {...commentsStore.getState().comments[commentCid]}
+      updatedComment.spoiler = true
+      updatedComment.updatedAt = commentEditTimestamp + 1
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // wait for comment to become updated and to not be account comment (not have comment.index)
+      await waitFor(() => rendered.result.current.comment.spoiler === true && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment.spoiler).toBe(true)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // wait for edit to become succeeded
+      await waitFor(() => rendered.result.current.editedComment.state === 'succeeded')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('succeeded')
+      expect(rendered.result.current.editedComment.editedComment.spoiler).toBe(true)
+      expect(rendered.result.current.editedComment.succeededEdits.spoiler).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+    })
+
+    test('comment moderation succeeded', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      expect(subplebbitAddress).not.toBe(undefined)
+
+      rendered.rerender(commentCid)
+
+      // wait for useComment to load comment from store
+      await waitFor(() => rendered.result.current.comment?.cid && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // publish edit options
+      let challengeVerificationCount = 0
+      const commentModerationTimestamp = Math.ceil(Date.now() / 1000)
+      const publishCommentModerationOptions = {
+        timestamp: commentModerationTimestamp,
+        commentCid,
+        subplebbitAddress,
+        commentModeration: {locked: true},
+        onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+        onChallengeVerification: () => challengeVerificationCount++,
+      }
+
+      // publish edit
+      expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('unedited')
+      await act(async () => {
+        await accountsActions.publishCommentModeration(publishCommentModerationOptions)
       })
 
       // edit is pending because the comment from store doesn't yet have locked: true
@@ -2166,7 +2234,7 @@ describe('accounts', () => {
       // update comment with edited prop in store
       const updatedComment = {...commentsStore.getState().comments[commentCid]}
       updatedComment.locked = true
-      updatedComment.updatedAt = commentEditTimestamp + 1
+      updatedComment.updatedAt = commentModerationTimestamp + 1
       commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
 
       // wait for comment to become updated and to not be account comment (not have comment.index)
@@ -2207,7 +2275,7 @@ describe('accounts', () => {
         timestamp: commentEditTimestamp,
         commentCid,
         subplebbitAddress,
-        locked: true,
+        spoiler: true,
         onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
         onChallengeVerification: () => challengeVerificationCount++,
       }
@@ -2221,10 +2289,93 @@ describe('accounts', () => {
 
       // edit failed (not pending) because is already 1 hour old
       await waitFor(() => rendered.result.current.editedComment.editedComment)
-      expect(rendered.result.current.comment.locked).toBe(undefined)
+      expect(rendered.result.current.comment.spoiler).toBe(undefined)
       // updatedAt is required to evaluate the status of a CommentEdit
       await waitFor(() => rendered.result.current.comment.updatedAt)
       expect(rendered.result.current.comment.updatedAt).toBeGreaterThan(commentEditTimestamp)
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('failed')
+      expect(rendered.result.current.editedComment.editedComment.spoiler).toBe(undefined)
+      expect(rendered.result.current.editedComment.failedEdits.spoiler).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(1)
+
+      // edit becomes pending if comment.updatedAt is too old
+      let updatedComment = {...commentsStore.getState().comments[commentCid]}
+      // make updatedAt 1 hour ago but still newer than edit time
+      updatedComment.updatedAt = commentEditTimestamp + 1
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // edit is pending because the comment from store updatedAt is too old
+      await waitFor(() => rendered.result.current.editedComment?.state === 'pending')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('pending')
+      expect(rendered.result.current.editedComment.editedComment.spoiler).toBe(true)
+      expect(rendered.result.current.editedComment.pendingEdits.spoiler).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+
+      // add spoiler: true to comment
+      updatedComment = {...commentsStore.getState().comments[commentCid]}
+      // make updatedAt 1 hour ago but still newer than edit time
+      updatedComment.spoiler = true
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // edit is succeeded even if updatedAt is old because is newer than the edit
+      await waitFor(() => rendered.result.current.editedComment?.state === 'succeeded')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('succeeded')
+      expect(rendered.result.current.editedComment.editedComment.spoiler).toBe(true)
+      expect(rendered.result.current.editedComment.succeededEdits.spoiler).toBe(true)
+      // there are no unecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+    })
+
+    test('comment moderation failed', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      expect(subplebbitAddress).not.toBe(undefined)
+
+      rendered.rerender(commentCid)
+
+      // wait for useComment to load comment from store
+      await waitFor(() => rendered.result.current.comment?.cid && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // publish edit options
+      let challengeVerificationCount = 0
+      const commentModerationTimestamp = Math.ceil(Date.now() / 1000) - 60 * 60 // 1 hour ago to make the edit not pending
+      const publishCommentModerationOptions = {
+        timestamp: commentModerationTimestamp,
+        commentCid,
+        subplebbitAddress,
+        commentModeration: {locked: true},
+        onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+        onChallengeVerification: () => challengeVerificationCount++,
+      }
+
+      // publish edit
+      expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('unedited')
+      await act(async () => {
+        await accountsActions.publishCommentModeration(publishCommentModerationOptions)
+      })
+
+      // edit failed (not pending) because is already 1 hour old
+      await waitFor(() => rendered.result.current.editedComment.editedComment)
+      expect(rendered.result.current.comment.locked).toBe(undefined)
+      // updatedAt is required to evaluate the status of a CommentModeration
+      await waitFor(() => rendered.result.current.comment.updatedAt)
+      expect(rendered.result.current.comment.updatedAt).toBeGreaterThan(commentModerationTimestamp)
       expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
       expect(rendered.result.current.editedComment.state).toBe('failed')
       expect(rendered.result.current.editedComment.editedComment.locked).toBe(undefined)
@@ -2237,7 +2388,7 @@ describe('accounts', () => {
       // edit becomes pending if comment.updatedAt is too old
       let updatedComment = {...commentsStore.getState().comments[commentCid]}
       // make updatedAt 1 hour ago but still newer than edit time
-      updatedComment.updatedAt = commentEditTimestamp + 1
+      updatedComment.updatedAt = commentModerationTimestamp + 1
       commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
 
       // edit is pending because the comment from store updatedAt is too old

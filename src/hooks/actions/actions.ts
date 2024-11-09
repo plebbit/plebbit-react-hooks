@@ -17,12 +17,15 @@ import type {
   UsePublishVoteResult,
   UsePublishCommentEditOptions,
   UsePublishCommentEditResult,
+  UsePublishCommentModerationOptions,
+  UsePublishCommentModerationResult,
   UsePublishSubplebbitEditOptions,
   UsePublishSubplebbitEditResult,
   Challenge,
   ChallengeVerification,
   Comment,
   CommentEdit,
+  CommentModeration,
   SubplebbitEdit,
   Vote,
   Subplebbit,
@@ -348,6 +351,77 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
       challenge,
       challengeVerification,
       publishCommentEdit,
+      publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+      state: publishingState || initialState,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+  )
+}
+
+export function usePublishCommentModeration(options?: UsePublishCommentModerationOptions): UsePublishCommentModerationResult {
+  assert(!options || typeof options === 'object', `usePublishCommentModeration options argument '${options}' not an object`)
+  const {accountName, ...publishCommentModerationOptions} = options || {}
+  const accountsActions = useAccountsStore((state) => state.accountsActions)
+  const accountId = useAccountId(accountName)
+  const [errors, setErrors] = useState<Error[]>([])
+  const [publishingState, setPublishingState] = useState<string>()
+  const [challenge, setChallenge] = useState<Challenge>()
+  const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
+  const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+
+  let initialState = 'initializing'
+  // before the accountId and options is defined, nothing can happen
+  if (accountId && options) {
+    initialState = 'ready'
+  }
+
+  // define onError if not defined
+  const originalOnError = publishCommentModerationOptions.onError
+  const onError = async (error: Error) => {
+    setErrors((errors) => [...errors, error])
+    originalOnError?.(error)
+  }
+  publishCommentModerationOptions.onError = onError
+
+  // define onChallenge if not defined
+  const originalOnChallenge = publishCommentModerationOptions.onChallenge
+  const onChallenge = async (challenge: Challenge, commentModeration: CommentModeration) => {
+    // cannot set a function directly with setState
+    setPublishChallengeAnswers(() => commentModeration?.publishChallengeAnswers.bind(commentModeration))
+    setChallenge(challenge)
+    originalOnChallenge?.(challenge, commentModeration)
+  }
+  publishCommentModerationOptions.onChallenge = onChallenge
+
+  // define onChallengeVerification if not defined
+  const originalOnChallengeVerification = publishCommentModerationOptions.onChallengeVerification
+  const onChallengeVerification = async (challengeVerification: ChallengeVerification, commentModeration: CommentModeration) => {
+    setChallengeVerification(challengeVerification)
+    originalOnChallengeVerification?.(challengeVerification, commentModeration)
+  }
+  publishCommentModerationOptions.onChallengeVerification = onChallengeVerification
+
+  // change state on publishing state change
+  publishCommentModerationOptions.onPublishingStateChange = (publishingState: string) => {
+    setPublishingState(publishingState)
+  }
+
+  const publishCommentModeration = async () => {
+    try {
+      await accountsActions.publishCommentModeration(publishCommentModerationOptions, accountName)
+    } catch (e: any) {
+      setErrors((errors) => [...errors, e])
+      publishCommentModerationOptions.onError?.(e)
+    }
+  }
+
+  return useMemo(
+    () => ({
+      challenge,
+      challengeVerification,
+      publishCommentModeration,
       publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
       state: publishingState || initialState,
       error: errors[errors.length - 1],
