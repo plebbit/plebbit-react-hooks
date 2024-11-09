@@ -130,6 +130,11 @@ export class Plebbit extends EventEmitter {
             return new CommentEdit(createCommentEditOptions);
         });
     }
+    createCommentModeration(createCommentModerationOptions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new CommentModeration(createCommentModerationOptions);
+        });
+    }
     createSubplebbitEdit(createSubplebbitEditOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             return new SubplebbitEdit(createSubplebbitEditOptions);
@@ -484,6 +489,8 @@ export class Comment extends Publication {
 export class Vote extends Publication {
 }
 export class CommentEdit extends Publication {
+}
+export class CommentModeration extends Publication {
 }
 export class SubplebbitEdit extends Publication {
 }

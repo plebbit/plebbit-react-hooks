@@ -17,6 +17,7 @@ export declare class Plebbit extends EventEmitter {
     commentToGet(commentCid?: string): {};
     createVote(): Promise<Vote>;
     createCommentEdit(createCommentEditOptions: any): Promise<CommentEdit>;
+    createCommentModeration(createCommentModerationOptions: any): Promise<CommentModeration>;
     createSubplebbitEdit(createSubplebbitEditOptions: any): Promise<SubplebbitEdit>;
     fetchCid(cid: string): Promise<string>;
     pubsubSubscribe(subplebbitAddress: string): Promise<void>;
@@ -97,6 +98,8 @@ export declare class Comment extends Publication {
 export declare class Vote extends Publication {
 }
 export declare class CommentEdit extends Publication {
+}
+export declare class CommentModeration extends Publication {
 }
 export declare class SubplebbitEdit extends Publication {
 }

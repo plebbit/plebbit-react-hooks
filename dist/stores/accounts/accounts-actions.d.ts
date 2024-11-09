@@ -1,4 +1,4 @@
-import { Account, PublishCommentOptions, PublishVoteOptions, PublishCommentEditOptions, PublishSubplebbitEditOptions, CreateSubplebbitOptions } from '../../types';
+import { Account, PublishCommentOptions, PublishVoteOptions, PublishCommentEditOptions, PublishCommentModerationOptions, PublishSubplebbitEditOptions, CreateSubplebbitOptions } from '../../types';
 export declare const createAccount: (accountName?: string) => Promise<void>;
 export declare const deleteAccount: (accountName?: string) => Promise<void>;
 export declare const setActiveAccount: (accountName: string) => Promise<void>;
@@ -16,6 +16,7 @@ export declare const publishComment: (publishCommentOptions: PublishCommentOptio
 export declare const deleteComment: (commentCidOrAccountCommentIndex: string | number, accountName?: string) => Promise<never>;
 export declare const publishVote: (publishVoteOptions: PublishVoteOptions, accountName?: string) => Promise<void>;
 export declare const publishCommentEdit: (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string) => Promise<void>;
+export declare const publishCommentModeration: (publishCommentModerationOptions: PublishCommentModerationOptions, accountName?: string) => Promise<void>;
 export declare const publishSubplebbitEdit: (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string) => Promise<void>;
 export declare const createSubplebbit: (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string) => Promise<any>;
 export declare const deleteSubplebbit: (subplebbitAddress: string, accountName?: string) => Promise<void>;

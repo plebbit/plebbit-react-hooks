@@ -315,6 +315,68 @@ export function usePublishCommentEdit(options) {
         errors,
     }), [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
 }
+export function usePublishCommentModeration(options) {
+    assert(!options || typeof options === 'object', `usePublishCommentModeration options argument '${options}' not an object`);
+    const _a = options || {}, { accountName } = _a, publishCommentModerationOptions = __rest(_a, ["accountName"]);
+    const accountsActions = useAccountsStore((state) => state.accountsActions);
+    const accountId = useAccountId(accountName);
+    const [errors, setErrors] = useState([]);
+    const [publishingState, setPublishingState] = useState();
+    const [challenge, setChallenge] = useState();
+    const [challengeVerification, setChallengeVerification] = useState();
+    const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
+    let initialState = 'initializing';
+    // before the accountId and options is defined, nothing can happen
+    if (accountId && options) {
+        initialState = 'ready';
+    }
+    // define onError if not defined
+    const originalOnError = publishCommentModerationOptions.onError;
+    const onError = (error) => __awaiter(this, void 0, void 0, function* () {
+        setErrors((errors) => [...errors, error]);
+        originalOnError === null || originalOnError === void 0 ? void 0 : originalOnError(error);
+    });
+    publishCommentModerationOptions.onError = onError;
+    // define onChallenge if not defined
+    const originalOnChallenge = publishCommentModerationOptions.onChallenge;
+    const onChallenge = (challenge, commentModeration) => __awaiter(this, void 0, void 0, function* () {
+        // cannot set a function directly with setState
+        setPublishChallengeAnswers(() => commentModeration === null || commentModeration === void 0 ? void 0 : commentModeration.publishChallengeAnswers.bind(commentModeration));
+        setChallenge(challenge);
+        originalOnChallenge === null || originalOnChallenge === void 0 ? void 0 : originalOnChallenge(challenge, commentModeration);
+    });
+    publishCommentModerationOptions.onChallenge = onChallenge;
+    // define onChallengeVerification if not defined
+    const originalOnChallengeVerification = publishCommentModerationOptions.onChallengeVerification;
+    const onChallengeVerification = (challengeVerification, commentModeration) => __awaiter(this, void 0, void 0, function* () {
+        setChallengeVerification(challengeVerification);
+        originalOnChallengeVerification === null || originalOnChallengeVerification === void 0 ? void 0 : originalOnChallengeVerification(challengeVerification, commentModeration);
+    });
+    publishCommentModerationOptions.onChallengeVerification = onChallengeVerification;
+    // change state on publishing state change
+    publishCommentModerationOptions.onPublishingStateChange = (publishingState) => {
+        setPublishingState(publishingState);
+    };
+    const publishCommentModeration = () => __awaiter(this, void 0, void 0, function* () {
+        var _b;
+        try {
+            yield accountsActions.publishCommentModeration(publishCommentModerationOptions, accountName);
+        }
+        catch (e) {
+            setErrors((errors) => [...errors, e]);
+            (_b = publishCommentModerationOptions.onError) === null || _b === void 0 ? void 0 : _b.call(publishCommentModerationOptions, e);
+        }
+    });
+    return useMemo(() => ({
+        challenge,
+        challengeVerification,
+        publishCommentModeration,
+        publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+        state: publishingState || initialState,
+        error: errors[errors.length - 1],
+        errors,
+    }), [publishingState, initialState, errors, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
+}
 export function usePublishSubplebbitEdit(options) {
     assert(!options || typeof options === 'object', `usePublishSubplebbitEdit options argument '${options}' not an object`);
     const _a = options || {}, { accountName, subplebbitAddress } = _a, publishSubplebbitEditOptions = __rest(_a, ["accountName", "subplebbitAddress"]);

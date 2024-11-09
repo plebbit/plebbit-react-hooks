@@ -211,6 +211,17 @@ export interface UsePublishCommentEditResult extends Result {
     publishCommentEdit(): Promise<void>;
     publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
 }
+export interface UsePublishCommentModerationOptions extends Options {
+    onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
+    onChallengeVerification?(challengeVerification: ChallengeVerification, comment?: Comment): Promise<void>;
+    [publishOption: string]: any;
+}
+export interface UsePublishCommentModerationResult extends Result {
+    challenge: Challenge | undefined;
+    challengeVerification: ChallengeVerification | undefined;
+    publishCommentModeration(): Promise<void>;
+    publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
+}
 export interface UsePublishSubplebbitEditOptions extends Options {
     subplebbitAddress?: string;
     onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
@@ -306,6 +317,9 @@ export type PublishVoteOptions = {
 export type PublishCommentEditOptions = {
     [key: string]: any;
 };
+export type PublishCommentModerationOptions = {
+    [key: string]: any;
+};
 export type PublishSubplebbitEditOptions = {
     [key: string]: any;
 };
@@ -331,6 +345,9 @@ export type Vote = {
     [key: string]: any;
 };
 export type CommentEdit = {
+    [key: string]: any;
+};
+export type CommentModeration = {
     [key: string]: any;
 };
 export type SubplebbitEdit = {
