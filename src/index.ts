@@ -39,7 +39,16 @@ import {useFeed, useBufferedFeeds} from './hooks/feeds'
 import {useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, setAuthorAvatarsWhitelistedTokenAddresses} from './hooks/authors'
 
 // actions
-import {useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit} from './hooks/actions'
+import {
+  useSubscribe,
+  useBlock,
+  usePublishComment,
+  usePublishVote,
+  useCreateSubplebbit,
+  usePublishCommentEdit,
+  usePublishCommentModeration,
+  usePublishSubplebbitEdit,
+} from './hooks/actions'
 
 // actions that don't have their own hooks yet
 import {
@@ -104,6 +113,7 @@ export {
   usePublishComment,
   usePublishVote,
   usePublishCommentEdit,
+  usePublishCommentModeration,
   usePublishSubplebbitEdit,
   useCreateSubplebbit,
   // actions that don't have their own hooks yet
@@ -165,6 +175,7 @@ const hooks = {
   usePublishComment,
   usePublishVote,
   usePublishCommentEdit,
+  usePublishCommentModeration,
   usePublishSubplebbitEdit,
   useCreateSubplebbit,
   // actions that don't have their own hooks yet

@@ -4,6 +4,7 @@ import {
   useSubscribe,
   usePublishComment,
   usePublishCommentEdit,
+  usePublishCommentModeration,
   usePublishSubplebbitEdit,
   usePublishVote,
   useBlock,
@@ -16,6 +17,7 @@ import PlebbitJsMock, {
   Plebbit,
   Comment,
   CommentEdit,
+  CommentModeration,
   SubplebbitEdit,
   Vote,
   Subplebbit,
@@ -579,7 +581,7 @@ describe('actions', () => {
       const publishCommentEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
-        removed: true,
+        spoiler: true,
         onChallenge,
         onChallengeVerification,
       }
@@ -638,7 +640,7 @@ describe('actions', () => {
       const publishCommentEditOptions = {
         subplebbitAddress: '12D3KooW... acions.test',
         commentCid: 'Qm... acions.test',
-        removed: true,
+        spoiler: true,
         onError,
       }
       rendered.rerender(publishCommentEditOptions)
@@ -666,6 +668,117 @@ describe('actions', () => {
 
       // restore mock
       CommentEdit.prototype.publish = commentEditPublish
+    })
+  })
+
+  describe('usePublishCommentModeration', () => {
+    let rendered: any, waitFor: Function
+
+    beforeEach(async () => {
+      rendered = renderHook<any, any>((options) => {
+        const result = usePublishCommentModeration(options)
+        return result
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test(`can publish comment moderation`, async () => {
+      const onChallenge = vi.fn()
+      const onChallengeVerification = vi.fn()
+      const publishCommentModerationOptions = {
+        subplebbitAddress: '12D3KooW... acions.test',
+        commentCid: 'Qm... acions.test',
+        commentModeration: {locked: true},
+        onChallenge,
+        onChallengeVerification,
+      }
+      rendered.rerender(publishCommentModerationOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishCommentModeration()
+      })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-request')
+      expect(rendered.result.current.state).toBe('publishing-challenge-request')
+
+      // wait for challenge
+      await waitFor(() => rendered.result.current.challenge)
+      expect(rendered.result.current.error).toBe(undefined)
+      expect(rendered.result.current.challenge.challenges).toEqual([{challenge: '2+2=?', type: 'text'}])
+
+      // publish challenge verification
+      act(() => {
+        rendered.result.current.publishChallengeAnswers(['4'])
+      })
+
+      await waitFor(() => rendered.result.current.state === 'publishing-challenge-answer')
+      expect(rendered.result.current.state).toBe('publishing-challenge-answer')
+
+      await waitFor(() => rendered.result.current.state === 'waiting-challenge-verification')
+      expect(rendered.result.current.state).toBe('waiting-challenge-verification')
+
+      // wait for challenge verification
+      await waitFor(() => rendered.result.current.challengeVerification)
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.challengeVerification.challengeSuccess).toBe(true)
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // check callbacks
+      expect(onChallenge.mock.calls[0][0].type).toBe('CHALLENGE')
+      expect(typeof onChallenge.mock.calls[0][1]).not.toBe(undefined)
+      expect(onChallengeVerification.mock.calls[0][0].type).toBe('CHALLENGEVERIFICATION')
+      expect(typeof onChallengeVerification.mock.calls[0][1]).not.toBe(undefined)
+    })
+
+    test(`can error`, async () => {
+      // mock the comment edit publish to error out
+      const commentModerationPublish = CommentModeration.prototype.publish
+      CommentModeration.prototype.publish = async function () {
+        this.emit('error', Error('emit error'))
+        throw Error('publish error')
+      }
+
+      const onError = vi.fn()
+      const publishCommentModerationOptions = {
+        subplebbitAddress: '12D3KooW... acions.test',
+        commentCid: 'Qm... acions.test',
+        commentModeration: {locked: true},
+        onError,
+      }
+      rendered.rerender(publishCommentModerationOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishCommentModeration()
+      })
+
+      // wait for error
+      await waitFor(() => rendered.result.current.errors.length === 2)
+      expect(rendered.result.current.errors.length).toBe(2)
+      expect(rendered.result.current.error.message).toBe('publish error')
+      expect(rendered.result.current.errors[0].message).toBe('emit error')
+      expect(rendered.result.current.errors[1].message).toBe('publish error')
+
+      // check callbacks
+      expect(onError.mock.calls[0][0].message).toBe('emit error')
+      expect(onError.mock.calls[1][0].message).toBe('publish error')
+
+      // restore mock
+      CommentModeration.prototype.publish = commentModerationPublish
     })
   })
 
