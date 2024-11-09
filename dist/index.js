@@ -21,7 +21,7 @@ import { useFeed, useBufferedFeeds } from './hooks/feeds';
 // authors
 import { useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuthorAddress, setAuthorAvatarsWhitelistedTokenAddresses } from './hooks/authors';
 // actions
-import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishSubplebbitEdit } from './hooks/actions';
+import { useSubscribe, useBlock, usePublishComment, usePublishVote, useCreateSubplebbit, usePublishCommentEdit, usePublishCommentModeration, usePublishSubplebbitEdit, } from './hooks/actions';
 // actions that don't have their own hooks yet
 import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, } from './stores/accounts/accounts-actions';
 // states
@@ -46,7 +46,7 @@ useAuthor, useAuthorComments, useAuthorAvatar, useResolvedAuthorAddress, useAuth
 // feeds
 useFeed, useBufferedFeeds, 
 // actions
-useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishSubplebbitEdit, useCreateSubplebbit, 
+useSubscribe, useBlock, usePublishComment, usePublishVote, usePublishCommentEdit, usePublishCommentModeration, usePublishSubplebbitEdit, useCreateSubplebbit, 
 // actions that don't have their own hooks yet
 createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, importAccount, exportAccount, deleteSubplebbit, 
 // states
@@ -93,6 +93,7 @@ const hooks = {
     usePublishComment,
     usePublishVote,
     usePublishCommentEdit,
+    usePublishCommentModeration,
     usePublishSubplebbitEdit,
     useCreateSubplebbit,
     // actions that don't have their own hooks yet
