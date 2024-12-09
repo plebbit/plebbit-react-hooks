@@ -27,6 +27,9 @@ export function usePlebbitRpcSettings(options?: UsePlebbitRpcSettingsOptions): U
     }
 
     // set initial state
+    if (rpcClient.settings) {
+      setPlebbitRpcSettingsState(rpcClient.settings)
+    }
     if (rpcClient.state) {
       setState(rpcClient.state)
     }
