@@ -33,6 +33,9 @@ export function usePlebbitRpcSettings(options) {
             return;
         }
         // set initial state
+        if (rpcClient.settings) {
+            setPlebbitRpcSettingsState(rpcClient.settings);
+        }
         if (rpcClient.state) {
             setState(rpcClient.state);
         }
