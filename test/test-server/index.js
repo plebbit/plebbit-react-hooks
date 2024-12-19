@@ -19,6 +19,7 @@ const privateKey = signers[0].privateKey
   const plebbitOptions = {
     ipfsHttpClientsOptions: [`http://127.0.0.1:${offlineIpfs.apiPort}/api/v0`],
     pubsubHttpClientsOptions: [`http://127.0.0.1:${pubsubIpfs.apiPort}/api/v0`],
+    httpRoutersOptions: [],
     // pubsubHttpClientsOptions: [`https://pubsubprovider.xyz/api/v0`],
     dataPath: plebbitDataPath,
     publishInterval: 1000,
