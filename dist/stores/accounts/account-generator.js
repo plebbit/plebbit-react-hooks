@@ -54,19 +54,10 @@ export const getDefaultPlebbitOptions = () => {
     }
     // default plebbit options for web client
     return {
-        ipfsGatewayUrls: [
-            'https://ipfsgateway.xyz',
-            'https://gateway.plebpubsub.xyz',
-            'https://gateway.forumindex.com',
-            'https://ipfs.io',
-            'https://dweb.link',
-            'https://flk-ipfs.xyz',
-            'https://4everland.io',
-            'https://gateway.pinata.cloud',
-        ],
+        ipfsGatewayUrls: ['https://ipfsgateway.xyz', 'https://gateway.plebpubsub.xyz', 'https://gateway.forumindex.com'],
         ipfsHttpClientsOptions: undefined,
         pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.xyz/api/v0', 'https://rannithepleb.com/api/v0'],
-        httpRoutersOptions: ['https://peers.pleb.bot', 'https://routing.lol'],
+        httpRoutersOptions: ['https://routing.lol', 'https://peers.pleb.bot', 'https://peers.plebpubsub.xyz', 'https://peers.forumindex.com'],
         chainProviders,
         resolveAuthorAddresses: false,
     };
