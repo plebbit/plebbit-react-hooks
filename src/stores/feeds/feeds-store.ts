@@ -179,7 +179,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     // don't update feeds more than once per updateFeedsMinIntervalTime
     const timeUntilNextUpdate = Date.now() % updateFeedsMinIntervalTime
 
-    setTimeout(() => {
+    setTimeout(async () => {
       // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
       updateFeedsPending = false
 
@@ -191,7 +191,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       const {accounts} = accountsStore.getState()
 
       // calculate new feeds
-      const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, subplebbits, subplebbitsPages, accounts)
+      const filteredSortedFeeds = await getFilteredSortedFeeds(feedsOptions, subplebbits, subplebbitsPages, accounts)
       const bufferedFeedsWithoutPreviousLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(filteredSortedFeeds, previousState.loadedFeeds)
       const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds)
       // after loaded feeds are caculated, remove new loaded feeds (again) from buffered feeds

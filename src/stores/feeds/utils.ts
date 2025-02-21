@@ -19,7 +19,8 @@ import {subplebbitPostsCacheExpired} from '../../lib/utils'
 /**
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
-export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
+const validPosts: {[postCid: string]: boolean} = {}
+export const getFilteredSortedFeeds = async (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   // calculate each feed
   let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
@@ -91,6 +92,24 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
           }
         } else {
           if (post.timestamp <= newerThanTimestamp) {
+            continue
+          }
+        }
+      }
+
+      // validate post schema and signature
+      if (validPosts[post.cid] === false) {
+        continue
+      }
+      if (validPosts[post.cid] !== true) {
+        const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
+        const subplebbit = await accounts[accountId]?.plebbit.createSubplebbit({address: post.subplebbitAddress})
+        if (subplebbit) {
+          try {
+            await subplebbit.posts.validatePage({comments: [postWithoutReplies]})
+            validPosts[post.cid] = true
+          } catch (e) {
+            validPosts[post.cid] = false
             continue
           }
         }

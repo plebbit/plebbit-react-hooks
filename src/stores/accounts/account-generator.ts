@@ -55,6 +55,7 @@ export const getDefaultPlebbitOptions = () => {
     httpRoutersOptions: ['https://routing.lol', 'https://peers.pleb.bot', 'https://peers.plebpubsub.xyz', 'https://peers.forumindex.com'],
     chainProviders,
     resolveAuthorAddresses: false,
+    validatePages: false,
   }
 }
 

@@ -30,6 +30,8 @@ class MockPages {
     return page
   }
 
+  async validatePage(page: any) {}
+
   getPageMockComments(pageCid: string) {
     let index = 0
     const comments: any[] = []

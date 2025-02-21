@@ -183,6 +183,7 @@ class Pages {
       comments: [{cid: `${pageCid} cid 1`}, {cid: `${pageCid} cid 2`}, {cid: `${pageCid} cid 3`}],
     }
   }
+  async validatePage(page: any) {}
 }
 
 class Subplebbit extends EventEmitter {

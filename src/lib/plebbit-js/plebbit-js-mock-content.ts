@@ -863,6 +863,8 @@ class Pages {
     await simulateLoadingTime()
     return getCommentsPage(pageCid, this.subplebbit)
   }
+
+  async validatePage(page: any) {}
 }
 
 class Subplebbit extends EventEmitter {
