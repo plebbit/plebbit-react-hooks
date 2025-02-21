@@ -74,7 +74,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
       replyPagesValid = false
     }
 
-    const hasReplies = replyPageArray.map((replyPage) => replyPage?.comments?.length || 0).reduce((prev, curr) => prev + curr) > 0
+    const hasReplies = replyPageArray.length && replyPageArray.map((replyPage) => replyPage?.comments?.length || 0).reduce((prev, curr) => prev + curr) > 0
     if (hasReplies && replyPagesValid) {
       accountsStore.setState(({accountsCommentsReplies}) => {
         // account no longer exists
