@@ -61,12 +61,8 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
     })
 
     // update AccountCommentsReplies with new replies if has any new replies
-    const replyPageArray = [
-      updatedComment.replies?.pages?.new,
-      updatedComment.replies?.pages?.topAll,
-      updatedComment.replies?.pages?.old,
-      updatedComment.replies?.pages?.controversialAll,
-    ]
+    const replyPageArray = Object.values(updatedComment.replies?.pages || {})
+
     const hasReplies = replyPageArray.map((replyPage) => replyPage?.comments?.length || 0).reduce((prev, curr) => prev + curr) > 0
     if (hasReplies) {
       accountsStore.setState(({accountsCommentsReplies}) => {
