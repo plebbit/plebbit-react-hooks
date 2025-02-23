@@ -562,7 +562,7 @@ const filter = createSearchFilter('bitcoin')
 const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, filter})
 
 // image only feed
-const filter {
+const filter = {
   filter: (comment) => getCommentLinkMediaType(comment?.link) === 'image',
   key: 'image-only' // required key to cache the filter
 }
