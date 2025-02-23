@@ -564,7 +564,7 @@ const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, filter})
 // image only feed
 const filter {
   filter: (comment) => getCommentLinkMediaType(comment?.link) === 'image',
-  key: `image-only` // required key to cache the filter
+  key: 'image-only' // required key to cache the filter
 }
 const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, filter})
 ```
