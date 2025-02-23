@@ -19,7 +19,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   let {subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan} = options || {}
   sortType = getSortType(sortType, newerThan)
 
-  validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName)
+  validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan)
   const account = useAccount({accountName})
   const addFeedToStore = useFeedsStore((state) => state.addFeedToStore)
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
@@ -225,25 +225,10 @@ function useUniqueSorted(stringsArray?: string[]) {
   }, [stringsArray])
 }
 
-// filters are functions so they can't be stringified
-const filterNumbers = new WeakMap()
-let filterCount = 0
-const getFilterName = (filter: CommentsFilter) => {
-  assert(typeof filter === 'function', `invalid useFeed options.filter argument '${filter}' not a function`)
-  let filterNumber = filterNumbers.get(filter)
-  if (!filterNumber) {
-    filterCount++
-    filterNumbers.set(filter, filterCount)
-    filterNumber = filterCount
-  }
-  return `filter${filterNumber}`
-}
-
 function useFeedName(accountId: string, sortType: string, uniqueSubplebbitAddresses: string[], postsPerPage?: number, filter?: CommentsFilter, newerThan?: number) {
   return useMemo(() => {
-    const filterName = filter ? getFilterName(filter) : undefined
-    return accountId + '-' + sortType + '-' + uniqueSubplebbitAddresses + '-' + postsPerPage + '-' + filterName + '-' + newerThan
-  }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan])
+    return accountId + '-' + sortType + '-' + uniqueSubplebbitAddresses + '-' + postsPerPage + '-' + filter?.key + '-' + newerThan
+  }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter?.key, newerThan])
 }
 
 function useFeedNames(
@@ -257,10 +242,8 @@ function useFeedNames(
   return useMemo(() => {
     const feedNames = []
     for (const [i] of sortTypes.entries()) {
-      // @ts-ignore
-      const filterName = filters[i] ? getFilterName(filters[i]) : undefined
       feedNames.push(
-        accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filterName + '-' + newerThans[i]
+        accountId + '-' + (sortTypes[i] || 'hot') + '-' + uniqueSubplebbitAddressesArrays[i] + '-' + postsPerPages[i] + '-' + filters[i]?.key + '-' + newerThans[i]
       )
     }
     return feedNames

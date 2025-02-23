@@ -81,7 +81,8 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       typeof isBufferedFeed === 'boolean' || isBufferedFeed === undefined || isBufferedFeed === null,
       `addFeedToStore.addFeedToStore isBufferedFeed '${isBufferedFeed}' invalid`
     )
-    assert(!filter || typeof filter === 'function', `addFeedToStore.addFeedToStore filter '${filter}' invalid`)
+    assert(!filter || typeof filter?.filter === 'function', `addFeedToStore.addFeedToStore filter.filter '${filter?.filter}' invalid`)
+    assert(!filter || typeof filter?.key === 'string', `addFeedToStore.addFeedToStore filter.key '${filter?.key}' invalid`)
     assert(!newerThan || typeof newerThan === 'number', `addFeedToStore.addFeedToStore newerThan '${newerThan}' invalid`)
     postsPerPage = postsPerPage || defaultPostsPerPage
     assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`)

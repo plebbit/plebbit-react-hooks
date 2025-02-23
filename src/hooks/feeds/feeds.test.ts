@@ -526,8 +526,15 @@ describe('feeds', () => {
     })
 
     test('get multiple subplebbits with filter and scroll to multiple pages', async () => {
+      // wait for initial feed to load
+      await waitFor(() => rendered.result.current.feed?.length > 0)
+
       // filter only comment cids that contain a '5'
-      const filter = (comment: Comment) => !!comment.cid.match('5')
+      const cidMatch5 = (comment: Comment) => !!comment.cid.match('5')
+      const filter = {
+        filter: cidMatch5,
+        key: 'cid-match-5',
+      }
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
         filter,
@@ -547,23 +554,65 @@ describe('feeds', () => {
 
       expect(rendered.result.current.feed.length).toBe(postsPerPage * 5)
       for (const post of rendered.result.current.feed) {
-        expect(filter(post)).toBe(true)
+        expect(filter.filter(post)).toBe(true)
       }
 
-      // make sure adding a new filter function creates a new feed (if the function isn't the same function)
+      // make sure adding a filter function with a different key creates a new feed
       expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(1)
-      const filter2 = (comment: Comment) => !!comment.cid.match('5')
+      const filter2 = {
+        filter: cidMatch5,
+        key: 'cid-match-5 (2)',
+      }
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
         filter: filter2,
       })
       expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
 
-      // make sure adding the same filter functiom doesnt create a new feed
+      // make sure adding a different filter with the same key doesnt create a new feed
+      const filter3 = {
+        filter: () => false,
+        key: 'cid-match-5',
+      }
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
-        filter,
+        filter: filter3,
       })
+      expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
+
+      // still using the cached filter with key 'cid-match-5'
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 95')
+      expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid hot comment cid 95')
+      expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid hot comment cid 95')
+    })
+
+    test('dynamic filter', async () => {
+      const createCidMatchFilter = (cid: string) => ({
+        filter: (comment: Comment) => !!comment.cid.match(cid),
+        key: `cid-match-${cid}`,
+      })
+
+      // wait for initial feed to load
+      await waitFor(() => rendered.result.current.feed?.length > 0)
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+        filter: createCidMatchFilter('13'),
+      })
+      await waitFor(() => rendered.result.current.feed?.length > 0)
+      expect(rendered.result.current.feed[0].cid).match(/13$/)
+      expect(rendered.result.current.feed[1].cid).match(/13$/)
+      expect(rendered.result.current.feed[2].cid).match(/13$/)
+      expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(1)
+
+      rendered.rerender({
+        subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
+        filter: createCidMatchFilter('14'),
+      })
+      await waitFor(() => rendered.result.current.feed?.length > 0)
+      expect(rendered.result.current.feed[0].cid).match(/14$/)
+      expect(rendered.result.current.feed[1].cid).match(/14$/)
+      expect(rendered.result.current.feed[2].cid).match(/14$/)
       expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
     })
 

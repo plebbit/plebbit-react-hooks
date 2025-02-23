@@ -470,7 +470,10 @@ export type SubplebbitPage = {
 export type SubplebbitsPages = {
     [pageCid: string]: SubplebbitPage;
 };
-export type CommentsFilter = (comment: Comment) => Boolean;
+export type CommentsFilter = {
+    filter(comment: Comment): Boolean;
+    key: string;
+};
 /**
  * Authors comments store
  */

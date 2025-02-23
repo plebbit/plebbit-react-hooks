@@ -221,6 +221,14 @@ useEffect(() => {
     history.push(`/u/${params.authorAddress}/c/${lastCommentCid}`);
   }
 }, [lastCommentCid])
+
+// search an author's comments
+const createSearchFilter = (searchTerm) => ({
+  filter: (comment) => comment.title?.includes(searchTerm) || comment.content?.includes(searchTerm),
+  key: `includes-${searchTerm}` // required key to cache the filter
+})
+const filter = createSearchFilter('bitcoin')
+const {authorComments, lastCommentCid, hasMore, loadMore} = useAuthorComments({commentCid, authorAddress, filter})
 ```
 
 #### Get a subplebbit
@@ -544,6 +552,21 @@ useBufferedFeeds({
     {subplebbitAddresses: ['12D3KooW...', '12D3KooW...', '12D3KooW...', '12D3KooW...'], sortType: 'hot'}
   ]
 })
+
+// search a feed
+const createSearchFilter = (searchTerm) => ({
+  filter: (comment) => comment.title?.includes(searchTerm) || comment.content?.includes(searchTerm),
+  key: `includes-${searchTerm}` // required key to cache the filter
+})
+const filter = createSearchFilter('bitcoin')
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, filter})
+
+// image only feed
+const filter = {
+  filter: (comment) => getCommentLinkMediaType(comment?.link) === 'image',
+  key: 'image-only' // required key to cache the filter
+}
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, filter})
 ```
 
 #### Edit an account

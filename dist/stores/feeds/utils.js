@@ -55,7 +55,7 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
                 continue;
             }
             // feedOptions filter function
-            if (filter && !filter(post)) {
+            if (filter && !filter.filter(post)) {
                 continue;
             }
             // filter posts older than newerThan option

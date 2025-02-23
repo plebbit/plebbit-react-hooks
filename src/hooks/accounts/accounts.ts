@@ -420,7 +420,7 @@ export function useAccountEdits(options?: UseAccountEditsOptions): UseAccountEdi
       error: undefined,
       errors: [],
     }),
-    [accountEditsArray, filter, state]
+    [filteredAccountEditsArray, state]
   )
 }
 

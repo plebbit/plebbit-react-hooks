@@ -80,7 +80,7 @@ export const getFilteredSortedFeeds = async (feedsOptions: FeedsOptions, subpleb
       }
 
       // feedOptions filter function
-      if (filter && !filter(post)) {
+      if (filter && !filter.filter(post)) {
         continue
       }
 

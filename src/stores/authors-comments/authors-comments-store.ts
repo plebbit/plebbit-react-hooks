@@ -46,7 +46,8 @@ const authorsCommentsStore = createStore<AuthorsCommentsState>((setState: Functi
     )
     assert(authorAddress && typeof authorAddress === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument authorAddress '${authorAddress}'`)
     assert(commentCid && typeof commentCid === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument commentCid '${commentCid}'`)
-    assert(!filter || typeof filter === 'function', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter '${filter}'`)
+    assert(!filter || typeof filter?.filter === 'function', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter.filter '${filter?.filter}'`)
+    assert(!filter || typeof filter?.key === 'string', `authorsCommentsStore.addAuthorCommentsToStore invalid argument filter.key '${filter?.key}'`)
     assert(typeof account?.plebbit?.getComment === 'function', `authorsCommentsStore.addAuthorCommentsToStore account '${account}' invalid`)
 
     const {options, updateLoadedComments} = getState()
