@@ -2,23 +2,8 @@ import { useMemo } from 'react';
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { create as createMultihash } from 'multiformats/hashes/digest';
-import assert from 'assert';
-// filters are functions so they can't be stringified
-const filterNumbers = new WeakMap();
-let filterCount = 0;
-const getFilterName = (filter) => {
-    assert(typeof filter === 'function', `invalid useAuthorComments options.filter argument '${filter}' not a function`);
-    let filterNumber = filterNumbers.get(filter);
-    if (!filterNumber) {
-        filterCount++;
-        filterNumbers.set(filter, filterCount);
-        filterNumber = filterCount;
-    }
-    return `filter${filterNumber}`;
-};
 export const useAuthorCommentsName = (accountId, authorAddress, filter) => {
-    const filterName = filter ? getFilterName(filter) : undefined;
-    return useMemo(() => accountId + '-' + authorAddress + '-' + filterName, [accountId, authorAddress, filterName]);
+    return useMemo(() => accountId + '-' + authorAddress + '-' + (filter === null || filter === void 0 ? void 0 : filter.key), [accountId, authorAddress, filter === null || filter === void 0 ? void 0 : filter.key]);
 };
 const protobufPublicKeyPrefix = new Uint8Array([8, 1, 18, 32]);
 const multihashIdentityCode = 0;

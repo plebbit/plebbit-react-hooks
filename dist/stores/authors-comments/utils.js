@@ -21,7 +21,7 @@ export const getUpdatedBufferedComments = (loadedComments, bufferedComments, fil
     let newBufferedComments = bufferedComments.filter((comment) => !previousLoadedCommentCids[comment.cid]);
     // filter buffered comments
     if (filter) {
-        newBufferedComments = newBufferedComments.filter(filter);
+        newBufferedComments = newBufferedComments.filter(filter.filter);
     }
     // sort buffered comments by timestamp (newest first)
     newBufferedComments.sort((a, b) => b.timestamp - a.timestamp);

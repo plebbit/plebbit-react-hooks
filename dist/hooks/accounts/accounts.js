@@ -315,7 +315,7 @@ export function useAccountEdits(options) {
         state,
         error: undefined,
         errors: [],
-    }), [accountEditsArray, filter, state]);
+    }), [filteredAccountEditsArray, state]);
 }
 /**
  * Returns the comment edited (if has any edits), as well as the pending, succeeded or failed state of the edit.
