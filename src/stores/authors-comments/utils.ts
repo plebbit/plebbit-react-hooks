@@ -36,7 +36,7 @@ export const getUpdatedBufferedComments = (loadedComments: Comment[], bufferedCo
 
   // filter buffered comments
   if (filter) {
-    newBufferedComments = newBufferedComments.filter(filter)
+    newBufferedComments = newBufferedComments.filter(filter.filter)
   }
 
   // sort buffered comments by timestamp (newest first)

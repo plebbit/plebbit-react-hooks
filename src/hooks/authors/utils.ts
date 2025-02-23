@@ -8,23 +8,8 @@ import {toString as uint8ArrayToString} from 'uint8arrays/to-string'
 import {create as createMultihash} from 'multiformats/hashes/digest'
 import assert from 'assert'
 
-// filters are functions so they can't be stringified
-const filterNumbers = new WeakMap()
-let filterCount = 0
-const getFilterName = (filter: CommentsFilter) => {
-  assert(typeof filter === 'function', `invalid useAuthorComments options.filter argument '${filter}' not a function`)
-  let filterNumber = filterNumbers.get(filter)
-  if (!filterNumber) {
-    filterCount++
-    filterNumbers.set(filter, filterCount)
-    filterNumber = filterCount
-  }
-  return `filter${filterNumber}`
-}
-
 export const useAuthorCommentsName = (accountId?: string, authorAddress?: string, filter?: CommentsFilter | undefined) => {
-  const filterName = filter ? getFilterName(filter) : undefined
-  return useMemo(() => accountId + '-' + authorAddress + '-' + filterName, [accountId, authorAddress, filterName])
+  return useMemo(() => accountId + '-' + authorAddress + '-' + filter?.key, [accountId, authorAddress, filter?.key])
 }
 
 const protobufPublicKeyPrefix = new Uint8Array([8, 1, 18, 32])

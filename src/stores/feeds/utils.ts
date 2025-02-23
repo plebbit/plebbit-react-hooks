@@ -79,7 +79,7 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
       }
 
       // feedOptions filter function
-      if (filter && !filter(post)) {
+      if (filter && !filter.filter(post)) {
         continue
       }
 

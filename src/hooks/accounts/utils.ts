@@ -1,7 +1,6 @@
 import assert from 'assert'
 import type {
   Account,
-  AccountPublicationsFilter,
   AccountsCommentsReplies,
   AccountCommentsReplies,
   AccountsComments,

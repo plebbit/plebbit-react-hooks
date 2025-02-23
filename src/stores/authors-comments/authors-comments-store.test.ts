@@ -409,7 +409,10 @@ describe('authors comments store', () => {
 
       // add another author comments with post filter
       const postFilterName = authorAddress + '-post-filter'
-      const postFilter = (comment: Comment) => !comment.parentCid
+      const postFilter = {
+        filter: (comment: Comment) => !comment.parentCid,
+        key: 'post-filter',
+      }
       act(() => {
         rendered.result.current.addAuthorCommentsToStore(postFilterName, authorAddress, commentCid, postFilter, account)
       })
@@ -428,7 +431,10 @@ describe('authors comments store', () => {
 
       // add another author comments with reply filter
       const replyFilterName = authorAddress + '-reply-filter'
-      const replyFilter = (comment: Comment) => !!comment.parentCid
+      const replyFilter = {
+        filter: (comment: Comment) => !!comment.parentCid,
+        key: 'reply-filter',
+      }
       act(() => {
         rendered.result.current.addAuthorCommentsToStore(replyFilterName, authorAddress, commentCid, replyFilter, account)
       })
@@ -450,7 +456,10 @@ describe('authors comments store', () => {
 
       // add another author comments with empty filter
       const emptyFilterName = authorAddress + '-empty-filter'
-      const emptyFilter = () => true
+      const emptyFilter = {
+        filter: () => true,
+        key: 'empty-filter',
+      }
       act(() => {
         rendered.result.current.addAuthorCommentsToStore(emptyFilterName, authorAddress, commentCid, emptyFilter, account)
       })
@@ -463,7 +472,10 @@ describe('authors comments store', () => {
 
       // add another author comments with subplebbit filter (0 matching)
       const subplebbitFilterName = authorAddress + '-subplebbit-filter'
-      const subplebbitFilter = (comment: Comment) => comment.subplebbitAddress === `doesn't exist`
+      const subplebbitFilter = {
+        filter: (comment: Comment) => comment.subplebbitAddress === `doesn't exist`,
+        key: 'subplebbit-filter',
+      }
       act(() => {
         rendered.result.current.addAuthorCommentsToStore(subplebbitFilterName, authorAddress, commentCid, subplebbitFilter, account)
       })
@@ -542,8 +554,14 @@ describe('authors comments store', () => {
       const author1 = 'author1.eth'
       const author2 = 'author2.eth'
       const author3 = 'author3.eth'
-      const replyFilter = (comment: any) => !!comment.parentCid
-      const postAndSubplebbitFilter = (comment: any) => !comment.parentCid && comment.subplebbitAddress === 'subplebbit2.eth'
+      const replyFilter = {
+        filter: (comment: Comment) => !!comment.parentCid,
+        key: 'reply-filter',
+      }
+      const postAndSubplebbitFilter = {
+        filter: (comment: any) => !comment.parentCid && comment.subplebbitAddress === 'subplebbit2.eth',
+        key: 'post-subplebbit2.eth-filter',
+      }
       const author1Name = `${author1}-name`
       const author2Name = `${author2}-name`
       const author3Name = `${author3}-name`

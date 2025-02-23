@@ -211,7 +211,7 @@ const feedSortTypes = new Set([
 export const validateFeedSortType = (sortType: any) => {
   assert(feedSortTypes.has(sortType), `invalid feed sort type '${sortType}'`)
 }
-export const validateUseFeedArguments = (subplebbitAddresses?: any, sortType?: any, accountName?: any) => {
+export const validateUseFeedArguments = (subplebbitAddresses?: any, sortType?: any, accountName?: any, postsPerPage?: any, filter?: any, newerThan?: any) => {
   if (subplebbitAddresses) {
     assert(Array.isArray(subplebbitAddresses), `useFeed subplebbitAddresses argument '${toString(subplebbitAddresses)}' not an array`)
     for (const subplebbitAddress of subplebbitAddresses) {
@@ -225,10 +225,23 @@ export const validateUseFeedArguments = (subplebbitAddresses?: any, sortType?: a
   if (accountName) {
     assert(typeof accountName === 'string', `useFeed accountName argument '${accountName}' not a string`)
   }
+  if (postsPerPage !== undefined && postsPerPage !== null) {
+    assert(typeof postsPerPage === 'number', `useFeed postsPerPage argument '${postsPerPage}' not a number`)
+  }
+  if (filter) {
+    assert(
+      typeof filter.filter === 'function',
+      `useFeed filter.filter argument '${filter.filter}' not a function, useFeedOptions.filter is now an object Filter {filter: (comment: Comment) => Boolean, key: string}`
+    )
+    assert(typeof filter.key === 'string', `useFeed filter.key argument '${filter.key}' not a string, a unique filter.key is now required to cache the filter`)
+  }
+  if (newerThan !== undefined && newerThan !== null) {
+    assert(typeof newerThan === 'number', `useFeed newerThan argument '${newerThan}' not a number`)
+  }
 }
 export const validateUseBufferedFeedsArguments = (feedsOptions?: any, accountName?: any) => {
   assert(Array.isArray(feedsOptions), `useBufferedFeeds feedsOptions argument '${toString(feedsOptions)}' not an array`)
-  for (const {subplebbitAddresses, sortType} of feedsOptions) {
+  for (const {subplebbitAddresses, sortType, postsPerPage, filter, newerThan} of feedsOptions) {
     if (subplebbitAddresses) {
       assert(Array.isArray(subplebbitAddresses), `useBufferedFeeds feedOptions.subplebbitAddresses argument '${toString(subplebbitAddresses)}' not an array`)
       for (const subplebbitAddress of subplebbitAddresses) {
@@ -240,6 +253,22 @@ export const validateUseBufferedFeedsArguments = (feedsOptions?: any, accountNam
     }
     if (sortType) {
       assert(feedSortTypes.has(sortType), `useBufferedFeeds feedOptions.sortType argument '${sortType}' invalid`)
+    }
+    if (postsPerPage !== undefined && postsPerPage !== null) {
+      assert(typeof postsPerPage === 'number', `useBufferedFeeds feedOptions.postsPerPage argument '${postsPerPage}' not a number`)
+    }
+    if (filter) {
+      assert(
+        typeof filter.filter === 'function',
+        `useBufferedFeeds feedOptions.filter.filter argument '${filter.filter}' not a function, useFeedOptions.filter is now an object Filter {filter: (comment: Comment) => Boolean, key: string}`
+      )
+      assert(
+        typeof filter.key === 'string',
+        `useBufferedFeeds feedOptions.filter.key argument '${filter.key}' not a string, a unique filter.key is now required to cache the filter`
+      )
+    }
+    if (newerThan !== undefined && newerThan !== null) {
+      assert(typeof newerThan === 'number', `useBufferedFeeds feedOptions.newerThan argument '${newerThan}' not a number`)
     }
   }
   if (accountName) {
