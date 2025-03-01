@@ -1,10 +1,12 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useComment, useComments, setPlebbitJs} from '..'
+import {useComment, useComments, useReplies, setPlebbitJs} from '..'
 import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import PlebbitJsMock, {Plebbit, Comment} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
+import {defaultRepliesPerPage as repliesPerPage} from '../stores/replies'
+import repliesPagesStore from '../stores/replies-pages'
 
 describe('comments', () => {
   beforeAll(async () => {
@@ -257,5 +259,87 @@ describe('comments', () => {
       // restore mock
       Plebbit.prototype.createComment = createComment
     })
+
+    test('useReplies sort type new, switch to sort type old, switch to different comment', async () => {
+      const rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.replies).toEqual([])
+
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid, sortType: 'new'})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid new comment cid 100')
+      expect(rendered.result.current.replies[0].timestamp).toBeGreaterThan(rendered.result.current.replies[repliesPerPage - 1].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({commentCid, sortType: 'old'})
+      await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid 1 page cid old comment cid 1')
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid old comment cid 1')
+      expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'old'})
+      await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid 2 page cid old comment cid 1')
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 2 page cid old comment cid 1')
+      expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+    })
+
+    test('useReplies scroll pages', async () => {
+      const rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.replies).toEqual([])
+
+      const scrollOnePage = async () => {
+        const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await rendered.result.current.loadMore()
+        })
+
+        try {
+          await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
+        } catch (e) {
+          // console.error('scrollOnePage failed:', e)
+        }
+      }
+
+      // default sort (best)
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      // page 1
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      // default sort, shouldnt fetch a page because included in comment.replies.pages
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      // page 2
+      await scrollOnePage()
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+      // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      // page 3
+      await scrollOnePage()
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+    })
+
+    test.todo('useReplies flat', async () => {})
+
+    test.todo('useReplies has account comments', async () => {})
+
+    test.todo('useReplies nested scroll pages', async () => {})
+
+    test.todo('useReplies if sort type top missing, use best instead, and vice versa', async () => {})
+
+    test.todo('useReplies dynamic filter', async () => {})
+
+    test.todo('useReplies hasMore false', async () => {})
+
+    test.todo('useReplies custom repliesPerPage', async () => {})
   })
 })

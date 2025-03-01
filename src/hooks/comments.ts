@@ -163,7 +163,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`)
   let {commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter} = options || {}
   if (!sortType) {
-    sortType = 'top' // TODO: switch default to 'best' once implemented
+    sortType = 'best'
   }
   if (flat === undefined || flat === null) {
     flat = false
@@ -234,7 +234,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
       commentCid,
       sortType,
       account,
-      repliessStoreOptions: useRepliesStore.getState().feedsOptions,
+      repliesStoreOptions: useRepliesStore.getState().feedsOptions,
       repliesStore: useRepliesStore.getState(),
     })
   }

@@ -176,7 +176,7 @@ export class Pages {
   async getPage(pageCid: string) {
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return getCommentsPage(pageCid, this.subplebbit)
+    return getCommentsPage(pageCid, this.subplebbit || this.comment)
   }
 
   async validatePage(page: any) {}
@@ -352,9 +352,11 @@ export class Subplebbit extends EventEmitter {
 Object.defineProperty(Subplebbit.prototype, 'roles', {enumerable: true})
 
 // define it here because also used it plebbit.getSubplebbit()
-const getCommentsPage = (pageCid: string, subplebbit: any) => {
+const getCommentsPage = (pageCid: string, subplebbitOrComment: any) => {
+  const subplebbitAddress = subplebbitOrComment.address || subplebbitOrComment.subplebbitAddress
+
   const page: any = {
-    nextCid: subplebbit.address + ' ' + pageCid + ' - next page cid',
+    nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
     comments: [],
   }
   const postCount = 100
@@ -363,7 +365,7 @@ const getCommentsPage = (pageCid: string, subplebbit: any) => {
     page.comments.push({
       timestamp: index,
       cid: pageCid + ' comment cid ' + index,
-      subplebbitAddress: subplebbit.address,
+      subplebbitAddress,
       upvoteCount: index,
       downvoteCount: 10,
       author: {
@@ -465,7 +467,6 @@ export class Comment extends Publication {
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
-    this.replies = new Pages({comment: this})
     this.subplebbitAddress = createCommentOptions?.subplebbitAddress
     this.state = 'stopped'
     this.updatingState = 'stopped'
@@ -473,6 +474,16 @@ export class Comment extends Publication {
 
     if (createCommentOptions?.author?.address) {
       this.author.shortAddress = `short ${createCommentOptions.author.address}`
+    }
+
+    this.replies = new Pages({comment: this})
+
+    // add comment.replies from createCommentOptions
+    if (createCommentOptions?.replies?.pages) {
+      this.replies.pages = createCommentOptions?.replies?.pages
+    }
+    if (createCommentOptions?.replies?.pageCids) {
+      this.replies.pageCids = createCommentOptions?.replies?.pageCids
     }
   }
 
@@ -510,6 +521,16 @@ export class Comment extends Publication {
     this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
     this.updatedAt = Math.floor(Date.now() / 1000)
+
+    const bestPageCid = this.cid + ' page cid best'
+    this.replies.pages.best = getCommentsPage(bestPageCid, this)
+    this.replies.pageCids = {
+      best: bestPageCid,
+      new: this.cid + ' page cid new',
+      newFlat: this.cid + ' page cid newFlat',
+      old: this.cid + ' page cid old',
+      oldFlat: this.cid + ' page cid oldFlat',
+    }
 
     this.updatingState = 'succeeded'
     this.emit('update', this)

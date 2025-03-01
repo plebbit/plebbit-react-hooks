@@ -1,6 +1,6 @@
 import utils from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
-// include repliess pages store with feeds for debugging
+// include replies pages store with feeds for debugging
 const log = Logger('plebbit-react-hooks:replies:stores')
 import {RepliesPage, RepliesPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
@@ -65,7 +65,7 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
     fetchPagePending[account.id + pageCidToAdd] = true
     let page: RepliesPage
     try {
-      page = await fetchPage(pageCidToAdd, comment.subplebbitAddress, account)
+      page = await fetchPage(pageCidToAdd, comment, account)
       log.trace('repliesPagesStore.addNextRepliesPageToStore comment.replies.getPage', {
         pageCid: pageCidToAdd,
         commentCid: comment.cid,
@@ -179,24 +179,23 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
   // }
 }
 
-// TODO: use comment instance with postCid included
 // TODO: cache the comment instances
 let fetchPagePending: {[key: string]: boolean} = {}
-const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
-  // subplebbit page is cached
-  const cachedSubplebbitPage = await repliesPagesDatabase.getItem(pageCid)
-  if (cachedSubplebbitPage) {
-    return cachedSubplebbitPage
+const fetchPage = async (pageCid: string, comment: Comment, account: Account) => {
+  // replies page is cached
+  const cachedRepliesPage = await repliesPagesDatabase.getItem(pageCid)
+  if (cachedRepliesPage) {
+    return cachedRepliesPage
   }
-  const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+  const _comment = await account.plebbit.createComment({cid: comment.cid, postCid: comment.postCid, subplebbitAddress: comment.subplebbitAddress})
 
   // set clients states on subplebbits store so the frontend can display it
-  subplebbitPostsClientsOnStateChange(subplebbit.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbit.address))
+  // subplebbitPostsClientsOnStateChange(subplebbit.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbit.address))
 
-  const onError = (error: any) => log.error(`repliesPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error)
-  const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), {onError})
-  await repliesPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage))
-  return fetchedSubplebbitPage
+  const onError = (error: any) => log.error(`repliesPagesStore comment '${comment.cid}' failed comment.replies.getPage page cid '${pageCid}':`, error)
+  const fetchedRepliesPage = await utils.retryInfinity(() => _comment.replies.getPage(pageCid), {onError})
+  await repliesPagesDatabase.setItem(pageCid, utils.clone(fetchedRepliesPage))
+  return fetchedRepliesPage
 }
 
 /**

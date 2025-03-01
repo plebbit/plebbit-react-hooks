@@ -284,7 +284,7 @@ export const validateUseRepliesArguments = (commentCid?: any, sortType?: any, ac
   if (commentCid) {
     assert(typeof commentCid === 'string', `useReplies commentCid argument '${commentCid}' not a string`)
   }
-  assert(feedSortTypes.has(sortType), `useReplies sortType argument '${sortType}' invalid`)
+  assert(repliesSortTypes.has(sortType), `useReplies sortType argument '${sortType}' invalid`)
   if (accountName) {
     assert(typeof accountName === 'string', `useReplies accountName argument '${accountName}' not a string`)
   }
