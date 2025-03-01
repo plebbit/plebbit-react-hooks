@@ -5,7 +5,7 @@ import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import PlebbitJsMock, {Plebbit, Comment, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
-import {defaultRepliesPerPage as repliesPerPage} from '../stores/replies'
+import repliesStore, {defaultRepliesPerPage as repliesPerPage} from '../stores/replies'
 import repliesPagesStore from '../stores/replies-pages'
 
 describe('comments', () => {
@@ -355,13 +355,35 @@ describe('comment replies', () => {
 
     test.todo('flat', async () => {})
 
-    test.todo('has account comments', async () => {})
-
-    test.todo('nested scroll pages', async () => {})
-
     test.todo('if sort type top missing, use best instead, and vice versa', async () => {})
 
-    test.todo('dynamic filter', async () => {})
+    test('dynamic filter', async () => {
+      const createCidMatchFilter = (cid: string) => ({
+        filter: (comment: Comment) => !!comment.cid.match(cid),
+        key: `cid-match-${cid}`,
+      })
+
+      rendered.rerender({
+        commentCid: 'comment cid 1',
+        filter: createCidMatchFilter('13'),
+      })
+      await waitFor(() => rendered.result.current.replies?.length > 2)
+      console.log(rendered.result.current)
+      expect(rendered.result.current.replies[0].cid).match(/13$/)
+      expect(rendered.result.current.replies[1].cid).match(/13$/)
+      expect(rendered.result.current.replies[2].cid).match(/13$/)
+      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(1)
+
+      rendered.rerender({
+        commentCid: 'comment cid 2',
+        filter: createCidMatchFilter('14'),
+      })
+      await waitFor(() => rendered.result.current.replies?.length > 2)
+      expect(rendered.result.current.replies[0].cid).match(/14$/)
+      expect(rendered.result.current.replies[1].cid).match(/14$/)
+      expect(rendered.result.current.replies[2].cid).match(/14$/)
+      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
+    })
 
     test('hasMore false', async () => {
       // mock a page with no nextCid
@@ -428,5 +450,9 @@ describe('comment replies', () => {
       expect(rendered.result.current.replies.length).toBe(100)
       expect(rendered.result.current.hasMore).toBe(true)
     })
+
+    test.todo('has account comments', async () => {})
+
+    test.todo('nested scroll pages', async () => {})
   })
 })
