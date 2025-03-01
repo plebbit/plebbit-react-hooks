@@ -107,15 +107,19 @@ export interface UseCommentsResult extends Result {
 // }
 
 // useReplies(options): result
-// export interface UseRepliesOptions extends Options {
-//   commentCid?: string
-//   nested?: boolean
-// }
-// export interface UseRepliesResult extends Result {
-//   replies: Comment[]
-//   hasMore: boolean
-//   loadMore(): Promise<void>
-// }
+export interface UseRepliesOptions extends Options {
+  commentCid?: string
+  sortType?: string
+  repliesPerPage?: number
+  flat?: boolean
+  accountComments?: boolean
+  filter?: CommentsFilter
+}
+export interface UseRepliesResult extends Result {
+  replies: Comment[]
+  hasMore: boolean
+  loadMore(): Promise<void>
+}
 
 // useEditedComment(options): result
 export interface UseEditedCommentOptions extends Options {
@@ -576,6 +580,23 @@ export type CommentsFilter = {
   filter(comment: Comment): Boolean
   key: string
 }
+
+/**
+ * Replies store
+ */
+export type RepliesFeedOptions = {
+  commentCid: string
+  sortType: string
+  accountId: string
+  pageNumber: number
+  repliesPerPage: number
+  flat?: boolean
+  accountComments?: boolean
+  filter?: CommentsFilter
+}
+export type RepliesFeedsOptions = {[feedName: string]: RepliesFeedOptions}
+export type RepliesPage = SubplebbitPage
+export type RepliesPages = {[pageCid: string]: RepliesPage}
 
 /**
  * Authors comments store

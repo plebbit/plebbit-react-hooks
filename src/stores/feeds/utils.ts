@@ -97,12 +97,14 @@ export const getFilteredSortedFeeds = async (feedsOptions: FeedsOptions, subpleb
         }
       }
 
+      // TODO: switch this to before adding loaded feeds
       // validate post schema and signature
       if (validPosts[post.cid] === false) {
         continue
       }
       if (validPosts[post.cid] !== true) {
         const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
+        // TODO: cache createSubplebbit using utils.validatePage(page, subplebbitAddress)
         const subplebbit = await accounts[accountId]?.plebbit.createSubplebbit({address: post.subplebbitAddress})
         if (subplebbit) {
           try {
@@ -139,6 +141,8 @@ export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, b
     }
 
     // TODO: update posts in already loaded feeds with new votes and reply counts
+
+    // TODO: validate posts to add (including updates), dont validate in the filter
 
     // the current loaded feed already exist and doesn't need new posts
     if (missingPosts.length === 0 && loadedFeeds[feedName]) {
@@ -236,7 +240,7 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions: FeedsOptions, feeds:
 }
 
 /**
- * Get which feeds have more posts, i.e. have no reached the final page of all subs
+ * Get which feeds have more posts, i.e. have not reached the final page of all subs
  */
 export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   const feedsHaveMore: {[feedName: string]: boolean} = {}

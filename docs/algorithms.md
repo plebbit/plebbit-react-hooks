@@ -14,7 +14,7 @@ When a new post page is received from IPFS, the `feedsStore.bufferedFeeds` are r
 
 Post pages are cached in IndexedDb for a short time, in case the user reloads the app.
 
-When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies. Emptying the buffered feed needs testing in production, it might be too slow and need some caching.
+When a subplebbit updates, the buffered feeds are emptied of that subplebbit's posts, and the first page is immediately fetched to try to refill it. TODO: If an updated comment already in `loadedFeeds` is fetched by a new subplebbit page, it should replace the old comment with the new one with updated votes/replies.
 
 #### Feeds stores
 
@@ -111,4 +111,67 @@ Not implemented, but the easiest method would be to force a page reload, which w
     6. comment gets added to bufferedCommentCids and filtered loadedComments
     7. it is recommended to redirect the user to `/#/u/<authorAddress>/<lastCommentCid>` so if they share the link they share the most recent commentCid
 ---
-*commentsStore: any commentCid added the the commentsStore will fetch the comment (and comment updates), and emit events on comments changes
+\*commentsStore: any commentCid added the the commentsStore will fetch the comment (and comment updates), and emit events on comments changes
+
+#### Replies pages and infinite scrolling
+
+A "replies feed" is a combination of a comment update to fetch, a sort type (best/new/old/etc) and an account (for its IPFS settings). After using `useReplies(useRepliesOptions)`, a replies feed with those options is added to the repliesStore. After a replies feed is added to store, its comment is fetched, then the first page of the comment.replies `Pages` are fetched (if needed, usually the 'best' sort is included with `plebbit.getComment()`). Each replies feed has a `pageNumber` which gets incremented on `loadMore` (used by infinite scrolling). Each feed has a `CommentsRepliesInfo` which keep track of `CommentRepliesInfo.bufferedPostCount` for each combination of sort type. When `CommentRepliesInfo.bufferedPostCount` gets below 50, the next page for the comment and sort type is fetched.
+
+When a new replies page is received from IPFS, the `repliesStore.bufferedFeeds` are recalculated, but the `repliesStore.loadedFeeds` (which are displayed to the user) are not, new replies fetched will only be displayed to the user the next time he calls `loadMore`. If we detect that a `loadedFeed` is stale, we can prompt the user to load more replies, like Reddit/Facebook/Twitter do. 
+
+Replies pages are cached in IndexedDb for a short time, in case the user reloads the app.
+
+When a comment updates, the buffered feeds are emptied of that comment's replies, and the first page is immediately fetched to try to refill it. TODO: If an updated reply already in `loadedFeeds` is fetched by a new comment replies page, it should replace the old reply with the new one with updated votes/replies.
+
+#### Replies stores
+
+```
+repliesStore {
+  feedsOptions: FeedsOptions
+  bufferedFeeds: Feeds
+  bufferedPostsCounts: {[subplebbitAddress+sortType: string]: number}
+  loadedFeeds: Feeds
+  feedsHaveMore: {[feedName: string]: boolean}
+  // actions
+  addFeedToStore: (feedName: string, ...feedOptions: FeedOptions) => void
+  incrementFeedPageNumber: (feedName: string) => void
+  // recalculate all feeds using new subplebbits.post.pages, subplebbitsPagesStore and page numbers
+  updateFeeds: () => void
+}
+commentsStore {
+  comments: Comments
+  // actions
+  addCommentToStore: (commentCid: string) => void
+}
+repliesPagesStore {
+  repliesPages
+  // actions
+  // a comment instance only knows its first page CID, so take the first page CID as an argument
+  // and scroll through every replies next page in the store until you find the last page, then add it
+  addNextRepliesPageToStore: (repliesFirstPageCid: string) => void
+}
+```
+
+#### Flow of adding a new replies feed
+
+1. user calls useReplies(commentCid, sortType) and replies feed gets added to replies store
+2. comment is added to commentsStore
+  - in parallel:
+    3. each feed comment+sortType subscribes to its comment.replies.pages and firstPageCids (comment.replies.pageCids[sortType]) value changing (a comment update)
+    4. on each comment.replies.pages and firstPageCids change, updateFeeds and bufferedFeedsCommentsRepliesCounts
+  - in parallel:
+    3. each feed subscribes to its bufferedFeedsCommentsRepliesCounts value changing
+    4. on each bufferedFeedsCommentsRepliesCounts change, if the bufferedFeedsCommentsRepliesCounts is below threshold for the comment, add the next comment+sortType page to the repliesPagesStore
+  - in parallel:
+    3. each feed subscribes to repliesPagesStore changing
+      - on each repliesPagesStore change, if any new pages are relevant to the feed:
+        5. the feed's buffered feeds is rebuilt and bufferedFeedsCommentsRepliesCounts updated
+        6. if the loaded feeds is missing replies and buffered feeds has them, rebuild the loaded feeds
+  - in parallel:
+    3. each feed subscribes to accountsStore changing
+    4. on each accounts change, like a blockedAddress added for example, updateFeeds
+3. update feeds to rebuild the feeds using the already preloaded comments and replies pages if any
+
+#### Flow of incrementing a replies feed's page
+
+1. the replies store gets updated with the new page number and loadedFeeds, bufferedFeeds and bufferedFeedsCommentsRepliesCounts are partially recalculated and updated

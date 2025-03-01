@@ -2,9 +2,8 @@ import utils from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 // include repliess pages store with feeds for debugging
 const log = Logger('plebbit-react-hooks:replies:stores')
-import {Subplebbit, SubplebbitPage, RepliesPages, Account, Comment, Comments} from '../../types'
+import {RepliesPage, RepliesPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
-import subplebbitsStore, {SubplebbitsState} from '../subplebbits'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
@@ -31,7 +30,7 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
     assert(sortType && typeof sortType === 'string', `repliesPagesStore.addNextRepliesPageToStore sortType '${sortType}' invalid`)
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `repliesPagesStore.addNextRepliesPageToStore account '${account}' invalid`)
 
-    // check the preloaded posts on comment.replies.pages first, then the comment.replies.pageCids
+    // check the preloaded replies on comment.replies.pages first, then the comment.replies.pageCids
     const repliesFirstPageCid = getRepliesFirstPageCid(comment, sortType)
     assert(
       repliesFirstPageCid && typeof repliesFirstPageCid === 'string',
@@ -59,12 +58,12 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
     }
 
     // page is already added or pending
-    if (repliesPages[pageCidToAdd] || fetchPagePending[account.id + pageCidToAdd]) {
+    if (repliesPagesStore.repliesPages[pageCidToAdd] || fetchPagePending[account.id + pageCidToAdd]) {
       return
     }
 
     fetchPagePending[account.id + pageCidToAdd] = true
-    let page: SubplebbitPage
+    let page: RepliesPage
     try {
       page = await fetchPage(pageCidToAdd, comment.subplebbitAddress, account)
       log.trace('repliesPagesStore.addNextRepliesPageToStore comment.replies.getPage', {
@@ -180,6 +179,8 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
   // }
 }
 
+// TODO: use comment instance with postCid included
+// TODO: cache the comment instances
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
   // subplebbit page is cached
@@ -204,7 +205,7 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
  */
 export const getRepliesPages = (comment: Comment, sortType: string, repliesPages: RepliesPages) => {
   assert(repliesPages && typeof repliesPages === 'object', `getRepliesPages repliesPages '${repliesPages}' invalid`)
-  const pages: SubplebbitPage[] = []
+  const pages: RepliesPage[] = []
   const firstPageCid = getRepliesFirstPageCid(comment, sortType)
   // comment has no pages
   // TODO: if a loaded comment doesn't have a first page, it's unclear what we should do
