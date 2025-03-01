@@ -334,7 +334,7 @@ export const resetRepliesStore = async () => {
 }
 
 // reset database and store in between tests
-export const resetFeedsDatabaseAndStore = async () => {
+export const resetRepliesDatabaseAndStore = async () => {
   await localForageLru.createInstance({name: 'repliesPages'}).clear()
   await resetRepliesStore()
 }

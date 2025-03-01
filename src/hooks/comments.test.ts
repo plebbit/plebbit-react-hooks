@@ -259,10 +259,47 @@ describe('comments', () => {
       // restore mock
       Plebbit.prototype.createComment = createComment
     })
+  })
+})
 
-    test('useReplies sort type new, switch to sort type old, switch to different comment', async () => {
-      const rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
-      const waitFor = testUtils.createWaitFor(rendered)
+describe('comment replies', () => {
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMock)
+    await testUtils.resetDatabasesAndStores()
+
+    testUtils.silenceReactWarnings()
+  })
+  afterAll(() => {
+    testUtils.restoreAll()
+  })
+  afterEach(async () => {
+    await testUtils.resetDatabasesAndStores()
+  })
+
+  describe('useReplies', () => {
+    let rendered, waitFor, scrollOnePage
+    beforeEach(() => {
+      rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
+      waitFor = testUtils.createWaitFor(rendered)
+      scrollOnePage = scrollOnePage = async () => {
+        const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await rendered.result.current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
+        } catch (e) {
+          // console.error('scrollOnePage failed:', e)
+        }
+      }
+    })
+
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('sort type new, switch to sort type old, switch to different comment', async () => {
       expect(rendered.result.current.replies).toEqual([])
 
       const commentCid = 'comment cid 1'
@@ -288,10 +325,7 @@ describe('comments', () => {
       expect(rendered.result.current.hasMore).toBe(true)
     })
 
-    test('useReplies scroll pages', async () => {
-      const rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
-      const waitFor = testUtils.createWaitFor(rendered)
-      const scrollOnePage = createScrollOnePage(rendered, waitFor)
+    test('scroll pages', async () => {
       expect(rendered.result.current.replies).toEqual([])
 
       // default sort (best)
@@ -319,17 +353,17 @@ describe('comments', () => {
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
     })
 
-    test.todo('useReplies flat', async () => {})
+    test.todo('flat', async () => {})
 
-    test.todo('useReplies has account comments', async () => {})
+    test.todo('has account comments', async () => {})
 
-    test.todo('useReplies nested scroll pages', async () => {})
+    test.todo('nested scroll pages', async () => {})
 
-    test.todo('useReplies if sort type top missing, use best instead, and vice versa', async () => {})
+    test.todo('if sort type top missing, use best instead, and vice versa', async () => {})
 
-    test.todo('useReplies dynamic filter', async () => {})
+    test.todo('dynamic filter', async () => {})
 
-    test('useReplies hasMore false', async () => {
+    test('hasMore false', async () => {
       // mock a page with no nextCid
       const getPage = Pages.prototype.getPage
       Pages.prototype.getPage = async function (pageCid: string) {
@@ -344,11 +378,6 @@ describe('comments', () => {
         }
         return page
       }
-
-      const rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
-      const waitFor = testUtils.createWaitFor(rendered)
-      const scrollOnePage = createScrollOnePage(rendered, waitFor)
-      expect(rendered.result.current.replies).toEqual([])
 
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'new'})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
@@ -382,22 +411,22 @@ describe('comments', () => {
       Pages.prototype.getPage = getPage
     })
 
-    test.todo('useReplies custom repliesPerPage', async () => {})
+    test('custom repliesPerPage', async () => {
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid, repliesPerPage: 10})
+      await waitFor(() => rendered.result.current.replies.length === 10)
+      expect(rendered.result.current.replies.length).toBe(10)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({commentCid, repliesPerPage: undefined})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({commentCid, repliesPerPage: 100})
+      await waitFor(() => rendered.result.current.replies.length === 100)
+      expect(rendered.result.current.replies.length).toBe(100)
+      expect(rendered.result.current.hasMore).toBe(true)
+    })
   })
 })
-
-const createScrollOnePage = (rendered, waitFor) => {
-  const scrollOnePage = async () => {
-    const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
-    await act(async () => {
-      await rendered.result.current.loadMore()
-    })
-
-    try {
-      await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
-    } catch (e) {
-      // console.error('scrollOnePage failed:', e)
-    }
-  }
-  return scrollOnePage
-}
