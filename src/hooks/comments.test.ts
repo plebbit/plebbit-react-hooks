@@ -263,56 +263,58 @@ describe('comments', () => {
 })
 
 describe('comment replies', () => {
-  let simulateUpdateEvent
-
   beforeAll(async () => {
     // set plebbit-js mock and reset dbs
     setPlebbitJs(PlebbitJsMock)
     await testUtils.resetDatabasesAndStores()
 
-    // mock adding replies to comment
-    simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
-    Comment.prototype.simulateUpdateEvent = async function () {
-      // if timestamp isn't defined, simulate fetching the comment ipfs
-      if (!this.timestamp) {
-        this.simulateFetchCommentIpfsUpdateEvent()
-        return
-      }
-
-      // simulate finding vote counts on an IPNS record
-      this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
-      this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
-      this.updatedAt = Math.floor(Date.now() / 1000)
-
-      const bestPageCid = this.cid + ' page cid best'
-      this.replies.pages.best = this.getCommentsPage(bestPageCid, this)
-      this.replies.pageCids = {
-        best: bestPageCid,
-        new: this.cid + ' page cid new',
-        newFlat: this.cid + ' page cid newFlat',
-        old: this.cid + ' page cid old',
-        oldFlat: this.cid + ' page cid oldFlat',
-      }
-
-      this.updatingState = 'succeeded'
-      this.emit('update', this)
-      this.emit('updatingstatechange', 'succeeded')
-    }
-
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
-
-    // restore mock
-    Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
   })
   afterEach(async () => {
     await testUtils.resetDatabasesAndStores()
   })
 
   describe('useReplies', () => {
-    let rendered, waitFor, scrollOnePage
+    let rendered, waitFor, scrollOnePage, simulateUpdateEvent
+
+    beforeAll(() => {
+      // mock adding replies to comment
+      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        // if timestamp isn't defined, simulate fetching the comment ipfs
+        if (!this.timestamp) {
+          this.simulateFetchCommentIpfsUpdateEvent()
+          return
+        }
+
+        // simulate finding vote counts on an IPNS record
+        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+        this.updatedAt = Math.floor(Date.now() / 1000)
+
+        const bestPageCid = this.cid + ' page cid best'
+        this.replies.pages.best = this.replies.pageToGet(bestPageCid)
+        this.replies.pageCids = {
+          best: bestPageCid,
+          new: this.cid + ' page cid new',
+          newFlat: this.cid + ' page cid newFlat',
+          old: this.cid + ' page cid old',
+          oldFlat: this.cid + ' page cid oldFlat',
+        }
+
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+    })
+    afterAll(() => {
+      // restore mock
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
     beforeEach(() => {
       rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
       waitFor = testUtils.createWaitFor(rendered)
@@ -328,7 +330,6 @@ describe('comment replies', () => {
         }
       }
     })
-
     afterEach(async () => {
       await testUtils.resetDatabasesAndStores()
     })
@@ -460,8 +461,6 @@ describe('comment replies', () => {
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(2)
     })
 
-    test.todo('flat', async () => {})
-
     test('hasMore false', async () => {
       // mock a page with no nextCid
       const getPage = Pages.prototype.getPage
@@ -563,4 +562,190 @@ describe('comment replies', () => {
 
     test.todo('nested scroll pages', async () => {})
   })
+  /*
+  describe('useReplies flat', () => {
+    let rendered, waitFor, scrollOnePage, simulateUpdateEvent
+
+    beforeAll(() => {
+      const getNestedCommentsPage = (pageCid: string, comment: any) => {
+        const subplebbitAddress = comment.subplebbitAddress
+        const page: any = {
+          nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
+          comments: [],
+        }
+        const count = 35
+        let index = 0
+        while (index++ < count) {
+          page.comments.push({
+            timestamp: index,
+            cid: pageCid + ' comment cid ' + index,
+            subplebbitAddress,
+            upvoteCount: index,
+            downvoteCount: 10,
+            author: {
+              address: pageCid + ' author address ' + index,
+            },
+            updatedAt: index,
+            replies: {pages: {best: {comments: [{
+              timestamp: index + 1,
+              cid: pageCid + ' comment cid ' + index + ' nested 1',
+              subplebbitAddress,
+              upvoteCount: index,
+              downvoteCount: 10,
+              author: {
+                address: pageCid + ' author address ' + index,
+              },
+              updatedAt: index,
+              replies: {pages: {best: {comments: [{
+                timestamp: index + 2,
+                cid: pageCid + ' comment cid ' + index + ' nested 2',
+                subplebbitAddress,
+                upvoteCount: index,
+                downvoteCount: 10,
+                author: {
+                  address: pageCid + ' author address ' + index,
+                },
+                updatedAt: index,
+                replies: {pages: {best: {comments: []}}}
+              }]}}}
+            }]}}}
+          })
+        }
+        return page
+      }
+
+      // mock adding replies to comment
+      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        // if timestamp isn't defined, simulate fetching the comment ipfs
+        if (!this.timestamp) {
+          this.simulateFetchCommentIpfsUpdateEvent()
+          return
+        }
+
+        // simulate finding vote counts on an IPNS record
+        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+        this.updatedAt = Math.floor(Date.now() / 1000)
+
+        const bestPageCid = this.cid + ' page cid best'
+        this.replies.pages.best = getNestedCommentsPage(bestPageCid, this)
+        this.replies.pageCids = {
+          best: bestPageCid,
+          new: this.cid + ' page cid new',
+          newFlat: this.cid + ' page cid newFlat',
+          old: this.cid + ' page cid old',
+          oldFlat: this.cid + ' page cid oldFlat',
+        }
+
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      // mock adding replies to comment
+      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        // if timestamp isn't defined, simulate fetching the comment ipfs
+        if (!this.timestamp) {
+          this.simulateFetchCommentIpfsUpdateEvent()
+          return
+        }
+
+        // simulate finding vote counts on an IPNS record
+        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+        this.updatedAt = Math.floor(Date.now() / 1000)
+
+        const bestPageCid = this.cid + ' page cid best'
+        this.replies.pages.best = getNestedCommentsPage(bestPageCid, this)
+        this.replies.pageCids = {
+          best: bestPageCid,
+          new: this.cid + ' page cid new',
+          newFlat: this.cid + ' page cid newFlat',
+          old: this.cid + ' page cid old',
+          oldFlat: this.cid + ' page cid oldFlat',
+        }
+
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+    })
+    afterAll(() => {
+      // restore mock
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    beforeEach(() => {
+      rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
+      waitFor = testUtils.createWaitFor(rendered)
+      scrollOnePage = scrollOnePage = async () => {
+        const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await rendered.result.current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
+        } catch (e) {
+          // console.error('scrollOnePage failed:', e)
+        }
+      }
+    })
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test.only('sort type best', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.replies.pages.best = {
+          comments: [{
+            timestamp: 1,
+            cid: this.cid + ' best reply cid 1',
+            subplebbitAddress: this.cid + ' best reply subplebbit address',
+            upvoteCount: 1,
+            downvoteCount: 10,
+            author: {address: this.cid + ' best author address'},
+            updatedAt: 1,
+            replies: {pages: {best: {comments: [{
+              timestamp: 1,
+              cid: this.cid + ' best reply cid 1 nested 1',
+              subplebbitAddress: this.cid + ' best reply subplebbit address',
+              upvoteCount: 1,
+              downvoteCount: 10,
+              author: {address: this.cid + ' best author address nested 1'},
+              updatedAt: 1,
+              replies: {pages: {best: {comments: [{
+                timestamp: 1,
+                cid: this.cid + ' best reply cid 1 nested 2',
+                subplebbitAddress: this.cid + ' best reply subplebbit address',
+                upvoteCount: 1,
+                downvoteCount: 10,
+                author: {address: this.cid + ' best author address nested 2'},
+                updatedAt: 1
+              }]}}}}]}}
+            }
+          }],
+          nextCid: this.cid + ' next page cid best',
+        }
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      // user sets sortType 'new' or 'old' with flat, try to fetch 'newFlat' if it exists
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'new', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      // page 1
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // should only fetch 1 page because no next cid
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+      // user sets sortType 'best', which is not flat, make sure to auto flatten
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+  })
+*/
 })
