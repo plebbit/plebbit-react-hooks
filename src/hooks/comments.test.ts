@@ -263,15 +263,49 @@ describe('comments', () => {
 })
 
 describe('comment replies', () => {
+  let simulateUpdateEvent
+
   beforeAll(async () => {
     // set plebbit-js mock and reset dbs
     setPlebbitJs(PlebbitJsMock)
     await testUtils.resetDatabasesAndStores()
 
+    // mock adding replies to comment
+    simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+    Comment.prototype.simulateUpdateEvent = async function () {
+      // if timestamp isn't defined, simulate fetching the comment ipfs
+      if (!this.timestamp) {
+        this.simulateFetchCommentIpfsUpdateEvent()
+        return
+      }
+
+      // simulate finding vote counts on an IPNS record
+      this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+      this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+      this.updatedAt = Math.floor(Date.now() / 1000)
+
+      const bestPageCid = this.cid + ' page cid best'
+      this.replies.pages.best = this.getCommentsPage(bestPageCid, this)
+      this.replies.pageCids = {
+        best: bestPageCid,
+        new: this.cid + ' page cid new',
+        newFlat: this.cid + ' page cid newFlat',
+        old: this.cid + ' page cid old',
+        oldFlat: this.cid + ' page cid oldFlat',
+      }
+
+      this.updatingState = 'succeeded'
+      this.emit('update', this)
+      this.emit('updatingstatechange', 'succeeded')
+    }
+
     testUtils.silenceReactWarnings()
   })
   afterAll(() => {
     testUtils.restoreAll()
+
+    // restore mock
+    Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
   })
   afterEach(async () => {
     await testUtils.resetDatabasesAndStores()
@@ -420,39 +454,13 @@ describe('comment replies', () => {
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+
+      // wait to load all pages or can cause race condition with other tests
+      await waitFor(() => Object.keys(repliesPagesStore.getState().repliesPages).length === 2)
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(2)
     })
 
     test.todo('flat', async () => {})
-
-    test('dynamic filter', async () => {
-      const createCidMatchFilter = (cid: string) => ({
-        filter: (comment: Comment) => !!comment.cid.match(cid),
-        key: `cid-match-${cid}`,
-      })
-
-      rendered.rerender({
-        commentCid: 'comment cid 1',
-        filter: createCidMatchFilter('13'),
-      })
-      await waitFor(() => rendered.result.current.replies?.length > 2)
-      expect(rendered.result.current.replies[0].cid).match(/13$/)
-      expect(rendered.result.current.replies[1].cid).match(/13$/)
-      expect(rendered.result.current.replies[2].cid).match(/13$/)
-      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(1)
-
-      rendered.rerender({
-        commentCid: 'comment cid 2',
-        filter: createCidMatchFilter('14'),
-      })
-      await waitFor(() => rendered.result.current.replies?.length > 2)
-      expect(rendered.result.current.replies[0].cid).match(/14$/)
-      expect(rendered.result.current.replies[1].cid).match(/14$/)
-      expect(rendered.result.current.replies[2].cid).match(/14$/)
-      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
-
-      // wait for replies pages to stop fetching or replies pages will be added to next tests
-      await new Promise((r) => setTimeout(r, 100))
-    })
 
     test('hasMore false', async () => {
       // mock a page with no nextCid
@@ -476,7 +484,6 @@ describe('comment replies', () => {
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
       expect(rendered.result.current.hasMore).toBe(true)
       // should only fetch 1 page because no next cid
-      console.log(repliesPagesStore.getState().repliesPages)
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
 
       // page 2
@@ -519,6 +526,37 @@ describe('comment replies', () => {
       await waitFor(() => rendered.result.current.replies.length === 100)
       expect(rendered.result.current.replies.length).toBe(100)
       expect(rendered.result.current.hasMore).toBe(true)
+    })
+
+    test('dynamic filter', async () => {
+      // NOTE: if the filter is too difficult, it cause fetch too many pages
+      // and cause race conditions with other tests
+      const createCidMatchFilter = (cid: string) => ({
+        filter: (comment: Comment) => !!comment.cid.match(cid),
+        key: `cid-match-${cid}`,
+      })
+
+      rendered.rerender({
+        commentCid: 'comment cid a',
+        filter: createCidMatchFilter('1'),
+        sortType: 'new',
+      })
+      await waitFor(() => rendered.result.current.replies?.length > 2)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid a page cid new comment cid 100')
+      expect(rendered.result.current.replies[1].cid).toBe('comment cid a page cid new comment cid 91')
+      expect(rendered.result.current.replies[2].cid).toBe('comment cid a page cid new comment cid 81')
+      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(1)
+
+      rendered.rerender({
+        commentCid: 'comment cid b',
+        filter: createCidMatchFilter('2'),
+        sortType: 'new',
+      })
+      await waitFor(() => rendered.result.current.replies?.length > 2)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid b page cid new comment cid 92')
+      expect(rendered.result.current.replies[1].cid).toBe('comment cid b page cid new comment cid 82')
+      expect(rendered.result.current.replies[2].cid).toBe('comment cid b page cid new comment cid 72')
+      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
     })
 
     test.todo('has account comments', async () => {})

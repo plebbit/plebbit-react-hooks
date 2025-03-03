@@ -522,16 +522,6 @@ export class Comment extends Publication {
     this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
     this.updatedAt = Math.floor(Date.now() / 1000)
 
-    const bestPageCid = this.cid + ' page cid best'
-    this.replies.pages.best = getCommentsPage(bestPageCid, this)
-    this.replies.pageCids = {
-      best: bestPageCid,
-      new: this.cid + ' page cid new',
-      newFlat: this.cid + ' page cid newFlat',
-      old: this.cid + ' page cid old',
-      oldFlat: this.cid + ' page cid oldFlat',
-    }
-
     this.updatingState = 'succeeded'
     this.emit('update', this)
     this.emit('updatingstatechange', 'succeeded')
@@ -553,6 +543,10 @@ export class Comment extends Publication {
     simulateLoadingTime().then(() => {
       this.simulateUpdateEvent()
     })
+  }
+
+  get getCommentsPage() {
+    return getCommentsPage
   }
 }
 
