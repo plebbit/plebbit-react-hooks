@@ -12,13 +12,16 @@ export const getFilteredSortedFeeds = async (feedsOptions: RepliesFeedsOptions, 
   // calculate each feed
   let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {commentCid, sortType, accountId, filter} = feedsOptions[feedName]
+    let {commentCid, sortType, accountId, filter} = feedsOptions[feedName]
 
     // find all fetched replies
     const bufferedFeedReplies = []
     const comment = comments[commentCid]
     // TODO: implement comment.fetchedAt
     const _commentRepliesCacheExpired = false // commentRepliesCacheExpired(comment) && window.navigator.onLine
+
+    // eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
+    sortType = handleMissingTopSortType(sortType, comment)
 
     // comment has loaded and cache not expired
     if (comment && !_commentRepliesCacheExpired) {
@@ -159,7 +162,7 @@ export const getFeedsHaveMore = (feedsOptions: RepliesFeedsOptions, bufferedFeed
       continue
     }
 
-    const {commentCid, sortType, accountId} = feedsOptions[feedName]
+    let {commentCid, sortType, accountId} = feedsOptions[feedName]
 
     // TODO: maybe skip if comment cid is blocked?
 
@@ -169,6 +172,9 @@ export const getFeedsHaveMore = (feedsOptions: RepliesFeedsOptions, bufferedFeed
       feedsHaveMore[feedName] = true
       continue
     }
+
+    // eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
+    sortType = handleMissingTopSortType(sortType, comment)
 
     // TODO: implement comment.fetchedAt
     // if comment replies cache expired, then the feed still has more
@@ -295,4 +301,14 @@ export const getFeedsCommentsLoadedCount = (feedsComments: Map<string, Comment>)
     }
   }
   return count
+}
+
+// eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
+export const handleMissingTopSortType = (sortType, comment) => {
+  if (sortType === 'best' && !comment.replies?.pages?.best && !comment.replies?.pageCids?.best && (comment.replies?.pages?.top || comment.replies?.pageCids?.top)) {
+    sortType = 'top'
+  } else if (sortType === 'top' && !comment.replies?.pages?.top && !comment.replies?.pageCids?.top && (comment.replies?.pages?.best || comment.replies?.pageCids?.best)) {
+    sortType = 'best'
+  }
+  return sortType
 }

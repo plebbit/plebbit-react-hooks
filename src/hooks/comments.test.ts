@@ -353,9 +353,76 @@ describe('comment replies', () => {
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
     })
 
-    test.todo('flat', async () => {})
+    test('if sort type top missing, use best instead', async () => {
+      expect(rendered.result.current.replies).toEqual([])
 
-    test.todo('if sort type top missing, use best instead, and vice versa', async () => {})
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid, sortType: 'top'})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 100')
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // page 2
+      await scrollOnePage()
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      // page 3
+      await scrollOnePage()
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      expect(rendered.result.current.hasMore).toBe(true)
+      // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+    })
+
+    test('if sort type best missing, use top instead', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.replies.pages.top = {
+          comments: [
+            {
+              timestamp: 1,
+              cid: this.cid + ' top reply cid 1',
+              subplebbitAddress: this.cid + ' top reply subplebbit address',
+              upvoteCount: 1,
+              downvoteCount: 10,
+              author: {address: this.cid + ' top author address'},
+              updatedAt: 1,
+            },
+          ],
+          nextCid: this.cid + ' next page cid top',
+        }
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid, sortType: 'best'})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 top reply cid 1')
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      // page 2
+      await scrollOnePage()
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+      expect(rendered.result.current.hasMore).toBe(true)
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+
+      // page 3
+      await scrollOnePage()
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      expect(rendered.result.current.hasMore).toBe(true)
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test.todo('flat', async () => {})
 
     test('dynamic filter', async () => {
       const createCidMatchFilter = (cid: string) => ({
@@ -368,7 +435,6 @@ describe('comment replies', () => {
         filter: createCidMatchFilter('13'),
       })
       await waitFor(() => rendered.result.current.replies?.length > 2)
-      console.log(rendered.result.current)
       expect(rendered.result.current.replies[0].cid).match(/13$/)
       expect(rendered.result.current.replies[1].cid).match(/13$/)
       expect(rendered.result.current.replies[2].cid).match(/13$/)
@@ -383,6 +449,9 @@ describe('comment replies', () => {
       expect(rendered.result.current.replies[1].cid).match(/14$/)
       expect(rendered.result.current.replies[2].cid).match(/14$/)
       expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
+
+      // wait for replies pages to stop fetching or replies pages will be added to next tests
+      await new Promise((r) => setTimeout(r, 100))
     })
 
     test('hasMore false', async () => {
@@ -407,6 +476,7 @@ describe('comment replies', () => {
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
       expect(rendered.result.current.hasMore).toBe(true)
       // should only fetch 1 page because no next cid
+      console.log(repliesPagesStore.getState().repliesPages)
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
 
       // page 2

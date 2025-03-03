@@ -19,6 +19,7 @@ import {
   getFeedsComments,
   getFeedsCommentsLoadedCount,
   getFilteredSortedFeeds,
+  handleMissingTopSortType,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -255,7 +256,7 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState: any) =>
   for (const feedName in bufferedFeedsReplyCounts) {
     const account = accounts[feedsOptions[feedName].accountId]
     const feedReplyCount = bufferedFeedsReplyCounts[feedName]
-    const sortType = feedsOptions[feedName].sortType
+    let sortType = feedsOptions[feedName].sortType
     const commentCid = feedsOptions[feedName].commentCid
 
     // TODO: maybe skip if comment subplebbit address, comment cid or comment author is blocked?
@@ -270,6 +271,9 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState: any) =>
     // if (commentRepliesCacheExpired(comments[commentCid])) {
     //   continue
     // }
+
+    // eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
+    sortType = handleMissingTopSortType(sortType, comments[commentCid])
 
     // comment replies count is low, fetch next replies page
     if (feedReplyCount <= commentRepliesLeftBeforeNextPage) {
