@@ -15,12 +15,14 @@ import {
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
 import {subplebbitPostsCacheExpired} from '../../lib/utils'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:feeds:stores')
 
 /**
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
 const validPosts: {[postCid: string]: boolean} = {}
-export const getFilteredSortedFeeds = async (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
+export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   // calculate each feed
   let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
@@ -97,26 +99,6 @@ export const getFilteredSortedFeeds = async (feedsOptions: FeedsOptions, subpleb
         }
       }
 
-      // TODO: switch this to before adding loaded feeds
-      // validate post schema and signature
-      if (validPosts[post.cid] === false) {
-        continue
-      }
-      if (validPosts[post.cid] !== true) {
-        const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
-        // TODO: cache createSubplebbit using utils.validatePage(page, subplebbitAddress)
-        const subplebbit = await accounts[accountId]?.plebbit.createSubplebbit({address: post.subplebbitAddress})
-        if (subplebbit) {
-          try {
-            await subplebbit.posts.validatePage({comments: [postWithoutReplies]})
-            validPosts[post.cid] = true
-          } catch (e) {
-            validPosts[post.cid] = false
-            continue
-          }
-        }
-      }
-
       filteredSortedBufferedFeedPosts.push(post)
     }
 
@@ -125,24 +107,30 @@ export const getFilteredSortedFeeds = async (feedsOptions: FeedsOptions, subpleb
   return feeds
 }
 
-export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => {
+export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
   const loadedFeedsMissingPosts: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber, postsPerPage} = feedsOptions[feedName]
+    const {pageNumber, postsPerPage, accountId} = feedsOptions[feedName]
     const loadedFeedPostCount = pageNumber * postsPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
 
     // get new posts from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
-    const missingPosts = [...bufferedFeed]
-    if (missingPosts.length > missingPostsCount) {
-      missingPosts.length = missingPostsCount
+
+    const missingPosts = []
+    for (const post of bufferedFeed) {
+      if (missingPosts.length === missingPostsCount) {
+        break
+      }
+      // verify signature
+      if (!(await postIsValid(post, accounts[accountId]))) {
+        continue
+      }
+      missingPosts.push(post)
     }
 
     // TODO: update posts in already loaded feeds with new votes and reply counts
-
-    // TODO: validate posts to add (including updates), dont validate in the filter
 
     // the current loaded feed already exist and doesn't need new posts
     if (missingPosts.length === 0 && loadedFeeds[feedName]) {
@@ -497,5 +485,29 @@ export const feedsHaveChangedBlockedCids = (feedsOptions: FeedsOptions, buffered
     }
   }
 
+  return false
+}
+
+const subplebbitsWithInvalidPosts = {}
+const postIsValidSubplebbits = {} // cache plebbit.createSubplebbits because sometimes it's slow
+const postIsValid = async (post, account) => {
+  if (!account) {
+    return false
+  }
+  if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
+    log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
+    return false
+  }
+  if (!postIsValidSubplebbits[post.subplebbitAddress]) {
+    postIsValidSubplebbits[post.subplebbitAddress] = await account.plebbit.createSubplebbit({address: post.subplebbitAddress})
+  }
+  const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
+  try {
+    await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
+    return true
+  } catch (e) {
+    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
+    log('invalid post', {post, error: e})
+  }
   return false
 }

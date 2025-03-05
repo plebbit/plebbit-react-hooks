@@ -174,6 +174,7 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
   }
 }
 
+const fetchPageSubplebbits = {} // cache plebbit.createSubplebbits because sometimes it's slow
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
   // subplebbit page is cached
@@ -181,13 +182,15 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
   if (cachedSubplebbitPage) {
     return cachedSubplebbitPage
   }
-  const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+  if (!fetchPageSubplebbits[subplebbitAddress]) {
+    fetchPageSubplebbits[subplebbitAddress] = await account.plebbit.createSubplebbit({address: subplebbitAddress})
 
-  // set clients states on subplebbits store so the frontend can display it
-  subplebbitPostsClientsOnStateChange(subplebbit.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbit.address))
+    // set clients states on subplebbits store so the frontend can display it
+    subplebbitPostsClientsOnStateChange(fetchPageSubplebbits[subplebbitAddress].posts?.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress))
+  }
 
   const onError = (error: any) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error)
-  const fetchedSubplebbitPage = await utils.retryInfinity(() => subplebbit.posts.getPage(pageCid), {onError})
+  const fetchedSubplebbitPage = await utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress].posts.getPage(pageCid), {onError})
   await subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage))
   return fetchedSubplebbitPage
 }
