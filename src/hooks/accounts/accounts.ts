@@ -105,7 +105,7 @@ export function useAccounts() {
  */
 export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): UseAccountSubplebbitsResult {
   assert(!options || typeof options === 'object', `useAccountSubplebbits options argument '${options}' not an object`)
-  const {accountName} = options || {}
+  const {accountName, onlyIfCached} = options || {}
   const accountId = useAccountId(accountName)
   const accountsStoreAccountSubplebbits = useAccountsStore((state) => state.accounts[accountId || '']?.subplebbits)
 
@@ -123,7 +123,7 @@ export function useAccountSubplebbits(options?: UseAccountSubplebbitsOptions): U
   }, [accountsStoreAccountSubplebbits, ownerSubplebbitAddresses])
 
   // fetch all subplebbit data
-  const {subplebbits: subplebbitsArray} = useSubplebbits({subplebbitAddresses: uniqueSubplebbitAddresses, accountName})
+  const {subplebbits: subplebbitsArray} = useSubplebbits({subplebbitAddresses: uniqueSubplebbitAddresses, accountName, onlyIfCached})
   const subplebbits: any = useMemo(() => {
     const subplebbits: any = {}
     for (const [i, subplebbit] of subplebbitsArray.entries()) {

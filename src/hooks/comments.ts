@@ -18,7 +18,7 @@ import shallow from 'zustand/shallow'
  */
 export function useComment(options?: UseCommentOptions): UseCommentResult {
   assert(!options || typeof options === 'object', `useComment options argument '${options}' not an object`)
-  const {commentCid, accountName} = options || {}
+  const {commentCid, accountName, onlyIfCached} = options || {}
   const account = useAccount({accountName})
   const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
@@ -34,11 +34,11 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       return
     }
     validator.validateUseCommentArguments(commentCid, account)
-    if (!commentFromStore) {
+    if (!commentFromStore && !onlyIfCached) {
       // if comment isn't already in store, add it
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComment addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCid, account?.id])
+  }, [commentCid, account?.id, onlyIfCached])
 
   let comment = commentFromStore
 
@@ -84,6 +84,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       accountComment,
       commentsStore: useCommentsStore.getState().comments,
       account,
+      onlyIfCached,
     })
   }
 
@@ -106,7 +107,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
  */
 export function useComments(options?: UseCommentsOptions): UseCommentsResult {
   assert(!options || typeof options === 'object', `useComments options argument '${options}' not an object`)
-  const {commentCids, accountName} = options || {}
+  const {commentCids, accountName, onlyIfCached} = options || {}
   const account = useAccount({accountName})
   const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(
     (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
@@ -124,11 +125,14 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
       return
     }
     validator.validateUseCommentsArguments(commentCids, account)
+    if (onlyIfCached) {
+      return
+    }
     const uniqueCommentCids = new Set(commentCids)
     for (const commentCid of uniqueCommentCids) {
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComments addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCids?.toString(), account?.id])
+  }, [commentCids?.toString(), account?.id, onlyIfCached])
 
   if (account && commentCids?.length) {
     log('useComments', {commentCids, commentsStoreComments, commentsStore: useCommentsStore.getState().comments, account})

@@ -75,6 +75,7 @@ export interface UseNotificationsResult extends Result {
 export interface UseAccountSubplebbitsOptions extends Options {}
 export interface UseAccountSubplebbitsResult extends Result {
   accountSubplebbits: AccountSubplebbit[]
+  onlyIfCached?: boolean
 }
 
 // usePubsubSubscribe(options): result
@@ -86,12 +87,14 @@ export interface UsePubsubSubscribeResult extends Result {}
 // useComment(options): result
 export interface UseCommentOptions extends Options {
   commentCid?: string
+  onlyIfCached?: boolean
 }
 export interface UseCommentResult extends Result, Comment {}
 
 // useComments(options): result
 export interface UseCommentsOptions extends Options {
   commentCids?: string[]
+  onlyIfCached?: boolean
 }
 export interface UseCommentsResult extends Result {
   // TODO: remove | undefined, that shouldn't happen when comments have comment.state
@@ -137,12 +140,14 @@ export interface UseEditedCommentResult extends Result {
 // useSubplebbit(options): result
 export interface UseSubplebbitOptions extends Options {
   subplebbitAddress?: string
+  onlyIfCached?: boolean
 }
 export interface UseSubplebbitResult extends Result, Subplebbit {}
 
 // useSubplebbits(options): result
 export interface UseSubplebbitsOptions extends Options {
   subplebbitAddresses?: string[]
+  onlyIfCached?: boolean
 }
 export interface UseSubplebbitsResult extends Result {
   subplebbits: (Subplebbit | undefined)[]
@@ -151,6 +156,7 @@ export interface UseSubplebbitsResult extends Result {
 // useSubplebbitStats(options): result
 export interface UseSubplebbitStatsOptions extends Options {
   subplebbitAddress?: string
+  onlyIfCached?: boolean
 }
 export interface UseSubplebbitStatsResult extends Result, SubplebbitStats {}
 

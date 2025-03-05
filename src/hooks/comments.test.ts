@@ -105,6 +105,28 @@ describe('comments', () => {
       Plebbit.prototype.getComment = getComment
     })
 
+    test(`onlyIfCached: true doesn't add to store`, async () => {
+      let rendered, waitFor
+      rendered = renderHook<any, any>((options: any) => useComment(options))
+      waitFor = testUtils.createWaitFor(rendered)
+
+      rendered.rerender({commentCid: 'comment cid 1', onlyIfCached: true})
+      // TODO: find better way to wait
+      await new Promise((r) => setTimeout(r, 20))
+      // comment not added to store
+      expect(commentsStore.getState().comments).toEqual({})
+
+      rendered = renderHook<any, any>((options: any) => useComments(options))
+      waitFor = testUtils.createWaitFor(rendered)
+
+      rendered.rerender({commentCids: ['comment cid 1', 'comment cid 2'], onlyIfCached: true})
+      expect(rendered.result.current.comments.length).toBe(2)
+      // TODO: find better way to wait
+      await new Promise((r) => setTimeout(r, 20))
+      // comment not added to store
+      expect(commentsStore.getState().comments).toEqual({})
+    })
+
     test('get multiple comments at once', async () => {
       const rendered = renderHook<any, any>((commentCids) => useComments({commentCids}))
       const waitFor = testUtils.createWaitFor(rendered)

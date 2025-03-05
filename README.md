@@ -20,21 +20,21 @@ useAccountComments({filter: AccountPublicationsFilter}): {accountComments: Comme
 useAccountVotes({filter: AccountPublicationsFilter}): {accountVotes: Vote[]}  // export or display list of own votes
 useAccountVote({commentCid: string}): Vote // know if you already voted on some comment
 useAccountEdits({filer: AccountPublicationsFilter}):  {accountEdits: AccountEdit[]}
-useAccountSubplebbits(): {accountSubplebbits: {[subplebbitAddress: string]: AccountSubplebbit}}
+useAccountSubplebbits(): {accountSubplebbits: {[subplebbitAddress: string]: AccountSubplebbit}, onlyIfCached?: boolean}
 useAccounts(): Account[]
 useNotifications(): {notifications: Notification[], markAsRead: Function}
 ```
 #### Comments Hooks
 ```
-useComment({commentCid: string}): Comment
-useComments({commentCids: string[]}): {comments: Comment[]}
+useComment({commentCid: string, onlyIfCached?: boolean}): Comment
+useComments({commentCids: string[], onlyIfCached?: boolean}): {comments: Comment[]}
 useEditedComment({comment: Comment}): {editedComment: Comment | undefined}
 ```
 #### Subplebbits Hooks
 ```
-useSubplebbit({subplebbitAddress: string}): Subplebbit
-useSubplebbits({subplebbitAddresses: string[]}): {subplebbits: Subplebbits[]}
-useSubplebbitStats({subplebbitAddress: string}): SubplebbitStats
+useSubplebbit({subplebbitAddress: string, onlyIfCached?: boolean}): Subplebbit
+useSubplebbits({subplebbitAddresses: string[], onlyIfCached?: boolean}): {subplebbits: Subplebbits[]}
+useSubplebbitStats({subplebbitAddress: string, onlyIfCached?: boolean}): SubplebbitStats
 useResolvedSubplebbitAddress({subplebbitAddress: string, cache: boolean}): {resolvedAddress: string | undefined} // use {cache: false} when checking the user's own subplebbit address
 ```
 #### Authors Hooks
@@ -137,6 +137,9 @@ const post = useComment({commentCid})
 // post.author.address should not be used directly, it needs to be verified asynchronously using useAuthorAddress
 const {authorAddress, shortAuthorAddress} = useAuthorAddress({comment: post})
 // exception: when linking to an author profile page, /u/${comment.author.address}/c/${comment.cid} should be used, not useAuthorAddress({comment}).authorAddress
+
+// use many times in a page without affecting performance
+const post = useComment({commentCid, onlyIfCached: true})
 ```
 
 #### Get a comment
@@ -151,6 +154,9 @@ console.log(comment.content || comment.link || comment.title)
 // comment.author.address should not be used directly, it needs to be verified asynchronously using useAuthorAddress
 const {authorAddress, shortAuthorAddress} = useAuthorAddress({comment})
 // exception: when linking to an author profile page, /u/${comment.author.address}/c/${comment.cid} should be used, not useAuthorAddress({comment}).authorAddress
+
+// use without affecting performance
+const {comments} = useComments({commentCids, onlyIfCached: true})
 ```
 
 #### Get author avatar
@@ -237,6 +243,9 @@ const {authorComments, lastCommentCid, hasMore, loadMore} = useAuthorComments({c
 const subplebbit = useSubplebbit({subplebbitAddress})
 const subplebbitStats = useSubplebbitStats({subplebbitAddress})
 const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3]})
+
+// use without affecting performance
+const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3], onlyIfCached: true})
 ```
 
 #### Create a post or comment using callbacks
