@@ -8,7 +8,7 @@ import {commentRepliesCacheExpired, flattenCommentsPages} from '../../lib/utils'
  * Calculate the feeds from all the loaded replies pages, filter and sort them
  */
 const validReplies: {[replyCid: string]: boolean} = {}
-export const getFilteredSortedFeeds = async (feedsOptions: RepliesFeedsOptions, comments: Comments, repliesPages: RepliesPages, accounts: Accounts) => {
+export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, comments: Comments, repliesPages: RepliesPages, accounts: Accounts) => {
   // calculate each feed
   let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
@@ -56,25 +56,6 @@ export const getFilteredSortedFeeds = async (feedsOptions: RepliesFeedsOptions, 
         continue
       }
 
-      // TODO: switch this to before adding loaded feeds
-      // validate reply schema and signature
-      if (validReplies[reply.cid] === false) {
-        continue
-      }
-      if (validReplies[reply.cid] !== true) {
-        // TODO: cache createSubplebbit using utils.validatePage(page, subplebbitAddress)
-        const comment = await accounts[accountId]?.plebbit.createComment({cid: reply.cid, postCid: reply.postCid})
-        if (comment) {
-          try {
-            await comment.replies.validatePage({comments: [reply]})
-            validReplies[reply.cid] = true
-          } catch (e) {
-            validReplies[reply.cid] = false
-            continue
-          }
-        }
-      }
-
       filteredSortedBufferedFeedReplies.push(reply)
     }
 
@@ -83,19 +64,27 @@ export const getFilteredSortedFeeds = async (feedsOptions: RepliesFeedsOptions, 
   return feeds
 }
 
-export const getLoadedFeeds = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => {
+export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
   const loadedFeedsMissingReplies: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber, repliesPerPage} = feedsOptions[feedName]
+    const {pageNumber, repliesPerPage, accountId} = feedsOptions[feedName]
     const loadedFeedReplyCount = pageNumber * repliesPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.length
 
     // get new replies from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
-    const missingReplies = [...bufferedFeed]
-    if (missingReplies.length > missingRepliesCount) {
-      missingReplies.length = missingRepliesCount
+
+    const missingReplies = []
+    for (const reply of bufferedFeed) {
+      if (missingReplies.length === missingRepliesCount) {
+        break
+      }
+      // verify signature
+      if (!(await replyIsValid(reply, accounts[accountId]))) {
+        continue
+      }
+      missingReplies.push(reply)
     }
 
     // TODO: update replies in already loaded feeds with new votes and reply counts
@@ -358,4 +347,32 @@ export const getSortTypeFromComment = (comment: Comment, feedOptions: feedOption
   //   }
   // }
   return sortType
+}
+
+const subplebbitsWithInvalidReplies = {}
+const replyIsValidComments = {} // cache plebbit.createComment because sometimes it's slow
+const replyIsValid = async (reply, account) => {
+  if (!account) {
+    return false
+  }
+  if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
+    log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`)
+    return false
+  }
+  if (!replyIsValidComments[reply.cid]) {
+    replyIsValidComments[reply.cid] = await account.plebbit.createComment({
+      subplebbitAddress: reply.subplebbitAddress,
+      postCid: reply.postCid,
+      cid: reply.cid,
+      depth: reply.depth,
+    })
+  }
+  try {
+    await replyIsValidComments[reply.cid].replies.validatePage({comments: [reply]})
+    return true
+  } catch (e) {
+    subplebbitsWithInvalidReplies[reply.cid] = true
+    log('invalid reply', {reply, error: e})
+  }
+  return false
 }

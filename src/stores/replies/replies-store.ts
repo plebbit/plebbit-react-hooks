@@ -182,9 +182,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       const {accounts} = accountsStore.getState()
 
       // calculate new feeds
-      const filteredSortedFeeds = await getFilteredSortedFeeds(feedsOptions, comments, repliesPages, accounts)
+      const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, comments, repliesPages, accounts)
       const bufferedFeedsWithoutPreviousLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(filteredSortedFeeds, previousState.loadedFeeds)
-      const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds)
+      const loadedFeeds = await getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds, accounts)
       // after loaded feeds are caculated, remove new loaded feeds (again) from buffered feeds
       const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithoutPreviousLoadedFeeds, loadedFeeds)
       const bufferedFeedsReplyCounts = getFeedsReplyCounts(feedsOptions, bufferedFeeds)

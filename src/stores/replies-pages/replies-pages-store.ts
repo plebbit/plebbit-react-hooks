@@ -179,7 +179,7 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
   // }
 }
 
-// TODO: cache the comment instances
+const fetchPageComments = {} // cache plebbit.createComment because sometimes it's slow
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, comment: Comment, account: Account) => {
   // replies page is cached
@@ -187,13 +187,20 @@ const fetchPage = async (pageCid: string, comment: Comment, account: Account) =>
   if (cachedRepliesPage) {
     return cachedRepliesPage
   }
-  const _comment = await account.plebbit.createComment({cid: comment.cid, postCid: comment.postCid, subplebbitAddress: comment.subplebbitAddress})
+  if (!fetchPageComments[comment.cid]) {
+    fetchPageComments[comment.cid] = await account.plebbit.createComment({
+      cid: comment.cid,
+      postCid: comment.postCid,
+      subplebbitAddress: comment.subplebbitAddress,
+      depth: comment.depth,
+    })
 
-  // set clients states on subplebbits store so the frontend can display it
-  // subplebbitPostsClientsOnStateChange(subplebbit.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbit.address))
+    // set clients states on subplebbits store so the frontend can display it
+    // subplebbitPostsClientsOnStateChange(subplebbit.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbit.address))
+  }
 
   const onError = (error: any) => log.error(`repliesPagesStore comment '${comment.cid}' failed comment.replies.getPage page cid '${pageCid}':`, error)
-  const fetchedRepliesPage = await utils.retryInfinity(() => _comment.replies.getPage(pageCid), {onError})
+  const fetchedRepliesPage = await utils.retryInfinity(() => fetchPageComments[comment.cid].replies.getPage(pageCid), {onError})
   await repliesPagesDatabase.setItem(pageCid, utils.clone(fetchedRepliesPage))
   return fetchedRepliesPage
 }
