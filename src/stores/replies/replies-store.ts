@@ -14,7 +14,6 @@ import {
   getBufferedFeedsWithoutLoadedFeeds,
   getFeedsReplyCounts,
   getFeedsHaveMore,
-  getFeedAfterIncrementPageNumber,
   feedsCommentsChanged,
   getFeedsComments,
   getFeedsCommentsLoadedCount,

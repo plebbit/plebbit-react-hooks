@@ -179,7 +179,7 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
   // }
 }
 
-const fetchPageComments = {} // cache plebbit.createComment because sometimes it's slow
+const fetchPageComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, comment: Comment, account: Account) => {
   // replies page is cached

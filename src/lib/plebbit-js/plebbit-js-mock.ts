@@ -70,7 +70,7 @@ export class Plebbit extends EventEmitter {
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
     subplebbit.title = subplebbit.address + ' title'
     const hotPageCid = subplebbit.address + ' page cid hot'
-    subplebbit.posts.pages.hot = this.posts.pageToGet(hotPageCid)
+    subplebbit.posts.pages.hot = subplebbit.posts.pageToGet(hotPageCid)
     subplebbit.posts.pageCids = {
       hot: hotPageCid,
       topAll: subplebbit.address + ' page cid topAll',

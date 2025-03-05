@@ -174,7 +174,7 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
   }
 }
 
-const fetchPageSubplebbits = {} // cache plebbit.createSubplebbits because sometimes it's slow
+const fetchPageSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
   // subplebbit page is cached

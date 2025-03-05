@@ -1,5 +1,6 @@
 import assert from 'assert'
 import {
+  Comment,
   Feed,
   Feeds,
   FeedOptions,
@@ -285,37 +286,6 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
   return feedsHaveMore
 }
 
-// get a partial updateFeeds after a page increment
-export const getFeedAfterIncrementPageNumber = (
-  feedName: string,
-  feedOptions: FeedOptions,
-  bufferedFeed: Feed,
-  loadedFeed: Feed,
-  subplebbits: Subplebbits,
-  subplebbitsPages: SubplebbitsPages,
-  accounts: Accounts
-) => {
-  // transform arguments into objects
-  const feedsOptions = {[feedName]: feedOptions}
-  const bufferedFeedsWithLoadedFeeds = {[feedName]: bufferedFeed}
-  const previousLoadedFeeds = {[feedName]: loadedFeed}
-
-  // calculate values
-  const loadedFeeds = getLoadedFeeds(feedsOptions, previousLoadedFeeds, bufferedFeedsWithLoadedFeeds)
-  // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-  const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
-  const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
-  const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts)
-
-  // transform values back into single properties
-  return {
-    bufferedFeed: bufferedFeeds[feedName],
-    loadedFeed: loadedFeeds[feedName],
-    bufferedFeedSubplebbitsPostCounts: bufferedFeedsSubplebbitsPostCounts[feedName],
-    feedHasMore: feedsHaveMore[feedName],
-  }
-}
-
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
 export const getFeedsSubplebbits = (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => {
   // find all feeds subplebbits
@@ -488,9 +458,9 @@ export const feedsHaveChangedBlockedCids = (feedsOptions: FeedsOptions, buffered
   return false
 }
 
-const subplebbitsWithInvalidPosts = {}
-const postIsValidSubplebbits = {} // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = async (post, account) => {
+const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
+const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
+const postIsValid = async (post: Comment, account: Account) => {
   if (!account) {
     return false
   }

@@ -14,7 +14,6 @@ import {
   getBufferedFeedsWithoutLoadedFeeds,
   getFeedsSubplebbitsPostCounts,
   getFeedsHaveMore,
-  getFeedAfterIncrementPageNumber,
   getAccountsBlockedAddresses,
   feedsHaveChangedBlockedAddresses,
   accountsBlockedAddressesChanged,

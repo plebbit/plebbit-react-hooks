@@ -3,6 +3,8 @@ import {Feed, Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments,
 import {getRepliesPages, getRepliesFirstPageCid} from '../replies-pages'
 import repliesSorter from '../feeds/feed-sorter'
 import {commentRepliesCacheExpired, flattenCommentsPages} from '../../lib/utils'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:replies:stores')
 
 /**
  * Calculate the feeds from all the loaded replies pages, filter and sort them
@@ -199,37 +201,6 @@ export const getFeedsHaveMore = (feedsOptions: RepliesFeedsOptions, bufferedFeed
   return feedsHaveMore
 }
 
-// get a partial updateFeeds after a page increment
-export const getFeedAfterIncrementPageNumber = (
-  feedName: string,
-  feedOptions: RepliesFeedOptions,
-  bufferedFeed: Feed,
-  loadedFeed: Feed,
-  comments: Comments,
-  repliesPages: RepliesPages,
-  accounts: Accounts
-) => {
-  // transform arguments into objects
-  const feedsOptions = {[feedName]: feedOptions}
-  const bufferedFeedsWithLoadedFeeds = {[feedName]: bufferedFeed}
-  const previousLoadedFeeds = {[feedName]: loadedFeed}
-
-  // calculate values
-  const loadedFeeds = getLoadedFeeds(feedsOptions, previousLoadedFeeds, bufferedFeedsWithLoadedFeeds)
-  // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-  const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
-  const bufferedFeedsReplyCounts = getFeedsReplyCounts(feedsOptions, bufferedFeeds)
-  const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, comments, repliesPages, accounts)
-
-  // transform values back into single properties
-  return {
-    bufferedFeed: bufferedFeeds[feedName],
-    loadedFeed: loadedFeeds[feedName],
-    bufferedFeedReplyCounts: bufferedFeedsReplyCounts[feedName],
-    feedHasMore: feedsHaveMore[feedName],
-  }
-}
-
 // get all comments replies pages cids of all feeds, use to check if a commentsStore change should trigger updateFeeds
 export const getFeedsComments = (feedsOptions: RepliesFeedsOptions, comments: Comments) => {
   const feedsComments = new Map<string, Comment>()
@@ -295,7 +266,7 @@ export const getFeedsCommentsLoadedCount = (feedsComments: Map<string, Comment>)
 }
 
 // selected sort type could be missing from comment, or not optimized
-export const getSortTypeFromComment = (comment: Comment, feedOptions: feedOptions) => {
+export const getSortTypeFromComment = (comment: Comment, feedOptions: RepliesFeedOptions) => {
   let {sortType, flat} = feedOptions
 
   // 'top' and 'best' are similar enough to be used interchangeably
@@ -349,9 +320,9 @@ export const getSortTypeFromComment = (comment: Comment, feedOptions: feedOption
   return sortType
 }
 
-const subplebbitsWithInvalidReplies = {}
-const replyIsValidComments = {} // cache plebbit.createComment because sometimes it's slow
-const replyIsValid = async (reply, account) => {
+const subplebbitsWithInvalidReplies: {[subplebbitAddress: string]: boolean} = {}
+const replyIsValidComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
+const replyIsValid = async (reply: Comment, account: Account) => {
   if (!account) {
     return false
   }
