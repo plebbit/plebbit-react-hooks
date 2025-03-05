@@ -226,16 +226,6 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
   return oneHourAgo > subplebbit.fetchedAt
 }
 
-export const commentRepliesCacheExpired = (comment: any) => {
-  // NOTE: fetchedAt is undefined on owner subplebbits
-  if (!comment?.fetchedAt) {
-    false
-  }
-  // if comment cache is older than 1 hour, its comment.replies are considered expired
-  const oneHourAgo = Date.now() / 1000 - 60 * 60
-  return oneHourAgo > comment.fetchedAt
-}
-
 const utils = {
   merge,
   clone,
@@ -248,7 +238,6 @@ const utils = {
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
   clientsOnStateChange,
   subplebbitPostsCacheExpired,
-  commentRepliesCacheExpired,
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {

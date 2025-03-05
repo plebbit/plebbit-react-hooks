@@ -19,13 +19,11 @@ export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, commen
     // find all fetched replies
     let bufferedFeedReplies = []
     const comment = comments[commentCid]
-    // TODO: implement comment.fetchedAt
-    const _commentRepliesCacheExpired = false // commentRepliesCacheExpired(comment) && window.navigator.onLine
 
     sortType = getSortTypeFromComment(comment, feedsOptions[feedName])
 
     // comment has loaded and cache not expired
-    if (comment && !_commentRepliesCacheExpired) {
+    if (comment) {
       // use comment preloaded replies if any
       const preloadedReplies = comment.replies?.pages?.[sortType]?.comments
       if (preloadedReplies) {
@@ -168,13 +166,6 @@ export const getFeedsHaveMore = (feedsOptions: RepliesFeedsOptions, bufferedFeed
     }
 
     sortType = getSortTypeFromComment(comment, feedsOptions[feedName])
-
-    // TODO: implement comment.fetchedAt
-    // if comment replies cache expired, then the feed still has more
-    // if (commentRepliesCacheExpired(comment)) {
-    //   feedsHaveMore[feedName] = true
-    //   continue
-    // }
 
     const firstPageCid = getRepliesFirstPageCid(comment, sortType)
     // TODO: if a loaded comment doesn't have a first page, it's unclear what we should do

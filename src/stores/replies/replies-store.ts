@@ -265,12 +265,6 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState: any) =>
       continue
     }
 
-    // if comment replies cache is expired, don't use, wait for next comment update
-    // TODO: implement comment.fetchedAt
-    // if (commentRepliesCacheExpired(comments[commentCid])) {
-    //   continue
-    // }
-
     sortType = getSortTypeFromComment(comments[commentCid], feedsOptions[feedName])
 
     // comment replies count is low, fetch next replies page
