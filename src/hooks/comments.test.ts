@@ -263,57 +263,56 @@ describe('comments', () => {
 })
 
 describe('comment replies', () => {
+  let simulateUpdateEvent
+
   beforeAll(async () => {
     // set plebbit-js mock and reset dbs
     setPlebbitJs(PlebbitJsMock)
     await testUtils.resetDatabasesAndStores()
 
     testUtils.silenceReactWarnings()
+
+    // mock adding replies to comment
+    simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+    Comment.prototype.simulateUpdateEvent = async function () {
+      // if timestamp isn't defined, simulate fetching the comment ipfs
+      if (!this.timestamp) {
+        this.simulateFetchCommentIpfsUpdateEvent()
+        return
+      }
+
+      // simulate finding vote counts on an IPNS record
+      this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+      this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+      this.updatedAt = Math.floor(Date.now() / 1000)
+
+      const bestPageCid = this.cid + ' page cid best'
+      this.replies.pages.best = this.replies.pageToGet(bestPageCid)
+      this.replies.pageCids = {
+        best: bestPageCid,
+        new: this.cid + ' page cid new',
+        newFlat: this.cid + ' page cid newFlat',
+        old: this.cid + ' page cid old',
+        oldFlat: this.cid + ' page cid oldFlat',
+      }
+
+      this.updatingState = 'succeeded'
+      this.emit('update', this)
+      this.emit('updatingstatechange', 'succeeded')
+    }
   })
   afterAll(() => {
     testUtils.restoreAll()
+
+    // restore mock
+    Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
   })
   afterEach(async () => {
     await testUtils.resetDatabasesAndStores()
   })
 
   describe('useReplies', () => {
-    let rendered, waitFor, scrollOnePage, simulateUpdateEvent
-
-    beforeAll(() => {
-      // mock adding replies to comment
-      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
-      Comment.prototype.simulateUpdateEvent = async function () {
-        // if timestamp isn't defined, simulate fetching the comment ipfs
-        if (!this.timestamp) {
-          this.simulateFetchCommentIpfsUpdateEvent()
-          return
-        }
-
-        // simulate finding vote counts on an IPNS record
-        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
-        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
-        this.updatedAt = Math.floor(Date.now() / 1000)
-
-        const bestPageCid = this.cid + ' page cid best'
-        this.replies.pages.best = this.replies.pageToGet(bestPageCid)
-        this.replies.pageCids = {
-          best: bestPageCid,
-          new: this.cid + ' page cid new',
-          newFlat: this.cid + ' page cid newFlat',
-          old: this.cid + ' page cid old',
-          oldFlat: this.cid + ' page cid oldFlat',
-        }
-
-        this.updatingState = 'succeeded'
-        this.emit('update', this)
-        this.emit('updatingstatechange', 'succeeded')
-      }
-    })
-    afterAll(() => {
-      // restore mock
-      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
-    })
+    let rendered, waitFor, scrollOnePage
 
     beforeEach(() => {
       rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
@@ -562,13 +561,15 @@ describe('comment replies', () => {
 
     test.todo('nested scroll pages', async () => {})
   })
-  /*
+
   describe('useReplies flat', () => {
-    let rendered, waitFor, scrollOnePage, simulateUpdateEvent
+    let pageToGet
 
     beforeAll(() => {
-      const getNestedCommentsPage = (pageCid: string, comment: any) => {
-        const subplebbitAddress = comment.subplebbitAddress
+      // mock nested replies on pages
+      pageToGet = Pages.prototype.pageToGet
+      Pages.prototype.pageToGet = async function (pageCid) {
+        const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
         const page: any = {
           nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
           comments: [],
@@ -586,96 +587,55 @@ describe('comment replies', () => {
               address: pageCid + ' author address ' + index,
             },
             updatedAt: index,
-            replies: {pages: {best: {comments: [{
-              timestamp: index + 1,
-              cid: pageCid + ' comment cid ' + index + ' nested 1',
-              subplebbitAddress,
-              upvoteCount: index,
-              downvoteCount: 10,
-              author: {
-                address: pageCid + ' author address ' + index,
-              },
-              updatedAt: index,
-              replies: {pages: {best: {comments: [{
-                timestamp: index + 2,
-                cid: pageCid + ' comment cid ' + index + ' nested 2',
-                subplebbitAddress,
-                upvoteCount: index,
-                downvoteCount: 10,
-                author: {
-                  address: pageCid + ' author address ' + index,
+            replies: {
+              pages: {
+                best: {
+                  comments: [
+                    {
+                      timestamp: index + 10,
+                      cid: pageCid + ' comment cid ' + index + ' nested 1',
+                      subplebbitAddress,
+                      upvoteCount: index,
+                      downvoteCount: 10,
+                      author: {
+                        address: pageCid + ' author address ' + index,
+                      },
+                      updatedAt: index,
+                      replies: {
+                        pages: {
+                          best: {
+                            comments: [
+                              {
+                                timestamp: index + 20,
+                                cid: pageCid + ' comment cid ' + index + ' nested 2',
+                                subplebbitAddress,
+                                upvoteCount: index,
+                                downvoteCount: 10,
+                                author: {
+                                  address: pageCid + ' author address ' + index,
+                                },
+                                updatedAt: index,
+                              },
+                            ],
+                          },
+                        },
+                      },
+                    },
+                  ],
                 },
-                updatedAt: index,
-                replies: {pages: {best: {comments: []}}}
-              }]}}}
-            }]}}}
+              },
+            },
           })
         }
         return page
       }
-
-      // mock adding replies to comment
-      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
-      Comment.prototype.simulateUpdateEvent = async function () {
-        // if timestamp isn't defined, simulate fetching the comment ipfs
-        if (!this.timestamp) {
-          this.simulateFetchCommentIpfsUpdateEvent()
-          return
-        }
-
-        // simulate finding vote counts on an IPNS record
-        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
-        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
-        this.updatedAt = Math.floor(Date.now() / 1000)
-
-        const bestPageCid = this.cid + ' page cid best'
-        this.replies.pages.best = getNestedCommentsPage(bestPageCid, this)
-        this.replies.pageCids = {
-          best: bestPageCid,
-          new: this.cid + ' page cid new',
-          newFlat: this.cid + ' page cid newFlat',
-          old: this.cid + ' page cid old',
-          oldFlat: this.cid + ' page cid oldFlat',
-        }
-
-        this.updatingState = 'succeeded'
-        this.emit('update', this)
-        this.emit('updatingstatechange', 'succeeded')
-      }
-
-      // mock adding replies to comment
-      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
-      Comment.prototype.simulateUpdateEvent = async function () {
-        // if timestamp isn't defined, simulate fetching the comment ipfs
-        if (!this.timestamp) {
-          this.simulateFetchCommentIpfsUpdateEvent()
-          return
-        }
-
-        // simulate finding vote counts on an IPNS record
-        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
-        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
-        this.updatedAt = Math.floor(Date.now() / 1000)
-
-        const bestPageCid = this.cid + ' page cid best'
-        this.replies.pages.best = getNestedCommentsPage(bestPageCid, this)
-        this.replies.pageCids = {
-          best: bestPageCid,
-          new: this.cid + ' page cid new',
-          newFlat: this.cid + ' page cid newFlat',
-          old: this.cid + ' page cid old',
-          oldFlat: this.cid + ' page cid oldFlat',
-        }
-
-        this.updatingState = 'succeeded'
-        this.emit('update', this)
-        this.emit('updatingstatechange', 'succeeded')
-      }
     })
     afterAll(() => {
       // restore mock
-      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+      Pages.prototype.pageToGet = pageToGet
     })
+
+    let rendered, waitFor, scrollOnePage
 
     beforeEach(() => {
       rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
@@ -696,56 +656,166 @@ describe('comment replies', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test.only('sort type best', async () => {
+    test('sort type best is flattened', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+      let hasNestedReplies = false
+      for (const reply of rendered.result.current.replies) {
+        if (reply.cid.includes('nested')) {
+          hasNestedReplies = true
+          break
+        }
+      }
+      expect(hasNestedReplies).toBe(true)
+
+      // make sure page was fetched
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBeGreaterThan(0)
+    })
+
+    test('default sort type is flattened', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.hasMore).toBe(true)
+      let hasNestedReplies = false
+      for (const reply of rendered.result.current.replies) {
+        if (reply.cid.includes('nested')) {
+          hasNestedReplies = true
+          break
+        }
+      }
+      expect(hasNestedReplies).toBe(true)
+
+      // make sure page was fetched
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBeGreaterThan(0)
+    })
+
+    test('sort type new uses newFlat if available', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'new', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+
+      const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
+      expect(pageCids.length).toBe(1)
+      expect(pageCids[0]).toMatch('newFlat')
+    })
+
+    test('sort type old uses oldFlat if available', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'old', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+
+      const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
+      expect(pageCids.length).toBe(1)
+      expect(pageCids[0]).toMatch('oldFlat')
+    })
+
+    test('sort type newFlat uses new if missing', async () => {
       const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       Comment.prototype.simulateUpdateEvent = async function () {
-        this.replies.pages.best = {
-          comments: [{
-            timestamp: 1,
-            cid: this.cid + ' best reply cid 1',
-            subplebbitAddress: this.cid + ' best reply subplebbit address',
-            upvoteCount: 1,
-            downvoteCount: 10,
-            author: {address: this.cid + ' best author address'},
-            updatedAt: 1,
-            replies: {pages: {best: {comments: [{
-              timestamp: 1,
-              cid: this.cid + ' best reply cid 1 nested 1',
-              subplebbitAddress: this.cid + ' best reply subplebbit address',
-              upvoteCount: 1,
-              downvoteCount: 10,
-              author: {address: this.cid + ' best author address nested 1'},
-              updatedAt: 1,
-              replies: {pages: {best: {comments: [{
-                timestamp: 1,
-                cid: this.cid + ' best reply cid 1 nested 2',
-                subplebbitAddress: this.cid + ' best reply subplebbit address',
-                upvoteCount: 1,
-                downvoteCount: 10,
-                author: {address: this.cid + ' best author address nested 2'},
-                updatedAt: 1
-              }]}}}}]}}
-            }
-          }],
-          nextCid: this.cid + ' next page cid best',
+        this.replies.pageCids = {
+          new: this.cid + ' page cid new',
         }
         this.updatingState = 'succeeded'
         this.emit('update', this)
         this.emit('updatingstatechange', 'succeeded')
       }
 
-      // user sets sortType 'new' or 'old' with flat, try to fetch 'newFlat' if it exists
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'newFlat', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+
+      const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
+      expect(pageCids.length).toBe(1)
+      expect(pageCids[0]).not.toMatch('newFlat')
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test('sort type new, flat: true uses new if newFlat missing', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.replies.pageCids = {
+          new: this.cid + ' page cid new',
+        }
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'new', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
-      // page 1
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
-      expect(rendered.result.current.hasMore).toBe(true)
-      // should only fetch 1 page because no next cid
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
-      // user sets sortType 'best', which is not flat, make sure to auto flatten
+
+      const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
+      expect(pageCids.length).toBe(1)
+      expect(pageCids[0]).not.toMatch('newFlat')
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test('sort type oldFlat uses old if missing', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.replies.pageCids = {
+          old: this.cid + ' page cid old',
+        }
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'oldFlat', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+
+      const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
+      expect(pageCids.length).toBe(1)
+      expect(pageCids[0]).not.toMatch('oldFlat')
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test('sort type old, flat: true uses old if oldFlat missing', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.replies.pageCids = {
+          old: this.cid + ' page cid old',
+        }
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'old', flat: true})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+
+      const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
+      expect(pageCids.length).toBe(1)
+      expect(pageCids[0]).not.toMatch('oldFlat')
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
   })
-*/
 })

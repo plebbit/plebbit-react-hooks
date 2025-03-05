@@ -130,10 +130,10 @@ export const sort = (sortType: string, feed: any[]) => {
   const pinnedPosts = feed.filter((post) => post.pinned)
 
   feed = feed.filter((post) => !post.pinned)
-  if (sortType === 'new') {
+  if (sortType.match('new')) {
     return [...pinnedPosts, ...sortByNew(feed)]
   }
-  if (sortType === 'hot') {
+  if (sortType.match('hot')) {
     return [...pinnedPosts, ...sortByHot(feed)]
   }
   if (sortType.match('top')) {

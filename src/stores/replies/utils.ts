@@ -2,7 +2,7 @@ import assert from 'assert'
 import {Feed, Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Account, Accounts, RepliesPage, RepliesPages} from '../../types'
 import {getRepliesPages, getRepliesFirstPageCid} from '../replies-pages'
 import repliesSorter from '../feeds/feed-sorter'
-import {commentRepliesCacheExpired} from '../../lib/utils'
+import {commentRepliesCacheExpired, flattenCommentsPages} from '../../lib/utils'
 
 /**
  * Calculate the feeds from all the loaded replies pages, filter and sort them
@@ -12,16 +12,15 @@ export const getFilteredSortedFeeds = async (feedsOptions: RepliesFeedsOptions, 
   // calculate each feed
   let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
-    let {commentCid, sortType, accountId, filter} = feedsOptions[feedName]
+    let {commentCid, sortType, accountId, filter, flat} = feedsOptions[feedName]
 
     // find all fetched replies
-    const bufferedFeedReplies = []
+    let bufferedFeedReplies = []
     const comment = comments[commentCid]
     // TODO: implement comment.fetchedAt
     const _commentRepliesCacheExpired = false // commentRepliesCacheExpired(comment) && window.navigator.onLine
 
-    // eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
-    sortType = handleMissingTopSortType(sortType, comment)
+    sortType = getSortTypeFromComment(comment, feedsOptions[feedName])
 
     // comment has loaded and cache not expired
     if (comment && !_commentRepliesCacheExpired) {
@@ -38,6 +37,10 @@ export const getFilteredSortedFeeds = async (feedsOptions: RepliesFeedsOptions, 
           bufferedFeedReplies.push(...repliesPage.comments)
         }
       }
+    }
+
+    if (flat) {
+      bufferedFeedReplies = flattenCommentsPages({comments: bufferedFeedReplies})
     }
 
     // sort the feed before filtering to get more accurate results
@@ -173,8 +176,7 @@ export const getFeedsHaveMore = (feedsOptions: RepliesFeedsOptions, bufferedFeed
       continue
     }
 
-    // eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
-    sortType = handleMissingTopSortType(sortType, comment)
+    sortType = getSortTypeFromComment(comment, feedsOptions[feedName])
 
     // TODO: implement comment.fetchedAt
     // if comment replies cache expired, then the feed still has more
@@ -303,12 +305,57 @@ export const getFeedsCommentsLoadedCount = (feedsComments: Map<string, Comment>)
   return count
 }
 
-// eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
-export const handleMissingTopSortType = (sortType, comment) => {
+// selected sort type could be missing from comment, or not optimized
+export const getSortTypeFromComment = (comment: Comment, feedOptions: feedOptions) => {
+  let {sortType, flat} = feedOptions
+
+  // 'top' and 'best' are similar enough to be used interchangeably
   if (sortType === 'best' && !comment.replies?.pages?.best && !comment.replies?.pageCids?.best && (comment.replies?.pages?.top || comment.replies?.pageCids?.top)) {
     sortType = 'top'
   } else if (sortType === 'top' && !comment.replies?.pages?.top && !comment.replies?.pageCids?.top && (comment.replies?.pages?.best || comment.replies?.pageCids?.best)) {
     sortType = 'best'
   }
+
+  // if 'new' sort type and flat: true, use 'newFlat'
+  else if (sortType === 'new' && flat && (comment.replies?.pages?.newFlat || comment.replies?.pageCids?.newFlat)) {
+    sortType = 'newFlat'
+  }
+  // if 'old' sort type and flat: true, use 'oldFlat'
+  else if (sortType === 'old' && flat && (comment.replies?.pages?.oldFlat || comment.replies?.pageCids?.oldFlat)) {
+    sortType = 'oldFlat'
+  }
+
+  // if 'newFlat' is missing, use 'new'
+  else if (
+    sortType === 'newFlat' &&
+    !comment.replies?.pages?.newFlat &&
+    !comment.replies?.pageCids?.newFlat &&
+    (comment.replies?.pages?.new || comment.replies?.pageCids?.new)
+  ) {
+    sortType = 'new'
+  }
+  // if 'oldFlat' is missing, use 'old'
+  else if (
+    sortType === 'oldFlat' &&
+    !comment.replies?.pages?.oldFlat &&
+    !comment.replies?.pageCids?.oldFlat &&
+    (comment.replies?.pages?.old || comment.replies?.pageCids?.old)
+  ) {
+    sortType = 'old'
+  }
+
+  // TODO: if sort type doesn't exist on comment, maybe use first existing?
+  // else if (!comment.replies?.pages?.[sortType] && !comment.replies?.pageCids?.[sortType]) {
+  //   const firstPageSortType = comment.replies?.pages && Object.keys(comment.replies.pages)[0]
+  //   if (firstPageSortType) {
+  //     sortType = firstPageSortType
+  //   }
+  //   else {
+  //     const firstPageCidSortType = comment.replies?.pageCids && Object.keys(comment.replies.pageCids)[0]
+  //     if (firstPageCidSortType) {
+  //       sortType = firstPageCidSortType
+  //     }
+  //   }
+  // }
   return sortType
 }

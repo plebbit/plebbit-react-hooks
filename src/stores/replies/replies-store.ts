@@ -19,7 +19,7 @@ import {
   getFeedsComments,
   getFeedsCommentsLoadedCount,
   getFilteredSortedFeeds,
-  handleMissingTopSortType,
+  getSortTypeFromComment,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -272,8 +272,7 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState: any) =>
     //   continue
     // }
 
-    // eventually plebbit-js will replace reply sort type 'top' with 'best'. TODO: remove when all subs have upgraded
-    sortType = handleMissingTopSortType(sortType, comments[commentCid])
+    sortType = getSortTypeFromComment(comments[commentCid], feedsOptions[feedName])
 
     // comment replies count is low, fetch next replies page
     if (feedReplyCount <= commentRepliesLeftBeforeNextPage) {
