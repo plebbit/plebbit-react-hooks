@@ -595,7 +595,8 @@ const getCommentUpdateContent = async (comment: any) => {
   }
 
   // simulate finding replies from IPNS record
-  commentUpdateContent.replies = {pages: {topAll: {nextCid: undefined, comments: []}}}
+  commentUpdateContent.replies = new Pages({comment})
+  commentUpdateContent.replies.pages.best = {nextCid: undefined, comments: []}
   const getReplyContentOptions = {depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid}
   let replyCount = commentUpdateContent.replyCount
   const replyCids: any = new Set()
@@ -615,7 +616,16 @@ const getCommentUpdateContent = async (comment: any) => {
     }
     replyCids.add(reply.cid)
     const replyUpdateContent = await getCommentUpdateContent(reply)
-    commentUpdateContent.replies.pages.topAll.comments.push({...reply, ...replyUpdateContent})
+    commentUpdateContent.replies.pages.best.comments.push({...reply, ...replyUpdateContent})
+  }
+
+  // if post with lots of replies, add replies pages
+  if (commentUpdateContent.replyCount >= 15 && comment.depth === 0) {
+    commentUpdateContent.replies.pages.best.nextCid = await seedToCid(await getNumberHash(comment.cid + 'bestpagecid2'))
+    commentUpdateContent.replies.pageCids = {
+      new: await seedToCid(await getNumberHash(comment.cid + 'newpagecid')),
+      old: await seedToCid(await getNumberHash(comment.cid + 'oldpagecid')),
+    }
   }
 
   const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
@@ -668,7 +678,8 @@ const getCommentUpdateContent = async (comment: any) => {
 }
 
 const pageCommentCids: any = new Set()
-const getCommentsPage = async (pageCid: string, subplebbit: any) => {
+const getCommentsPage = async (pageCid: string, subplebbitOrComment: any) => {
+  const subplebbitAddress = subplebbitOrComment.address || subplebbitOrComment.subplebbitAddress
   const commentsPageSeedNumber = SeedIncrementer(await getNumberHash(pageCid))
   const page: any = {
     nextCid: await seedToCid(commentsPageSeedNumber.increment()),
@@ -686,7 +697,7 @@ const getCommentsPage = async (pageCid: string, subplebbit: any) => {
     pageCommentCids.add(cid)
     // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
     const comment: any = await plebbit.getComment(cid)
-    comment.subplebbitAddress = subplebbit.address
+    comment.subplebbitAddress = subplebbitAddress
     const commentUpdateContent: any = await getCommentUpdateContent(comment)
     for (const prop in commentUpdateContent) {
       comment[prop] = commentUpdateContent[prop]
@@ -702,8 +713,7 @@ const createdSubplebbits: any = {}
 class Plebbit extends EventEmitter {
   async createSigner() {
     return {
-      privateKey:
-        'private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key',
+      privateKey: 'private key private key private key private key',
       address: await getCidHash(String(Math.random())),
     }
   }
@@ -859,9 +869,10 @@ class Pages {
   }
 
   async getPage(pageCid: string) {
+    console.log('getPage', this, this.subplebbit, this.comment)
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return getCommentsPage(pageCid, this.subplebbit)
+    return getCommentsPage(pageCid, this.subplebbit || this.comment)
   }
 
   async validatePage(page: any) {}
@@ -1105,6 +1116,7 @@ class Comment extends Publication {
     this.deleted = createCommentOptions?.deleted
     this.removed = createCommentOptions?.removed
     this.reason = createCommentOptions?.reason
+    this.replies = new Pages({comment: this})
     if (this.cid) {
       this.shortCid = this.cid.substring(2, 14)
     }

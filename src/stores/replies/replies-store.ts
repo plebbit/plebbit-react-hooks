@@ -1,10 +1,9 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:feed:stores')
+const log = Logger('plebbit-react-hooks:replies:stores')
 import {Feed, Feeds, Comment, Comments, Account, RepliesFeedsOptions, RepliesPage, CommentsFilter} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
-import {commentRepliesCacheExpired} from '../../lib/utils'
 import accountsStore from '../accounts'
 import commentsStore from '../comments'
 import repliesPagesStore from '../replies-pages'

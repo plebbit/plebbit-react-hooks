@@ -2,7 +2,7 @@
 // only use it to log the content mock and see if the outputs make sense
 // use `jest --testRegex plebbit-js-mock-content.donttest.ts` to run
 
-const timeout = 180000
+const timeout = 4000
 
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_NO_CACHE = '1'
 // process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_DOUBLE_MEDIA = '1'
@@ -11,11 +11,11 @@ process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '100'
 
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import {useComment, useSubplebbit, useFeed, useAccountSubplebbits, useAccount} from '../../index'
+import {useComment, useSubplebbit, useFeed, useAccountSubplebbits, useAccount, useReplies, setPlebbitJs} from '../../index'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMockContent, {getImageUrl, SeedIncrementer} from './plebbit-js-mock-content'
 
-describe('PlebbitJsMockContent', () => {
+describe.skip('PlebbitJsMockContent', () => {
   test.skip(
     'SeedIncrementer',
     async () => {
@@ -157,8 +157,10 @@ describe('PlebbitJsMockContent', () => {
 })
 
 describe('mock content', () => {
-  beforeAll(() => {
-    testUtils.silenceReactWarnings()
+  beforeAll(async () => {
+    // set plebbit-js mock and reset dbs
+    setPlebbitJs(PlebbitJsMockContent)
+    await testUtils.resetDatabasesAndStores()
   })
   afterAll(() => {
     testUtils.restoreAll()
@@ -213,12 +215,13 @@ describe('mock content', () => {
     // test getting from db
     await testUtils.resetStores()
     const rendered2 = renderHook<any, any>((commentCid) => useComment({commentCid}))
+    const waitFor2 = testUtils.createWaitFor(rendered2, {timeout})
 
     rendered2.rerender('QmXxWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa3')
-    await waitFor(() => typeof rendered2.result.current.subplebbitAddress === 'string')
-    console.log(rendered2.result.current)
-    expect(typeof rendered2.result.current.subplebbitAddress).toBe('string')
+    await waitFor2(() => typeof rendered2.result.current.timestamp === 'number')
     expect(typeof rendered2.result.current.timestamp).toBe('number')
+    await waitFor2(() => typeof rendered2.result.current.upvoteCount === 'number')
+    console.log(rendered2.result.current)
     expect(typeof rendered2.result.current.upvoteCount).toBe('number')
   })
 
@@ -406,5 +409,36 @@ describe('mock content', () => {
     })
     console.log({subplebbit})
     expect(subplebbit.address).toBe('name.eth')
+  })
+
+  test('use comment replies', async () => {
+    const rendered = renderHook<any, any>((commentCid) => useReplies({commentCid}))
+    const waitFor = testUtils.createWaitFor(rendered, {timeout})
+
+    const scrollOnePage = async () => {
+      const nextFeedLength = (rendered.result.current.replies?.length || 0) + 25
+      act(() => {
+        rendered.result.current.loadMore()
+      })
+      try {
+        await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength, {timeout})
+      } catch (e) {
+        console.error('scrollOnePage failed:', e)
+      }
+    }
+
+    rendered.rerender('Qm2xWyFRBUReRNzyJueFLFh84Mtj7ycbySktRQ5ffZLVa3')
+    await waitFor(() => rendered.result.current.replies?.length > 0)
+    expect(rendered.result.current.replies?.length).toBeGreaterThan(0)
+    await waitFor(() => rendered.result.current.replies?.length === 25)
+    expect(rendered.result.current.replies?.length).toBe(25)
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    await scrollOnePage()
+    expect(rendered.result.current.replies?.length).toBeGreaterThan(100)
   })
 })

@@ -2,7 +2,7 @@ import assert from 'assert'
 import {Feed, Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Account, Accounts, RepliesPage, RepliesPages} from '../../types'
 import {getRepliesPages, getRepliesFirstPageCid} from '../replies-pages'
 import repliesSorter from '../feeds/feed-sorter'
-import {commentRepliesCacheExpired, flattenCommentsPages} from '../../lib/utils'
+import {flattenCommentsPages} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
 

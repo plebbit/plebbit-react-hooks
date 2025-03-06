@@ -72,10 +72,11 @@ export interface UseNotificationsResult extends Result {
 }
 
 // useAccountSubplebbits(options): result
-export interface UseAccountSubplebbitsOptions extends Options {}
+export interface UseAccountSubplebbitsOptions extends Options {
+  onlyIfCached?: boolean
+}
 export interface UseAccountSubplebbitsResult extends Result {
   accountSubplebbits: AccountSubplebbit[]
-  onlyIfCached?: boolean
 }
 
 // usePubsubSubscribe(options): result
