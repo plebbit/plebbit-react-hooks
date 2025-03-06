@@ -4,6 +4,7 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
 import {RepliesPage, RepliesPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
+import commentsStore, {CommentsState} from '../comments'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
@@ -146,37 +147,36 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
   },
 }))
 
-// TODO: handle pages clients states
-// set clients states on subplebbits store so the frontend can display it, dont persist in db because a reload cancels updating
-const onSubplebbitPostsClientsStateChange = (subplebbitAddress: string) => (clientState: string, clientType: string, sortType: string, clientUrl: string) => {
-  // subplebbitsStore.setState((state: SubplebbitsState) => {
-  //   const client = {state: clientState}
-  //   const subplebbit = {...state.subplebbits[subplebbitAddress]}
-  //   subplebbit.posts = {...subplebbit.posts}
-  //   subplebbit.posts.clients = {...subplebbit.posts.clients}
-  //   subplebbit.posts.clients[clientType] = {...subplebbit.posts.clients[clientType]}
-  //   subplebbit.posts.clients[clientType][sortType] = {...subplebbit.posts.clients[clientType][sortType]}
-  //   subplebbit.posts.clients[clientType][sortType][clientUrl] = client
-  //   return {subplebbits: {...state.subplebbits, [subplebbit.address]: subplebbit}}
-  // })
+// set clients states on comments store so the frontend can display it, dont persist in db because a reload cancels updating
+const onCommentRepliesClientsStateChange = (commentCid: string) => (clientState: string, clientType: string, sortType: string, clientUrl: string) => {
+  commentsStore.setState((state: CommentsState) => {
+    const client = {state: clientState}
+    const comment = {...state.comments[commentCid]}
+    comment.replies = {...comment.replies}
+    comment.replies.clients = {...comment.replies.clients}
+    comment.replies.clients[clientType] = {...comment.replies.clients[clientType]}
+    comment.replies.clients[clientType][sortType] = {...comment.replies.clients[clientType][sortType]}
+    comment.replies.clients[clientType][sortType][clientUrl] = client
+    return {comments: {...state.comments, [commentCid]: comment}}
+  })
 }
 
-const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Function) => {
-  // for (const sortType in clients?.ipfsGateways) {
-  //   for (const clientUrl in clients?.ipfsGateways?.[sortType]) {
-  //     clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', sortType, clientUrl))
-  //   }
-  // }
-  // for (const sortType in clients?.ipfsClients) {
-  //   for (const clientUrl in clients?.ipfsClients?.[sortType]) {
-  //     clients?.ipfsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsClients', sortType, clientUrl))
-  //   }
-  // }
-  // for (const sortType in clients?.plebbitRpcClients) {
-  //   for (const clientUrl in clients?.plebbitRpcClients?.[sortType]) {
-  //     clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
-  //   }
-  // }
+const commentRepliesClientsOnStateChange = (clients: any, onStateChange: Function) => {
+  for (const sortType in clients?.ipfsGateways) {
+    for (const clientUrl in clients?.ipfsGateways?.[sortType]) {
+      clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', sortType, clientUrl))
+    }
+  }
+  for (const sortType in clients?.ipfsClients) {
+    for (const clientUrl in clients?.ipfsClients?.[sortType]) {
+      clients?.ipfsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsClients', sortType, clientUrl))
+    }
+  }
+  for (const sortType in clients?.plebbitRpcClients) {
+    for (const clientUrl in clients?.plebbitRpcClients?.[sortType]) {
+      clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
+    }
+  }
 }
 
 const fetchPageComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
@@ -196,7 +196,7 @@ const fetchPage = async (pageCid: string, comment: Comment, account: Account) =>
     })
 
     // set clients states on subplebbits store so the frontend can display it
-    // subplebbitPostsClientsOnStateChange(subplebbit.posts?.clients, onSubplebbitPostsClientsStateChange(subplebbit.address))
+    commentRepliesClientsOnStateChange(fetchPageComments[comment.cid].replies?.clients, onCommentRepliesClientsStateChange(comment.cid))
   }
 
   const onError = (error: any) => log.error(`repliesPagesStore comment '${comment.cid}' failed comment.replies.getPage page cid '${pageCid}':`, error)

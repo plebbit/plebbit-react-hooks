@@ -67,12 +67,13 @@ export function useClientsStates(options?: UseClientsStatesOptions): UseClientsS
       }
     }
 
-    // find subplebbit pages states
-    if (commentOrSubplebbit?.posts?.clients) {
-      for (const clientType in commentOrSubplebbit.posts.clients) {
-        for (const sortType in commentOrSubplebbit.posts.clients[clientType]) {
-          for (const clientUrl in commentOrSubplebbit.posts.clients[clientType][sortType]) {
-            let state = commentOrSubplebbit.posts.clients[clientType][sortType][clientUrl].state
+    // find subplebbit pages and comment replies pages states
+    const pages = commentOrSubplebbit?.posts || commentOrSubplebbit?.replies
+    if (pages) {
+      for (const clientType in pages.clients) {
+        for (const sortType in pages.clients[clientType]) {
+          for (const clientUrl in pages.clients[clientType][sortType]) {
+            let state = pages.clients[clientType][sortType][clientUrl].state
             if (state === 'stopped') {
               continue
             }

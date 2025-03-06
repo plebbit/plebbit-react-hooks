@@ -243,7 +243,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     })
   }
 
-  const state = !hasMore ? 'succeeded' : 'fetching-ipns'
+  const state = !hasMore ? 'succeeded' : 'fetching'
 
   return useMemo(
     () => ({
