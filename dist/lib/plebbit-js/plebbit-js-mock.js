@@ -84,7 +84,7 @@ export class Plebbit extends EventEmitter {
             const subplebbit = new Subplebbit(createSubplebbitOptions);
             subplebbit.title = subplebbit.address + ' title';
             const hotPageCid = subplebbit.address + ' page cid hot';
-            subplebbit.posts.pages.hot = getCommentsPage(hotPageCid, subplebbit);
+            subplebbit.posts.pages.hot = subplebbit.posts.pageToGet(hotPageCid);
             subplebbit.posts.pageCids = {
                 hot: hotPageCid,
                 topAll: subplebbit.address + ' page cid topAll',
@@ -186,8 +186,36 @@ export class Pages {
         return __awaiter(this, void 0, void 0, function* () {
             // need to wait twice otherwise react renders too fast and fetches too many pages in advance
             yield simulateLoadingTime();
-            return getCommentsPage(pageCid, this.subplebbit);
+            return this.pageToGet(pageCid);
         });
+    }
+    validatePage(page) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
+    // mock this method to get pages with different content, or use to getPage without simulated loading time
+    pageToGet(pageCid) {
+        var _a, _b;
+        const subplebbitAddress = ((_a = this.subplebbit) === null || _a === void 0 ? void 0 : _a.address) || ((_b = this.comment) === null || _b === void 0 ? void 0 : _b.subplebbitAddress);
+        const page = {
+            nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
+            comments: [],
+        };
+        const postCount = 100;
+        let index = 0;
+        while (index++ < postCount) {
+            page.comments.push({
+                timestamp: index,
+                cid: pageCid + ' comment cid ' + index,
+                subplebbitAddress,
+                upvoteCount: index,
+                downvoteCount: 10,
+                author: {
+                    address: pageCid + ' author address ' + index,
+                },
+                updatedAt: index,
+            });
+        }
+        return page;
     }
 }
 export class Subplebbit extends EventEmitter {
@@ -267,7 +295,7 @@ export class Subplebbit extends EventEmitter {
             this.updatedAt = Math.floor(Date.now() / 1000);
             this.title = this.address + ' title';
             const hotPageCid = this.address + ' page cid hot';
-            this.posts.pages.hot = getCommentsPage(hotPageCid, this);
+            this.posts.pages.hot = this.posts.pageToGet(hotPageCid);
             this.posts.pageCids = {
                 hot: hotPageCid,
                 topAll: this.address + ' page cid topAll',
@@ -332,29 +360,6 @@ export class Subplebbit extends EventEmitter {
 }
 // make roles enumarable so it acts like a regular prop
 Object.defineProperty(Subplebbit.prototype, 'roles', { enumerable: true });
-// define it here because also used it plebbit.getSubplebbit()
-const getCommentsPage = (pageCid, subplebbit) => {
-    const page = {
-        nextCid: subplebbit.address + ' ' + pageCid + ' - next page cid',
-        comments: [],
-    };
-    const postCount = 100;
-    let index = 0;
-    while (index++ < postCount) {
-        page.comments.push({
-            timestamp: index,
-            cid: pageCid + ' comment cid ' + index,
-            subplebbitAddress: subplebbit.address,
-            upvoteCount: index,
-            downvoteCount: 10,
-            author: {
-                address: pageCid + ' author address ' + index,
-            },
-            updatedAt: index,
-        });
-    }
-    return page;
-};
 let challengeRequestCount = 0;
 let challengeAnswerCount = 0;
 class Publication extends EventEmitter {
@@ -413,7 +418,7 @@ class Publication extends EventEmitter {
 }
 export class Comment extends Publication {
     constructor(createCommentOptions) {
-        var _a;
+        var _a, _b, _c, _d, _e;
         super();
         this.updateCalledTimes = 0;
         this.updating = false;
@@ -424,13 +429,20 @@ export class Comment extends Publication {
         this.author = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.author;
         this.timestamp = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.timestamp;
         this.parentCid = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.parentCid;
-        this.replies = new Pages({ comment: this });
         this.subplebbitAddress = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.subplebbitAddress;
         this.state = 'stopped';
         this.updatingState = 'stopped';
         this.publishingState = 'stopped';
         if ((_a = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.author) === null || _a === void 0 ? void 0 : _a.address) {
             this.author.shortAddress = `short ${createCommentOptions.author.address}`;
+        }
+        this.replies = new Pages({ comment: this });
+        // add comment.replies from createCommentOptions
+        if ((_b = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.replies) === null || _b === void 0 ? void 0 : _b.pages) {
+            this.replies.pages = (_c = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.replies) === null || _c === void 0 ? void 0 : _c.pages;
+        }
+        if ((_d = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.replies) === null || _d === void 0 ? void 0 : _d.pageCids) {
+            this.replies.pageCids = (_e = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.replies) === null || _e === void 0 ? void 0 : _e.pageCids;
         }
     }
     update() {

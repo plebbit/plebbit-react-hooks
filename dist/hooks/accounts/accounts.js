@@ -75,7 +75,7 @@ export function useAccounts() {
  */
 export function useAccountSubplebbits(options) {
     assert(!options || typeof options === 'object', `useAccountSubplebbits options argument '${options}' not an object`);
-    const { accountName } = options || {};
+    const { accountName, onlyIfCached } = options || {};
     const accountId = useAccountId(accountName);
     const accountsStoreAccountSubplebbits = useAccountsStore((state) => { var _a; return (_a = state.accounts[accountId || '']) === null || _a === void 0 ? void 0 : _a.subplebbits; });
     // get all unique account subplebbit addresses
@@ -91,7 +91,7 @@ export function useAccountSubplebbits(options) {
         return uniqueSubplebbitAddresses;
     }, [accountsStoreAccountSubplebbits, ownerSubplebbitAddresses]);
     // fetch all subplebbit data
-    const { subplebbits: subplebbitsArray } = useSubplebbits({ subplebbitAddresses: uniqueSubplebbitAddresses, accountName });
+    const { subplebbits: subplebbitsArray } = useSubplebbits({ subplebbitAddresses: uniqueSubplebbitAddresses, accountName, onlyIfCached });
     const subplebbits = useMemo(() => {
         const subplebbits = {};
         for (const [i, subplebbit] of subplebbitsArray.entries()) {

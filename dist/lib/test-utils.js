@@ -13,6 +13,8 @@ import { resetAccountsStore, resetAccountsDatabaseAndStore } from '../stores/acc
 import { resetFeedsStore, resetFeedsDatabaseAndStore } from '../stores/feeds';
 import { resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore } from '../stores/subplebbits-pages';
 import { resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore } from '../stores/authors-comments';
+import { resetRepliesStore, resetRepliesDatabaseAndStore } from '../stores/replies';
+import { resetRepliesPagesStore, resetRepliesPagesDatabaseAndStore } from '../stores/replies-pages';
 const restorables = [];
 export const silenceUpdateUnmountedComponentWarning = () => {
     const originalError = console.error;
@@ -98,6 +100,8 @@ const createWaitFor = (rendered, waitForOptions) => {
 };
 // always reset the least important store first, because a store even can affect another store
 export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetRepliesPagesStore();
+    yield resetRepliesStore();
     yield resetAuthorsCommentsStore();
     yield resetSubplebbitsPagesStore();
     yield resetFeedsStore();
@@ -107,6 +111,8 @@ export const resetStores = () => __awaiter(void 0, void 0, void 0, function* () 
     yield resetAccountsStore();
 });
 export const resetDatabasesAndStores = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield resetRepliesPagesDatabaseAndStore();
+    yield resetRepliesDatabaseAndStore();
     yield resetAuthorsCommentsDatabaseAndStore();
     yield resetSubplebbitsPagesDatabaseAndStore();
     yield resetFeedsDatabaseAndStore();

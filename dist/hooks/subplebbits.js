@@ -25,7 +25,7 @@ import shallow from 'zustand/shallow';
  */
 export function useSubplebbit(options) {
     assert(!options || typeof options === 'object', `useSubplebbit options argument '${options}' not an object`);
-    const { subplebbitAddress, accountName } = options || {};
+    const { subplebbitAddress, accountName, onlyIfCached } = options || {};
     const account = useAccount({ accountName });
     const subplebbit = useSubplebbitsStore((state) => state.subplebbits[subplebbitAddress || '']);
     const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
@@ -35,7 +35,7 @@ export function useSubplebbit(options) {
             return;
         }
         validator.validateUseSubplebbitArguments(subplebbitAddress, account);
-        if (!subplebbit) {
+        if (!subplebbit && !onlyIfCached) {
             // if subplebbit isn't already in store, add it
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => log.error('useSubplebbit addSubplebbitToStore error', { subplebbitAddress, error }));
         }
@@ -57,9 +57,9 @@ export function useSubplebbit(options) {
  */
 export function useSubplebbitStats(options) {
     assert(!options || typeof options === 'object', `useSubplebbitStats options argument '${options}' not an object`);
-    const { subplebbitAddress, accountName } = options || {};
+    const { subplebbitAddress, accountName, onlyIfCached } = options || {};
     const account = useAccount({ accountName });
-    const subplebbit = useSubplebbit({ subplebbitAddress });
+    const subplebbit = useSubplebbit({ subplebbitAddress, onlyIfCached });
     const subplebbitStatsCid = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.statsCid;
     const subplebbitStats = useSubplebbitsStatsStore((state) => state.subplebbitsStats[subplebbitAddress || '']);
     const setSubplebbitStats = useSubplebbitsStatsStore((state) => state.setSubplebbitStats);
@@ -97,7 +97,7 @@ const useSubplebbitsStatsStore = createStore((setState) => ({
  */
 export function useSubplebbits(options) {
     assert(!options || typeof options === 'object', `useSubplebbits options argument '${options}' not an object`);
-    const { subplebbitAddresses, accountName } = options || {};
+    const { subplebbitAddresses, accountName, onlyIfCached } = options || {};
     const account = useAccount({ accountName });
     const subplebbits = useSubplebbitsStore((state) => (subplebbitAddresses || []).map((subplebbitAddress) => state.subplebbits[subplebbitAddress || '']), shallow);
     const addSubplebbitToStore = useSubplebbitsStore((state) => state.addSubplebbitToStore);
@@ -106,6 +106,9 @@ export function useSubplebbits(options) {
             return;
         }
         validator.validateUseSubplebbitsArguments(subplebbitAddresses, account);
+        if (onlyIfCached) {
+            return;
+        }
         const uniqueSubplebbitAddresses = new Set(subplebbitAddresses);
         for (const subplebbitAddress of uniqueSubplebbitAddresses) {
             addSubplebbitToStore(subplebbitAddress, account).catch((error) => log.error('useSubplebbits addSubplebbitToStore error', { subplebbitAddress, error }));

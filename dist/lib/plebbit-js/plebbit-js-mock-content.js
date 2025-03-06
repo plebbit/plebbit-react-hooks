@@ -540,7 +540,8 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         commentUpdateContent.replyCount = Math.round(commentUpdateContent.replyCount);
     }
     // simulate finding replies from IPNS record
-    commentUpdateContent.replies = { pages: { topAll: { nextCid: undefined, comments: [] } } };
+    commentUpdateContent.replies = new Pages({ comment });
+    commentUpdateContent.replies.pages.best = { nextCid: undefined, comments: [] };
     const getReplyContentOptions = { depth: comment.depth + 1, parentCid: comment.cid, postCid: comment.cid };
     let replyCount = commentUpdateContent.replyCount;
     const replyCids = new Set();
@@ -554,7 +555,15 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
         }
         replyCids.add(reply.cid);
         const replyUpdateContent = yield getCommentUpdateContent(reply);
-        commentUpdateContent.replies.pages.topAll.comments.push(Object.assign(Object.assign({}, reply), replyUpdateContent));
+        commentUpdateContent.replies.pages.best.comments.push(Object.assign(Object.assign({}, reply), replyUpdateContent));
+    }
+    // if post with lots of replies, add replies pages
+    if (commentUpdateContent.replyCount >= 15 && comment.depth === 0) {
+        commentUpdateContent.replies.pages.best.nextCid = yield seedToCid(yield getNumberHash(comment.cid + 'bestpagecid2'));
+        commentUpdateContent.replies.pageCids = {
+            new: yield seedToCid(yield getNumberHash(comment.cid + 'newpagecid')),
+            old: yield seedToCid(yield getNumberHash(comment.cid + 'oldpagecid')),
+        };
     }
     const rareTrue = [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
     const isSpoiler = yield getArrayItem(rareTrue, commentUpdateSeedNumber.increment());
@@ -602,7 +611,8 @@ const getCommentUpdateContent = (comment) => __awaiter(void 0, void 0, void 0, f
     return commentUpdateContent;
 });
 const pageCommentCids = new Set();
-const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 0, function* () {
+const getCommentsPage = (pageCid, subplebbitOrComment) => __awaiter(void 0, void 0, void 0, function* () {
+    const subplebbitAddress = subplebbitOrComment.address || subplebbitOrComment.subplebbitAddress;
     const commentsPageSeedNumber = SeedIncrementer(yield getNumberHash(pageCid));
     const page = {
         nextCid: yield seedToCid(commentsPageSeedNumber.increment()),
@@ -620,7 +630,7 @@ const getCommentsPage = (pageCid, subplebbit) => __awaiter(void 0, void 0, void 
         pageCommentCids.add(cid);
         // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
         const comment = yield plebbit.getComment(cid);
-        comment.subplebbitAddress = subplebbit.address;
+        comment.subplebbitAddress = subplebbitAddress;
         const commentUpdateContent = yield getCommentUpdateContent(comment);
         for (const prop in commentUpdateContent) {
             comment[prop] = commentUpdateContent[prop];
@@ -643,7 +653,7 @@ class Plebbit extends EventEmitter {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
             return {
-                privateKey: 'private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key private key',
+                privateKey: 'private key private key private key private key',
                 address: yield getCidHash(String(Math.random())),
             };
         });
@@ -792,10 +802,14 @@ class Pages {
     }
     getPage(pageCid) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('getPage', this, this.subplebbit, this.comment);
             // need to wait twice otherwise react renders too fast and fetches too many pages in advance
             yield simulateLoadingTime();
-            return getCommentsPage(pageCid, this.subplebbit);
+            return getCommentsPage(pageCid, this.subplebbit || this.comment);
         });
+    }
+    validatePage(page) {
+        return __awaiter(this, void 0, void 0, function* () { });
     }
 }
 class Subplebbit extends EventEmitter {
@@ -987,6 +1001,7 @@ class Comment extends Publication {
         this.deleted = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.deleted;
         this.removed = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.removed;
         this.reason = createCommentOptions === null || createCommentOptions === void 0 ? void 0 : createCommentOptions.reason;
+        this.replies = new Pages({ comment: this });
         if (this.cid) {
             this.shortCid = this.cid.substring(2, 14);
         }

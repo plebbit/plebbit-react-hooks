@@ -20,7 +20,7 @@ export function useClientsStates(options) {
     assert(!(comment && subplebbit), `useClientsStates options.comment and options.subplebbit arguments cannot be defined at the same time`);
     const commentOrSubplebbit = comment || subplebbit;
     const states = useMemo(() => {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e;
         const states = {};
         // if comment is newer than 5 minutes, don't show updating state so user knows it finished
         if ((commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.cid) && commentOrSubplebbit.timestamp + 5 * 60 > Date.now() / 1000) {
@@ -59,12 +59,13 @@ export function useClientsStates(options) {
                 }
             }
         }
-        // find subplebbit pages states
-        if ((_f = commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.posts) === null || _f === void 0 ? void 0 : _f.clients) {
-            for (const clientType in commentOrSubplebbit.posts.clients) {
-                for (const sortType in commentOrSubplebbit.posts.clients[clientType]) {
-                    for (const clientUrl in commentOrSubplebbit.posts.clients[clientType][sortType]) {
-                        let state = commentOrSubplebbit.posts.clients[clientType][sortType][clientUrl].state;
+        // find subplebbit pages and comment replies pages states
+        const pages = (commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.posts) || (commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.replies);
+        if (pages) {
+            for (const clientType in pages.clients) {
+                for (const sortType in pages.clients[clientType]) {
+                    for (const clientUrl in pages.clients[clientType][sortType]) {
+                        let state = pages.clients[clientType][sortType][clientUrl].state;
                         if (state === 'stopped') {
                             continue;
                         }

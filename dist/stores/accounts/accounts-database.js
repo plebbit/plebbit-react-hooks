@@ -74,6 +74,7 @@ const getDatabaseAsArray = (database) => __awaiter(void 0, void 0, void 0, funct
     return items;
 });
 const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     validator.validateAccountsDatabaseAddAccountArguments(account);
     let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
     // handle no duplicate names
@@ -93,7 +94,8 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     }
     // make sure accountToPutInDatabase.plebbitOptions are valid
     if (accountToPutInDatabase.plebbitOptions) {
-        yield PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions);
+        const plebbit = yield PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions);
+        (_c = (_a = plebbit.destroy) === null || _a === void 0 ? void 0 : (_b = _a.call(plebbit)).catch) === null || _c === void 0 ? void 0 : _c.call(_b, (error) => log('database.addAccount plebbit.destroy error', { error })); // make sure it's garbage collected
     }
     yield accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase);
     // handle updating accountNamesToAccountIds database

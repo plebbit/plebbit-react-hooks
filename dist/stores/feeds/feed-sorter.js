@@ -117,10 +117,10 @@ export const sort = (sortType, feed) => {
     // pinned posts are not sorted, maybe in a future version we can sort them based on something
     const pinnedPosts = feed.filter((post) => post.pinned);
     feed = feed.filter((post) => !post.pinned);
-    if (sortType === 'new') {
+    if (sortType.match('new')) {
         return [...pinnedPosts, ...sortByNew(feed)];
     }
-    if (sortType === 'hot') {
+    if (sortType.match('hot')) {
         return [...pinnedPosts, ...sortByHot(feed)];
     }
     if (sortType.match('top')) {

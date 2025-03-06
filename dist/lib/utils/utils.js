@@ -56,47 +56,32 @@ const clone = (obj) => {
     clonedObj = JSON.parse(JSON.stringify(clonedObj));
     return clonedObj;
 };
-const sortTypes = [
-    'hot',
-    'new',
-    'active',
-    'old',
-    'topHour',
-    'topDay',
-    'topWeek',
-    'topMonth',
-    'topYear',
-    'topAll',
-    'controversialHour',
-    'controversialDay',
-    'controversialWeek',
-    'controversialMonth',
-    'controversialYear',
-    'controversialAll',
-];
 // this function should not clone the comments to not waste memory
 export const flattenCommentsPages = (pageInstanceOrPagesInstance) => {
-    var _a, _b, _c, _d, _e;
+    var _a, _b;
     const flattenedComments = [];
     // if is a Page instance
-    for (const comment of (pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance.comments) || []) {
-        flattenedComments.push(comment);
-        for (const sortType of sortTypes) {
-            if ((_b = (_a = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) {
-                flattenedComments.push(...flattenCommentsPages((_d = (_c = comment.replies) === null || _c === void 0 ? void 0 : _c.pages) === null || _d === void 0 ? void 0 : _d[sortType]));
+    if (pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance.comments) {
+        for (const comment of pageInstanceOrPagesInstance.comments) {
+            flattenedComments.push(comment);
+            if (((_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) && Object.keys(comment.replies.pages).length) {
+                flattenedComments.push(...flattenCommentsPages(comment.replies));
             }
         }
     }
     // if is a Pages instance
-    for (const sortType of sortTypes) {
-        if ((_e = pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance.pages) === null || _e === void 0 ? void 0 : _e[sortType]) {
+    else if (pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance.pages) {
+        for (const sortType in pageInstanceOrPagesInstance.pages) {
             flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance.pages[sortType]));
         }
     }
     // if is a Pages.pages instance
-    for (const sortType of sortTypes) {
-        if (pageInstanceOrPagesInstance === null || pageInstanceOrPagesInstance === void 0 ? void 0 : pageInstanceOrPagesInstance[sortType]) {
-            flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance[sortType]));
+    else {
+        for (const sortType in pageInstanceOrPagesInstance) {
+            const page = pageInstanceOrPagesInstance[sortType];
+            if ((_b = page === null || page === void 0 ? void 0 : page.comments) === null || _b === void 0 ? void 0 : _b.length) {
+                flattenedComments.push(...flattenCommentsPages(page));
+            }
         }
     }
     // remove duplicate comments

@@ -36,7 +36,7 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
         comment = yield account.plebbit.createComment(comment);
     }
     comment.on('update', (updatedComment) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a;
         // merge should not be needed if plebbit-js is implemented properly, but no harm in fixing potential errors
         updatedComment = utils.merge(commentArgument, comment, updatedComment);
         yield accountsDatabase.addAccountComment(account.id, updatedComment, accountCommentIndex);
@@ -54,14 +54,20 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
             return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: updatedAccountComments }) };
         });
         // update AccountCommentsReplies with new replies if has any new replies
-        const replyPageArray = [
-            (_b = (_a = updatedComment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b.new,
-            (_d = (_c = updatedComment.replies) === null || _c === void 0 ? void 0 : _c.pages) === null || _d === void 0 ? void 0 : _d.topAll,
-            (_f = (_e = updatedComment.replies) === null || _e === void 0 ? void 0 : _e.pages) === null || _f === void 0 ? void 0 : _f.old,
-            (_h = (_g = updatedComment.replies) === null || _g === void 0 ? void 0 : _g.pages) === null || _h === void 0 ? void 0 : _h.controversialAll,
-        ];
-        const hasReplies = replyPageArray.map((replyPage) => { var _a; return ((_a = replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
-        if (hasReplies) {
+        const replyPageArray = Object.values(((_a = updatedComment.replies) === null || _a === void 0 ? void 0 : _a.pages) || {});
+        // validate replies pages
+        let replyPagesValid = true;
+        const subplebbit = yield account.plebbit.createSubplebbit({ address: comment.subplebbitAddress });
+        try {
+            for (const replyPage of replyPageArray) {
+                replyPage && (yield subplebbit.posts.validatePage(replyPage));
+            }
+        }
+        catch (e) {
+            replyPagesValid = false;
+        }
+        const hasReplies = replyPageArray.length && replyPageArray.map((replyPage) => { var _a; return ((_a = replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
+        if (hasReplies && replyPagesValid) {
             accountsStore.setState(({ accountsCommentsReplies }) => {
                 var _a, _b;
                 // account no longer exists
@@ -95,10 +101,10 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
 // internal accounts action: the comment CID is not known at the time of publishing, so every time
 // we fetch a new comment, check if its our own, and attempt to add the CID
 export const addCidToAccountComment = (comment) => __awaiter(void 0, void 0, void 0, function* () {
-    var _j;
+    var _b;
     const { accounts } = accountsStore.getState();
     assert(accounts, `can't use accountsStore.accountActions before initialized`);
-    const accountCommentsWithoutCids = getAccountsCommentsWithoutCids()[(_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address];
+    const accountCommentsWithoutCids = getAccountsCommentsWithoutCids()[(_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address];
     if (!accountCommentsWithoutCids) {
         return;
     }

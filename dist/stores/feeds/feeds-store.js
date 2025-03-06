@@ -116,7 +116,7 @@ const feedsStore = createStore((setState, getState) => ({
         updateFeedsPending = true;
         // don't update feeds more than once per updateFeedsMinIntervalTime
         const timeUntilNextUpdate = Date.now() % updateFeedsMinIntervalTime;
-        setTimeout(() => {
+        setTimeout(() => __awaiter(this, void 0, void 0, function* () {
             // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
             updateFeedsPending = false;
             // get state from all stores
@@ -128,7 +128,7 @@ const feedsStore = createStore((setState, getState) => ({
             // calculate new feeds
             const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, subplebbits, subplebbitsPages, accounts);
             const bufferedFeedsWithoutPreviousLoadedFeeds = getBufferedFeedsWithoutLoadedFeeds(filteredSortedFeeds, previousState.loadedFeeds);
-            const loadedFeeds = getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds);
+            const loadedFeeds = yield getLoadedFeeds(feedsOptions, previousState.loadedFeeds, bufferedFeedsWithoutPreviousLoadedFeeds, accounts);
             // after loaded feeds are caculated, remove new loaded feeds (again) from buffered feeds
             const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithoutPreviousLoadedFeeds, loadedFeeds);
             const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds);
@@ -146,7 +146,7 @@ const feedsStore = createStore((setState, getState) => ({
                 subplebbitsPages,
                 feedsSubplebbitAddressesWithNewerPosts,
             });
-        }, timeUntilNextUpdate);
+        }), timeUntilNextUpdate);
     },
 }));
 let previousBlockedAddresses = [];
