@@ -409,11 +409,11 @@ describe('comment replies', () => {
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
     })
 
-    test('if sort type top missing, use best instead', async () => {
+    test('if sort type topAll missing, use best instead', async () => {
       expect(rendered.result.current.replies).toEqual([])
 
       const commentCid = 'comment cid 1'
-      rendered.rerender({commentCid, sortType: 'top'})
+      rendered.rerender({commentCid, sortType: 'topAll'})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
       expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 100')
@@ -434,22 +434,22 @@ describe('comment replies', () => {
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
     })
 
-    test('if sort type best missing, use top instead', async () => {
+    test('if sort type best missing, use topAll instead', async () => {
       const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       Comment.prototype.simulateUpdateEvent = async function () {
-        this.replies.pages.top = {
+        this.replies.pages.topAll = {
           comments: [
             {
               timestamp: 1,
-              cid: this.cid + ' top reply cid 1',
-              subplebbitAddress: this.cid + ' top reply subplebbit address',
+              cid: this.cid + ' topAll reply cid 1',
+              subplebbitAddress: this.cid + ' topAll reply subplebbit address',
               upvoteCount: 1,
               downvoteCount: 10,
-              author: {address: this.cid + ' top author address'},
+              author: {address: this.cid + ' topAll author address'},
               updatedAt: 1,
             },
           ],
-          nextCid: this.cid + ' next page cid top',
+          nextCid: this.cid + ' next page cid topAll',
         }
         this.updatingState = 'succeeded'
         this.emit('update', this)
@@ -460,7 +460,7 @@ describe('comment replies', () => {
       rendered.rerender({commentCid, sortType: 'best'})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 top reply cid 1')
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 topAll reply cid 1')
       expect(rendered.result.current.hasMore).toBe(true)
 
       // page 2

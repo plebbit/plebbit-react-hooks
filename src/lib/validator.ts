@@ -276,7 +276,7 @@ export const validateUseBufferedFeedsArguments = (feedsOptions?: any, accountNam
   }
 }
 
-const repliesSortTypes = new Set(['best', 'top', 'new', 'newFlat', 'old', 'oldFlat'])
+const repliesSortTypes = new Set(['best', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'new', 'newFlat', 'old', 'oldFlat'])
 export const validateRepliesSortType = (sortType: any) => {
   assert(repliesSortTypes.has(sortType), `invalid replies sort type '${sortType}'`)
 }

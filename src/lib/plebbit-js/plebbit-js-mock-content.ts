@@ -869,7 +869,6 @@ class Pages {
   }
 
   async getPage(pageCid: string) {
-    console.log('getPage', this, this.subplebbit, this.comment)
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
     return getCommentsPage(pageCid, this.subplebbit || this.comment)
