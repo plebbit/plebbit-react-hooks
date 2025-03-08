@@ -9,6 +9,7 @@ import useCommentsStore from '../stores/comments'
 import useAccountsStore from '../stores/accounts'
 import useRepliesStore, {RepliesState} from '../stores/replies'
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
+import useRepliesPagesStore from '../stores/replies-pages'
 import shallow from 'zustand/shallow'
 
 /**
@@ -23,6 +24,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
+  const repliesPagesComment = useRepliesPagesStore((state: any) => state.comments[commentCid || ''])
   const errors = useCommentsStore((state: any) => state.errors[commentCid || ''])
 
   // get account comment of the cid if any
@@ -45,6 +47,13 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
   // if comment from subplebbit pages is more recent, use it instead
   if (commentCid && (subplebbitsPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
     comment = subplebbitsPagesComment
+    // TODO: subplebbit pages comments aren't auto validated, need to validate
+  }
+
+  // if comment from replies pages is more recent, use it instead
+  if (commentCid && (repliesPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
+    comment = repliesPagesComment
+    // TODO: replies pages comments aren't auto validated, need to validate
   }
 
   // if comment is still not defined, but account comment is, use account comment
@@ -81,6 +90,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       state,
       commentFromStore,
       subplebbitsPagesComment,
+      repliesPagesComment,
       accountComment,
       commentsStore: useCommentsStore.getState().comments,
       account,

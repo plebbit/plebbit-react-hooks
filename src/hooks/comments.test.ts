@@ -579,6 +579,42 @@ describe('comment replies', () => {
       expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
     })
 
+    test('can useComment({onlyIfCached: true}) on a comment from replies pages', async () => {
+      rendered = renderHook<any, any>(({useCommentOptions, useRepliesOptions}) => {
+        const comment = useComment(useCommentOptions)
+        const replies = useReplies(useRepliesOptions)
+        return {comment, replies}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+
+      const useRepliesOptions = {
+        commentCid: 'comment cid 1',
+        // the preloaded page is best
+        sortType: 'best',
+        // the preloaded page size is 100
+        repliesPerPage: 200,
+      }
+      rendered.rerender({useRepliesOptions})
+      await waitFor(() => rendered.result.current.replies.replies.length === useRepliesOptions.repliesPerPage)
+      expect(rendered.result.current.replies.replies.length).toBe(useRepliesOptions.repliesPerPage)
+
+      // first reply (preloaded) is defined
+      const firstCommentCid = rendered.result.current.replies.replies[0].cid
+      rendered.rerender({useRepliesOptions, useCommentOptions: {commentCid: firstCommentCid, onlyIfCached: true}})
+      await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
+      console.log(rendered.result.current.comment)
+      expect(typeof rendered.result.current.comment.updatedAt).toBe('number')
+      expect(rendered.result.current.comment.cid).toBe(firstCommentCid)
+
+      // last reply (from a page) is defined
+      const lastCommentCid = rendered.result.current.replies.replies[useRepliesOptions.repliesPerPage - 1].cid
+      rendered.rerender({useRepliesOptions, useCommentOptions: {commentCid: lastCommentCid, onlyIfCached: true}})
+      await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
+      console.log(rendered.result.current.comment)
+      expect(typeof rendered.result.current.comment.updatedAt).toBe('number')
+      expect(rendered.result.current.comment.cid).toBe(lastCommentCid)
+    })
+
     test.todo('has account comments', async () => {})
 
     test.todo('nested scroll pages', async () => {})
