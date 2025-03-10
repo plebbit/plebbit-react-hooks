@@ -129,15 +129,12 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
   return newBufferedFeeds
 }
 
-// find how many replies are left in each comments in a buffereds feeds
+// find how many replies are in each comments in a buffereds feeds
+// NOTE: not useful, could use feed.length, copied over from useFeed and easier to keep it
 export const getFeedsReplyCounts = (feedsOptions: RepliesFeedsOptions, feeds: Feeds) => {
   const feedsReplyCounts: {[feedName: string]: number} = {}
   for (const feedName in feedsOptions) {
-    const commentCid = feedsOptions[feedName].commentCid
-    feedsReplyCounts[feedName] = 0
-    for (const comment of feeds[feedName] || []) {
-      feedsReplyCounts[feedName]++
-    }
+    feedsReplyCounts[feedName] = feeds[feedName]?.length || 0
   }
   return feedsReplyCounts
 }
