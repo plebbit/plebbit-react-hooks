@@ -22,7 +22,6 @@ const log = Logger('plebbit-react-hooks:feeds:stores')
 /**
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
-const validPosts: {[postCid: string]: boolean} = {}
 export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   // calculate each feed
   let feeds: Feeds = {}
@@ -163,11 +162,22 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
   const newBufferedFeeds: Feeds = {}
   for (const feedName in bufferedFeeds) {
     newBufferedFeeds[feedName] = []
-    for (const post of bufferedFeeds[feedName]) {
+    let bufferedFeedPostChanged = false
+    for (const [i, post] of bufferedFeeds[feedName].entries()) {
       if (loadedFeedsPosts[feedName]?.has(post.cid)) {
         continue
       }
       newBufferedFeeds[feedName].push(post)
+      if (
+        !bufferedFeedPostChanged &&
+        (newBufferedFeeds[feedName][i]?.cid !== bufferedFeeds[feedName][i]?.cid ||
+          (newBufferedFeeds[feedName][i]?.updatedAt || 0) > (bufferedFeeds[feedName][i]?.updatedAt || 0))
+      ) {
+        bufferedFeedPostChanged = true
+      }
+    }
+    if (!bufferedFeedPostChanged && newBufferedFeeds[feedName].length === bufferedFeeds[feedName].length) {
+      newBufferedFeeds[feedName] = bufferedFeeds[feedName]
     }
   }
   return newBufferedFeeds

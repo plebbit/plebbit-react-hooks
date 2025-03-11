@@ -408,7 +408,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
-      await waitFor(() => rendered.result.current.replies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
+      await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
       // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
@@ -437,7 +437,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
-      await waitFor(() => rendered.result.current.replies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
+      await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
       // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
@@ -616,7 +616,6 @@ describe('comment replies', () => {
       const firstCommentCid = rendered.result.current.replies.replies[0].cid
       rendered.rerender({useRepliesOptions, useCommentOptions: {commentCid: firstCommentCid, onlyIfCached: true}})
       await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
-      console.log(rendered.result.current.comment)
       expect(typeof rendered.result.current.comment.updatedAt).toBe('number')
       expect(rendered.result.current.comment.cid).toBe(firstCommentCid)
 
@@ -624,7 +623,6 @@ describe('comment replies', () => {
       const lastCommentCid = rendered.result.current.replies.replies[useRepliesOptions.repliesPerPage - 1].cid
       rendered.rerender({useRepliesOptions, useCommentOptions: {commentCid: lastCommentCid, onlyIfCached: true}})
       await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
-      console.log(rendered.result.current.comment)
       expect(typeof rendered.result.current.comment.updatedAt).toBe('number')
       expect(rendered.result.current.comment.cid).toBe(lastCommentCid)
     })
