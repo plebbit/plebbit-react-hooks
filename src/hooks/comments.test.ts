@@ -408,6 +408,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      await waitFor(() => rendered.result.current.replies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
       // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
@@ -436,6 +437,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      await waitFor(() => rendered.result.current.replies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
       // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
