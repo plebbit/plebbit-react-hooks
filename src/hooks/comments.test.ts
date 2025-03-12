@@ -392,6 +392,7 @@ describe('comment replies', () => {
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
       // page 1
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
       expect(rendered.result.current.hasMore).toBe(true)
       // default sort, shouldnt fetch a page because included in comment.replies.pages
@@ -400,6 +401,7 @@ describe('comment replies', () => {
       // page 2
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
       expect(rendered.result.current.hasMore).toBe(true)
       // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
@@ -408,6 +410,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
@@ -421,6 +424,7 @@ describe('comment replies', () => {
       const commentCid = 'comment cid 1'
       rendered.rerender({commentCid, sortType: 'topAll'})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
       expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 100')
@@ -429,6 +433,7 @@ describe('comment replies', () => {
       // page 2
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
       expect(rendered.result.current.hasMore).toBe(true)
       // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
@@ -437,6 +442,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
@@ -512,6 +518,7 @@ describe('comment replies', () => {
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
       // page 1
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
       expect(rendered.result.current.hasMore).toBe(true)
       // should only fetch 1 page because no next cid
@@ -520,6 +527,7 @@ describe('comment replies', () => {
       // page 2
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
       expect(rendered.result.current.hasMore).toBe(true)
       // should only fetch 1 page because no next cid
@@ -528,6 +536,7 @@ describe('comment replies', () => {
       // page 3
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 3)
       expect(rendered.result.current.hasMore).toBe(true)
       // should only fetch 1 page because no next cid
@@ -536,6 +545,7 @@ describe('comment replies', () => {
       // page 4
       await scrollOnePage()
       expect(rendered.result.current.replies.length).toBe(repliesPerPage * 4)
+      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
       expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 4)
       expect(rendered.result.current.hasMore).toBe(false)
       // should only fetch 1 page because no next cid
@@ -884,6 +894,173 @@ describe('comment replies', () => {
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
       expect(pageCids.length).toBe(1)
       expect(pageCids[0]).not.toMatch('oldFlat')
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test('replies.pages has 1 reply with no next cid, hasMore false', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.replies.pages = {
+          best: {
+            comments: [
+              {
+                timestamp: 1,
+                cid: 'comment cid 1',
+                subplebbitAddress: 'subplebbit address',
+                updatedAt: 1,
+                upvoteCount: 1,
+              },
+            ],
+          },
+        }
+        this.replies.pageCids = {}
+        this.updatedAt = 1
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid})
+      await waitFor(() => rendered.result.current.replies.length === 1)
+      expect(rendered.result.current.replies.length).toBe(1)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
+      await waitFor(() => rendered.result.current.hasMore === false)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test('updated reply is updated, loaded reply is not', async () => {
+      const page1 = {
+        comments: [
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address',
+            updatedAt: 1,
+            upvoteCount: 1,
+          },
+        ],
+      }
+      // updatedAt didn't change, shouldn't update
+      const page2 = {
+        comments: [
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address',
+            updatedAt: 1,
+            upvoteCount: 2,
+          },
+        ],
+      }
+      const page3 = {
+        comments: [
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address',
+            updatedAt: 2,
+            upvoteCount: 2,
+          },
+        ],
+      }
+      const page4 = {
+        comments: [
+          {
+            timestamp: 100,
+            cid: 'comment cid 2',
+            subplebbitAddress: 'subplebbit address',
+            updatedAt: 100,
+            upvoteCount: 100,
+          },
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address',
+            updatedAt: 3,
+            upvoteCount: 3,
+          },
+        ],
+      }
+      const pages = [page1, page2, page3, page4]
+
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      let comment
+      Comment.prototype.simulateUpdateEvent = async function () {
+        comment = this
+        this.replies.pages = {best: pages.shift()}
+        this.replies.pageCids = {}
+        this.updatedAt = this.updatedAt ? this.updatedAt + 1 : 1
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid})
+
+      // first comment update
+      await waitFor(() => rendered.result.current.replies.length === 1)
+      expect(pages.length).toBe(3)
+      expect(rendered.result.current.replies.length).toBe(1)
+      expect(rendered.result.current.updatedReplies.length).toBe(1)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(1)
+      expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // second comment update (updatedAt doesn't change, so shouldn't update)
+      comment.simulateUpdateEvent()
+      await waitFor(() => commentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount === 2)
+      expect(pages.length).toBe(2)
+      // comment in store updated, but the updatedAt didn't change so no change in useReplies().updatedReplies
+      expect(commentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].updatedAt).toBe(1)
+      expect(commentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount).toBe(2)
+      expect(rendered.result.current.replies.length).toBe(1)
+      expect(rendered.result.current.updatedReplies.length).toBe(1)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(1)
+      expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // third comment update (updatedAt doesn't change, so shouldn't update)
+      comment.simulateUpdateEvent()
+      await waitFor(() => rendered.result.current.updatedReplies[0].updatedAt === 2)
+      expect(pages.length).toBe(1)
+      expect(rendered.result.current.replies.length).toBe(1)
+      expect(rendered.result.current.updatedReplies.length).toBe(1)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(2)
+      expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].upvoteCount).toBe(2)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // fourth comment update
+      comment.simulateUpdateEvent()
+      await waitFor(() => rendered.result.current.updatedReplies[0].updatedAt === 3)
+      expect(pages.length).toBe(0)
+      expect(rendered.result.current.replies.length).toBe(2)
+      expect(rendered.result.current.updatedReplies.length).toBe(2)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(3)
+      expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedReplies[0].upvoteCount).toBe(3)
+      expect(rendered.result.current.hasMore).toBe(false)
+      expect(rendered.result.current.replies[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current.updatedReplies[1].cid).toBe('comment cid 2')
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
     })

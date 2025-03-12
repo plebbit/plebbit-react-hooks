@@ -11,11 +11,13 @@ import {
   getFeedsCommentsFirstPageCids,
   getLoadedFeeds,
   getBufferedFeedsWithoutLoadedFeeds,
+  getUpdatedFeeds,
   getFeedsReplyCounts,
   getFeedsHaveMore,
   feedsCommentsChanged,
   getFeedsComments,
   getFeedsCommentsLoadedCount,
+  getFeedsCommentsRepliesPagesFirstUpdatedAts,
   getFilteredSortedFeeds,
   getSortTypeFromComment,
 } from './utils'
@@ -34,6 +36,7 @@ export type RepliesState = {
   feedsOptions: RepliesFeedsOptions
   bufferedFeeds: Feeds
   loadedFeeds: Feeds
+  updatedFeeds: Feeds
   bufferedFeedsReplyCounts: {[feedName: string]: number}
   feedsHaveMore: {[feedName: string]: boolean}
   addFeedToStore: Function
@@ -50,6 +53,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   feedsOptions: {},
   bufferedFeeds: {},
   loadedFeeds: {},
+  updatedFeeds: {},
   bufferedFeedsReplyCounts: {},
   feedsHaveMore: {},
 
@@ -147,12 +151,16 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     assert(feedsOptions[feedName].pageNumber >= 1, `repliesStore.resetFeed cannot reset feed page number '${feedsOptions[feedName].pageNumber}' lower than 1`)
     log('repliesStore.resetFeed', {feedName})
 
-    setState(({feedsOptions, loadedFeeds}: any) => {
+    setState(({feedsOptions, loadedFeeds, updatedFeeds}: any) => {
       const feedOptions = {
         ...feedsOptions[feedName],
         pageNumber: 1,
       }
-      return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}, loadedFeeds: {...loadedFeeds, [feedName]: []}}
+      return {
+        feedsOptions: {...feedsOptions, [feedName]: feedOptions},
+        loadedFeeds: {...loadedFeeds, [feedName]: []},
+        updatedFeeds: {...updatedFeeds, [feedName]: []},
+      }
     })
 
     updateFeeds()
@@ -187,14 +195,16 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithoutPreviousLoadedFeeds, loadedFeeds)
       const bufferedFeedsReplyCounts = getFeedsReplyCounts(feedsOptions, bufferedFeeds)
       const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, comments, repliesPages, accounts)
+      const updatedFeeds = await getUpdatedFeeds(feedsOptions, filteredSortedFeeds, previousState.updatedFeeds, loadedFeeds, accounts)
 
       // set new feeds
-      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsReplyCounts, feedsHaveMore}))
+      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsReplyCounts, updatedFeeds, feedsHaveMore}))
       log.trace('repliesStore.updateFeeds', {
         feedsOptions,
         bufferedFeeds,
         loadedFeeds,
         bufferedFeedsReplyCounts,
+        updatedFeeds,
         feedsHaveMore,
         comments,
         repliesPages,
@@ -275,6 +285,7 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState: any) =>
   }
 }
 
+let previousFeedsCommentsRepliesPagesFirstUpdatedAts = ''
 let previousFeedsCommentsFirstPageCids: string[] = []
 let previousFeedsComments: Map<string, Comments> = new Map()
 let previousFeedsCommentsLoadedCount = 0
@@ -299,7 +310,13 @@ const updateFeedsOnFeedsCommentsChange = (commentsStoreState: any) => {
     // in case a comment loads with no first page cid and first pages cids don't change, need to trigger hasMore update
     const feedsCommentsLoadedCount = getFeedsCommentsLoadedCount(feedsComments)
     if (feedsCommentsLoadedCount === previousFeedsCommentsLoadedCount) {
-      return
+      // if comment.replies.pages haven't changed, do nothing
+      const feedsCommentsRepliesPagesFirstUpdatedAts = getFeedsCommentsRepliesPagesFirstUpdatedAts(feedsComments)
+      if (feedsCommentsRepliesPagesFirstUpdatedAts === previousFeedsCommentsRepliesPagesFirstUpdatedAts) {
+        return
+      }
+
+      previousFeedsCommentsRepliesPagesFirstUpdatedAts = feedsCommentsRepliesPagesFirstUpdatedAts
     }
     previousFeedsCommentsLoadedCount = feedsCommentsLoadedCount
   }

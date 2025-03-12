@@ -206,6 +206,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
 
   const replies = useRepliesStore((state: RepliesState) => state.loadedFeeds[repliesFeedName || ''])
   const bufferedReplies = useRepliesStore((state: RepliesState) => state.bufferedFeeds[repliesFeedName || ''])
+  const updatedReplies = useRepliesStore((state: RepliesState) => state.updatedFeeds[repliesFeedName || ''])
   let hasMore = useRepliesStore((state: RepliesState) => state.feedsHaveMore[repliesFeedName || ''])
   // if the replies is not yet defined, then it has more
   if (!repliesFeedName || typeof hasMore !== 'boolean') {
@@ -260,6 +261,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     () => ({
       replies: replies || [],
       bufferedReplies: bufferedReplies || [],
+      updatedReplies: updatedReplies || [],
       hasMore,
       loadMore,
       reset,
@@ -267,7 +269,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
       error: errors[errors.length - 1],
       errors,
     }),
-    [replies, bufferedReplies, repliesFeedName, hasMore, errors]
+    [replies, bufferedReplies, updatedReplies, repliesFeedName, hasMore, errors]
   )
 }
 

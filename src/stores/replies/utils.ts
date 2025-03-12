@@ -139,6 +139,49 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
   return newBufferedFeeds
 }
 
+export const getUpdatedFeeds = async (feedsOptions: RepliesFeedsOptions, filteredSortedFeeds: Feeds, updatedFeeds: Feeds, loadedFeeds: Feeds, accounts: Accounts) => {
+  // contruct a list of replies already loaded to remove them from buffered feeds
+  const updatedFeedsReplies: {[feedName: string]: {[replyCid: string]: any}} = {}
+  for (const feedName in updatedFeeds) {
+    updatedFeedsReplies[feedName] = {}
+    for (const [index, updatedReply] of updatedFeeds[feedName].entries()) {
+      updatedFeedsReplies[feedName][updatedReply.cid] = {index, updatedReply}
+    }
+  }
+
+  const newUpdatedFeeds: Feeds = {...updatedFeeds}
+  for (const feedName in filteredSortedFeeds) {
+    const account = accounts[feedsOptions[feedName].accountId]
+    const updatedFeed = [...(updatedFeeds[feedName] || [])]
+    const onlyHasNewReplies = updatedFeed.length === 0
+    let updatedFeedChanged = false
+
+    // add new replies from loadedFeed replies
+    while (updatedFeed.length < loadedFeeds[feedName].length) {
+      updatedFeed[updatedFeed.length] = loadedFeeds[feedName][updatedFeed.length]
+      updatedFeedChanged = true
+    }
+
+    // add updated replies from filteredSortedFeed
+    if (!onlyHasNewReplies) {
+      for (const reply of filteredSortedFeeds[feedName]) {
+        if (updatedFeedsReplies[feedName]?.[reply.cid]) {
+          const {index, updatedReply} = updatedFeedsReplies[feedName][reply.cid]
+          if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await replyIsValid(reply, account))) {
+            updatedFeed[index] = reply
+            updatedFeedChanged = true
+          }
+        }
+      }
+    }
+
+    if (updatedFeedChanged) {
+      newUpdatedFeeds[feedName] = updatedFeed
+    }
+  }
+  return newUpdatedFeeds
+}
+
 // find how many replies are in each comments in a buffereds feeds
 // NOTE: not useful, could use feed.length, copied over from useFeed and easier to keep it
 export const getFeedsReplyCounts = (feedsOptions: RepliesFeedsOptions, feeds: Feeds) => {
@@ -179,6 +222,7 @@ export const getFeedsHaveMore = (feedsOptions: RepliesFeedsOptions, bufferedFeed
     // should we try to use another sort type by default, like 'best', or should we just ignore it?
     // 'continue' to ignore it for now
     if (!firstPageCid) {
+      feedsHaveMore[feedName] = false
       continue
     }
     const pages = getRepliesPages(comment, sortType, repliesPages)
@@ -250,6 +294,19 @@ export const getFeedsCommentsFirstPageCids = (feedsComments: Map<string, Comment
   }
 
   return [...feedsCommentsFirstPageCids].sort()
+}
+
+// get all comments replies pages first reply updatedAts, use to check if a commentsStore change should trigger updateFeeds
+export const getFeedsCommentsRepliesPagesFirstUpdatedAts = (feedsComments: Map<string, Comment>): string[] => {
+  let feedsCommentsRepliesPagesFirstUpdatedAts = ''
+  for (const comment of feedsComments.values()) {
+    for (const page of Object.values<RepliesPage>(comment.replies?.pages || {})) {
+      if (page?.comments?.[0]?.updatedAt) {
+        feedsCommentsRepliesPagesFirstUpdatedAts += page.comments[0].cid + page.comments[0].updatedAt
+      }
+    }
+  }
+  return feedsCommentsRepliesPagesFirstUpdatedAts
 }
 
 // get number of feeds comments that are loaded

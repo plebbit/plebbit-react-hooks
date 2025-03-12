@@ -120,6 +120,7 @@ describe('replies store', () => {
     expect(rendered.result.current.bufferedFeeds).toEqual({})
     expect(rendered.result.current.bufferedFeedsReplyCounts).toEqual({})
     expect(rendered.result.current.loadedFeeds).toEqual({})
+    expect(rendered.result.current.updatedFeeds).toEqual({})
     expect(typeof rendered.result.current.addFeedToStore).toBe('function')
     expect(typeof rendered.result.current.incrementFeedPageNumber).toBe('function')
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
@@ -149,6 +150,7 @@ describe('replies store', () => {
     // feeds become defined
     expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
     expect(rendered.result.current.loadedFeeds[feedName]).not.toBe(undefined)
+    expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
     expect(rendered.result.current.bufferedFeedsReplyCounts[feedName]).not.toBe(undefined)
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
 
@@ -161,6 +163,7 @@ describe('replies store', () => {
 
     // loaded feed has 1 page
     expect(rendered.result.current.loadedFeeds[feedName].length).toBe(repliesPerPage)
+    expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
     // increment page
     act(() => {
       rendered.result.current.incrementFeedPageNumber(feedName)
@@ -175,6 +178,7 @@ describe('replies store', () => {
     expect(rendered.result.current.feedsOptions[feedName].commentCid).toEqual(commentCid)
     // loaded feed has correct post counts
     expect(rendered.result.current.loadedFeeds[feedName].length).toBe(repliesPerPage * 2)
+    expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
     // buffered feed has 1 page less
     const bufferedFeedRepliesCount = getPageCommentCount - repliesPerPage * 2
     expect(rendered.result.current.bufferedFeeds[feedName].length).toBe(bufferedFeedRepliesCount)

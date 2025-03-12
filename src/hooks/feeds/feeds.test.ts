@@ -1216,6 +1216,50 @@ describe('feeds', () => {
       Subplebbit.prototype.update = update
     })
 
+    test('posts.pages has 1 post with no next cid, hasMore false', async () => {
+      const update = Subplebbit.prototype.update
+      const updatedAt = Math.floor(Date.now() / 1000)
+      const postsWithNoNextCid: any = {
+        pages: {
+          hot: {
+            comments: [
+              {
+                timestamp: 1,
+                cid: 'comment cid 1',
+                subplebbitAddress: 'subplebbit address 1',
+                updatedAt: 1,
+                upvoteCount: 1,
+              },
+            ],
+          },
+        },
+        pageCids: {},
+      }
+      Subplebbit.prototype.update = async function () {
+        await simulateLoadingTime()
+        this.updatedAt = updatedAt
+        this.posts = postsWithNoNextCid
+        this.emit('update', this)
+      }
+
+      rendered = renderHook<any, any>((props: any) => {
+        const feed = useFeed(props)
+        return {feed}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+
+      // get feed with 1 sub with no posts
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      expect(rendered.result.current.feed.hasMore).toBe(true)
+      expect(rendered.result.current.feed.feed.length).toBe(0)
+
+      await waitFor(() => rendered.result.current.feed.hasMore === false)
+      expect(rendered.result.current.feed.hasMore).toBe(false)
+      expect(rendered.result.current.feed.feed.length).toBe(1)
+
+      Subplebbit.prototype.update = update
+    })
+
     test(`subplebbitAddressesWithNewerPosts and reset`, async () => {
       const update = Subplebbit.prototype.update
       // mock the update method to be able to have access to the updating subplebbit instances
