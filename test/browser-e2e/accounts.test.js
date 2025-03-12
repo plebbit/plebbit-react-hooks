@@ -22,10 +22,12 @@ const plebbitOptionsTypes = {
     // define pubsubKuboRpcClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubKuboRpcClientsOptions: [localPubsubProviderUrl],
+    validatePages: false,
   },
   'gateway and pubsub provider': {
     ipfsGatewayUrls: [localGatewayUrl],
     pubsubKuboRpcClientsOptions: [localPubsubProviderUrl],
+    validatePages: false,
   },
 }
 

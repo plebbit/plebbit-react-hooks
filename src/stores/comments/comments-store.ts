@@ -92,6 +92,10 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
     utils.clientsOnStateChange(comment?.clients, (clientState: string, clientType: string, clientUrl: string, chainTicker?: string) => {
       setState((state: CommentsState) => {
+        // make sure not undefined, sometimes happens in e2e tests
+        if (!state.comments[commentCid]) {
+          return {}
+        }
         const clients = {...state.comments[commentCid]?.clients}
         const client = {state: clientState}
         if (chainTicker) {

@@ -150,6 +150,10 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
 // set clients states on comments store so the frontend can display it, dont persist in db because a reload cancels updating
 const onCommentRepliesClientsStateChange = (commentCid: string) => (clientState: string, clientType: string, sortType: string, clientUrl: string) => {
   commentsStore.setState((state: CommentsState) => {
+    // make sure not undefined, sometimes happens in e2e tests
+    if (!state.comments[commentCid]) {
+      return {}
+    }
     const client = {state: clientState}
     const comment = {...state.comments[commentCid]}
     comment.replies = {...comment.replies}

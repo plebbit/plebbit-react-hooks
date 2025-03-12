@@ -145,6 +145,10 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
 // set clients states on subplebbits store so the frontend can display it, dont persist in db because a reload cancels updating
 const onSubplebbitPostsClientsStateChange = (subplebbitAddress: string) => (clientState: string, clientType: string, sortType: string, clientUrl: string) => {
   subplebbitsStore.setState((state: SubplebbitsState) => {
+    // make sure not undefined, sometimes happens in e2e tests
+    if (!state.subplebbits[subplebbitAddress]) {
+      return {}
+    }
     const client = {state: clientState}
     const subplebbit = {...state.subplebbits[subplebbitAddress]}
     subplebbit.posts = {...subplebbit.posts}
