@@ -12,6 +12,7 @@ let editedOwnerSubplebbits: any = {}
 export const resetPlebbitJsMock = () => {
   createdOwnerSubplebbits = {}
   editedOwnerSubplebbits = {}
+  console.log('reset plebbit-js')
 }
 export const debugPlebbitJsMock = () => {
   console.log({createdOwnerSubplebbits, editedOwnerSubplebbits})
@@ -30,6 +31,7 @@ export class Plebbit extends EventEmitter {
   }
 
   async createSubplebbit(createSubplebbitOptions: any) {
+    console.log('createSubplebbit', {createSubplebbitOptions})
     if (!createSubplebbitOptions) {
       createSubplebbitOptions = {}
     }
@@ -59,6 +61,7 @@ export class Plebbit extends EventEmitter {
       }
     }
 
+    console.log('new Subplebbit(createSubplebbitOptions)', {createSubplebbitOptions})
     return new Subplebbit(createSubplebbitOptions)
   }
 
