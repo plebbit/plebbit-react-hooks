@@ -50,8 +50,8 @@ export const getDefaultPlebbitOptions = () => {
   // default plebbit options for web client
   return {
     ipfsGatewayUrls: ['https://ipfsgateway.xyz', 'https://gateway.plebpubsub.xyz', 'https://gateway.forumindex.com'],
-    ipfsHttpClientsOptions: undefined,
-    pubsubHttpClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.xyz/api/v0', 'https://rannithepleb.com/api/v0'],
+    kuboRpcClientsOptions: undefined,
+    pubsubKuboRpcClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.xyz/api/v0', 'https://rannithepleb.com/api/v0'],
     httpRoutersOptions: ['https://routing.lol', 'https://peers.pleb.bot', 'https://peers.plebpubsub.xyz', 'https://peers.forumindex.com'],
     chainProviders,
     resolveAuthorAddresses: false,

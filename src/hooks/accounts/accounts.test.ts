@@ -59,12 +59,12 @@ describe('accounts', () => {
       expect(account.plebbit && typeof account.plebbit === 'object').toBe(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').toBe(true)
       expect(account.plebbitOptions.ipfsGatewayUrls?.length).toBeGreaterThan(0)
-      expect(account.plebbitOptions.pubsubHttpClientsOptions?.length).toBeGreaterThan(0)
-      expect(account.plebbitOptions.ipfsHttpClientsOptions).toBe(undefined)
+      expect(account.plebbitOptions.pubsubKuboRpcClientsOptions?.length).toBeGreaterThan(0)
+      expect(account.plebbitOptions.kuboRpcClientsOptions).toBe(undefined)
     })
 
     test(`default plebbit options are not saved to database`, async () => {
-      const plebbitOptions = {ipfsHttpClientsOptions: ['http://one:5001/api/v0']}
+      const plebbitOptions = {kuboRpcClientsOptions: ['http://one:5001/api/v0']}
       // @ts-ignore
       window.defaultPlebbitOptions = plebbitOptions
 
@@ -79,8 +79,8 @@ describe('accounts', () => {
       const waitFor = testUtils.createWaitFor(rendered)
 
       // reloaded accounts have new default plebbit options
-      await waitFor(() => rendered.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0] === plebbitOptions.ipfsHttpClientsOptions[0])
-      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0]).toBe(plebbitOptions.ipfsHttpClientsOptions[0])
+      await waitFor(() => rendered.result.current.account.plebbitOptions.kuboRpcClientsOptions[0] === plebbitOptions.kuboRpcClientsOptions[0])
+      expect(rendered.result.current.account.plebbitOptions.kuboRpcClientsOptions[0]).toBe(plebbitOptions.kuboRpcClientsOptions[0])
 
       // set account with new default plebbit options
       await act(async () => {
@@ -92,10 +92,10 @@ describe('accounts', () => {
       // account has new default plebbit options
       await waitFor(() => rendered.result.current.account.author.displayName === 'john')
       expect(rendered.result.current.account.author.displayName).toBe('john')
-      expect(rendered.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0]).toBe(plebbitOptions.ipfsHttpClientsOptions[0])
+      expect(rendered.result.current.account.plebbitOptions.kuboRpcClientsOptions[0]).toBe(plebbitOptions.kuboRpcClientsOptions[0])
 
       // change default plebbit options and reload accounts
-      plebbitOptions.ipfsHttpClientsOptions = ['http://two:5001/api/v0']
+      plebbitOptions.kuboRpcClientsOptions = ['http://two:5001/api/v0']
       await testUtils.resetStores()
 
       // on second render get the account from database
@@ -107,7 +107,7 @@ describe('accounts', () => {
       await waitFor2(() => rendered2.result.current.account)
 
       // account plebbit options were not saved, has new default plebbit options
-      expect(rendered2.result.current.account.plebbitOptions.ipfsHttpClientsOptions[0]).toBe(plebbitOptions.ipfsHttpClientsOptions[0])
+      expect(rendered2.result.current.account.plebbitOptions.kuboRpcClientsOptions[0]).toBe(plebbitOptions.kuboRpcClientsOptions[0])
       expect(rendered2.result.current.account.author.displayName).toBe('john')
 
       // @ts-ignore

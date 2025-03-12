@@ -13,20 +13,26 @@ const startIpfs = ({apiPort, gatewayPort, args = ''} = {}) => {
   const plebbitDataPath = getTmpFolderPath()
   // init ipfs binary
   try {
-    execSync(`IPFS_PATH=${ipfsDataPath} ${ipfsPath} init`, {stdio: 'inherit'})
+    execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" init`, {stdio: 'inherit'})
   } catch (e) {}
 
   // allow * origin on ipfs api to bypass cors browser error
   // very insecure do not do this in production
-  execSync(`IPFS_PATH=${ipfsDataPath} ${ipfsPath} config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'`, {stdio: 'inherit'})
+  execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'`, {stdio: 'inherit'})
+
+  // disable subdomain gateway
+  execSync(
+    `IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config --json Gateway.PublicGateways '${JSON.stringify({localhost: {Paths: ['/ipfs', '/ipns'], UseSubdomains: false}})}'`,
+    {stdio: 'inherit'}
+  )
 
   // set ports
-  execSync(`IPFS_PATH=${ipfsDataPath} ${ipfsPath} config Addresses.API /ip4/127.0.0.1/tcp/${apiPort}`, {stdio: 'inherit'})
-  execSync(`IPFS_PATH=${ipfsDataPath} ${ipfsPath} config Addresses.Gateway /ip4/127.0.0.1/tcp/${gatewayPort}`, {stdio: 'inherit'})
+  execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config Addresses.API /ip4/127.0.0.1/tcp/${apiPort}`, {stdio: 'inherit'})
+  execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config Addresses.Gateway /ip4/127.0.0.1/tcp/${gatewayPort}`, {stdio: 'inherit'})
 
   // start ipfs daemon
-  const ipfsProcess = exec(`IPFS_PATH=${ipfsDataPath} ${ipfsPath} daemon ${args}`)
-  console.log(`IPFS_PATH=${ipfsDataPath} ${ipfsPath} daemon ${args} process started with pid ${ipfsProcess.pid}`)
+  const ipfsProcess = exec(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" daemon ${args}`)
+  console.log(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" daemon ${args} process started with pid ${ipfsProcess.pid}`)
   ipfsProcess.stderr.on('data', console.error)
   ipfsProcess.stdin.on('data', console.log)
   ipfsProcess.stdout.on('data', console.log)

@@ -18,14 +18,14 @@ const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
 const plebbitOptionsTypes = {
   'ipfs http client': {
-    ipfsHttpClientsOptions: [localIpfsProviderUrl],
-    // define pubsubHttpClientsOptions with localPubsubProviderUrl because
+    kuboRpcClientsOptions: [localIpfsProviderUrl],
+    // define pubsubKuboRpcClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
-    pubsubHttpClientsOptions: [localPubsubProviderUrl],
+    pubsubKuboRpcClientsOptions: [localPubsubProviderUrl],
   },
   'gateway and pubsub provider': {
     ipfsGatewayUrls: [localGatewayUrl],
-    pubsubHttpClientsOptions: [localPubsubProviderUrl],
+    pubsubKuboRpcClientsOptions: [localPubsubProviderUrl],
   },
 }
 
@@ -69,7 +69,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
         expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').to.equal(true)
         expect(account.plebbitOptions.ipfsGatewayUrls?.length).to.be.greaterThan(0)
-        expect(account.plebbitOptions.pubsubHttpClientsOptions?.length).to.be.greaterThan(0)
+        expect(account.plebbitOptions.pubsubKuboRpcClientsOptions?.length).to.be.greaterThan(0)
         expect(account.plebbitOptions.ipfsHttpClientOptions).to.equal(undefined)
 
         // wait for short address

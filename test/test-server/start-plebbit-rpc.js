@@ -9,8 +9,8 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
 
   const plebbitOptions = {
     dataPath: path.join(__dirname, '..', '.plebbit', 'rpc'),
-    ipfsHttpClientsOptions: [`http://127.0.0.1:${ipfsApiPort}/api/v0`],
-    pubsubHttpClientsOptions: [`http://127.0.0.1:${pubsubApiPort}/api/v0`],
+    kuboRpcClientsOptions: [`http://127.0.0.1:${ipfsApiPort}/api/v0`],
+    pubsubKuboRpcClientsOptions: [`http://127.0.0.1:${pubsubApiPort}/api/v0`],
     httpRoutersOptions: [],
   }
 

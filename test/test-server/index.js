@@ -17,10 +17,10 @@ const privateKey = signers[0].privateKey
   await startPlebbitRpc({port: plebbitRpc.port, ipfsApiPort: offlineIpfs.apiPort, pubsubApiPort: pubsubIpfs.apiPort})
 
   const plebbitOptions = {
-    ipfsHttpClientsOptions: [`http://127.0.0.1:${offlineIpfs.apiPort}/api/v0`],
-    pubsubHttpClientsOptions: [`http://127.0.0.1:${pubsubIpfs.apiPort}/api/v0`],
+    kuboRpcClientsOptions: [`http://127.0.0.1:${offlineIpfs.apiPort}/api/v0`],
+    pubsubKuboRpcClientsOptions: [`http://127.0.0.1:${pubsubIpfs.apiPort}/api/v0`],
     httpRoutersOptions: [],
-    // pubsubHttpClientsOptions: [`https://pubsubprovider.xyz/api/v0`],
+    // pubsubKuboRpcClientsOptions: [`https://pubsubprovider.xyz/api/v0`],
     dataPath: plebbitDataPath,
     publishInterval: 1000,
     updateInterval: 1000,
