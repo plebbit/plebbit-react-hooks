@@ -526,9 +526,6 @@ describe('feeds', () => {
     })
 
     test('get multiple subplebbits with filter and scroll to multiple pages', async () => {
-      // wait for initial feed to load
-      await waitFor(() => rendered.result.current.feed?.length > 0)
-
       // filter only comment cids that contain a '5'
       const cidMatch5 = (comment: Comment) => !!comment.cid.match('5')
       const filter = {
@@ -591,9 +588,6 @@ describe('feeds', () => {
         filter: (comment: Comment) => !!comment.cid.match(cid),
         key: `cid-match-${cid}`,
       })
-
-      // wait for initial feed to load
-      await waitFor(() => rendered.result.current.feed?.length > 0)
 
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
