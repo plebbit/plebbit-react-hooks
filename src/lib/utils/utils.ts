@@ -200,11 +200,11 @@ export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   for (const clientUrl in clients?.ipfsGateways) {
     clients?.ipfsGateways?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', clientUrl))
   }
-  for (const clientUrl in clients?.ipfsClients) {
-    clients?.ipfsClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsClients', clientUrl))
+  for (const clientUrl in clients?.kuboRpcClients) {
+    clients?.kuboRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'kuboRpcClients', clientUrl))
   }
-  for (const clientUrl in clients?.pubsubClients) {
-    clients?.pubsubClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'pubsubClients', clientUrl))
+  for (const clientUrl in clients?.pubsubKuboRpcClients) {
+    clients?.pubsubKuboRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'pubsubKuboRpcClients', clientUrl))
   }
   for (const clientUrl in clients?.plebbitRpcClients) {
     clients?.plebbitRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', clientUrl))

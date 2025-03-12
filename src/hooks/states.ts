@@ -51,11 +51,11 @@ export function useClientsStates(options?: UseClientsStatesOptions): UseClientsS
       for (const clientUrl in clients?.ipfsGateways) {
         addState(clients.ipfsGateways[clientUrl]?.state, clientUrl)
       }
-      for (const clientUrl in clients?.ipfsClients) {
-        addState(clients.ipfsClients[clientUrl]?.state, clientUrl)
+      for (const clientUrl in clients?.kuboRpcClients) {
+        addState(clients.kuboRpcClients[clientUrl]?.state, clientUrl)
       }
-      for (const clientUrl in clients?.pubsubClients) {
-        addState(clients.pubsubClients[clientUrl]?.state, clientUrl)
+      for (const clientUrl in clients?.pubsubKuboRpcClients) {
+        addState(clients.pubsubKuboRpcClients[clientUrl]?.state, clientUrl)
       }
       for (const clientUrl in clients?.plebbitRpcClients) {
         addState(clients.plebbitRpcClients[clientUrl]?.state, clientUrl)

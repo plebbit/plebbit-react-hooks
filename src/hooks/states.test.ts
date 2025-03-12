@@ -49,8 +49,8 @@ class Client extends EventEmitter {
 class Comment extends EventEmitter {
   clients: any = {
     ipfsGateways: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()},
-    ipfsClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
-    pubsubClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
+    kuboRpcClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
+    pubsubKuboRpcClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
     plebbitRpcClients: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()},
     chainProviders: {eth: {[ethChainProviderUrl1]: new Client(), [ethChainProviderUrl2]: new Client(), [ethChainProviderUrl3]: new Client()}},
   }
@@ -67,7 +67,7 @@ class Comment extends EventEmitter {
     ;(async () => {
       // set states fetching comment ipfs
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipfs')
       await simulateLoadingTime(20)
 
@@ -78,13 +78,13 @@ class Comment extends EventEmitter {
 
       // set states fetching comment update
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipns')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipns')
       await simulateLoadingTime(20)
 
       // set states resolving subplebbit address
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'resolving-address')
       await simulateLoadingTime(20)
@@ -115,14 +115,14 @@ class Comment extends EventEmitter {
 
       // set states publishing
       changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'stopped')
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-request')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-request')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-request')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-request')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'publishing-challenge-request')
       await simulateLoadingTime(20)
 
       // set states waiting challenge
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'waiting-challenge')
       await simulateLoadingTime(20)
 
@@ -140,14 +140,14 @@ class Comment extends EventEmitter {
       await simulateLoadingTime(20)
 
       // set states publishing challenge answer
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-answer')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-answer')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-answer')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-answer')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'publishing-challenge-answer')
       await simulateLoadingTime(20)
 
       // set states waiting challenge verification
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge-verification')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge-verification')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge-verification')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge-verification')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'waiting-challenge-verification')
       await simulateLoadingTime(20)
 
@@ -161,8 +161,8 @@ class Comment extends EventEmitter {
       this.emit('challengeverification', challengeVerificationMessage, this)
 
       // set states stopped
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'stopped')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
     })()
   }
@@ -171,7 +171,7 @@ class Comment extends EventEmitter {
 class Pages {
   clients: any = {
     ipfsGateways: {new: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()}},
-    ipfsClients: {new: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()}},
+    kuboRpcClients: {new: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()}},
     plebbitRpcClients: {new: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()}},
   }
   pages: any = {}
@@ -179,11 +179,11 @@ class Pages {
   async getPage(pageCid: string) {
     await simulateLoadingTime(100)
     changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs', 'new')
-    changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs', 'new')
+    changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs', 'new')
     changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipfs', 'new')
     await simulateLoadingTime(100)
     changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped', 'new')
-    changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped', 'new')
+    changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped', 'new')
     changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped', 'new')
 
     return {
@@ -196,8 +196,8 @@ class Pages {
 class Subplebbit extends EventEmitter {
   clients: any = {
     ipfsGateways: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()},
-    ipfsClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
-    pubsubClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
+    kuboRpcClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
+    pubsubKuboRpcClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
     plebbitRpcClients: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()},
     chainProviders: {eth: {[ethChainProviderUrl1]: new Client(), [ethChainProviderUrl2]: new Client(), [ethChainProviderUrl3]: new Client()}},
   }
@@ -225,7 +225,7 @@ class Subplebbit extends EventEmitter {
       this.updatingState = 'fetching-ipns'
       this.emit('updatingstatechange', 'fetching-ipns')
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipns')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipns')
       await simulateLoadingTime(100)
 
@@ -233,7 +233,7 @@ class Subplebbit extends EventEmitter {
       this.updatingState = 'succeeded'
       this.emit('updatingstatechange', 'succeeded')
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
       await simulateLoadingTime(100)
 

@@ -167,9 +167,9 @@ const commentRepliesClientsOnStateChange = (clients: any, onStateChange: Functio
       clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', sortType, clientUrl))
     }
   }
-  for (const sortType in clients?.ipfsClients) {
-    for (const clientUrl in clients?.ipfsClients?.[sortType]) {
-      clients?.ipfsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsClients', sortType, clientUrl))
+  for (const sortType in clients?.kuboRpcClients) {
+    for (const clientUrl in clients?.kuboRpcClients?.[sortType]) {
+      clients?.kuboRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'kuboRpcClients', sortType, clientUrl))
     }
   }
   for (const sortType in clients?.plebbitRpcClients) {
