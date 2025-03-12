@@ -11,7 +11,8 @@ const config = {
       },
     },
     alias: {
-      '@solana/web3.js': '@solana/web3.js/lib/index.browser.esm.js',
+      // mock plebbit-js with random package or parsing errors
+      '@plebbit/plebbit-js/dist/browser/index': 'react',
     },
     root: 'src/',
     setupFiles: ['../config/vitest.setup.js'],

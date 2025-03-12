@@ -37,8 +37,8 @@ describe('accounts (plebbit-js mock)', () => {
       expect(account.plebbit && typeof account.plebbit === 'object').to.equal(true)
       expect(account.plebbitOptions && typeof account.plebbitOptions === 'object').to.equal(true)
       expect(account.plebbitOptions.ipfsGatewayUrls?.length).to.be.greaterThan(0)
-      expect(account.plebbitOptions.pubsubHttpClientsOptions?.length).to.be.greaterThan(0)
-      expect(account.plebbitOptions.ipfsHttpClientsOptions).to.equal(undefined)
+      expect(account.plebbitOptions.pubsubKuboRpcClientsOptions?.length).to.be.greaterThan(0)
+      expect(account.plebbitOptions.kuboRpcClientsOptions).to.equal(undefined)
     })
   })
 
