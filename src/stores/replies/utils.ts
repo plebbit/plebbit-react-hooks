@@ -297,7 +297,7 @@ export const getFeedsCommentsFirstPageCids = (feedsComments: Map<string, Comment
 }
 
 // get all comments replies pages first reply updatedAts, use to check if a commentsStore change should trigger updateFeeds
-export const getFeedsCommentsRepliesPagesFirstUpdatedAts = (feedsComments: Map<string, Comment>): string[] => {
+export const getFeedsCommentsRepliesPagesFirstUpdatedAts = (feedsComments: Map<string, Comment>): string => {
   let feedsCommentsRepliesPagesFirstUpdatedAts = ''
   for (const comment of feedsComments.values()) {
     for (const page of Object.values<RepliesPage>(comment.replies?.pages || {})) {
