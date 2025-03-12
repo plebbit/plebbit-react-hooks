@@ -1872,6 +1872,8 @@ describe('accounts', () => {
     let waitFor: Function
 
     beforeEach(async () => {
+      resetPlebbitJsMock()
+
       rendered = renderHook<any, any>((subplebbitAddress?: string) => {
         const account = useAccount()
         const {accountSubplebbits} = useAccountSubplebbits()
