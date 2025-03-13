@@ -82,6 +82,7 @@ export const generateDefaultAccount = async () => {
 
   const account = {
     id: uuid(),
+    version: 2,
     name: accountName,
     author,
     signer,

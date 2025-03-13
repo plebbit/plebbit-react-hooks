@@ -21,7 +21,7 @@ const getAccounts = async (accountIds: string[]) => {
   const accountsArray: any = await Promise.all(promises)
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
-    accounts[accountId] = accountsArray[i]
+    accounts[accountId] = migrateAccount(accountsArray[i])
     // plebbit options aren't saved to database if they are default
     if (!accounts[accountId].plebbitOptions) {
       accounts[accountId].plebbitOptions = getDefaultPlebbitOptions()
@@ -32,6 +32,22 @@ const getAccounts = async (accountIds: string[]) => {
     accounts[accountId].plebbit.on('error', (error: any) => log.error('uncaught plebbit instance error, should never happen', {error}))
   }
   return accounts
+}
+
+const migrateAccount = (account) => {
+  // version 2
+  if (!account.version) {
+    account.version = 2
+    if (account.plebbitOptions?.ipfsHttpClientsOptions) {
+      account.plebbitOptions.kuboRpcClientsOptions = account.plebbitOptions.ipfsHttpClientsOptions
+      delete account.plebbitOptions.ipfsHttpClientsOptions
+    }
+    if (account.plebbitOptions?.pubsubHttpClientsOptions) {
+      account.plebbitOptions.pubsubKuboRpcClientsOptions = account.plebbitOptions.pubsubHttpClientsOptions
+      delete account.plebbitOptions.pubsubHttpClientsOptions
+    }
+  }
+  return account
 }
 
 const getAccount = async (accountId: string) => {
