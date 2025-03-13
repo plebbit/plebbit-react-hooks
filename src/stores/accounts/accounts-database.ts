@@ -93,6 +93,7 @@ const addAccount = async (account: Account) => {
   // make sure accountToPutInDatabase.plebbitOptions are valid
   if (accountToPutInDatabase.plebbitOptions) {
     const plebbit = await PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions)
+    plebbit.on('error', () => {})
     plebbit.destroy?.().catch?.((error: any) => log('database.addAccount plebbit.destroy error', {error})) // make sure it's garbage collected
   }
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)

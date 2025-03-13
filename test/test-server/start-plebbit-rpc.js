@@ -12,6 +12,8 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
     kuboRpcClientsOptions: [`http://127.0.0.1:${ipfsApiPort}/api/v0`],
     pubsubKuboRpcClientsOptions: [`http://127.0.0.1:${pubsubApiPort}/api/v0`],
     httpRoutersOptions: [],
+    resolveAuthorAddresses: false,
+    validatePages: false,
   }
 
   console.log('plebbit rpc: starting...')

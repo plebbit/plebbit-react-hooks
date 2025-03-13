@@ -5,7 +5,7 @@ const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const signers = require('../fixtures/signers')
 const subplebbitAddress = signers[0].address
-const {offlineIpfs, pubsubIpfs} = require('../test-server/config')
+const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
 
 // large value for manual debugging
 const timeout = 600000
@@ -15,17 +15,25 @@ const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-
 const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
 const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
+const localPlebbitRpcUrl = `ws://127.0.0.1:${plebbitRpc.port}`
 const plebbitOptionsTypes = {
   'kubo rpc client': {
     kuboRpcClientsOptions: [localIpfsProviderUrl],
     // define pubsubKuboRpcClientsOptions with localPubsubProviderUrl because
     // localIpfsProviderUrl is offline node with no pubsub
     pubsubKuboRpcClientsOptions: [localPubsubProviderUrl],
+    resolveAuthorAddresses: false,
     validatePages: false,
   },
   'gateway and pubsub provider': {
     ipfsGatewayUrls: [localGatewayUrl],
     pubsubKuboRpcClientsOptions: [localPubsubProviderUrl],
+    resolveAuthorAddresses: false,
+    validatePages: false,
+  },
+  'plebbit rpc client': {
+    plebbitRpcClientsOptions: [localPlebbitRpcUrl],
+    resolveAuthorAddresses: false,
     validatePages: false,
   },
 }

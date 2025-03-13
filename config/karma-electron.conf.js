@@ -119,6 +119,8 @@ module.exports = function (config) {
     browserNoActivityTimeout: mochaConfig.timeout,
     browserDisconnectTimeout: mochaConfig.timeout,
     browserDisconnectTolerance: 5,
+    // to have time to check the console logs
+    // processKillTimeout: 600000,
   })
 }
 
