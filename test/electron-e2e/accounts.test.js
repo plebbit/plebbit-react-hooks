@@ -20,7 +20,7 @@ const plebbitOptionsTypes = {
   'plebbit rpc client': {
     plebbitRpcClientsOptions: [localPlebbitRpcUrl],
     resolveAuthorAddresses: false,
-    // validatePages: false,
+    validatePages: false,
     dataPath: window.plebbitDataPath,
     publishInterval: 1000,
     updateInterval: 1000,
