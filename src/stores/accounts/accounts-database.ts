@@ -7,7 +7,7 @@ const accountsDatabase = localForage.createInstance({name: 'accounts'})
 const accountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
 import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
-import {getDefaultPlebbitOptions} from './account-generator'
+import {getDefaultPlebbitOptions, overwritePlebbitOptions} from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
 
@@ -26,6 +26,7 @@ const getAccounts = async (accountIds: string[]) => {
     if (!accounts[accountId].plebbitOptions) {
       accounts[accountId].plebbitOptions = getDefaultPlebbitOptions()
     }
+    accounts[accountId].plebbitOptions = {...accounts[accountId].plebbitOptions, ...overwritePlebbitOptions}
     accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
     // handle errors or error events are uncaught
     // no need to log them because plebbit-js already logs them
@@ -34,7 +35,7 @@ const getAccounts = async (accountIds: string[]) => {
   return accounts
 }
 
-const migrateAccount = (account) => {
+const migrateAccount = (account: any) => {
   // version 2
   if (!account.version) {
     account.version = 2

@@ -27,6 +27,12 @@ const chainProviders: ChainProviders = {
   },
 }
 
+// force using these options or can cause bugs
+export const overwritePlebbitOptions = {
+  resolveAuthorAddresses: false,
+  validatePages: false,
+}
+
 // default options aren't saved to database so they can be changed
 export const getDefaultPlebbitOptions = () => {
   // default plebbit options defined by the electron process
@@ -54,8 +60,7 @@ export const getDefaultPlebbitOptions = () => {
     pubsubKuboRpcClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.xyz/api/v0', 'https://rannithepleb.com/api/v0'],
     httpRoutersOptions: ['https://routing.lol', 'https://peers.pleb.bot', 'https://peers.plebpubsub.xyz', 'https://peers.forumindex.com'],
     chainProviders,
-    resolveAuthorAddresses: false,
-    validatePages: false,
+    ...overwritePlebbitOptions,
   }
 }
 
