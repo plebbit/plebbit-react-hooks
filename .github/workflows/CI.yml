@@ -51,7 +51,7 @@ jobs:
 
       - run: yarn test:server & yarn test:server:wait-on
       - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:mock
-      - run: DEBUG="plebbit-js:*" CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
+      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:browser
       # electron cannot run headless needs virtual display xvfb
       - run: DEBUG="plebbit-js:*" xvfb-run yarn test:e2e:electron
       - run: CHROME_BIN=$(which chrome) FIREFOX_BIN=$(which firefox) yarn test:e2e:mock-content
