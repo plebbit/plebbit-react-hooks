@@ -132,6 +132,7 @@ const getCommentFromDatabase = async (commentCid: string, account: Account) => {
   if (!commentData) {
     return
   }
+  delete commentData.clients // schema changed
   const comment = await account.plebbit.createComment(commentData)
   return comment
 }

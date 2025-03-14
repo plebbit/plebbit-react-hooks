@@ -56,7 +56,8 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
       const subplebbitData: any = await subplebbitsDatabase.getItem(subplebbitAddress)
       if (subplebbitData) {
         fetchedAt = subplebbitData.fetchedAt
-        delete subplebbitData.fetchedAt
+        delete subplebbitData.fetchedAt // not part of plebbit-js schema
+        delete subplebbitData.clients // schema changed
         subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
       }
       if (subplebbit) {
