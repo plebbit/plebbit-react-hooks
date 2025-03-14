@@ -273,7 +273,7 @@ export const getFeedsCommentsRepliesPagesFirstUpdatedAts = (feedsComments) => {
     var _a, _b, _c;
     let feedsCommentsRepliesPagesFirstUpdatedAts = '';
     for (const comment of feedsComments.values()) {
-        for (const page of Object.values(((_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) || {})) {
+        for (const page of Object.values(((_a = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _a === void 0 ? void 0 : _a.pages) || {})) {
             if ((_c = (_b = page === null || page === void 0 ? void 0 : page.comments) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.updatedAt) {
                 feedsCommentsRepliesPagesFirstUpdatedAts += page.comments[0].cid + page.comments[0].updatedAt;
             }

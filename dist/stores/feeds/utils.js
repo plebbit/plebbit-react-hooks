@@ -156,6 +156,45 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) =
     }
     return newBufferedFeeds;
 };
+export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds, loadedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    // contruct a list of posts already loaded to remove them from buffered feeds
+    const updatedFeedsPosts = {};
+    for (const feedName in updatedFeeds) {
+        updatedFeedsPosts[feedName] = {};
+        for (const [index, updatedPost] of updatedFeeds[feedName].entries()) {
+            updatedFeedsPosts[feedName][updatedPost.cid] = { index, updatedPost };
+        }
+    }
+    const newUpdatedFeeds = Object.assign({}, updatedFeeds);
+    for (const feedName in filteredSortedFeeds) {
+        const account = accounts[feedsOptions[feedName].accountId];
+        const updatedFeed = [...(updatedFeeds[feedName] || [])];
+        const onlyHasNewPosts = updatedFeed.length === 0;
+        let updatedFeedChanged = false;
+        // add new posts from loadedFeed posts
+        while (updatedFeed.length < loadedFeeds[feedName].length) {
+            updatedFeed[updatedFeed.length] = loadedFeeds[feedName][updatedFeed.length];
+            updatedFeedChanged = true;
+        }
+        // add updated post from filteredSortedFeed
+        if (!onlyHasNewPosts) {
+            for (const post of filteredSortedFeeds[feedName]) {
+                if ((_a = updatedFeedsPosts[feedName]) === null || _a === void 0 ? void 0 : _a[post.cid]) {
+                    const { index, updatedPost } = updatedFeedsPosts[feedName][post.cid];
+                    if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (yield postIsValid(post, account))) {
+                        updatedFeed[index] = post;
+                        updatedFeedChanged = true;
+                    }
+                }
+            }
+        }
+        if (updatedFeedChanged) {
+            newUpdatedFeeds[feedName] = updatedFeed;
+        }
+    }
+    return newUpdatedFeeds;
+});
 // find with subplebbits have posts newer (or ranked higher) than the loaded feeds
 // can be used to display "new posts in x, y, z subs" alert, like on twitter
 export const getFeedsSubplebbitAddressesWithNewerPosts = (filteredSortedFeeds, loadedFeeds, previousFeedsSubplebbitAddressesWithNewerPosts) => {
@@ -306,6 +345,19 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits) => {
         }
     }
     return [...feedsSubplebbitsFirstPageCids].sort();
+};
+// get all subplebbits posts pages first post updatedAts, use to check if a subplebbitsStore change should trigger updateFeeds
+export const getFeedsSubplebbitsPostsPagesFirstUpdatedAts = (feedsSubplebbits) => {
+    var _a, _b, _c;
+    let feedsSubplebbitsPostsPagesFirstUpdatedAts = '';
+    for (const subplebbit of feedsSubplebbits.values()) {
+        for (const page of Object.values(((_a = subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.posts) === null || _a === void 0 ? void 0 : _a.pages) || {})) {
+            if ((_c = (_b = page === null || page === void 0 ? void 0 : page.comments) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.updatedAt) {
+                feedsSubplebbitsPostsPagesFirstUpdatedAts += page.comments[0].cid + page.comments[0].updatedAt;
+            }
+        }
+    }
+    return feedsSubplebbitsPostsPagesFirstUpdatedAts;
 };
 // get number of feeds subplebbit that are loaded
 export const getFeedsSubplebbitsLoadedCount = (feedsSubplebbits) => {

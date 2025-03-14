@@ -5,6 +5,7 @@ import { Feeds, FeedsOptions, Subplebbit, Subplebbits, Accounts, SubplebbitsPage
 export declare const getFilteredSortedFeeds: (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => Feeds;
 export declare const getLoadedFeeds: (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
 export declare const getBufferedFeedsWithoutLoadedFeeds: (bufferedFeeds: Feeds, loadedFeeds: Feeds) => Feeds;
+export declare const getUpdatedFeeds: (feedsOptions: FeedsOptions, filteredSortedFeeds: Feeds, updatedFeeds: Feeds, loadedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
 export declare const getFeedsSubplebbitAddressesWithNewerPosts: (filteredSortedFeeds: Feeds, loadedFeeds: Feeds, previousFeedsSubplebbitAddressesWithNewerPosts: {
     [feedName: string]: string[];
 }) => {
@@ -20,6 +21,7 @@ export declare const getFeedsHaveMore: (feedsOptions: FeedsOptions, bufferedFeed
 export declare const getFeedsSubplebbits: (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => Map<string, Subplebbit>;
 export declare const feedsSubplebbitsChanged: (previousFeedsSubplebbits: Map<string, Subplebbit>, feedsSubplebbits: Map<string, Subplebbit>) => boolean;
 export declare const getFeedsSubplebbitsFirstPageCids: (feedsSubplebbits: Map<string, Subplebbit>) => string[];
+export declare const getFeedsSubplebbitsPostsPagesFirstUpdatedAts: (feedsSubplebbits: Map<string, Subplebbit>) => string;
 export declare const getFeedsSubplebbitsLoadedCount: (feedsSubplebbits: Map<string, Subplebbit>) => number;
 export declare const getAccountsBlockedAddresses: (accounts: Accounts) => string[];
 export declare const accountsBlockedAddressesChanged: (previousAccountsBlockedAddresses: {

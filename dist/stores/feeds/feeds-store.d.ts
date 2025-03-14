@@ -6,6 +6,7 @@ export type FeedsState = {
     feedsOptions: FeedsOptions;
     bufferedFeeds: Feeds;
     loadedFeeds: Feeds;
+    updatedFeeds: Feeds;
     bufferedFeedsSubplebbitsPostCounts: FeedsSubplebbitsPostCounts;
     feedsHaveMore: {
         [feedName: string]: boolean;

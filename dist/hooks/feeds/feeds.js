@@ -43,6 +43,7 @@ export function useFeed(options) {
         addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
     }, [feedName]);
     const feed = useFeedsStore((state) => state.loadedFeeds[feedName || '']);
+    const updatedFeed = useFeedsStore((state) => state.updatedFeeds[feedName || '']);
     let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || '']);
     // if the feed is not yet defined, then it has more
     if (!feedName || typeof hasMore !== 'boolean') {
@@ -92,6 +93,7 @@ export function useFeed(options) {
     const state = !hasMore ? 'succeeded' : 'fetching-ipns';
     return useMemo(() => ({
         feed: feed || [],
+        updatedFeed: updatedFeed || [],
         hasMore,
         subplebbitAddressesWithNewerPosts: subplebbitAddressesWithNewerPosts || [],
         loadMore,
@@ -99,7 +101,7 @@ export function useFeed(options) {
         state,
         error: errors[errors.length - 1],
         errors,
-    }), [feed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]);
+    }), [feed, updatedFeed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]);
 }
 /**
  * Use useBufferedFeeds to buffer multiple feeds in the background so what when

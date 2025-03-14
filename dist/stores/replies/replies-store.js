@@ -212,10 +212,10 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState) => {
         }
     }
 };
-let previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
 let previousFeedsCommentsFirstPageCids = [];
 let previousFeedsComments = new Map();
 let previousFeedsCommentsLoadedCount = 0;
+let previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
 const updateFeedsOnFeedsCommentsChange = (commentsStoreState) => {
     const { comments } = commentsStoreState;
     const { feedsOptions, updateFeeds } = repliesStore.getState();
@@ -256,6 +256,8 @@ export const resetRepliesStore = () => __awaiter(void 0, void 0, void 0, functio
     previousBufferedFeedsComments = new Map();
     previousFeedsCommentsFirstPageCids = [];
     previousFeedsComments = new Map();
+    previousFeedsCommentsLoadedCount = 0;
+    previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
     previousRepliesPages = {};
     updateFeedsPending = false;
     // remove all event listeners
