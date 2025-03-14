@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 const accountsDatabase = localForage.createInstance({ name: 'accounts' });
 const accountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' });
 import utils from '../../lib/utils';
-import { getDefaultPlebbitOptions } from './account-generator';
+import { getDefaultPlebbitOptions, overwritePlebbitOptions } from './account-generator';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:stores');
 const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,11 +28,12 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     const accountsArray = yield Promise.all(promises);
     for (const [i, accountId] of accountIds.entries()) {
         assert(accountsArray[i], `accountId '${accountId}' not found in database`);
-        accounts[accountId] = accountsArray[i];
+        accounts[accountId] = migrateAccount(accountsArray[i]);
         // plebbit options aren't saved to database if they are default
         if (!accounts[accountId].plebbitOptions) {
             accounts[accountId].plebbitOptions = getDefaultPlebbitOptions();
         }
+        accounts[accountId].plebbitOptions = Object.assign(Object.assign({}, accounts[accountId].plebbitOptions), overwritePlebbitOptions);
         accounts[accountId].plebbit = yield PlebbitJs.Plebbit(accounts[accountId].plebbitOptions);
         // handle errors or error events are uncaught
         // no need to log them because plebbit-js already logs them
@@ -40,6 +41,22 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     }
     return accounts;
 });
+const migrateAccount = (account) => {
+    var _a, _b;
+    // version 2
+    if (!account.version) {
+        account.version = 2;
+        if ((_a = account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsHttpClientsOptions) {
+            account.plebbitOptions.kuboRpcClientsOptions = account.plebbitOptions.ipfsHttpClientsOptions;
+            delete account.plebbitOptions.ipfsHttpClientsOptions;
+        }
+        if ((_b = account.plebbitOptions) === null || _b === void 0 ? void 0 : _b.pubsubHttpClientsOptions) {
+            account.plebbitOptions.pubsubKuboRpcClientsOptions = account.plebbitOptions.pubsubHttpClientsOptions;
+            delete account.plebbitOptions.pubsubHttpClientsOptions;
+        }
+    }
+    return account;
+};
 const getAccount = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
     const accounts = yield getAccounts([accountId]);
     return accounts[accountId];
@@ -95,6 +112,7 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     // make sure accountToPutInDatabase.plebbitOptions are valid
     if (accountToPutInDatabase.plebbitOptions) {
         const plebbit = yield PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions);
+        plebbit.on('error', () => { });
         (_c = (_a = plebbit.destroy) === null || _a === void 0 ? void 0 : (_b = _a.call(plebbit)).catch) === null || _c === void 0 ? void 0 : _c.call(_b, (error) => log('database.addAccount plebbit.destroy error', { error })); // make sure it's garbage collected
     }
     yield accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase);

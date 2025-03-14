@@ -134,6 +134,10 @@ const repliesPagesStore = createStore((setState, getState) => ({
 // set clients states on comments store so the frontend can display it, dont persist in db because a reload cancels updating
 const onCommentRepliesClientsStateChange = (commentCid) => (clientState, clientType, sortType, clientUrl) => {
     commentsStore.setState((state) => {
+        // make sure not undefined, sometimes happens in e2e tests
+        if (!state.comments[commentCid]) {
+            return {};
+        }
         const client = { state: clientState };
         const comment = Object.assign({}, state.comments[commentCid]);
         comment.replies = Object.assign({}, comment.replies);
@@ -151,9 +155,9 @@ const commentRepliesClientsOnStateChange = (clients, onStateChange) => {
             (_c = (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsGateways', sortType, clientUrl));
         }
     }
-    for (const sortType in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
-        for (const clientUrl in (_d = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _d === void 0 ? void 0 : _d[sortType]) {
-            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsClients', sortType, clientUrl));
+    for (const sortType in clients === null || clients === void 0 ? void 0 : clients.kuboRpcClients) {
+        for (const clientUrl in (_d = clients === null || clients === void 0 ? void 0 : clients.kuboRpcClients) === null || _d === void 0 ? void 0 : _d[sortType]) {
+            (_f = (_e = clients === null || clients === void 0 ? void 0 : clients.kuboRpcClients) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f[clientUrl].on('statechange', (state) => onStateChange(state, 'kuboRpcClients', sortType, clientUrl));
         }
     }
     for (const sortType in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {

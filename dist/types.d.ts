@@ -92,6 +92,10 @@ export interface UseRepliesResult extends Result {
     hasMore: boolean;
     loadMore(): Promise<void>;
 }
+export type UseRepliesOptionsAccountComments = {
+    newerThan?: number;
+    append?: boolean;
+};
 export interface UseEditedCommentOptions extends Options {
     comment?: Comment;
 }

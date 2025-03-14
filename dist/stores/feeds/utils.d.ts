@@ -1,4 +1,7 @@
 import { Feeds, FeedsOptions, Subplebbit, Subplebbits, Accounts, SubplebbitsPages, FeedsSubplebbitsPostCounts } from '../../types';
+/**
+ * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
+ */
 export declare const getFilteredSortedFeeds: (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => Feeds;
 export declare const getLoadedFeeds: (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
 export declare const getBufferedFeedsWithoutLoadedFeeds: (bufferedFeeds: Feeds, loadedFeeds: Feeds) => Feeds;

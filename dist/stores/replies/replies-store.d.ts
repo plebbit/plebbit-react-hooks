@@ -6,6 +6,7 @@ export type RepliesState = {
     feedsOptions: RepliesFeedsOptions;
     bufferedFeeds: Feeds;
     loadedFeeds: Feeds;
+    updatedFeeds: Feeds;
     bufferedFeedsReplyCounts: {
         [feedName: string]: number;
     };

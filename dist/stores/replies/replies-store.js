@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import commentsStore from '../comments';
 import repliesPagesStore from '../replies-pages';
-import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getFeedsReplyCounts, getFeedsHaveMore, feedsCommentsChanged, getFeedsComments, getFeedsCommentsLoadedCount, getFilteredSortedFeeds, getSortTypeFromComment, } from './utils';
+import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getUpdatedFeeds, getFeedsReplyCounts, getFeedsHaveMore, feedsCommentsChanged, getFeedsComments, getFeedsCommentsLoadedCount, getFeedsCommentsRepliesPagesFirstUpdatedAts, getFilteredSortedFeeds, getSortTypeFromComment, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const defaultRepliesPerPage = 25;
@@ -30,6 +30,7 @@ const repliesStore = createStore((setState, getState) => ({
     feedsOptions: {},
     bufferedFeeds: {},
     loadedFeeds: {},
+    updatedFeeds: {},
     bufferedFeedsReplyCounts: {},
     feedsHaveMore: {},
     addFeedToStore(feedName, commentCid, sortType, account, flat, accountComments, repliesPerPage, filter) {
@@ -103,9 +104,13 @@ const repliesStore = createStore((setState, getState) => ({
         assert(feedsOptions[feedName], `repliesStore.resetFeed feed name '${feedName}' does not exist in feeds store`);
         assert(feedsOptions[feedName].pageNumber >= 1, `repliesStore.resetFeed cannot reset feed page number '${feedsOptions[feedName].pageNumber}' lower than 1`);
         log('repliesStore.resetFeed', { feedName });
-        setState(({ feedsOptions, loadedFeeds }) => {
+        setState(({ feedsOptions, loadedFeeds, updatedFeeds }) => {
             const feedOptions = Object.assign(Object.assign({}, feedsOptions[feedName]), { pageNumber: 1 });
-            return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }), loadedFeeds: Object.assign(Object.assign({}, loadedFeeds), { [feedName]: [] }) };
+            return {
+                feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }),
+                loadedFeeds: Object.assign(Object.assign({}, loadedFeeds), { [feedName]: [] }),
+                updatedFeeds: Object.assign(Object.assign({}, updatedFeeds), { [feedName]: [] }),
+            };
         });
         updateFeeds();
     },
@@ -134,13 +139,15 @@ const repliesStore = createStore((setState, getState) => ({
             const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithoutPreviousLoadedFeeds, loadedFeeds);
             const bufferedFeedsReplyCounts = getFeedsReplyCounts(feedsOptions, bufferedFeeds);
             const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, comments, repliesPages, accounts);
+            const updatedFeeds = yield getUpdatedFeeds(feedsOptions, filteredSortedFeeds, previousState.updatedFeeds, loadedFeeds, accounts);
             // set new feeds
-            setState((state) => ({ bufferedFeeds, loadedFeeds, bufferedFeedsReplyCounts, feedsHaveMore }));
+            setState((state) => ({ bufferedFeeds, loadedFeeds, bufferedFeedsReplyCounts, updatedFeeds, feedsHaveMore }));
             log.trace('repliesStore.updateFeeds', {
                 feedsOptions,
                 bufferedFeeds,
                 loadedFeeds,
                 bufferedFeedsReplyCounts,
+                updatedFeeds,
                 feedsHaveMore,
                 comments,
                 repliesPages,
@@ -205,6 +212,7 @@ const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState) => {
         }
     }
 };
+let previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
 let previousFeedsCommentsFirstPageCids = [];
 let previousFeedsComments = new Map();
 let previousFeedsCommentsLoadedCount = 0;
@@ -226,7 +234,12 @@ const updateFeedsOnFeedsCommentsChange = (commentsStoreState) => {
         // in case a comment loads with no first page cid and first pages cids don't change, need to trigger hasMore update
         const feedsCommentsLoadedCount = getFeedsCommentsLoadedCount(feedsComments);
         if (feedsCommentsLoadedCount === previousFeedsCommentsLoadedCount) {
-            return;
+            // if comment.replies.pages haven't changed, do nothing
+            const feedsCommentsRepliesPagesFirstUpdatedAts = getFeedsCommentsRepliesPagesFirstUpdatedAts(feedsComments);
+            if (feedsCommentsRepliesPagesFirstUpdatedAts === previousFeedsCommentsRepliesPagesFirstUpdatedAts) {
+                return;
+            }
+            previousFeedsCommentsRepliesPagesFirstUpdatedAts = feedsCommentsRepliesPagesFirstUpdatedAts;
         }
         previousFeedsCommentsLoadedCount = feedsCommentsLoadedCount;
     }

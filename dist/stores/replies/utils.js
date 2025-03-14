@@ -15,7 +15,6 @@ const log = Logger('plebbit-react-hooks:replies:stores');
 /**
  * Calculate the feeds from all the loaded replies pages, filter and sort them
  */
-const validReplies = {};
 export const getFilteredSortedFeeds = (feedsOptions, comments, repliesPages, accounts) => {
     var _a, _b, _c;
     // calculate each feed
@@ -98,7 +97,7 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
     return Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds);
 });
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) => {
-    var _a;
+    var _a, _b, _c, _d, _e;
     // contruct a list of replies already loaded to remove them from buffered feeds
     const loadedFeedsReplies = {};
     for (const feedName in loadedFeeds) {
@@ -110,24 +109,70 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) =
     const newBufferedFeeds = {};
     for (const feedName in bufferedFeeds) {
         newBufferedFeeds[feedName] = [];
-        for (const reply of bufferedFeeds[feedName]) {
+        let bufferedFeedReplyChanged = false;
+        for (const [i, reply] of bufferedFeeds[feedName].entries()) {
             if ((_a = loadedFeedsReplies[feedName]) === null || _a === void 0 ? void 0 : _a.has(reply.cid)) {
                 continue;
             }
             newBufferedFeeds[feedName].push(reply);
+            if (!bufferedFeedReplyChanged &&
+                (((_b = newBufferedFeeds[feedName][i]) === null || _b === void 0 ? void 0 : _b.cid) !== ((_c = bufferedFeeds[feedName][i]) === null || _c === void 0 ? void 0 : _c.cid) ||
+                    (((_d = newBufferedFeeds[feedName][i]) === null || _d === void 0 ? void 0 : _d.updatedAt) || 0) > (((_e = bufferedFeeds[feedName][i]) === null || _e === void 0 ? void 0 : _e.updatedAt) || 0))) {
+                bufferedFeedReplyChanged = true;
+            }
+        }
+        if (!bufferedFeedReplyChanged && newBufferedFeeds[feedName].length === bufferedFeeds[feedName].length) {
+            newBufferedFeeds[feedName] = bufferedFeeds[feedName];
         }
     }
     return newBufferedFeeds;
 };
-// find how many replies are left in each comments in a buffereds feeds
+export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds, loadedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    // contruct a list of replies already loaded to remove them from buffered feeds
+    const updatedFeedsReplies = {};
+    for (const feedName in updatedFeeds) {
+        updatedFeedsReplies[feedName] = {};
+        for (const [index, updatedReply] of updatedFeeds[feedName].entries()) {
+            updatedFeedsReplies[feedName][updatedReply.cid] = { index, updatedReply };
+        }
+    }
+    const newUpdatedFeeds = Object.assign({}, updatedFeeds);
+    for (const feedName in filteredSortedFeeds) {
+        const account = accounts[feedsOptions[feedName].accountId];
+        const updatedFeed = [...(updatedFeeds[feedName] || [])];
+        const onlyHasNewReplies = updatedFeed.length === 0;
+        let updatedFeedChanged = false;
+        // add new replies from loadedFeed replies
+        while (updatedFeed.length < loadedFeeds[feedName].length) {
+            updatedFeed[updatedFeed.length] = loadedFeeds[feedName][updatedFeed.length];
+            updatedFeedChanged = true;
+        }
+        // add updated replies from filteredSortedFeed
+        if (!onlyHasNewReplies) {
+            for (const reply of filteredSortedFeeds[feedName]) {
+                if ((_a = updatedFeedsReplies[feedName]) === null || _a === void 0 ? void 0 : _a[reply.cid]) {
+                    const { index, updatedReply } = updatedFeedsReplies[feedName][reply.cid];
+                    if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (yield replyIsValid(reply, account))) {
+                        updatedFeed[index] = reply;
+                        updatedFeedChanged = true;
+                    }
+                }
+            }
+        }
+        if (updatedFeedChanged) {
+            newUpdatedFeeds[feedName] = updatedFeed;
+        }
+    }
+    return newUpdatedFeeds;
+});
+// find how many replies are in each comments in a buffereds feeds
+// NOTE: not useful, could use feed.length, copied over from useFeed and easier to keep it
 export const getFeedsReplyCounts = (feedsOptions, feeds) => {
+    var _a;
     const feedsReplyCounts = {};
     for (const feedName in feedsOptions) {
-        const commentCid = feedsOptions[feedName].commentCid;
-        feedsReplyCounts[feedName] = 0;
-        for (const comment of feeds[feedName] || []) {
-            feedsReplyCounts[feedName]++;
-        }
+        feedsReplyCounts[feedName] = ((_a = feeds[feedName]) === null || _a === void 0 ? void 0 : _a.length) || 0;
     }
     return feedsReplyCounts;
 };
@@ -157,6 +202,7 @@ export const getFeedsHaveMore = (feedsOptions, bufferedFeeds, comments, repliesP
         // should we try to use another sort type by default, like 'best', or should we just ignore it?
         // 'continue' to ignore it for now
         if (!firstPageCid) {
+            feedsHaveMore[feedName] = false;
             continue;
         }
         const pages = getRepliesPages(comment, sortType, repliesPages);
@@ -222,6 +268,19 @@ export const getFeedsCommentsFirstPageCids = (feedsComments) => {
     }
     return [...feedsCommentsFirstPageCids].sort();
 };
+// get all comments replies pages first reply updatedAts, use to check if a commentsStore change should trigger updateFeeds
+export const getFeedsCommentsRepliesPagesFirstUpdatedAts = (feedsComments) => {
+    var _a, _b, _c;
+    let feedsCommentsRepliesPagesFirstUpdatedAts = '';
+    for (const comment of feedsComments.values()) {
+        for (const page of Object.values(((_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) || {})) {
+            if ((_c = (_b = page === null || page === void 0 ? void 0 : page.comments) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.updatedAt) {
+                feedsCommentsRepliesPagesFirstUpdatedAts += page.comments[0].cid + page.comments[0].updatedAt;
+            }
+        }
+    }
+    return feedsCommentsRepliesPagesFirstUpdatedAts;
+};
 // get number of feeds comments that are loaded
 export const getFeedsCommentsLoadedCount = (feedsComments) => {
     let count = 0;
@@ -236,11 +295,14 @@ export const getFeedsCommentsLoadedCount = (feedsComments) => {
 export const getSortTypeFromComment = (comment, feedOptions) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15;
     let { sortType, flat } = feedOptions;
-    // 'top' and 'best' are similar enough to be used interchangeably
-    if (sortType === 'best' && !((_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b.best) && !((_d = (_c = comment.replies) === null || _c === void 0 ? void 0 : _c.pageCids) === null || _d === void 0 ? void 0 : _d.best) && (((_f = (_e = comment.replies) === null || _e === void 0 ? void 0 : _e.pages) === null || _f === void 0 ? void 0 : _f.top) || ((_h = (_g = comment.replies) === null || _g === void 0 ? void 0 : _g.pageCids) === null || _h === void 0 ? void 0 : _h.top))) {
-        sortType = 'top';
+    // 'topAll' and 'best' are similar enough to be used interchangeably
+    if (sortType === 'best' && !((_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b.best) && !((_d = (_c = comment.replies) === null || _c === void 0 ? void 0 : _c.pageCids) === null || _d === void 0 ? void 0 : _d.best) && (((_f = (_e = comment.replies) === null || _e === void 0 ? void 0 : _e.pages) === null || _f === void 0 ? void 0 : _f.topAll) || ((_h = (_g = comment.replies) === null || _g === void 0 ? void 0 : _g.pageCids) === null || _h === void 0 ? void 0 : _h.topAll))) {
+        sortType = 'topAll';
     }
-    else if (sortType === 'top' && !((_k = (_j = comment.replies) === null || _j === void 0 ? void 0 : _j.pages) === null || _k === void 0 ? void 0 : _k.top) && !((_m = (_l = comment.replies) === null || _l === void 0 ? void 0 : _l.pageCids) === null || _m === void 0 ? void 0 : _m.top) && (((_p = (_o = comment.replies) === null || _o === void 0 ? void 0 : _o.pages) === null || _p === void 0 ? void 0 : _p.best) || ((_r = (_q = comment.replies) === null || _q === void 0 ? void 0 : _q.pageCids) === null || _r === void 0 ? void 0 : _r.best))) {
+    else if (sortType === 'topAll' &&
+        !((_k = (_j = comment.replies) === null || _j === void 0 ? void 0 : _j.pages) === null || _k === void 0 ? void 0 : _k.topAll) &&
+        !((_m = (_l = comment.replies) === null || _l === void 0 ? void 0 : _l.pageCids) === null || _m === void 0 ? void 0 : _m.topAll) &&
+        (((_p = (_o = comment.replies) === null || _o === void 0 ? void 0 : _o.pages) === null || _p === void 0 ? void 0 : _p.best) || ((_r = (_q = comment.replies) === null || _q === void 0 ? void 0 : _q.pageCids) === null || _r === void 0 ? void 0 : _r.best))) {
         sortType = 'best';
     }
     // if 'new' sort type and flat: true, use 'newFlat'

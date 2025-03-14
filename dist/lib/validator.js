@@ -209,7 +209,7 @@ export const validateUseBufferedFeedsArguments = (feedsOptions, accountName) => 
         assert(typeof accountName === 'string', `useBufferedFeeds accountName argument '${accountName}' not a string`);
     }
 };
-const repliesSortTypes = new Set(['best', 'top', 'new', 'newFlat', 'old', 'oldFlat']);
+const repliesSortTypes = new Set(['best', 'topHour', 'topDay', 'topWeek', 'topMonth', 'topYear', 'topAll', 'new', 'newFlat', 'old', 'oldFlat']);
 export const validateRepliesSortType = (sortType) => {
     assert(repliesSortTypes.has(sortType), `invalid replies sort type '${sortType}'`);
 };

@@ -802,7 +802,6 @@ class Pages {
     }
     getPage(pageCid) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('getPage', this, this.subplebbit, this.comment);
             // need to wait twice otherwise react renders too fast and fetches too many pages in advance
             yield simulateLoadingTime();
             return getCommentsPage(pageCid, this.subplebbit || this.comment);

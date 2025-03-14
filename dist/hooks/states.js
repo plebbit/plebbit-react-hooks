@@ -44,11 +44,11 @@ export function useClientsStates(options) {
             for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
                 addState((_a = clients.ipfsGateways[clientUrl]) === null || _a === void 0 ? void 0 : _a.state, clientUrl);
             }
-            for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
-                addState((_b = clients.ipfsClients[clientUrl]) === null || _b === void 0 ? void 0 : _b.state, clientUrl);
+            for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.kuboRpcClients) {
+                addState((_b = clients.kuboRpcClients[clientUrl]) === null || _b === void 0 ? void 0 : _b.state, clientUrl);
             }
-            for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.pubsubClients) {
-                addState((_c = clients.pubsubClients[clientUrl]) === null || _c === void 0 ? void 0 : _c.state, clientUrl);
+            for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.pubsubKuboRpcClients) {
+                addState((_c = clients.pubsubKuboRpcClients[clientUrl]) === null || _c === void 0 ? void 0 : _c.state, clientUrl);
             }
             for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
                 addState((_d = clients.plebbitRpcClients[clientUrl]) === null || _d === void 0 ? void 0 : _d.state, clientUrl);

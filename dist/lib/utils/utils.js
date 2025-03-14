@@ -188,11 +188,11 @@ export const clientsOnStateChange = (clients, onStateChange) => {
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
         (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsGateways', clientUrl));
     }
-    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsClients) {
-        (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsClients) === null || _b === void 0 ? void 0 : _b[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsClients', clientUrl));
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.kuboRpcClients) {
+        (_b = clients === null || clients === void 0 ? void 0 : clients.kuboRpcClients) === null || _b === void 0 ? void 0 : _b[clientUrl].on('statechange', (state) => onStateChange(state, 'kuboRpcClients', clientUrl));
     }
-    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.pubsubClients) {
-        (_c = clients === null || clients === void 0 ? void 0 : clients.pubsubClients) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', (state) => onStateChange(state, 'pubsubClients', clientUrl));
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.pubsubKuboRpcClients) {
+        (_c = clients === null || clients === void 0 ? void 0 : clients.pubsubKuboRpcClients) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', (state) => onStateChange(state, 'pubsubKuboRpcClients', clientUrl));
     }
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
         (_d = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _d === void 0 ? void 0 : _d[clientUrl].on('statechange', (state) => onStateChange(state, 'plebbitRpcClients', clientUrl));

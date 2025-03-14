@@ -14,6 +14,7 @@ const log = Logger('plebbit-react-hooks:comments:stores');
 import utils from '../../lib/utils';
 import createStore from 'zustand';
 import accountsStore from '../accounts';
+import repliesPagesStore from '../replies-pages';
 let plebbitGetCommentPending = {};
 // reset all event listeners in between tests
 export const listeners = [];
@@ -31,6 +32,10 @@ const commentsStore = createStore((setState, getState) => ({
             plebbitGetCommentPending[commentCid + account.id] = true;
             // try to find comment in database
             comment = yield getCommentFromDatabase(commentCid, account);
+            if (comment) {
+                // add comment replies pages to repliesPagesStore so they can be used in useComment
+                repliesPagesStore.getState().addRepliesPageCommentsToStore(comment);
+            }
             // comment not in database, fetch from plebbit-js
             try {
                 if (!comment) {
@@ -57,6 +62,8 @@ const commentsStore = createStore((setState, getState) => ({
                 yield commentsDatabase.setItem(commentCid, updatedComment);
                 log('commentsStore comment update', { commentCid, updatedComment, account });
                 setState((state) => ({ comments: Object.assign(Object.assign({}, state.comments), { [commentCid]: updatedComment }) }));
+                // add comment replies pages to repliesPagesStore so they can be used in useComment
+                repliesPagesStore.getState().addRepliesPageCommentsToStore(comment);
             }));
             comment === null || comment === void 0 ? void 0 : comment.on('updatingstatechange', (updatingState) => {
                 setState((state) => ({
@@ -74,6 +81,10 @@ const commentsStore = createStore((setState, getState) => ({
             utils.clientsOnStateChange(comment === null || comment === void 0 ? void 0 : comment.clients, (clientState, clientType, clientUrl, chainTicker) => {
                 setState((state) => {
                     var _a;
+                    // make sure not undefined, sometimes happens in e2e tests
+                    if (!state.comments[commentCid]) {
+                        return {};
+                    }
                     const clients = Object.assign({}, (_a = state.comments[commentCid]) === null || _a === void 0 ? void 0 : _a.clients);
                     const client = { state: clientState };
                     if (chainTicker) {

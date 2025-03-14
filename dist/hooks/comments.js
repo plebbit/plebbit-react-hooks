@@ -17,6 +17,7 @@ import useCommentsStore from '../stores/comments';
 import useAccountsStore from '../stores/accounts';
 import useRepliesStore from '../stores/replies';
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages';
+import useRepliesPagesStore from '../stores/replies-pages';
 import shallow from 'zustand/shallow';
 /**
  * @param commentCid - The IPFS CID of the comment to get
@@ -30,6 +31,7 @@ export function useComment(options) {
     const commentFromStore = useCommentsStore((state) => state.comments[commentCid || '']);
     const addCommentToStore = useCommentsStore((state) => state.addCommentToStore);
     const subplebbitsPagesComment = useSubplebbitsPagesStore((state) => state.comments[commentCid || '']);
+    const repliesPagesComment = useRepliesPagesStore((state) => state.comments[commentCid || '']);
     const errors = useCommentsStore((state) => state.errors[commentCid || '']);
     // get account comment of the cid if any
     const accountCommentInfo = useAccountsStore((state) => state.commentCidsToAccountsComments[commentCid || '']);
@@ -48,6 +50,12 @@ export function useComment(options) {
     // if comment from subplebbit pages is more recent, use it instead
     if (commentCid && ((subplebbitsPagesComment === null || subplebbitsPagesComment === void 0 ? void 0 : subplebbitsPagesComment.updatedAt) || 0) > ((comment === null || comment === void 0 ? void 0 : comment.updatedAt) || 0)) {
         comment = subplebbitsPagesComment;
+        // TODO: subplebbit pages comments aren't auto validated, need to validate
+    }
+    // if comment from replies pages is more recent, use it instead
+    if (commentCid && ((repliesPagesComment === null || repliesPagesComment === void 0 ? void 0 : repliesPagesComment.updatedAt) || 0) > ((comment === null || comment === void 0 ? void 0 : comment.updatedAt) || 0)) {
+        comment = repliesPagesComment;
+        // TODO: replies pages comments aren't auto validated, need to validate
     }
     // if comment is still not defined, but account comment is, use account comment
     // check `comment.timestamp` instead of `comment` in case comment exists but in a loading state
@@ -80,6 +88,7 @@ export function useComment(options) {
             state,
             commentFromStore,
             subplebbitsPagesComment,
+            repliesPagesComment,
             accountComment,
             commentsStore: useCommentsStore.getState().comments,
             account,
@@ -164,6 +173,8 @@ export function useReplies(options) {
         addFeedToStore(repliesFeedName, commentCid, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error) => log.error('useReplies addFeedToStore error', { repliesFeedName, error }));
     }, [repliesFeedName]);
     const replies = useRepliesStore((state) => state.loadedFeeds[repliesFeedName || '']);
+    const bufferedReplies = useRepliesStore((state) => state.bufferedFeeds[repliesFeedName || '']);
+    const updatedReplies = useRepliesStore((state) => state.updatedFeeds[repliesFeedName || '']);
     let hasMore = useRepliesStore((state) => state.feedsHaveMore[repliesFeedName || '']);
     // if the replies is not yet defined, then it has more
     if (!repliesFeedName || typeof hasMore !== 'boolean') {
@@ -213,13 +224,15 @@ export function useReplies(options) {
     const state = !hasMore ? 'succeeded' : 'fetching';
     return useMemo(() => ({
         replies: replies || [],
+        bufferedReplies: bufferedReplies || [],
+        updatedReplies: updatedReplies || [],
         hasMore,
         loadMore,
         reset,
         state,
         error: errors[errors.length - 1],
         errors,
-    }), [replies, repliesFeedName, hasMore, errors]);
+    }), [replies, bufferedReplies, updatedReplies, repliesFeedName, hasMore, errors]);
 }
 function useRepliesFeedName(accountId, commentCid, sortType, flat, accountComments, repliesPerPage, filter) {
     return useMemo(() => {

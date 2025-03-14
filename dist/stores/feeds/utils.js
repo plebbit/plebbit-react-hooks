@@ -15,7 +15,6 @@ const log = Logger('plebbit-react-hooks:feeds:stores');
 /**
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
-const validPosts = {};
 export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPages, accounts) => {
     var _a, _b, _c, _d, _e, _f, _g;
     // calculate each feed
@@ -127,7 +126,7 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
     return Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds);
 });
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) => {
-    var _a;
+    var _a, _b, _c, _d, _e;
     // contruct a list of posts already loaded to remove them from buffered feeds
     const loadedFeedsPosts = {};
     for (const feedName in loadedFeeds) {
@@ -139,11 +138,20 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) =
     const newBufferedFeeds = {};
     for (const feedName in bufferedFeeds) {
         newBufferedFeeds[feedName] = [];
-        for (const post of bufferedFeeds[feedName]) {
+        let bufferedFeedPostChanged = false;
+        for (const [i, post] of bufferedFeeds[feedName].entries()) {
             if ((_a = loadedFeedsPosts[feedName]) === null || _a === void 0 ? void 0 : _a.has(post.cid)) {
                 continue;
             }
             newBufferedFeeds[feedName].push(post);
+            if (!bufferedFeedPostChanged &&
+                (((_b = newBufferedFeeds[feedName][i]) === null || _b === void 0 ? void 0 : _b.cid) !== ((_c = bufferedFeeds[feedName][i]) === null || _c === void 0 ? void 0 : _c.cid) ||
+                    (((_d = newBufferedFeeds[feedName][i]) === null || _d === void 0 ? void 0 : _d.updatedAt) || 0) > (((_e = bufferedFeeds[feedName][i]) === null || _e === void 0 ? void 0 : _e.updatedAt) || 0))) {
+                bufferedFeedPostChanged = true;
+            }
+        }
+        if (!bufferedFeedPostChanged && newBufferedFeeds[feedName].length === bufferedFeeds[feedName].length) {
+            newBufferedFeeds[feedName] = bufferedFeeds[feedName];
         }
     }
     return newBufferedFeeds;

@@ -33,6 +33,11 @@ const chainProviders = {
         chainId: 1,
     },
 };
+// force using these options or can cause bugs
+export const overwritePlebbitOptions = {
+    resolveAuthorAddresses: false,
+    validatePages: false,
+};
 // default options aren't saved to database so they can be changed
 export const getDefaultPlebbitOptions = () => {
     // default plebbit options defined by the electron process
@@ -53,15 +58,7 @@ export const getDefaultPlebbitOptions = () => {
         return defaultPlebbitOptions;
     }
     // default plebbit options for web client
-    return {
-        ipfsGatewayUrls: ['https://ipfsgateway.xyz', 'https://gateway.plebpubsub.xyz', 'https://gateway.forumindex.com'],
-        kuboRpcClientsOptions: undefined,
-        pubsubKuboRpcClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.xyz/api/v0', 'https://rannithepleb.com/api/v0'],
-        httpRoutersOptions: ['https://routing.lol', 'https://peers.pleb.bot', 'https://peers.plebpubsub.xyz', 'https://peers.forumindex.com'],
-        chainProviders,
-        resolveAuthorAddresses: false,
-        validatePages: false,
-    };
+    return Object.assign({ ipfsGatewayUrls: ['https://ipfsgateway.xyz', 'https://gateway.plebpubsub.xyz', 'https://gateway.forumindex.com'], kuboRpcClientsOptions: undefined, pubsubKuboRpcClientsOptions: ['https://pubsubprovider.xyz/api/v0', 'https://plebpubsub.xyz/api/v0', 'https://rannithepleb.com/api/v0'], httpRoutersOptions: ['https://routing.lol', 'https://peers.pleb.bot', 'https://peers.plebpubsub.xyz', 'https://peers.forumindex.com'], chainProviders }, overwritePlebbitOptions);
 };
 // the gateway to use in <img src> for nft avatars
 // @ts-ignore
@@ -81,6 +78,7 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
     const subplebbits = {};
     const account = {
         id: uuid(),
+        version: 2,
         name: accountName,
         author,
         signer,

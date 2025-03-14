@@ -14,8 +14,8 @@ const log = Logger('plebbit-react-hooks:authors:hooks');
 import assert from 'assert';
 import { ethers } from 'ethers';
 import { getNftMetadataUrl, getNftImageUrl, getNftOwner } from '../../lib/chain';
-import { defaultMediaIpfsGatewayUrl } from '../../stores/accounts/account-generator';
 import createStore from 'zustand';
+const noMediaIpfsGatewayUrl = 'http://no-media-ipfs-gateway-url';
 /**
  * @param nft - The NFT object to resolve the URL of.
  * @param acountName - The nickname of the account, e.g. 'Account 1'. If no accountName is provided, use
@@ -26,7 +26,7 @@ export function useNftMetadataUrl(nft, accountName) {
     var _a, _b, _c, _d;
     const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
-    const ipfsGatewayUrl = (account === null || account === void 0 ? void 0 : account.mediaIpfsGatewayUrl) || defaultMediaIpfsGatewayUrl;
+    const ipfsGatewayUrl = (account === null || account === void 0 ? void 0 : account.mediaIpfsGatewayUrl) || noMediaIpfsGatewayUrl;
     const chainProviders = (_a = account === null || account === void 0 ? void 0 : account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.chainProviders;
     const [nftMetadataUrl, setNftMetadataUrl] = useState();
     const [error, setError] = useState();
@@ -70,7 +70,7 @@ export function useNftImageUrl(nftMetadataUrl, accountName) {
     assert(!nftMetadataUrl || typeof nftMetadataUrl === 'string', `useNftImageUrl invalid argument nftMetadataUrl '${nftMetadataUrl}' not a string`);
     const account = useAccount({ accountName });
     // possible to use account.plebbit instead of account.plebbitOptions
-    const ipfsGatewayUrl = (account === null || account === void 0 ? void 0 : account.mediaIpfsGatewayUrl) || defaultMediaIpfsGatewayUrl;
+    const ipfsGatewayUrl = (account === null || account === void 0 ? void 0 : account.mediaIpfsGatewayUrl) || noMediaIpfsGatewayUrl;
     const [imageUrl, setImageUrl] = useState();
     const [error, setError] = useState();
     useEffect(() => {
