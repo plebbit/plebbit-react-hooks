@@ -9,6 +9,8 @@ import feedsStore, {defaultPostsPerPage as postsPerPage} from '../../stores/feed
 import subplebbitsStore from '../../stores/subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
 
+const plebbitJsMockSubplebbitPageLength = 100
+
 describe('feeds', () => {
   beforeAll(async () => {
     // set plebbit-js mock and reset dbs
@@ -77,6 +79,7 @@ describe('feeds', () => {
       // with low upvote count first
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 100')
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.bufferedFeed.length).toBe(plebbitJsMockSubplebbitPageLength - postsPerPage)
 
       // reset stores to force using the db
       await testUtils.resetStores()
