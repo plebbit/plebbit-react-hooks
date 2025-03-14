@@ -118,6 +118,7 @@ const getCommentFromDatabase = (commentCid, account) => __awaiter(void 0, void 0
     if (!commentData) {
         return;
     }
+    delete commentData.clients; // schema changed
     const comment = yield account.plebbit.createComment(commentData);
     return comment;
 });
