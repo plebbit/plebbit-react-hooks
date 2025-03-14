@@ -183,6 +183,49 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
   return newBufferedFeeds
 }
 
+export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSortedFeeds: Feeds, updatedFeeds: Feeds, loadedFeeds: Feeds, accounts: Accounts) => {
+  // contruct a list of posts already loaded to remove them from buffered feeds
+  const updatedFeedsPosts: {[feedName: string]: {[postCid: string]: any}} = {}
+  for (const feedName in updatedFeeds) {
+    updatedFeedsPosts[feedName] = {}
+    for (const [index, updatedPost] of updatedFeeds[feedName].entries()) {
+      updatedFeedsPosts[feedName][updatedPost.cid] = {index, updatedPost}
+    }
+  }
+
+  const newUpdatedFeeds: Feeds = {...updatedFeeds}
+  for (const feedName in filteredSortedFeeds) {
+    const account = accounts[feedsOptions[feedName].accountId]
+    const updatedFeed = [...(updatedFeeds[feedName] || [])]
+    const onlyHasNewPosts = updatedFeed.length === 0
+    let updatedFeedChanged = false
+
+    // add new posts from loadedFeed posts
+    while (updatedFeed.length < loadedFeeds[feedName].length) {
+      updatedFeed[updatedFeed.length] = loadedFeeds[feedName][updatedFeed.length]
+      updatedFeedChanged = true
+    }
+
+    // add updated post from filteredSortedFeed
+    if (!onlyHasNewPosts) {
+      for (const post of filteredSortedFeeds[feedName]) {
+        if (updatedFeedsPosts[feedName]?.[post.cid]) {
+          const {index, updatedPost} = updatedFeedsPosts[feedName][post.cid]
+          if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await postIsValid(post, account))) {
+            updatedFeed[index] = post
+            updatedFeedChanged = true
+          }
+        }
+      }
+    }
+
+    if (updatedFeedChanged) {
+      newUpdatedFeeds[feedName] = updatedFeed
+    }
+  }
+  return newUpdatedFeeds
+}
+
 // find with subplebbits have posts newer (or ranked higher) than the loaded feeds
 // can be used to display "new posts in x, y, z subs" alert, like on twitter
 export const getFeedsSubplebbitAddressesWithNewerPosts = (
@@ -352,6 +395,19 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
   }
 
   return [...feedsSubplebbitsFirstPageCids].sort()
+}
+
+// get all subplebbits posts pages first post updatedAts, use to check if a subplebbitsStore change should trigger updateFeeds
+export const getFeedsSubplebbitsPostsPagesFirstUpdatedAts = (feedsSubplebbits: Map<string, Subplebbit>): string => {
+  let feedsSubplebbitsPostsPagesFirstUpdatedAts = ''
+  for (const subplebbit of feedsSubplebbits.values()) {
+    for (const page of Object.values<SubplebbitPage>(subplebbit?.posts?.pages || {})) {
+      if (page?.comments?.[0]?.updatedAt) {
+        feedsSubplebbitsPostsPagesFirstUpdatedAts += page.comments[0].cid + page.comments[0].updatedAt
+      }
+    }
+  }
+  return feedsSubplebbitsPostsPagesFirstUpdatedAts
 }
 
 // get number of feeds subplebbit that are loaded

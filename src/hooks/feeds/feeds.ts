@@ -41,6 +41,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   }, [feedName])
 
   const feed = useFeedsStore((state) => state.loadedFeeds[feedName || ''])
+  const updatedFeed = useFeedsStore((state) => state.updatedFeeds[feedName || ''])
   let hasMore = useFeedsStore((state) => state.feedsHaveMore[feedName || ''])
   // if the feed is not yet defined, then it has more
   if (!feedName || typeof hasMore !== 'boolean') {
@@ -94,6 +95,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   return useMemo(
     () => ({
       feed: feed || [],
+      updatedFeed: updatedFeed || [],
       hasMore,
       subplebbitAddressesWithNewerPosts: subplebbitAddressesWithNewerPosts || [],
       loadMore,
@@ -102,7 +104,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       error: errors[errors.length - 1],
       errors,
     }),
-    [feed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]
+    [feed, updatedFeed, feedName, hasMore, errors, subplebbitAddressesWithNewerPosts]
   )
 }
 

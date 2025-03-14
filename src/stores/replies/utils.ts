@@ -300,7 +300,7 @@ export const getFeedsCommentsFirstPageCids = (feedsComments: Map<string, Comment
 export const getFeedsCommentsRepliesPagesFirstUpdatedAts = (feedsComments: Map<string, Comment>): string => {
   let feedsCommentsRepliesPagesFirstUpdatedAts = ''
   for (const comment of feedsComments.values()) {
-    for (const page of Object.values<RepliesPage>(comment.replies?.pages || {})) {
+    for (const page of Object.values<RepliesPage>(comment?.replies?.pages || {})) {
       if (page?.comments?.[0]?.updatedAt) {
         feedsCommentsRepliesPagesFirstUpdatedAts += page.comments[0].cid + page.comments[0].updatedAt
       }

@@ -106,6 +106,7 @@ describe('feeds store', () => {
     expect(rendered.result.current.bufferedFeeds).toEqual({})
     expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts).toEqual({})
     expect(rendered.result.current.loadedFeeds).toEqual({})
+    expect(rendered.result.current.updatedFeeds).toEqual({})
     expect(typeof rendered.result.current.addFeedToStore).toBe('function')
     expect(typeof rendered.result.current.incrementFeedPageNumber).toBe('function')
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
@@ -133,6 +134,7 @@ describe('feeds store', () => {
     // feeds become defined
     expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
     expect(rendered.result.current.loadedFeeds[feedName]).not.toBe(undefined)
+    expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
     expect(rendered.result.current.bufferedFeedsSubplebbitsPostCounts[feedName]).not.toBe(undefined)
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
     // subplebbits pages fetch 1 page
@@ -143,6 +145,7 @@ describe('feeds store', () => {
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
     // loaded feed has 1 page
     expect(rendered.result.current.loadedFeeds[feedName].length).toBe(postsPerPage)
+    expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
 
     // increment page
     act(() => {

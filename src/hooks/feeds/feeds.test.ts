@@ -6,6 +6,7 @@ import * as accountsActions from '../../stores/accounts/accounts-actions'
 import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 import feedsStore, {defaultPostsPerPage as postsPerPage} from '../../stores/feeds'
+import subplebbitsStore from '../../stores/subplebbits'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
 
 describe('feeds', () => {
@@ -356,6 +357,7 @@ describe('feeds', () => {
         })
         await waitFor(() => rendered.result.current.feed?.length >= postsPerPage * currentPage)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * currentPage)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
       }
     })
 
@@ -475,6 +477,8 @@ describe('feeds', () => {
       await waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
 
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
+      console.log(rendered.result.current.feed)
       expect(rendered.result.current.feed[0].timestamp).toBe(100)
       expect(rendered.result.current.feed[1].timestamp).toBe(100)
       expect(rendered.result.current.feed[2].timestamp).toBe(100)
@@ -539,6 +543,7 @@ describe('feeds', () => {
       await waitFor(() => rendered.result.current.feed?.length >= postsPerPage)
 
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
       expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 95')
       expect(rendered.result.current.feed[1].cid).toBe('subplebbit address 2 page cid hot comment cid 95')
       expect(rendered.result.current.feed[2].cid).toBe('subplebbit address 3 page cid hot comment cid 95')
@@ -614,12 +619,15 @@ describe('feeds', () => {
       rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
       await waitFor(() => rendered.result.current.feed?.length === postsPerPage)
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
       await scrollOnePage()
       expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+      expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
 
       await rendered.result.current.reset()
       await waitFor(() => rendered.result.current.feed?.length === postsPerPage)
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
+      expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
     })
 
     test('get feed page 1 and 2 with multiple subplebbits sorted by topAll', async () => {
@@ -848,22 +856,26 @@ describe('feeds', () => {
         // hasMore should be true because there are still buffered feeds
         expect(rendered.result.current.hasMore).toBe(true)
         expect(rendered.result.current.feed.length).toBe(postsPerPage)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
 
         await scrollOnePage()
         // hasMore should be true because there are still buffered feeds
         expect(rendered.result.current.hasMore).toBe(true)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
 
         await scrollOnePage()
         // hasMore should be true because there are still buffered feeds
         expect(rendered.result.current.hasMore).toBe(true)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 3)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
 
         await scrollOnePage()
         // there are no bufferedFeed and pages left so hasMore should be false
         await waitFor(() => rendered.result.current.hasMore === false)
         expect(rendered.result.current.hasMore).toBe(false)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 4)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
       })
 
       test(`multiple subplebbits, scroll to end of feed, hasMore becomes false`, async () => {
@@ -887,11 +899,13 @@ describe('feeds', () => {
         // hasMore should be true because there are still buffered feeds
         expect(rendered.result.current.hasMore).toBe(true)
         expect(rendered.result.current.feed.length).toBe(postsPerPage)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
 
         await scrollOnePage()
         // hasMore should be true because there are still buffered feeds
         expect(rendered.result.current.hasMore).toBe(true)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
 
         // scroll to end of all pages
         await scrollOnePage()
@@ -902,6 +916,7 @@ describe('feeds', () => {
         await scrollOnePage()
         expect(rendered.result.current.hasMore).toBe(true)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 8)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
         await scrollOnePage()
         await scrollOnePage()
         await scrollOnePage()
@@ -909,6 +924,7 @@ describe('feeds', () => {
         // there are no bufferedFeed and pages left so hasMore should be false
         expect(rendered.result.current.hasMore).toBe(false)
         expect(rendered.result.current.feed.length).toBe(postsPerPage * 12)
+        expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
       })
 
       test(`don't increment page number if loaded feed hasn't increased yet`, async () => {
@@ -1311,6 +1327,139 @@ describe('feeds', () => {
       expect(rendered.result.current.subplebbitAddressesWithNewerPosts).toEqual([])
 
       Subplebbit.prototype.update = update
+    })
+
+    test('updated feeds is updated, loaded feeds is not', async () => {
+      const page1 = {
+        comments: [
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address 1',
+            updatedAt: 1,
+            upvoteCount: 1,
+          },
+        ],
+      }
+      // updatedAt didn't change, shouldn't update
+      const page2 = {
+        comments: [
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address 1',
+            updatedAt: 1,
+            upvoteCount: 2,
+          },
+        ],
+      }
+      const page3 = {
+        comments: [
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address 1',
+            updatedAt: 2,
+            upvoteCount: 2,
+          },
+        ],
+      }
+      const page4 = {
+        comments: [
+          {
+            timestamp: 100,
+            cid: 'comment cid 2',
+            subplebbitAddress: 'subplebbit address 1',
+            updatedAt: 100,
+            upvoteCount: 100,
+          },
+          {
+            timestamp: 1,
+            cid: 'comment cid 1',
+            subplebbitAddress: 'subplebbit address 1',
+            updatedAt: 3,
+            upvoteCount: 3,
+          },
+        ],
+      }
+      const pages = [page1, page2, page3, page4]
+
+      const simulateUpdateEvent = Subplebbit.prototype.simulateUpdateEvent
+      let subplebbit
+      Subplebbit.prototype.simulateUpdateEvent = async function () {
+        subplebbit = this
+        this.posts.pages = {hot: pages.shift()}
+        this.posts.pageCids = {}
+        this.updatedAt = this.updatedAt ? this.updatedAt + 1 : 1
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      const subplebbitAddresses = ['subplebbit address 1']
+      rendered.rerender({subplebbitAddresses})
+
+      // first subplebbit update
+      await waitFor(() => rendered.result.current.feed.length === 1)
+      expect(pages.length).toBe(3)
+      expect(rendered.result.current.feed.length).toBe(1)
+      expect(rendered.result.current.updatedFeed.length).toBe(1)
+      expect(rendered.result.current.feed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedFeed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.feed[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].updatedAt).toBe(1)
+      expect(rendered.result.current.feed[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // second subplebbit update (updatedAt doesn't change, so shouldn't update)
+      subplebbit.simulateUpdateEvent()
+      await waitFor(() => subplebbitsStore.getState().subplebbits['subplebbit address 1'].posts.pages.hot.comments[0].upvoteCount === 2)
+      expect(pages.length).toBe(2)
+      // subplebbit in store updated, but the updatedAt didn't change so no change in useFeed().updatedFeed
+      expect(subplebbitsStore.getState().subplebbits['subplebbit address 1'].posts.pages.hot.comments[0].updatedAt).toBe(1)
+      expect(subplebbitsStore.getState().subplebbits['subplebbit address 1'].posts.pages.hot.comments[0].upvoteCount).toBe(2)
+      expect(rendered.result.current.feed.length).toBe(1)
+      expect(rendered.result.current.updatedFeed.length).toBe(1)
+      expect(rendered.result.current.feed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedFeed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.feed[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].updatedAt).toBe(1)
+      expect(rendered.result.current.feed[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // third subplebbit update (updatedAt doesn't change, so shouldn't update)
+      subplebbit.simulateUpdateEvent()
+      await waitFor(() => rendered.result.current.updatedFeed[0].updatedAt === 2)
+      expect(pages.length).toBe(1)
+      expect(rendered.result.current.feed.length).toBe(1)
+      expect(rendered.result.current.updatedFeed.length).toBe(1)
+      expect(rendered.result.current.feed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedFeed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.feed[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].updatedAt).toBe(2)
+      expect(rendered.result.current.feed[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].upvoteCount).toBe(2)
+      expect(rendered.result.current.hasMore).toBe(false)
+
+      // fourth subplebbit update
+      subplebbit.simulateUpdateEvent()
+      await waitFor(() => rendered.result.current.updatedFeed[0].updatedAt === 3)
+      expect(pages.length).toBe(0)
+      expect(rendered.result.current.feed.length).toBe(2)
+      expect(rendered.result.current.updatedFeed.length).toBe(2)
+      expect(rendered.result.current.feed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.updatedFeed[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.feed[0].updatedAt).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].updatedAt).toBe(3)
+      expect(rendered.result.current.feed[0].upvoteCount).toBe(1)
+      expect(rendered.result.current.updatedFeed[0].upvoteCount).toBe(3)
+      expect(rendered.result.current.hasMore).toBe(false)
+      expect(rendered.result.current.feed[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current.updatedFeed[1].cid).toBe('comment cid 2')
+
+      Subplebbit.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
 
     // TODO: not implemented

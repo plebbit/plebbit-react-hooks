@@ -11,6 +11,7 @@ import subplebbitsPagesStore from '../subplebbits-pages'
 import {
   getFeedsSubplebbitsFirstPageCids,
   getLoadedFeeds,
+  getUpdatedFeeds,
   getBufferedFeedsWithoutLoadedFeeds,
   getFeedsSubplebbitsPostCounts,
   getFeedsHaveMore,
@@ -23,6 +24,7 @@ import {
   feedsSubplebbitsChanged,
   getFeedsSubplebbits,
   getFeedsSubplebbitsLoadedCount,
+  getFeedsSubplebbitsPostsPagesFirstUpdatedAts,
   getFilteredSortedFeeds,
   getFeedsSubplebbitAddressesWithNewerPosts,
 } from './utils'
@@ -41,6 +43,7 @@ export type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
   loadedFeeds: Feeds
+  updatedFeeds: Feeds
   bufferedFeedsSubplebbitsPostCounts: FeedsSubplebbitsPostCounts
   feedsHaveMore: {[feedName: string]: boolean}
   feedsSubplebbitAddressesWithNewerPosts: {[feedName: string]: string[]}
@@ -58,6 +61,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
   feedsOptions: {},
   bufferedFeeds: {},
   loadedFeeds: {},
+  updatedFeeds: {},
   bufferedFeedsSubplebbitsPostCounts: {},
   feedsHaveMore: {},
   feedsSubplebbitAddressesWithNewerPosts: {},
@@ -158,12 +162,16 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     assert(feedsOptions[feedName].pageNumber >= 1, `feedsActions.resetFeed cannot reset feed page number '${feedsOptions[feedName].pageNumber}' lower than 1`)
     log('feedsActions.resetFeed', {feedName})
 
-    setState(({feedsOptions, loadedFeeds}: any) => {
+    setState(({feedsOptions, loadedFeeds, updatedFeeds}: any) => {
       const feedOptions = {
         ...feedsOptions[feedName],
         pageNumber: 1,
       }
-      return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}, loadedFeeds: {...loadedFeeds, [feedName]: []}}
+      return {
+        feedsOptions: {...feedsOptions, [feedName]: feedOptions},
+        loadedFeeds: {...loadedFeeds, [feedName]: []},
+        updatedFeeds: {...updatedFeeds, [feedName]: []},
+      }
     })
 
     updateFeeds()
@@ -203,12 +211,15 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
         loadedFeeds,
         previousState.feedsSubplebbitAddressesWithNewerPosts
       )
+      const updatedFeeds = await getUpdatedFeeds(feedsOptions, filteredSortedFeeds, previousState.updatedFeeds, loadedFeeds, accounts)
+
       // set new feeds
-      setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, feedsSubplebbitAddressesWithNewerPosts}))
+      setState((state: any) => ({bufferedFeeds, loadedFeeds, updatedFeeds, bufferedFeedsSubplebbitsPostCounts, feedsHaveMore, feedsSubplebbitAddressesWithNewerPosts}))
       log.trace('feedsStore.updateFeeds', {
         feedsOptions,
         bufferedFeeds,
         loadedFeeds,
+        updatedFeeds,
         bufferedFeedsSubplebbitsPostCounts,
         feedsHaveMore,
         subplebbits,
@@ -371,6 +382,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 let previousFeedsSubplebbitsFirstPageCids: string[] = []
 let previousFeedsSubplebbits: Map<string, Subplebbit> = new Map()
 let previousFeedsSubplebbitsLoadedCount = 0
+let previousFeedsSubplebbitsPostsPagesFirstUpdatedAts = ''
 const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
   const {subplebbits} = subplebbitsStoreState
   const {feedsOptions, updateFeeds} = feedsStore.getState()
@@ -392,7 +404,13 @@ const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState: any) => {
     // in case a sub loads with no first page cid and first pages cids don't change, need to trigger hasMore update
     const feedsSubplebbitsLoadedCount = getFeedsSubplebbitsLoadedCount(feedsSubplebbits)
     if (feedsSubplebbitsLoadedCount === previousFeedsSubplebbitsLoadedCount) {
-      return
+      // if subplebbit.posts.pages haven't changed, do nothing
+      const feedsSubplebbitsPostsPagesFirstUpdatedAts = getFeedsSubplebbitsPostsPagesFirstUpdatedAts(feedsSubplebbits)
+      if (feedsSubplebbitsPostsPagesFirstUpdatedAts === previousFeedsSubplebbitsPostsPagesFirstUpdatedAts) {
+        return
+      }
+
+      previousFeedsSubplebbitsPostsPagesFirstUpdatedAts = feedsSubplebbitsPostsPagesFirstUpdatedAts
     }
     previousFeedsSubplebbitsLoadedCount = feedsSubplebbitsLoadedCount
   }
@@ -424,6 +442,8 @@ export const resetFeedsStore = async () => {
   previousAccountsBlockedCids = []
   previousFeedsSubplebbitsFirstPageCids = []
   previousFeedsSubplebbits = new Map()
+  previousFeedsSubplebbitsLoadedCount = 0
+  previousFeedsSubplebbitsPostsPagesFirstUpdatedAts = ''
   previousSubplebbitsPages = {}
   updateFeedsPending = false
   // remove all event listeners
