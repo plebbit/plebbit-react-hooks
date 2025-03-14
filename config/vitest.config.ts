@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 import {defineConfig} from 'vitest/config'
 
-export default defineConfig({
+const config = {
   test: {
     globals: true,
     environment: 'jsdom',
@@ -17,4 +17,12 @@ export default defineConfig({
     root: 'src/',
     setupFiles: ['../config/vitest.setup.js'],
   },
-})
+}
+
+// handle plebbit-js-mock-content.donttest.ts
+const mockContentTestPath = 'src/lib/plebbit-js/plebbit-js-mock-content.donttest.ts'
+if (process.argv.includes(mockContentTestPath)) {
+  config.test.include = ['../' + mockContentTestPath]
+}
+
+export default defineConfig(config)

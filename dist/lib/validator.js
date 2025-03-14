@@ -209,6 +209,32 @@ export const validateUseBufferedFeedsArguments = (feedsOptions, accountName) => 
         assert(typeof accountName === 'string', `useBufferedFeeds accountName argument '${accountName}' not a string`);
     }
 };
+const repliesSortTypes = new Set(['best', 'top', 'new', 'newFlat', 'old', 'oldFlat']);
+export const validateRepliesSortType = (sortType) => {
+    assert(repliesSortTypes.has(sortType), `invalid replies sort type '${sortType}'`);
+};
+export const validateUseRepliesArguments = (commentCid, sortType, accountName, flat, accountComments, postsPerPage, filter) => {
+    if (commentCid) {
+        assert(typeof commentCid === 'string', `useReplies commentCid argument '${commentCid}' not a string`);
+    }
+    assert(repliesSortTypes.has(sortType), `useReplies sortType argument '${sortType}' invalid`);
+    if (accountName) {
+        assert(typeof accountName === 'string', `useReplies accountName argument '${accountName}' not a string`);
+    }
+    if (postsPerPage !== undefined && postsPerPage !== null) {
+        assert(typeof postsPerPage === 'number', `useReplies postsPerPage argument '${postsPerPage}' not a number`);
+    }
+    if (flat !== undefined && flat !== null) {
+        assert(typeof flat === 'boolean', `useReplies flat argument '${flat}' not a boolean`);
+    }
+    if (accountComments !== undefined && accountComments !== null) {
+        assert(typeof accountComments === 'boolean', `useReplies accountComments argument '${accountComments}' not a boolean`);
+    }
+    if (filter) {
+        assert(typeof filter.filter === 'function', `useReplies filter.filter argument '${filter.filter}' not a function, useRepliesOptions.filter is now an object Filter {filter: (comment: Comment) => Boolean, key: string}`);
+        assert(typeof filter.key === 'string', `useReplies filter.key argument '${filter.key}' not a string, a unique filter.key is now required to cache the filter`);
+    }
+};
 const validator = {
     validateAccountsActionsPublishCommentArguments,
     validateAccountsActionsPublishCommentEditArguments,
@@ -229,5 +255,7 @@ const validator = {
     validateFeedSortType,
     validateUseFeedArguments,
     validateUseBufferedFeedsArguments,
+    validateRepliesSortType,
+    validateUseRepliesArguments,
 };
 export default validator;

@@ -56,6 +56,7 @@ export interface UseNotificationsResult extends Result {
     markAsRead(): Promise<void>;
 }
 export interface UseAccountSubplebbitsOptions extends Options {
+    onlyIfCached?: boolean;
 }
 export interface UseAccountSubplebbitsResult extends Result {
     accountSubplebbits: AccountSubplebbit[];
@@ -67,14 +68,29 @@ export interface UsePubsubSubscribeResult extends Result {
 }
 export interface UseCommentOptions extends Options {
     commentCid?: string;
+    onlyIfCached?: boolean;
 }
 export interface UseCommentResult extends Result, Comment {
 }
 export interface UseCommentsOptions extends Options {
     commentCids?: string[];
+    onlyIfCached?: boolean;
 }
 export interface UseCommentsResult extends Result {
     comments: (Comment | undefined)[];
+}
+export interface UseRepliesOptions extends Options {
+    commentCid?: string;
+    sortType?: string;
+    repliesPerPage?: number;
+    flat?: boolean;
+    accountComments?: boolean;
+    filter?: CommentsFilter;
+}
+export interface UseRepliesResult extends Result {
+    replies: Comment[];
+    hasMore: boolean;
+    loadMore(): Promise<void>;
 }
 export interface UseEditedCommentOptions extends Options {
     comment?: Comment;
@@ -93,17 +109,20 @@ export interface UseEditedCommentResult extends Result {
 }
 export interface UseSubplebbitOptions extends Options {
     subplebbitAddress?: string;
+    onlyIfCached?: boolean;
 }
 export interface UseSubplebbitResult extends Result, Subplebbit {
 }
 export interface UseSubplebbitsOptions extends Options {
     subplebbitAddresses?: string[];
+    onlyIfCached?: boolean;
 }
 export interface UseSubplebbitsResult extends Result {
     subplebbits: (Subplebbit | undefined)[];
 }
 export interface UseSubplebbitStatsOptions extends Options {
     subplebbitAddress?: string;
+    onlyIfCached?: boolean;
 }
 export interface UseSubplebbitStatsResult extends Result, SubplebbitStats {
 }
@@ -473,6 +492,26 @@ export type SubplebbitsPages = {
 export type CommentsFilter = {
     filter(comment: Comment): Boolean;
     key: string;
+};
+/**
+ * Replies store
+ */
+export type RepliesFeedOptions = {
+    commentCid: string;
+    sortType: string;
+    accountId: string;
+    pageNumber: number;
+    repliesPerPage: number;
+    flat?: boolean;
+    accountComments?: boolean;
+    filter?: CommentsFilter;
+};
+export type RepliesFeedsOptions = {
+    [feedName: string]: RepliesFeedOptions;
+};
+export type RepliesPage = SubplebbitPage;
+export type RepliesPages = {
+    [pageCid: string]: RepliesPage;
 };
 /**
  * Authors comments store

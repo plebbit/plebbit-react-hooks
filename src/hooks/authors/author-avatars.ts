@@ -6,8 +6,9 @@ import assert from 'assert'
 import {Nft, ChainProviders, Author} from '../../types'
 import {ethers} from 'ethers'
 import {getNftMetadataUrl, getNftImageUrl, getNftOwner} from '../../lib/chain'
-import {defaultMediaIpfsGatewayUrl} from '../../stores/accounts/account-generator'
 import createStore from 'zustand'
+
+const noMediaIpfsGatewayUrl = 'http://no-media-ipfs-gateway-url'
 
 /**
  * @param nft - The NFT object to resolve the URL of.
@@ -18,7 +19,7 @@ import createStore from 'zustand'
 export function useNftMetadataUrl(nft?: Nft, accountName?: string) {
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
-  const ipfsGatewayUrl = account?.mediaIpfsGatewayUrl || defaultMediaIpfsGatewayUrl
+  const ipfsGatewayUrl = account?.mediaIpfsGatewayUrl || noMediaIpfsGatewayUrl
   const chainProviders = account?.plebbitOptions?.chainProviders
   const [nftMetadataUrl, setNftMetadataUrl] = useState()
   const [error, setError] = useState<Error | undefined>()
@@ -66,7 +67,7 @@ export function useNftImageUrl(nftMetadataUrl?: string, accountName?: string) {
   assert(!nftMetadataUrl || typeof nftMetadataUrl === 'string', `useNftImageUrl invalid argument nftMetadataUrl '${nftMetadataUrl}' not a string`)
   const account = useAccount({accountName})
   // possible to use account.plebbit instead of account.plebbitOptions
-  const ipfsGatewayUrl = account?.mediaIpfsGatewayUrl || defaultMediaIpfsGatewayUrl
+  const ipfsGatewayUrl = account?.mediaIpfsGatewayUrl || noMediaIpfsGatewayUrl
   const [imageUrl, setImageUrl] = useState()
   const [error, setError] = useState<Error | undefined>()
 

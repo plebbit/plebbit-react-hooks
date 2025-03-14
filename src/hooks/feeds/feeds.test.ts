@@ -526,9 +526,6 @@ describe('feeds', () => {
     })
 
     test('get multiple subplebbits with filter and scroll to multiple pages', async () => {
-      // wait for initial feed to load
-      await waitFor(() => rendered.result.current.feed?.length > 0)
-
       // filter only comment cids that contain a '5'
       const cidMatch5 = (comment: Comment) => !!comment.cid.match('5')
       const filter = {
@@ -591,9 +588,6 @@ describe('feeds', () => {
         filter: (comment: Comment) => !!comment.cid.match(cid),
         key: `cid-match-${cid}`,
       })
-
-      // wait for initial feed to load
-      await waitFor(() => rendered.result.current.feed?.length > 0)
 
       rendered.rerender({
         subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
@@ -1212,6 +1206,50 @@ describe('feeds', () => {
       await waitFor(() => rendered.result.current.feed.hasMore === false)
       expect(rendered.result.current.feed.hasMore).toBe(false)
       expect(rendered.result.current.feed.feed.length).toBe(0)
+
+      Subplebbit.prototype.update = update
+    })
+
+    test('posts.pages has 1 post with no next cid, hasMore false', async () => {
+      const update = Subplebbit.prototype.update
+      const updatedAt = Math.floor(Date.now() / 1000)
+      const postsWithNoNextCid: any = {
+        pages: {
+          hot: {
+            comments: [
+              {
+                timestamp: 1,
+                cid: 'comment cid 1',
+                subplebbitAddress: 'subplebbit address 1',
+                updatedAt: 1,
+                upvoteCount: 1,
+              },
+            ],
+          },
+        },
+        pageCids: {},
+      }
+      Subplebbit.prototype.update = async function () {
+        await simulateLoadingTime()
+        this.updatedAt = updatedAt
+        this.posts = postsWithNoNextCid
+        this.emit('update', this)
+      }
+
+      rendered = renderHook<any, any>((props: any) => {
+        const feed = useFeed(props)
+        return {feed}
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+
+      // get feed with 1 sub with no posts
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1']})
+      expect(rendered.result.current.feed.hasMore).toBe(true)
+      expect(rendered.result.current.feed.feed.length).toBe(0)
+
+      await waitFor(() => rendered.result.current.feed.hasMore === false)
+      expect(rendered.result.current.feed.hasMore).toBe(false)
+      expect(rendered.result.current.feed.feed.length).toBe(1)
 
       Subplebbit.prototype.update = update
     })

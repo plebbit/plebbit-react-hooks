@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useComment, useSubplebbit, useFeed, setPlebbitJs, useClientsStates, useSubplebbitsStates, useAccountComment, usePublishComment, useAccount} from '..'
+import {useComment, useSubplebbit, useFeed, useReplies, setPlebbitJs, useClientsStates, useSubplebbitsStates, useAccountComment, usePublishComment, useAccount} from '..'
 import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import utils from '../lib/utils'
@@ -49,14 +49,15 @@ class Client extends EventEmitter {
 class Comment extends EventEmitter {
   clients: any = {
     ipfsGateways: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()},
-    ipfsClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
-    pubsubClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
+    kuboRpcClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
+    pubsubKuboRpcClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
     plebbitRpcClients: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()},
     chainProviders: {eth: {[ethChainProviderUrl1]: new Client(), [ethChainProviderUrl2]: new Client(), [ethChainProviderUrl3]: new Client()}},
   }
   cid: string
   timestamp?: number
   updatedAt?: number
+  replies = new Pages()
   constructor(createCommentOptions: any) {
     super()
     this.cid = createCommentOptions.cid
@@ -66,7 +67,7 @@ class Comment extends EventEmitter {
     ;(async () => {
       // set states fetching comment ipfs
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipfs')
       await simulateLoadingTime(20)
 
@@ -77,13 +78,13 @@ class Comment extends EventEmitter {
 
       // set states fetching comment update
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipns')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipns')
       await simulateLoadingTime(20)
 
       // set states resolving subplebbit address
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'resolving-address')
       await simulateLoadingTime(20)
@@ -94,6 +95,12 @@ class Comment extends EventEmitter {
 
       // fetched comment update
       this.updatedAt = updatedAt
+      this.replies.pages = {
+        new: {
+          comments: [{cid: `${this.cid} reply cid 1`}, {cid: `${this.cid} reply cid 2`}, {cid: `${this.cid} reply cid 3`}],
+          nextCid: `${this.cid} next replies page cid -`,
+        },
+      }
       this.emit('update', this)
     })()
   }
@@ -108,14 +115,14 @@ class Comment extends EventEmitter {
 
       // set states publishing
       changeClientsStates(this.clients, 'chainProviders', [ethChainProviderUrl1, ethChainProviderUrl2], 'stopped')
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-request')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-request')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-request')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-request')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'publishing-challenge-request')
       await simulateLoadingTime(20)
 
       // set states waiting challenge
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'waiting-challenge')
       await simulateLoadingTime(20)
 
@@ -133,14 +140,14 @@ class Comment extends EventEmitter {
       await simulateLoadingTime(20)
 
       // set states publishing challenge answer
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-answer')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-answer')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'publishing-challenge-answer')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'publishing-challenge-answer')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'publishing-challenge-answer')
       await simulateLoadingTime(20)
 
       // set states waiting challenge verification
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge-verification')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge-verification')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'waiting-challenge-verification')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'waiting-challenge-verification')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'waiting-challenge-verification')
       await simulateLoadingTime(20)
 
@@ -154,8 +161,8 @@ class Comment extends EventEmitter {
       this.emit('challengeverification', challengeVerificationMessage, this)
 
       // set states stopped
-      changeClientsStates(this.clients, 'pubsubClients', [pubsubClientUrl1, pubsubClientUrl2], 'stopped')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'pubsubKuboRpcClients', [pubsubClientUrl1, pubsubClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
     })()
   }
@@ -163,33 +170,34 @@ class Comment extends EventEmitter {
 
 class Pages {
   clients: any = {
-    ipfsGateways: {hot: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()}},
-    ipfsClients: {hot: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()}},
-    plebbitRpcClients: {hot: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()}},
+    ipfsGateways: {new: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()}},
+    kuboRpcClients: {new: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()}},
+    plebbitRpcClients: {new: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()}},
   }
   pages: any = {}
   pageCids = {}
   async getPage(pageCid: string) {
     await simulateLoadingTime(100)
-    changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs', 'hot')
-    changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs', 'hot')
-    changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipfs', 'hot')
+    changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs', 'new')
+    changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs', 'new')
+    changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipfs', 'new')
     await simulateLoadingTime(100)
-    changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped', 'hot')
-    changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped', 'hot')
-    changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped', 'hot')
+    changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped', 'new')
+    changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped', 'new')
+    changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped', 'new')
 
     return {
       comments: [{cid: `${pageCid} cid 1`}, {cid: `${pageCid} cid 2`}, {cid: `${pageCid} cid 3`}],
     }
   }
+  async validatePage(page: any) {}
 }
 
 class Subplebbit extends EventEmitter {
   clients: any = {
     ipfsGateways: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()},
-    ipfsClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
-    pubsubClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
+    kuboRpcClients: {[ipfsClientUrl1]: new Client(), [ipfsClientUrl2]: new Client(), [ipfsClientUrl3]: new Client()},
+    pubsubKuboRpcClients: {[pubsubClientUrl1]: new Client(), [pubsubClientUrl2]: new Client(), [pubsubClientUrl3]: new Client()},
     plebbitRpcClients: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()},
     chainProviders: {eth: {[ethChainProviderUrl1]: new Client(), [ethChainProviderUrl2]: new Client(), [ethChainProviderUrl3]: new Client()}},
   }
@@ -217,7 +225,7 @@ class Subplebbit extends EventEmitter {
       this.updatingState = 'fetching-ipns'
       this.emit('updatingstatechange', 'fetching-ipns')
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipns')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipns')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'fetching-ipns')
       await simulateLoadingTime(100)
 
@@ -225,14 +233,14 @@ class Subplebbit extends EventEmitter {
       this.updatingState = 'succeeded'
       this.emit('updatingstatechange', 'succeeded')
       changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'stopped')
-      changeClientsStates(this.clients, 'ipfsClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
+      changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'stopped')
       changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped')
       await simulateLoadingTime(100)
 
       // fetched subplebbit ipns
       this.updatedAt = updatedAt
       this.posts.pages = {
-        hot: {
+        new: {
           comments: [{cid: `${this.address} cid 1`}, {cid: `${this.address} cid 2`}, {cid: `${this.address} cid 3`}],
           nextCid: `${this.address} next page cid -`,
         },
@@ -280,8 +288,9 @@ describe('states', () => {
     test('fetch comment', async () => {
       const rendered = renderHook<any, any>((commentCid) => {
         const comment = useComment({commentCid})
+        const {replies, loadMore} = useReplies({commentCid, sortType: 'new'})
         const {states} = useClientsStates({comment})
-        return {comment, states}
+        return {comment, states, replies, loadMore}
       })
       const waitFor = testUtils.createWaitFor(rendered)
       expect(rendered.result.current.comment.cid).toBe(undefined)
@@ -331,12 +340,34 @@ describe('states', () => {
       await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
       expect(rendered.result.current.comment.updatedAt).toBe(updatedAt)
       expect(rendered.result.current.states).toEqual({})
+
+      // wait for first replies page
+      await waitFor(() => rendered.result.current.replies.length === 3)
+      expect(rendered.result.current.replies.length).toEqual(3)
+
+      // states start fetching replies page
+      await waitFor(() => rendered.result.current.states['fetching-ipfs-page-new'].length >= 6)
+      expect(rendered.result.current.states).toEqual({
+        'fetching-ipfs-page-new': [
+          'https://ipfsgateway1.com',
+          'https://ipfsgateway2.com',
+          'https://ipfsclient1.com',
+          'https://ipfsclient2.com',
+          'https://plebbitrpcclienturl1.com',
+          'https://plebbitrpcclienturl2.com',
+        ],
+      })
+
+      // wait for second page
+      await waitFor(() => rendered.result.current.replies.length === 6)
+      expect(rendered.result.current.replies.length).toEqual(6)
+      expect(rendered.result.current.states).toEqual({})
     })
 
     test('fetch subplebbit', async () => {
       const rendered = renderHook<any, any>((subplebbitAddress: string) => {
         const subplebbit = useSubplebbit({subplebbitAddress})
-        const {feed, loadMore} = useFeed({subplebbitAddresses: subplebbitAddress ? [subplebbitAddress] : []})
+        const {feed, loadMore} = useFeed({subplebbitAddresses: subplebbitAddress ? [subplebbitAddress] : [], sortType: 'new'})
         const {states} = useClientsStates({subplebbit})
         return {subplebbit, states, feed, loadMore}
       })
@@ -378,9 +409,9 @@ describe('states', () => {
       expect(rendered.result.current.feed.length).toEqual(3)
 
       // states start fetching subplebbit page
-      await waitFor(() => rendered.result.current.states['fetching-ipfs-page-hot'].length >= 6)
+      await waitFor(() => rendered.result.current.states['fetching-ipfs-page-new'].length >= 6)
       expect(rendered.result.current.states).toEqual({
-        'fetching-ipfs-page-hot': [
+        'fetching-ipfs-page-new': [
           'https://ipfsgateway1.com',
           'https://ipfsgateway2.com',
           'https://ipfsclient1.com',
@@ -497,7 +528,7 @@ describe('states', () => {
       const subplebbitAddresses = ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']
       const rendered = renderHook<any, any>(() => {
         const {states} = useSubplebbitsStates({subplebbitAddresses})
-        const {feed, loadMore} = useFeed({subplebbitAddresses})
+        const {feed, loadMore} = useFeed({subplebbitAddresses, sortType: 'new'})
         return {states, feed, loadMore}
       })
       const waitFor = testUtils.createWaitFor(rendered)
@@ -550,12 +581,12 @@ describe('states', () => {
       await waitFor(() => rendered.result.current.feed.length === 18)
       expect(rendered.result.current.feed.length).toEqual(18)
 
-      // states contained fetching ipfs page hot
-      let fetchingIpfsPageHot = false
+      // states contained fetching ipfs page new
+      let fetchingIpfsPageNew = false
       for (const result of rendered.result.all) {
-        if (result.states['fetching-ipfs-page-hot']?.subplebbitAddresses.length === 3) {
+        if (result.states['fetching-ipfs-page-new']?.subplebbitAddresses.length === 3) {
           expect(result.states).toEqual({
-            'fetching-ipfs-page-hot': {
+            'fetching-ipfs-page-new': {
               subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3'],
               clientUrls: [
                 'https://ipfsgateway1.com',
@@ -567,11 +598,11 @@ describe('states', () => {
               ],
             },
           })
-          fetchingIpfsPageHot = true
+          fetchingIpfsPageNew = true
           break
         }
       }
-      expect(fetchingIpfsPageHot).toBe(true)
+      expect(fetchingIpfsPageNew).toBe(true)
 
       // states don't have stopped or succeeded
       for (const result of rendered.result.all) {

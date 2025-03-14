@@ -7,7 +7,7 @@ const accountsDatabase = localForage.createInstance({name: 'accounts'})
 const accountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
 import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
-import {getDefaultPlebbitOptions} from './account-generator'
+import {getDefaultPlebbitOptions, overwritePlebbitOptions} from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
 
@@ -21,17 +21,34 @@ const getAccounts = async (accountIds: string[]) => {
   const accountsArray: any = await Promise.all(promises)
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
-    accounts[accountId] = accountsArray[i]
+    accounts[accountId] = migrateAccount(accountsArray[i])
     // plebbit options aren't saved to database if they are default
     if (!accounts[accountId].plebbitOptions) {
       accounts[accountId].plebbitOptions = getDefaultPlebbitOptions()
     }
+    accounts[accountId].plebbitOptions = {...accounts[accountId].plebbitOptions, ...overwritePlebbitOptions}
     accounts[accountId].plebbit = await PlebbitJs.Plebbit(accounts[accountId].plebbitOptions)
     // handle errors or error events are uncaught
     // no need to log them because plebbit-js already logs them
     accounts[accountId].plebbit.on('error', (error: any) => log.error('uncaught plebbit instance error, should never happen', {error}))
   }
   return accounts
+}
+
+const migrateAccount = (account: any) => {
+  // version 2
+  if (!account.version) {
+    account.version = 2
+    if (account.plebbitOptions?.ipfsHttpClientsOptions) {
+      account.plebbitOptions.kuboRpcClientsOptions = account.plebbitOptions.ipfsHttpClientsOptions
+      delete account.plebbitOptions.ipfsHttpClientsOptions
+    }
+    if (account.plebbitOptions?.pubsubHttpClientsOptions) {
+      account.plebbitOptions.pubsubKuboRpcClientsOptions = account.plebbitOptions.pubsubHttpClientsOptions
+      delete account.plebbitOptions.pubsubHttpClientsOptions
+    }
+  }
+  return account
 }
 
 const getAccount = async (accountId: string) => {
@@ -92,7 +109,9 @@ const addAccount = async (account: Account) => {
   }
   // make sure accountToPutInDatabase.plebbitOptions are valid
   if (accountToPutInDatabase.plebbitOptions) {
-    await PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions)
+    const plebbit = await PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions)
+    plebbit.on('error', () => {})
+    plebbit.destroy?.().catch?.((error: any) => log('database.addAccount plebbit.destroy error', {error})) // make sure it's garbage collected
   }
   await accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase)
 

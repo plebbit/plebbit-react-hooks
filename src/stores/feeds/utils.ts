@@ -1,5 +1,6 @@
 import assert from 'assert'
 import {
+  Comment,
   Feed,
   Feeds,
   FeedOptions,
@@ -15,6 +16,8 @@ import {
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
 import {subplebbitPostsCacheExpired} from '../../lib/utils'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:feeds:stores')
 
 /**
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
@@ -104,19 +107,27 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
   return feeds
 }
 
-export const getLoadedFeeds = (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => {
+export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
   const loadedFeedsMissingPosts: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber, postsPerPage} = feedsOptions[feedName]
+    const {pageNumber, postsPerPage, accountId} = feedsOptions[feedName]
     const loadedFeedPostCount = pageNumber * postsPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
 
     // get new posts from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
-    const missingPosts = [...bufferedFeed]
-    if (missingPosts.length > missingPostsCount) {
-      missingPosts.length = missingPostsCount
+
+    const missingPosts = []
+    for (const post of bufferedFeed) {
+      if (missingPosts.length === missingPostsCount) {
+        break
+      }
+      // verify signature
+      if (!(await postIsValid(post, accounts[accountId]))) {
+        continue
+      }
+      missingPosts.push(post)
     }
 
     // TODO: update posts in already loaded feeds with new votes and reply counts
@@ -151,11 +162,22 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedF
   const newBufferedFeeds: Feeds = {}
   for (const feedName in bufferedFeeds) {
     newBufferedFeeds[feedName] = []
-    for (const post of bufferedFeeds[feedName]) {
+    let bufferedFeedPostChanged = false
+    for (const [i, post] of bufferedFeeds[feedName].entries()) {
       if (loadedFeedsPosts[feedName]?.has(post.cid)) {
         continue
       }
       newBufferedFeeds[feedName].push(post)
+      if (
+        !bufferedFeedPostChanged &&
+        (newBufferedFeeds[feedName][i]?.cid !== bufferedFeeds[feedName][i]?.cid ||
+          (newBufferedFeeds[feedName][i]?.updatedAt || 0) > (bufferedFeeds[feedName][i]?.updatedAt || 0))
+      ) {
+        bufferedFeedPostChanged = true
+      }
+    }
+    if (!bufferedFeedPostChanged && newBufferedFeeds[feedName].length === bufferedFeeds[feedName].length) {
+      newBufferedFeeds[feedName] = bufferedFeeds[feedName]
     }
   }
   return newBufferedFeeds
@@ -217,7 +239,7 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions: FeedsOptions, feeds:
 }
 
 /**
- * Get which feeds have more posts, i.e. have no reached the final page of all subs
+ * Get which feeds have more posts, i.e. have not reached the final page of all subs
  */
 export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
   const feedsHaveMore: {[feedName: string]: boolean} = {}
@@ -272,37 +294,6 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
     feedsHaveMore[feedName] = false
   }
   return feedsHaveMore
-}
-
-// get a partial updateFeeds after a page increment
-export const getFeedAfterIncrementPageNumber = (
-  feedName: string,
-  feedOptions: FeedOptions,
-  bufferedFeed: Feed,
-  loadedFeed: Feed,
-  subplebbits: Subplebbits,
-  subplebbitsPages: SubplebbitsPages,
-  accounts: Accounts
-) => {
-  // transform arguments into objects
-  const feedsOptions = {[feedName]: feedOptions}
-  const bufferedFeedsWithLoadedFeeds = {[feedName]: bufferedFeed}
-  const previousLoadedFeeds = {[feedName]: loadedFeed}
-
-  // calculate values
-  const loadedFeeds = getLoadedFeeds(feedsOptions, previousLoadedFeeds, bufferedFeedsWithLoadedFeeds)
-  // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-  const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds)
-  const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds)
-  const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts)
-
-  // transform values back into single properties
-  return {
-    bufferedFeed: bufferedFeeds[feedName],
-    loadedFeed: loadedFeeds[feedName],
-    bufferedFeedSubplebbitsPostCounts: bufferedFeedsSubplebbitsPostCounts[feedName],
-    feedHasMore: feedsHaveMore[feedName],
-  }
 }
 
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
@@ -474,5 +465,29 @@ export const feedsHaveChangedBlockedCids = (feedsOptions: FeedsOptions, buffered
     }
   }
 
+  return false
+}
+
+const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
+const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
+const postIsValid = async (post: Comment, account: Account) => {
+  if (!account) {
+    return false
+  }
+  if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
+    log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
+    return false
+  }
+  if (!postIsValidSubplebbits[post.subplebbitAddress]) {
+    postIsValidSubplebbits[post.subplebbitAddress] = await account.plebbit.createSubplebbit({address: post.subplebbitAddress})
+  }
+  const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
+  try {
+    await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
+    return true
+  } catch (e) {
+    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
+    log('invalid post', {post, error: e})
+  }
   return false
 }

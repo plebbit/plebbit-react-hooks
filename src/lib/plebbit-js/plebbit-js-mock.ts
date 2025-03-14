@@ -70,7 +70,7 @@ export class Plebbit extends EventEmitter {
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
     subplebbit.title = subplebbit.address + ' title'
     const hotPageCid = subplebbit.address + ' page cid hot'
-    subplebbit.posts.pages.hot = getCommentsPage(hotPageCid, subplebbit)
+    subplebbit.posts.pages.hot = subplebbit.posts.pageToGet(hotPageCid)
     subplebbit.posts.pageCids = {
       hot: hotPageCid,
       topAll: subplebbit.address + ' page cid topAll',
@@ -176,7 +176,34 @@ export class Pages {
   async getPage(pageCid: string) {
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return getCommentsPage(pageCid, this.subplebbit)
+    return this.pageToGet(pageCid)
+  }
+
+  async validatePage(page: any) {}
+
+  // mock this method to get pages with different content, or use to getPage without simulated loading time
+  pageToGet(pageCid: string) {
+    const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
+    const page: any = {
+      nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
+      comments: [],
+    }
+    const postCount = 100
+    let index = 0
+    while (index++ < postCount) {
+      page.comments.push({
+        timestamp: index,
+        cid: pageCid + ' comment cid ' + index,
+        subplebbitAddress,
+        upvoteCount: index,
+        downvoteCount: 10,
+        author: {
+          address: pageCid + ' author address ' + index,
+        },
+        updatedAt: index,
+      })
+    }
+    return page
   }
 }
 
@@ -274,7 +301,7 @@ export class Subplebbit extends EventEmitter {
 
     this.title = this.address + ' title'
     const hotPageCid = this.address + ' page cid hot'
-    this.posts.pages.hot = getCommentsPage(hotPageCid, this)
+    this.posts.pages.hot = this.posts.pageToGet(hotPageCid)
     this.posts.pageCids = {
       hot: hotPageCid,
       topAll: this.address + ' page cid topAll',
@@ -348,30 +375,6 @@ export class Subplebbit extends EventEmitter {
 }
 // make roles enumarable so it acts like a regular prop
 Object.defineProperty(Subplebbit.prototype, 'roles', {enumerable: true})
-
-// define it here because also used it plebbit.getSubplebbit()
-const getCommentsPage = (pageCid: string, subplebbit: any) => {
-  const page: any = {
-    nextCid: subplebbit.address + ' ' + pageCid + ' - next page cid',
-    comments: [],
-  }
-  const postCount = 100
-  let index = 0
-  while (index++ < postCount) {
-    page.comments.push({
-      timestamp: index,
-      cid: pageCid + ' comment cid ' + index,
-      subplebbitAddress: subplebbit.address,
-      upvoteCount: index,
-      downvoteCount: 10,
-      author: {
-        address: pageCid + ' author address ' + index,
-      },
-      updatedAt: index,
-    })
-  }
-  return page
-}
 
 let challengeRequestCount = 0
 let challengeAnswerCount = 0
@@ -463,7 +466,6 @@ export class Comment extends Publication {
     this.author = createCommentOptions?.author
     this.timestamp = createCommentOptions?.timestamp
     this.parentCid = createCommentOptions?.parentCid
-    this.replies = new Pages({comment: this})
     this.subplebbitAddress = createCommentOptions?.subplebbitAddress
     this.state = 'stopped'
     this.updatingState = 'stopped'
@@ -471,6 +473,16 @@ export class Comment extends Publication {
 
     if (createCommentOptions?.author?.address) {
       this.author.shortAddress = `short ${createCommentOptions.author.address}`
+    }
+
+    this.replies = new Pages({comment: this})
+
+    // add comment.replies from createCommentOptions
+    if (createCommentOptions?.replies?.pages) {
+      this.replies.pages = createCommentOptions?.replies?.pages
+    }
+    if (createCommentOptions?.replies?.pageCids) {
+      this.replies.pageCids = createCommentOptions?.replies?.pageCids
     }
   }
 

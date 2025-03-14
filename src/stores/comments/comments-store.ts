@@ -7,6 +7,7 @@ import {Comment, Comments, Account} from '../../types'
 import utils from '../../lib/utils'
 import createStore from 'zustand'
 import accountsStore from '../accounts'
+import repliesPagesStore from '../replies-pages'
 
 let plebbitGetCommentPending: {[key: string]: boolean} = {}
 
@@ -36,6 +37,11 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // try to find comment in database
     comment = await getCommentFromDatabase(commentCid, account)
 
+    if (comment) {
+      // add comment replies pages to repliesPagesStore so they can be used in useComment
+      repliesPagesStore.getState().addRepliesPageCommentsToStore(comment)
+    }
+
     // comment not in database, fetch from plebbit-js
     try {
       if (!comment) {
@@ -61,6 +67,9 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
       await commentsDatabase.setItem(commentCid, updatedComment)
       log('commentsStore comment update', {commentCid, updatedComment, account})
       setState((state: CommentsState) => ({comments: {...state.comments, [commentCid]: updatedComment}}))
+
+      // add comment replies pages to repliesPagesStore so they can be used in useComment
+      repliesPagesStore.getState().addRepliesPageCommentsToStore(comment)
     })
 
     comment?.on('updatingstatechange', (updatingState: string) => {
@@ -83,6 +92,10 @@ const commentsStore = createStore<CommentsState>((setState: Function, getState: 
     // set clients on comment so the frontend can display it, dont persist in db because a reload cancels updating
     utils.clientsOnStateChange(comment?.clients, (clientState: string, clientType: string, clientUrl: string, chainTicker?: string) => {
       setState((state: CommentsState) => {
+        // make sure not undefined, sometimes happens in e2e tests
+        if (!state.comments[commentCid]) {
+          return {}
+        }
         const clients = {...state.comments[commentCid]?.clients}
         const client = {state: clientState}
         if (chainTicker) {

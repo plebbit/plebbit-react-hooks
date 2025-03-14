@@ -4,6 +4,8 @@ import {resetAccountsStore, resetAccountsDatabaseAndStore} from '../stores/accou
 import {resetFeedsStore, resetFeedsDatabaseAndStore} from '../stores/feeds'
 import {resetSubplebbitsPagesStore, resetSubplebbitsPagesDatabaseAndStore} from '../stores/subplebbits-pages'
 import {resetAuthorsCommentsStore, resetAuthorsCommentsDatabaseAndStore} from '../stores/authors-comments'
+import {resetRepliesStore, resetRepliesDatabaseAndStore} from '../stores/replies'
+import {resetRepliesPagesStore, resetRepliesPagesDatabaseAndStore} from '../stores/replies-pages'
 import localForageLru from './localforage-lru'
 import localForage from 'localforage'
 
@@ -103,6 +105,8 @@ const createWaitFor = (rendered: any, waitForOptions?: WaitForOptions) => {
 
 // always reset the least important store first, because a store even can affect another store
 export const resetStores = async () => {
+  await resetRepliesPagesStore()
+  await resetRepliesStore()
   await resetAuthorsCommentsStore()
   await resetSubplebbitsPagesStore()
   await resetFeedsStore()
@@ -113,6 +117,8 @@ export const resetStores = async () => {
 }
 
 export const resetDatabasesAndStores = async () => {
+  await resetRepliesPagesDatabaseAndStore()
+  await resetRepliesDatabaseAndStore()
   await resetAuthorsCommentsDatabaseAndStore()
   await resetSubplebbitsPagesDatabaseAndStore()
   await resetFeedsDatabaseAndStore()

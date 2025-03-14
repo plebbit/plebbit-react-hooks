@@ -4,10 +4,12 @@ import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:comments:hooks')
 import assert from 'assert'
-import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult} from '../types'
+import {Comment, UseCommentsOptions, UseCommentsResult, UseCommentOptions, UseCommentResult, UseRepliesOptions, UseRepliesResult, CommentsFilter} from '../types'
 import useCommentsStore from '../stores/comments'
 import useAccountsStore from '../stores/accounts'
+import useRepliesStore, {RepliesState} from '../stores/replies'
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages'
+import useRepliesPagesStore from '../stores/replies-pages'
 import shallow from 'zustand/shallow'
 
 /**
@@ -17,11 +19,12 @@ import shallow from 'zustand/shallow'
  */
 export function useComment(options?: UseCommentOptions): UseCommentResult {
   assert(!options || typeof options === 'object', `useComment options argument '${options}' not an object`)
-  const {commentCid, accountName} = options || {}
+  const {commentCid, accountName, onlyIfCached} = options || {}
   const account = useAccount({accountName})
   const commentFromStore = useCommentsStore((state: any) => state.comments[commentCid || ''])
   const addCommentToStore = useCommentsStore((state: any) => state.addCommentToStore)
   const subplebbitsPagesComment = useSubplebbitsPagesStore((state: any) => state.comments[commentCid || ''])
+  const repliesPagesComment = useRepliesPagesStore((state: any) => state.comments[commentCid || ''])
   const errors = useCommentsStore((state: any) => state.errors[commentCid || ''])
 
   // get account comment of the cid if any
@@ -33,17 +36,24 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       return
     }
     validator.validateUseCommentArguments(commentCid, account)
-    if (!commentFromStore) {
+    if (!commentFromStore && !onlyIfCached) {
       // if comment isn't already in store, add it
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComment addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCid, account?.id])
+  }, [commentCid, account?.id, onlyIfCached])
 
   let comment = commentFromStore
 
   // if comment from subplebbit pages is more recent, use it instead
   if (commentCid && (subplebbitsPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
     comment = subplebbitsPagesComment
+    // TODO: subplebbit pages comments aren't auto validated, need to validate
+  }
+
+  // if comment from replies pages is more recent, use it instead
+  if (commentCid && (repliesPagesComment?.updatedAt || 0) > (comment?.updatedAt || 0)) {
+    comment = repliesPagesComment
+    // TODO: replies pages comments aren't auto validated, need to validate
   }
 
   // if comment is still not defined, but account comment is, use account comment
@@ -80,9 +90,11 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
       state,
       commentFromStore,
       subplebbitsPagesComment,
+      repliesPagesComment,
       accountComment,
       commentsStore: useCommentsStore.getState().comments,
       account,
+      onlyIfCached,
     })
   }
 
@@ -105,7 +117,7 @@ export function useComment(options?: UseCommentOptions): UseCommentResult {
  */
 export function useComments(options?: UseCommentsOptions): UseCommentsResult {
   assert(!options || typeof options === 'object', `useComments options argument '${options}' not an object`)
-  const {commentCids, accountName} = options || {}
+  const {commentCids, accountName, onlyIfCached} = options || {}
   const account = useAccount({accountName})
   const commentsStoreComments: (Comment | undefined)[] = useCommentsStore(
     (state: any) => (commentCids || []).map((commentCid) => state.comments[commentCid || '']),
@@ -123,11 +135,14 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
       return
     }
     validator.validateUseCommentsArguments(commentCids, account)
+    if (onlyIfCached) {
+      return
+    }
     const uniqueCommentCids = new Set(commentCids)
     for (const commentCid of uniqueCommentCids) {
       addCommentToStore(commentCid, account).catch((error: unknown) => log.error('useComments addCommentToStore error', {commentCid, error}))
     }
-  }, [commentCids?.toString(), account?.id])
+  }, [commentCids?.toString(), account?.id, onlyIfCached])
 
   if (account && commentCids?.length) {
     log('useComments', {commentCids, commentsStoreComments, commentsStore: useCommentsStore.getState().comments, account})
@@ -156,4 +171,118 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
     }),
     [comments, commentCids?.toString()]
   )
+}
+
+export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
+  assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`)
+  let {commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter} = options || {}
+  if (!sortType) {
+    sortType = 'best'
+  }
+  if (flat === undefined || flat === null) {
+    flat = false
+  }
+  if (accountComments === undefined || accountComments === null) {
+    accountComments = true
+  }
+
+  validator.validateUseRepliesArguments(commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter)
+  const account = useAccount({accountName})
+  const addFeedToStore = useRepliesStore((state: RepliesState) => state.addFeedToStore)
+  const incrementFeedPageNumber = useRepliesStore((state: RepliesState) => state.incrementFeedPageNumber)
+  const resetFeed = useRepliesStore((state: RepliesState) => state.resetFeed)
+  const repliesFeedName = useRepliesFeedName(account?.id, commentCid, sortType, flat, accountComments, repliesPerPage, filter)
+  const [errors, setErrors] = useState<Error[]>([])
+
+  // add replies to store
+  useEffect(() => {
+    if (!commentCid || !account) {
+      return
+    }
+    addFeedToStore(repliesFeedName, commentCid, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error: unknown) =>
+      log.error('useReplies addFeedToStore error', {repliesFeedName, error})
+    )
+  }, [repliesFeedName])
+
+  const replies = useRepliesStore((state: RepliesState) => state.loadedFeeds[repliesFeedName || ''])
+  const bufferedReplies = useRepliesStore((state: RepliesState) => state.bufferedFeeds[repliesFeedName || ''])
+  const updatedReplies = useRepliesStore((state: RepliesState) => state.updatedFeeds[repliesFeedName || ''])
+  let hasMore = useRepliesStore((state: RepliesState) => state.feedsHaveMore[repliesFeedName || ''])
+  // if the replies is not yet defined, then it has more
+  if (!repliesFeedName || typeof hasMore !== 'boolean') {
+    hasMore = true
+  }
+  // if the replies is not yet defined, but no comment cid, doesn't have more
+  if (!commentCid) {
+    hasMore = false
+  }
+
+  const loadMore = async () => {
+    try {
+      if (!commentCid || !account) {
+        throw Error('useReplies cannot load more replies not initalized yet')
+      }
+      incrementFeedPageNumber(repliesFeedName)
+    } catch (e: any) {
+      // wait 100 ms so infinite scroll doesn't spam this function
+      await new Promise((r) => setTimeout(r, 50))
+      setErrors([...errors, e])
+    }
+  }
+
+  const reset = async () => {
+    try {
+      if (!commentCid || !account) {
+        throw Error('useReplies cannot reset replies not initalized yet')
+      }
+      resetFeed(repliesFeedName)
+    } catch (e: any) {
+      // wait 100 ms so infinite scroll doesn't spam this function
+      await new Promise((r) => setTimeout(r, 50))
+      setErrors([...errors, e])
+    }
+  }
+
+  if (account && commentCid) {
+    log('useReplies', {
+      repliesLength: replies?.length || 0,
+      hasMore,
+      commentCid,
+      sortType,
+      account,
+      repliesStoreOptions: useRepliesStore.getState().feedsOptions,
+      repliesStore: useRepliesStore.getState(),
+    })
+  }
+
+  const state = !hasMore ? 'succeeded' : 'fetching'
+
+  return useMemo(
+    () => ({
+      replies: replies || [],
+      bufferedReplies: bufferedReplies || [],
+      updatedReplies: updatedReplies || [],
+      hasMore,
+      loadMore,
+      reset,
+      state,
+      error: errors[errors.length - 1],
+      errors,
+    }),
+    [replies, bufferedReplies, updatedReplies, repliesFeedName, hasMore, errors]
+  )
+}
+
+function useRepliesFeedName(
+  accountId: string,
+  commentCid: string | undefined,
+  sortType: string,
+  flat?: boolean,
+  accountComments?: boolean,
+  repliesPerPage?: number,
+  filter?: CommentsFilter
+) {
+  return useMemo(() => {
+    return accountId + '-' + commentCid + '-' + sortType + '-' + flat + '-' + accountComments + '-' + repliesPerPage + '-' + filter?.key
+  }, [accountId, commentCid, sortType, flat, accountComments, repliesPerPage, filter?.key])
 }

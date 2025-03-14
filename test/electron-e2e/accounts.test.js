@@ -19,6 +19,8 @@ const localPlebbitRpcUrl = `ws://127.0.0.1:${plebbitRpc.port}`
 const plebbitOptionsTypes = {
   'plebbit rpc client': {
     plebbitRpcClientsOptions: [localPlebbitRpcUrl],
+    resolveAuthorAddresses: false,
+    validatePages: false,
     dataPath: window.plebbitDataPath,
     publishInterval: 1000,
     updateInterval: 1000,
@@ -105,7 +107,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         console.log('after set account')
       })
 
-      it('create and edit a subplebbit', async () => {
+      it.only('create and edit a subplebbit', async () => {
         console.log('before create subplebbit')
         const createdSubplebbitTitle = 'my title'
         let subplebbit

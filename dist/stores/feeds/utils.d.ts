@@ -1,9 +1,6 @@
-import { Feed, Feeds, FeedOptions, FeedsOptions, Subplebbit, Subplebbits, Accounts, SubplebbitsPages, FeedsSubplebbitsPostCounts } from '../../types';
-/**
- * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
- */
+import { Feeds, FeedsOptions, Subplebbit, Subplebbits, Accounts, SubplebbitsPages, FeedsSubplebbitsPostCounts } from '../../types';
 export declare const getFilteredSortedFeeds: (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => Feeds;
-export declare const getLoadedFeeds: (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds) => Feeds;
+export declare const getLoadedFeeds: (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
 export declare const getBufferedFeedsWithoutLoadedFeeds: (bufferedFeeds: Feeds, loadedFeeds: Feeds) => Feeds;
 export declare const getFeedsSubplebbitAddressesWithNewerPosts: (filteredSortedFeeds: Feeds, loadedFeeds: Feeds, previousFeedsSubplebbitAddressesWithNewerPosts: {
     [feedName: string]: string[];
@@ -12,16 +9,10 @@ export declare const getFeedsSubplebbitAddressesWithNewerPosts: (filteredSortedF
 };
 export declare const getFeedsSubplebbitsPostCounts: (feedsOptions: FeedsOptions, feeds: Feeds) => FeedsSubplebbitsPostCounts;
 /**
- * Get which feeds have more posts, i.e. have no reached the final page of all subs
+ * Get which feeds have more posts, i.e. have not reached the final page of all subs
  */
 export declare const getFeedsHaveMore: (feedsOptions: FeedsOptions, bufferedFeeds: Feeds, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
     [feedName: string]: boolean;
-};
-export declare const getFeedAfterIncrementPageNumber: (feedName: string, feedOptions: FeedOptions, bufferedFeed: Feed, loadedFeed: Feed, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => {
-    bufferedFeed: Feed;
-    loadedFeed: Feed;
-    bufferedFeedSubplebbitsPostCounts: import("../../types").FeedSubplebbitsPostCounts;
-    feedHasMore: boolean;
 };
 export declare const getFeedsSubplebbits: (feedsOptions: FeedsOptions, subplebbits: Subplebbits) => Map<string, Subplebbit>;
 export declare const feedsSubplebbitsChanged: (previousFeedsSubplebbits: Map<string, Subplebbit>, feedsSubplebbits: Map<string, Subplebbit>) => boolean;

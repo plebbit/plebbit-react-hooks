@@ -1,9 +1,21 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { getSubplebbitPages, getSubplebbitFirstPageCid } from '../subplebbits-pages';
 import feedSorter from './feed-sorter';
 import { subplebbitPostsCacheExpired } from '../../lib/utils';
+import Logger from '@plebbit/plebbit-logger';
+const log = Logger('plebbit-react-hooks:feeds:stores');
 /**
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
+const validPosts = {};
 export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPages, accounts) => {
     var _a, _b, _c, _d, _e, _f, _g;
     // calculate each feed
@@ -77,18 +89,25 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
     }
     return feeds;
 };
-export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds) => {
+export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     const loadedFeedsMissingPosts = {};
     for (const feedName in feedsOptions) {
-        const { pageNumber, postsPerPage } = feedsOptions[feedName];
+        const { pageNumber, postsPerPage, accountId } = feedsOptions[feedName];
         const loadedFeedPostCount = pageNumber * postsPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];
         const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length;
         // get new posts from buffered feed
         const bufferedFeed = bufferedFeeds[feedName] || [];
-        const missingPosts = [...bufferedFeed];
-        if (missingPosts.length > missingPostsCount) {
-            missingPosts.length = missingPostsCount;
+        const missingPosts = [];
+        for (const post of bufferedFeed) {
+            if (missingPosts.length === missingPostsCount) {
+                break;
+            }
+            // verify signature
+            if (!(yield postIsValid(post, accounts[accountId]))) {
+                continue;
+            }
+            missingPosts.push(post);
         }
         // TODO: update posts in already loaded feeds with new votes and reply counts
         // the current loaded feed already exist and doesn't need new posts
@@ -106,7 +125,7 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds) => {
         newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]];
     }
     return Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds);
-};
+});
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) => {
     var _a;
     // contruct a list of posts already loaded to remove them from buffered feeds
@@ -177,7 +196,7 @@ export const getFeedsSubplebbitsPostCounts = (feedsOptions, feeds) => {
     return feedsSubplebbitsPostCounts;
 };
 /**
- * Get which feeds have more posts, i.e. have no reached the final page of all subs
+ * Get which feeds have more posts, i.e. have not reached the final page of all subs
  */
 export const getFeedsHaveMore = (feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts) => {
     var _a, _b;
@@ -228,26 +247,6 @@ export const getFeedsHaveMore = (feedsOptions, bufferedFeeds, subplebbits, subpl
         feedsHaveMore[feedName] = false;
     }
     return feedsHaveMore;
-};
-// get a partial updateFeeds after a page increment
-export const getFeedAfterIncrementPageNumber = (feedName, feedOptions, bufferedFeed, loadedFeed, subplebbits, subplebbitsPages, accounts) => {
-    // transform arguments into objects
-    const feedsOptions = { [feedName]: feedOptions };
-    const bufferedFeedsWithLoadedFeeds = { [feedName]: bufferedFeed };
-    const previousLoadedFeeds = { [feedName]: loadedFeed };
-    // calculate values
-    const loadedFeeds = getLoadedFeeds(feedsOptions, previousLoadedFeeds, bufferedFeedsWithLoadedFeeds);
-    // after loaded feeds are caculated, remove loaded feeds again from buffered feeds
-    const bufferedFeeds = getBufferedFeedsWithoutLoadedFeeds(bufferedFeedsWithLoadedFeeds, loadedFeeds);
-    const bufferedFeedsSubplebbitsPostCounts = getFeedsSubplebbitsPostCounts(feedsOptions, bufferedFeeds);
-    const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, subplebbits, subplebbitsPages, accounts);
-    // transform values back into single properties
-    return {
-        bufferedFeed: bufferedFeeds[feedName],
-        loadedFeed: loadedFeeds[feedName],
-        bufferedFeedSubplebbitsPostCounts: bufferedFeedsSubplebbitsPostCounts[feedName],
-        feedHasMore: feedsHaveMore[feedName],
-    };
 };
 // get all subplebbits pages cids of all feeds, use to check if a subplebbitsStore change should trigger updateFeeds
 export const getFeedsSubplebbits = (feedsOptions, subplebbits) => {
@@ -400,3 +399,27 @@ export const feedsHaveChangedBlockedCids = (feedsOptions, bufferedFeeds, blocked
     }
     return false;
 };
+const subplebbitsWithInvalidPosts = {};
+const postIsValidSubplebbits = {}; // cache plebbit.createSubplebbits because sometimes it's slow
+const postIsValid = (post, account) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!account) {
+        return false;
+    }
+    if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
+        log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`);
+        return false;
+    }
+    if (!postIsValidSubplebbits[post.subplebbitAddress]) {
+        postIsValidSubplebbits[post.subplebbitAddress] = yield account.plebbit.createSubplebbit({ address: post.subplebbitAddress });
+    }
+    const postWithoutReplies = Object.assign(Object.assign({}, post), { replies: undefined }); // feed doesn't show replies, don't validate them
+    try {
+        yield postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({ comments: [postWithoutReplies] });
+        return true;
+    }
+    catch (e) {
+        subplebbitsWithInvalidPosts[post.subplebbitAddress] = true;
+        log('invalid post', { post, error: e });
+    }
+    return false;
+});

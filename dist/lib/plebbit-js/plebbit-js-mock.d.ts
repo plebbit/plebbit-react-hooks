@@ -41,6 +41,8 @@ export declare class Pages {
     comment: any;
     constructor(pagesOptions?: any);
     getPage(pageCid: string): Promise<any>;
+    validatePage(page: any): Promise<void>;
+    pageToGet(pageCid: string): any;
 }
 export declare class Subplebbit extends EventEmitter {
     updateCalledTimes: number;

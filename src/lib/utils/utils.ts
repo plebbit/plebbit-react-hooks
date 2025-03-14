@@ -51,50 +51,34 @@ const clone = (obj: any) => {
   return clonedObj
 }
 
-const sortTypes = [
-  'hot',
-  'new',
-  'active',
-  'old',
-  'topHour',
-  'topDay',
-  'topWeek',
-  'topMonth',
-  'topYear',
-  'topAll',
-  'controversialHour',
-  'controversialDay',
-  'controversialWeek',
-  'controversialMonth',
-  'controversialYear',
-  'controversialAll',
-]
-
 // this function should not clone the comments to not waste memory
 export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
   const flattenedComments = []
 
   // if is a Page instance
-  for (const comment of pageInstanceOrPagesInstance?.comments || []) {
-    flattenedComments.push(comment)
-    for (const sortType of sortTypes) {
-      if (comment?.replies?.pages?.[sortType]) {
-        flattenedComments.push(...flattenCommentsPages(comment.replies?.pages?.[sortType]))
+  if (pageInstanceOrPagesInstance?.comments) {
+    for (const comment of pageInstanceOrPagesInstance.comments) {
+      flattenedComments.push(comment)
+      if (comment.replies?.pages && Object.keys(comment.replies.pages).length) {
+        flattenedComments.push(...flattenCommentsPages(comment.replies))
       }
     }
   }
 
   // if is a Pages instance
-  for (const sortType of sortTypes) {
-    if (pageInstanceOrPagesInstance?.pages?.[sortType]) {
+  else if (pageInstanceOrPagesInstance?.pages) {
+    for (const sortType in pageInstanceOrPagesInstance.pages) {
       flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance.pages[sortType]))
     }
   }
 
   // if is a Pages.pages instance
-  for (const sortType of sortTypes) {
-    if (pageInstanceOrPagesInstance?.[sortType]) {
-      flattenedComments.push(...flattenCommentsPages(pageInstanceOrPagesInstance[sortType]))
+  else {
+    for (const sortType in pageInstanceOrPagesInstance) {
+      const page = pageInstanceOrPagesInstance[sortType]
+      if (page?.comments?.length) {
+        flattenedComments.push(...flattenCommentsPages(page))
+      }
     }
   }
 
@@ -216,11 +200,11 @@ export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   for (const clientUrl in clients?.ipfsGateways) {
     clients?.ipfsGateways?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', clientUrl))
   }
-  for (const clientUrl in clients?.ipfsClients) {
-    clients?.ipfsClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsClients', clientUrl))
+  for (const clientUrl in clients?.kuboRpcClients) {
+    clients?.kuboRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'kuboRpcClients', clientUrl))
   }
-  for (const clientUrl in clients?.pubsubClients) {
-    clients?.pubsubClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'pubsubClients', clientUrl))
+  for (const clientUrl in clients?.pubsubKuboRpcClients) {
+    clients?.pubsubKuboRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'pubsubKuboRpcClients', clientUrl))
   }
   for (const clientUrl in clients?.plebbitRpcClients) {
     clients?.plebbitRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', clientUrl))

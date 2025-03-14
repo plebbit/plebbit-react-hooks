@@ -121,6 +121,28 @@ describe('subplebbits', () => {
       Subplebbit.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
 
+    test(`onlyIfCached: true doesn't add to store`, async () => {
+      let rendered, waitFor
+      rendered = renderHook<any, any>((options: any) => useSubplebbit(options))
+      waitFor = testUtils.createWaitFor(rendered)
+
+      rendered.rerender({subplebbitAddress: 'subplebbit address 1', onlyIfCached: true})
+      // TODO: find better way to wait
+      await new Promise((r) => setTimeout(r, 20))
+      // subplebbit not added to store
+      expect(subplebbitStore.getState().subplebbits).toEqual({})
+
+      rendered = renderHook<any, any>((options: any) => useSubplebbits(options))
+      waitFor = testUtils.createWaitFor(rendered)
+
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1', 'subplebbit address 2'], onlyIfCached: true})
+      expect(rendered.result.current.subplebbits.length).toBe(2)
+      // TODO: find better way to wait
+      await new Promise((r) => setTimeout(r, 20))
+      // subplebbit not added to store
+      expect(subplebbitStore.getState().subplebbits).toEqual({})
+    })
+
     test('get multiple subplebbits at once', async () => {
       const rendered = renderHook<any, any>((subplebbitAddresses) => useSubplebbits({subplebbitAddresses}))
       const waitFor = testUtils.createWaitFor(rendered)

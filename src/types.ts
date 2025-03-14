@@ -72,7 +72,9 @@ export interface UseNotificationsResult extends Result {
 }
 
 // useAccountSubplebbits(options): result
-export interface UseAccountSubplebbitsOptions extends Options {}
+export interface UseAccountSubplebbitsOptions extends Options {
+  onlyIfCached?: boolean
+}
 export interface UseAccountSubplebbitsResult extends Result {
   accountSubplebbits: AccountSubplebbit[]
 }
@@ -86,12 +88,14 @@ export interface UsePubsubSubscribeResult extends Result {}
 // useComment(options): result
 export interface UseCommentOptions extends Options {
   commentCid?: string
+  onlyIfCached?: boolean
 }
 export interface UseCommentResult extends Result, Comment {}
 
 // useComments(options): result
 export interface UseCommentsOptions extends Options {
   commentCids?: string[]
+  onlyIfCached?: boolean
 }
 export interface UseCommentsResult extends Result {
   // TODO: remove | undefined, that shouldn't happen when comments have comment.state
@@ -107,15 +111,23 @@ export interface UseCommentsResult extends Result {
 // }
 
 // useReplies(options): result
-// export interface UseRepliesOptions extends Options {
-//   commentCid?: string
-//   nested?: boolean
-// }
-// export interface UseRepliesResult extends Result {
-//   replies: Comment[]
-//   hasMore: boolean
-//   loadMore(): Promise<void>
-// }
+export interface UseRepliesOptions extends Options {
+  commentCid?: string
+  sortType?: string
+  repliesPerPage?: number
+  flat?: boolean
+  accountComments?: boolean
+  filter?: CommentsFilter
+}
+export interface UseRepliesResult extends Result {
+  replies: Comment[]
+  hasMore: boolean
+  loadMore(): Promise<void>
+}
+export type UseRepliesOptionsAccountComments = {
+  newerThan?: number
+  append?: boolean
+}
 
 // useEditedComment(options): result
 export interface UseEditedCommentOptions extends Options {
@@ -133,12 +145,14 @@ export interface UseEditedCommentResult extends Result {
 // useSubplebbit(options): result
 export interface UseSubplebbitOptions extends Options {
   subplebbitAddress?: string
+  onlyIfCached?: boolean
 }
 export interface UseSubplebbitResult extends Result, Subplebbit {}
 
 // useSubplebbits(options): result
 export interface UseSubplebbitsOptions extends Options {
   subplebbitAddresses?: string[]
+  onlyIfCached?: boolean
 }
 export interface UseSubplebbitsResult extends Result {
   subplebbits: (Subplebbit | undefined)[]
@@ -147,6 +161,7 @@ export interface UseSubplebbitsResult extends Result {
 // useSubplebbitStats(options): result
 export interface UseSubplebbitStatsOptions extends Options {
   subplebbitAddress?: string
+  onlyIfCached?: boolean
 }
 export interface UseSubplebbitStatsResult extends Result, SubplebbitStats {}
 
@@ -576,6 +591,23 @@ export type CommentsFilter = {
   filter(comment: Comment): Boolean
   key: string
 }
+
+/**
+ * Replies store
+ */
+export type RepliesFeedOptions = {
+  commentCid: string
+  sortType: string
+  accountId: string
+  pageNumber: number
+  repliesPerPage: number
+  flat?: boolean
+  accountComments?: boolean
+  filter?: CommentsFilter
+}
+export type RepliesFeedsOptions = {[feedName: string]: RepliesFeedOptions}
+export type RepliesPage = SubplebbitPage
+export type RepliesPages = {[pageCid: string]: RepliesPage}
 
 /**
  * Authors comments store
