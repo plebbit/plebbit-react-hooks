@@ -380,9 +380,10 @@ export const getSortTypeFromComment = (comment: Comment, feedOptions: RepliesFee
   return sortType
 }
 
+// TODO: replace with plebbit.validateComment()
 const subplebbitsWithInvalidReplies: {[subplebbitAddress: string]: boolean} = {}
 const replyIsValidComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
-const replyIsValid = async (reply: Comment, account: Account) => {
+export const replyIsValid = async (reply: Comment, account: Account) => {
   if (!account) {
     return false
   }

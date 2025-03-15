@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
-import {useComment, useComments, useReplies, setPlebbitJs} from '..'
+import {useComment, useComments, useReplies, useValidateComment, setPlebbitJs} from '..'
 import commentsStore from '../stores/comments'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import PlebbitJsMock, {Plebbit, Comment, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
@@ -1063,6 +1063,76 @@ describe('comment replies', () => {
       expect(rendered.result.current.updatedReplies[1].cid).toBe('comment cid 2')
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+  })
+
+  describe('useValidateComment', () => {
+    let rendered, waitFor
+
+    beforeEach(() => {
+      rendered = renderHook<any, any>((options) => useValidateComment(options))
+      waitFor = testUtils.createWaitFor(rendered)
+    })
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('is valid', async () => {
+      expect(rendered.result.current.valid).toBe(false)
+      expect(rendered.result.current.state).toBe('initializing')
+
+      // the first render is always true, to avoid rerenders when true
+      const comment = {cid: 'comment cid 1', subplebbitAddress: 'subplebbit address 1'}
+      rendered.rerender({comment})
+      expect(rendered.result.current.valid).toBe(true)
+      expect(rendered.result.current.state).toBe('initializing') // valid true but still initializing
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.valid).toBe(true)
+
+      rendered.rerender({comment: undefined})
+      expect(rendered.result.current.valid).toBe(false)
+      expect(rendered.result.current.state).toBe('initializing')
+
+      rendered.rerender({comment, validateReplies: false})
+      expect(rendered.result.current.valid).toBe(true)
+      expect(rendered.result.current.state).toBe('initializing') // valid true but still initializing
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.valid).toBe(true)
+
+      rendered.rerender({comment: undefined})
+      expect(rendered.result.current.valid).toBe(false)
+      expect(rendered.result.current.state).toBe('initializing')
+
+      rendered.rerender({comment, validateReplies: true})
+      expect(rendered.result.current.valid).toBe(true)
+      expect(rendered.result.current.state).toBe('initializing') // valid true but still initializing
+      await waitFor(() => rendered.result.current.state === 'succeeded')
+      expect(rendered.result.current.state).toBe('succeeded')
+      expect(rendered.result.current.valid).toBe(true)
+    })
+
+    test('is invalid', async () => {
+      const validatePage = Pages.prototype.validatePage
+      Pages.prototype.validatePage = async function () {
+        throw Error('mocked page invalid')
+      }
+
+      expect(rendered.result.current.valid).toBe(false)
+      expect(rendered.result.current.state).toBe('initializing')
+
+      // the first render is always true, to avoid rerenders when true
+      const comment = {cid: 'comment cid 1', subplebbitAddress: 'subplebbit address 1'}
+      rendered.rerender({comment})
+      expect(rendered.result.current.valid).toBe(true)
+      expect(rendered.result.current.state).toBe('initializing')
+
+      await waitFor(() => rendered.result.current.valid === false)
+      expect(rendered.result.current.valid).toBe(false)
+      expect(rendered.result.current.state).toBe('failed')
+
+      Pages.prototype.validatePage = validatePage
     })
   })
 })

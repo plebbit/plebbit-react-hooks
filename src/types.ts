@@ -102,6 +102,15 @@ export interface UseCommentsResult extends Result {
   comments: (Comment | undefined)[]
 }
 
+// useValidateComment(options): result
+export interface UseValidateCommentOptions extends Options {
+  comment?: Comment
+  validateReplies?: boolean
+}
+export interface UseValidateCommentResult extends Result {
+  valid: boolean
+}
+
 // useCommentThumbnailUrl(options): result
 // export interface UseCommentThumbnailUrlOptions extends Options {
 //   comment?: Comment

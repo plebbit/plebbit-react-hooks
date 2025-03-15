@@ -27,8 +27,10 @@ useNotifications(): {notifications: Notification[], markAsRead: Function}
 #### Comments Hooks
 ```
 useComment({commentCid: string, onlyIfCached?: boolean}): Comment
+useReplies({commentCid: string, sortType?: string, flat?: boolean, repliesPerPage?: number, filter>: CommentsFilter}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
 useComments({commentCids: string[], onlyIfCached?: boolean}): {comments: Comment[]}
 useEditedComment({comment: Comment}): {editedComment: Comment | undefined}
+useValidateComment({comment: Comment, validateReplies?: boolean}): {valid: boolean}
 ```
 #### Subplebbits Hooks
 ```
@@ -48,7 +50,7 @@ setAuthorAvatarsWhitelistedTokenAddresses(tokenAddresses: string[])
 ```
 #### Feeds Hooks
 ```
-useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter: CommentsFilter, newerThan: number}): {feed: Feed, loadMore: function, hasMore: boolean, reset: function, subplebbitAddressesWithNewerPosts: string[]}
+useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter: CommentsFilter, newerThan: number}): {feed: Comment[], loadMore: function, hasMore: boolean, reset: function, updatedFeed: Comment[], bufferedFeed: Comment[], subplebbitAddressesWithNewerPosts: string[]}
 useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 ```
 #### Actions Hooks
@@ -140,6 +142,16 @@ const {authorAddress, shortAuthorAddress} = useAuthorAddress({comment: post})
 
 // use many times in a page without affecting performance
 const post = useComment({commentCid, onlyIfCached: true})
+
+// post.replies are not validated, to show replies
+const {replies, hasMore, loadMore} = useReplies({commentCid})
+
+// to show a preloaded reply without rerenders, validate manually
+const {valid} = useValidateComment({comment: post.replies.pages.best[0]})
+if (valid === false) {
+  // don't show this reply, it's malicious
+}
+// won't cause any rerenders if true
 ```
 
 #### Get a comment
@@ -246,6 +258,16 @@ const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, s
 
 // use without affecting performance
 const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, subplebbitAddress2, subplebbitAddress3], onlyIfCached: true})
+
+// subplebbit.posts are not validated, to show posts
+const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: [subplebbitAddress]})
+
+// to show a preloaded post without rerenders, validate manually
+const {valid} = useValidateComment({comment: subplebbit.posts.pages.topAll[0]})
+if (valid === false) {
+  // don't show this post, it's malicious
+}
+// won't cause any rerenders if true
 ```
 
 #### Create a post or comment using callbacks

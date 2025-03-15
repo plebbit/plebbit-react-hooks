@@ -1,6 +1,6 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useFeed, useBufferedFeeds, useAccount, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const {useFeed, useBufferedFeeds, useAccount, useAccountVotes, useAccountComments, useValidateComment, debugUtils} = require('../../dist')
 const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
@@ -112,6 +112,44 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       rendered.rerender({subplebbitAddresses: [subplebbitAddress], sortType: 'new'})
       await waitFor(() => !!rendered.result.current.feed[0].cid)
       expect(rendered.result.current.feed[0].subplebbitAddress).to.equal(subplebbitAddress)
+    })
+
+    it('validate comments', async () => {
+      console.log(`starting validate comments tests (${plebbitOptionsType})`)
+
+      rendered = renderHook(() => {
+        const feed = useFeed({subplebbitAddresses: [subplebbitAddress], sortType: 'hot'})
+        const validateComment = useValidateComment({comment: feed.feed[0]})
+        const validateCommentWithoutReplies = useValidateComment({comment: feed.feed[0], validateReplies: false})
+        let invalidComment
+        if (feed.feed[0]) {
+          invalidComment = JSON.parse(JSON.stringify(feed.feed[0]))
+          // change the sub address because we're caching malicious subplebbits
+          // and will make other comments invalid
+          invalidComment.subplebbitAddress = 'malicious.eth'
+          invalidComment.pageComment.comment.subplebbitAddress = 'malicious.eth'
+        }
+
+        const validateCommentInvalid = useValidateComment({comment: invalidComment})
+        return {...feed, validateComment, validateCommentWithoutReplies, validateCommentInvalid}
+      })
+      waitFor = testUtils.createWaitFor(rendered, {timeout})
+
+      await waitFor(() => !!rendered.result.current.feed[0].cid)
+      expect(rendered.result.current.feed[0].subplebbitAddress).to.equal(subplebbitAddress)
+      console.log('after first render')
+
+      await waitFor(() => rendered.result.current.validateComment.state === 'succeeded')
+      expect(rendered.result.current.validateComment.state).to.equal('succeeded')
+      expect(rendered.result.current.validateComment.valid).to.equal(true)
+      console.log('after validate comment')
+
+      expect(rendered.result.current.validateCommentWithoutReplies.state).to.equal('succeeded')
+      expect(rendered.result.current.validateCommentWithoutReplies.valid).to.equal(true)
+      console.log('after validate comment without replies')
+
+      expect(rendered.result.current.validateCommentInvalid.state).to.equal('failed')
+      expect(rendered.result.current.validateCommentInvalid.valid).to.equal(false)
     })
   })
 }

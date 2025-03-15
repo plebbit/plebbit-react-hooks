@@ -1,6 +1,8 @@
 import assert from 'assert'
 import QuickLru from 'quick-lru'
 import Logger from '@plebbit/plebbit-logger'
+import PlebbitJs from '../plebbit-js'
+import {Comment} from '../../types'
 const log = Logger('plebbit-react-hooks:utils')
 
 const merge = (...args: any) => {
@@ -226,6 +228,87 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
   return oneHourAgo > subplebbit.fetchedAt
 }
 
+const subplebbitsWithInvalidReplies: {[subplebbitAddress: string]: boolean} = {}
+const replyIsValidComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
+const replyIsValid = async (reply: Comment, plebbit: any) => {
+  if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
+    log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`)
+    return false
+  }
+  if (!replyIsValidComments[reply.cid]) {
+    replyIsValidComments[reply.cid] = await plebbit.createComment({
+      subplebbitAddress: reply.subplebbitAddress,
+      postCid: reply.postCid,
+      cid: reply.cid,
+      depth: reply.depth,
+    })
+  }
+  try {
+    await replyIsValidComments[reply.cid].replies.validatePage({comments: [reply]})
+    return true
+  } catch (e) {
+    subplebbitsWithInvalidReplies[reply.cid] = true
+    log('invalid reply', {reply, error: e})
+  }
+  return false
+}
+const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
+const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
+const postIsValid = async (post: Comment, plebbit: any) => {
+  if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
+    log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
+    return false
+  }
+  if (!postIsValidSubplebbits[post.subplebbitAddress]) {
+    postIsValidSubplebbits[post.subplebbitAddress] = await plebbit.createSubplebbit({address: post.subplebbitAddress})
+  }
+  const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
+  try {
+    await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
+    return true
+  } catch (e) {
+    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
+    log('invalid post', {post, error: e})
+  }
+  return false
+}
+const removeReplies = (comment: Comment) => {
+  comment = {...comment}
+  if (comment.pageComment) {
+    comment.pageComment = {...comment.pageComment}
+    if (comment.pageComment.commentUpdate) {
+      comment.pageComment.commentUpdate = {...comment.pageComment.commentUpdate}
+      delete comment.pageComment.commentUpdate.replies
+    }
+  }
+  if (comment.commentUpdate) {
+    comment.commentUpdate = {...comment.commentUpdate}
+    delete comment.commentUpdate.replies
+  }
+  delete comment.replies
+  return comment
+}
+let plebbit: any
+// TODO: replace with plebbit.validateComment()
+export const commentIsValid = async (comment: Comment, {validateReplies}: any = {}) => {
+  if (!comment) {
+    return false
+  }
+  if (validateReplies === undefined || validateReplies === null) {
+    validateReplies = true
+  }
+  if (validateReplies) {
+    comment = removeReplies(comment)
+  }
+  if (!plebbit) {
+    plebbit = await PlebbitJs.Plebbit({validatePages: false})
+  }
+  if (comment.depth === 0) {
+    return postIsValid(comment, plebbit)
+  }
+  return replyIsValid(comment, plebbit)
+}
+
 const utils = {
   merge,
   clone,
@@ -238,6 +321,7 @@ const utils = {
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
   clientsOnStateChange,
   subplebbitPostsCacheExpired,
+  commentIsValid,
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {
