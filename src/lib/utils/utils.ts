@@ -228,6 +228,62 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
   return oneHourAgo > subplebbit.fetchedAt
 }
 
+let plebbit: any
+// TODO: replace with plebbit.validateComment()
+export const commentIsValid = async (comment: Comment, {validateReplies}: any = {}) => {
+  if (!comment) {
+    return false
+  }
+  if (validateReplies === undefined || validateReplies === null) {
+    validateReplies = true
+  }
+  if (validateReplies) {
+    comment = removeReplies(comment)
+  }
+  if (!plebbit) {
+    plebbit = await PlebbitJs.Plebbit({validatePages: false})
+  }
+  if (comment.depth === 0) {
+    return postIsValid(comment, plebbit)
+  }
+  return replyIsValid(comment, plebbit)
+}
+const removeReplies = (comment: Comment) => {
+  comment = {...comment}
+  if (comment.pageComment) {
+    comment.pageComment = {...comment.pageComment}
+    if (comment.pageComment.commentUpdate) {
+      comment.pageComment.commentUpdate = {...comment.pageComment.commentUpdate}
+      delete comment.pageComment.commentUpdate.replies
+    }
+  }
+  if (comment.commentUpdate) {
+    comment.commentUpdate = {...comment.commentUpdate}
+    delete comment.commentUpdate.replies
+  }
+  delete comment.replies
+  return comment
+}
+const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
+const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
+const postIsValid = async (post: Comment, plebbit: any) => {
+  if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
+    log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
+    return false
+  }
+  if (!postIsValidSubplebbits[post.subplebbitAddress]) {
+    postIsValidSubplebbits[post.subplebbitAddress] = await plebbit.createSubplebbit({address: post.subplebbitAddress})
+  }
+  const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
+  try {
+    await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
+    return true
+  } catch (e) {
+    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
+    log('invalid post', {post, error: e})
+  }
+  return false
+}
 const subplebbitsWithInvalidReplies: {[subplebbitAddress: string]: boolean} = {}
 const replyIsValidComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
 const replyIsValid = async (reply: Comment, plebbit: any) => {
@@ -251,62 +307,6 @@ const replyIsValid = async (reply: Comment, plebbit: any) => {
     log('invalid reply', {reply, error: e})
   }
   return false
-}
-const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
-const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = async (post: Comment, plebbit: any) => {
-  if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
-    log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
-    return false
-  }
-  if (!postIsValidSubplebbits[post.subplebbitAddress]) {
-    postIsValidSubplebbits[post.subplebbitAddress] = await plebbit.createSubplebbit({address: post.subplebbitAddress})
-  }
-  const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
-  try {
-    await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
-    return true
-  } catch (e) {
-    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
-    log('invalid post', {post, error: e})
-  }
-  return false
-}
-const removeReplies = (comment: Comment) => {
-  comment = {...comment}
-  if (comment.pageComment) {
-    comment.pageComment = {...comment.pageComment}
-    if (comment.pageComment.commentUpdate) {
-      comment.pageComment.commentUpdate = {...comment.pageComment.commentUpdate}
-      delete comment.pageComment.commentUpdate.replies
-    }
-  }
-  if (comment.commentUpdate) {
-    comment.commentUpdate = {...comment.commentUpdate}
-    delete comment.commentUpdate.replies
-  }
-  delete comment.replies
-  return comment
-}
-let plebbit: any
-// TODO: replace with plebbit.validateComment()
-export const commentIsValid = async (comment: Comment, {validateReplies}: any = {}) => {
-  if (!comment) {
-    return false
-  }
-  if (validateReplies === undefined || validateReplies === null) {
-    validateReplies = true
-  }
-  if (validateReplies) {
-    comment = removeReplies(comment)
-  }
-  if (!plebbit) {
-    plebbit = await PlebbitJs.Plebbit({validatePages: false})
-  }
-  if (comment.depth === 0) {
-    return postIsValid(comment, plebbit)
-  }
-  return replyIsValid(comment, plebbit)
 }
 
 const utils = {

@@ -129,7 +129,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           invalidComment.subplebbitAddress = 'malicious.eth'
           invalidComment.pageComment.comment.subplebbitAddress = 'malicious.eth'
         }
-
         const validateCommentInvalid = useValidateComment({comment: invalidComment})
         return {...feed, validateComment, validateCommentWithoutReplies, validateCommentInvalid}
       })
