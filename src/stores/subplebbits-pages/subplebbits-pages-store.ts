@@ -33,10 +33,10 @@ const subplebbitsPagesStore = createStore<SubplebbitsPagesState>((setState: Func
 
     // check the preloaded posts on subplebbit.posts.pages first, then the subplebbit.posts.pageCids
     const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
-    assert(
-      subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string',
-      `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit?.address}' sortType '${sortType}' subplebbitFirstPageCid '${subplebbitFirstPageCid}' invalid`
-    )
+    if (!subplebbitFirstPageCid) {
+      log(`subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit?.address}' sortType '${sortType}' no subplebbitFirstPageCid`)
+      return
+    }
 
     // all subplebbits pages in store
     const {subplebbitsPages} = getState()

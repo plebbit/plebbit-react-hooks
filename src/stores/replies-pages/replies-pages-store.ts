@@ -33,10 +33,10 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
 
     // check the preloaded replies on comment.replies.pages first, then the comment.replies.pageCids
     const repliesFirstPageCid = getRepliesFirstPageCid(comment, sortType)
-    assert(
-      repliesFirstPageCid && typeof repliesFirstPageCid === 'string',
-      `repliesPagesStore.addNextRepliesPageToStore comment '${comment?.cid}' sortType '${sortType}' repliesFirstPageCid '${repliesFirstPageCid}' invalid`
-    )
+    if (!repliesFirstPageCid) {
+      log(`repliesPagesStore.addNextRepliesPageToStore comment '${comment?.cid}' sortType '${sortType}' no repliesFirstPageCid`)
+      return
+    }
 
     // all replies pages in store
     const repliesPagesStore = getState()
