@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { getRepliesPages, getRepliesFirstPageCid } from '../replies-pages';
 import repliesSorter from '../feeds/feed-sorter';
-import { flattenCommentsPages } from '../../lib/utils';
+import { flattenCommentsPages, commentIsValid } from '../../lib/utils';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:replies:stores');
 /**
@@ -62,7 +62,7 @@ export const getFilteredSortedFeeds = (feedsOptions, comments, repliesPages, acc
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     const loadedFeedsMissingReplies = {};
     for (const feedName in feedsOptions) {
-        const { pageNumber, repliesPerPage, accountId } = feedsOptions[feedName];
+        const { pageNumber, repliesPerPage } = feedsOptions[feedName];
         const loadedFeedReplyCount = pageNumber * repliesPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];
         const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.length;
@@ -74,7 +74,7 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
                 break;
             }
             // verify signature
-            if (!(yield replyIsValid(reply, accounts[accountId]))) {
+            if (!(yield commentIsValid(reply))) {
                 continue;
             }
             missingReplies.push(reply);
@@ -139,7 +139,6 @@ export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds,
     }
     const newUpdatedFeeds = Object.assign({}, updatedFeeds);
     for (const feedName in filteredSortedFeeds) {
-        const account = accounts[feedsOptions[feedName].accountId];
         const updatedFeed = [...(updatedFeeds[feedName] || [])];
         const onlyHasNewReplies = updatedFeed.length === 0;
         let updatedFeedChanged = false;
@@ -153,7 +152,7 @@ export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds,
             for (const reply of filteredSortedFeeds[feedName]) {
                 if ((_a = updatedFeedsReplies[feedName]) === null || _a === void 0 ? void 0 : _a[reply.cid]) {
                     const { index, updatedReply } = updatedFeedsReplies[feedName][reply.cid];
-                    if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (yield replyIsValid(reply, account))) {
+                    if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (yield commentIsValid(reply))) {
                         updatedFeed[index] = reply;
                         updatedFeedChanged = true;
                     }
@@ -342,32 +341,3 @@ export const getSortTypeFromComment = (comment, feedOptions) => {
     // }
     return sortType;
 };
-// TODO: replace with plebbit.validateComment()
-const subplebbitsWithInvalidReplies = {};
-const replyIsValidComments = {}; // cache plebbit.createComment because sometimes it's slow
-export const replyIsValid = (reply, account) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!account) {
-        return false;
-    }
-    if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
-        log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`);
-        return false;
-    }
-    if (!replyIsValidComments[reply.cid]) {
-        replyIsValidComments[reply.cid] = yield account.plebbit.createComment({
-            subplebbitAddress: reply.subplebbitAddress,
-            postCid: reply.postCid,
-            cid: reply.cid,
-            depth: reply.depth,
-        });
-    }
-    try {
-        yield replyIsValidComments[reply.cid].replies.validatePage({ comments: [reply] });
-        return true;
-    }
-    catch (e) {
-        subplebbitsWithInvalidReplies[reply.cid] = true;
-        log('invalid reply', { reply, error: e });
-    }
-    return false;
-});

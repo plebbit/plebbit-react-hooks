@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { getSubplebbitPages, getSubplebbitFirstPageCid } from '../subplebbits-pages';
 import feedSorter from './feed-sorter';
-import { subplebbitPostsCacheExpired } from '../../lib/utils';
+import { subplebbitPostsCacheExpired, commentIsValid } from '../../lib/utils';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:feeds:stores');
 /**
@@ -91,7 +91,7 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     const loadedFeedsMissingPosts = {};
     for (const feedName in feedsOptions) {
-        const { pageNumber, postsPerPage, accountId } = feedsOptions[feedName];
+        const { pageNumber, postsPerPage } = feedsOptions[feedName];
         const loadedFeedPostCount = pageNumber * postsPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];
         const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length;
@@ -103,7 +103,7 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
                 break;
             }
             // verify signature
-            if (!(yield postIsValid(post, accounts[accountId]))) {
+            if (!(yield commentIsValid(post, { validateReplies: false }))) {
                 continue;
             }
             missingPosts.push(post);
@@ -168,7 +168,6 @@ export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds,
     }
     const newUpdatedFeeds = Object.assign({}, updatedFeeds);
     for (const feedName in filteredSortedFeeds) {
-        const account = accounts[feedsOptions[feedName].accountId];
         const updatedFeed = [...(updatedFeeds[feedName] || [])];
         const onlyHasNewPosts = updatedFeed.length === 0;
         let updatedFeedChanged = false;
@@ -182,7 +181,7 @@ export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds,
             for (const post of filteredSortedFeeds[feedName]) {
                 if ((_a = updatedFeedsPosts[feedName]) === null || _a === void 0 ? void 0 : _a[post.cid]) {
                     const { index, updatedPost } = updatedFeedsPosts[feedName][post.cid];
-                    if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (yield postIsValid(post, account))) {
+                    if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (yield commentIsValid(post, { validateReplies: false }))) {
                         updatedFeed[index] = post;
                         updatedFeedChanged = true;
                     }
@@ -459,27 +458,3 @@ export const feedsHaveChangedBlockedCids = (feedsOptions, bufferedFeeds, blocked
     }
     return false;
 };
-const subplebbitsWithInvalidPosts = {};
-const postIsValidSubplebbits = {}; // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = (post, account) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!account) {
-        return false;
-    }
-    if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
-        log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`);
-        return false;
-    }
-    if (!postIsValidSubplebbits[post.subplebbitAddress]) {
-        postIsValidSubplebbits[post.subplebbitAddress] = yield account.plebbit.createSubplebbit({ address: post.subplebbitAddress });
-    }
-    const postWithoutReplies = Object.assign(Object.assign({}, post), { replies: undefined }); // feed doesn't show replies, don't validate them
-    try {
-        yield postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({ comments: [postWithoutReplies] });
-        return true;
-    }
-    catch (e) {
-        subplebbitsWithInvalidPosts[post.subplebbitAddress] = true;
-        log('invalid post', { post, error: e });
-    }
-    return false;
-});
