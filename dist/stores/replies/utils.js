@@ -342,9 +342,10 @@ export const getSortTypeFromComment = (comment, feedOptions) => {
     // }
     return sortType;
 };
+// TODO: replace with plebbit.validateComment()
 const subplebbitsWithInvalidReplies = {};
 const replyIsValidComments = {}; // cache plebbit.createComment because sometimes it's slow
-const replyIsValid = (reply, account) => __awaiter(void 0, void 0, void 0, function* () {
+export const replyIsValid = (reply, account) => __awaiter(void 0, void 0, void 0, function* () {
     if (!account) {
         return false;
     }

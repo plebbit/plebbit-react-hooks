@@ -1,4 +1,4 @@
-import { Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Accounts, RepliesPages } from '../../types';
+import { Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Account, Accounts, RepliesPages } from '../../types';
 /**
  * Calculate the feeds from all the loaded replies pages, filter and sort them
  */
@@ -21,3 +21,4 @@ export declare const getFeedsCommentsFirstPageCids: (feedsComments: Map<string, 
 export declare const getFeedsCommentsRepliesPagesFirstUpdatedAts: (feedsComments: Map<string, Comment>) => string;
 export declare const getFeedsCommentsLoadedCount: (feedsComments: Map<string, Comment>) => number;
 export declare const getSortTypeFromComment: (comment: Comment, feedOptions: RepliesFeedOptions) => string;
+export declare const replyIsValid: (reply: Comment, account: Account) => Promise<boolean>;

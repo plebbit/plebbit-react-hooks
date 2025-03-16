@@ -79,6 +79,13 @@ export interface UseCommentsOptions extends Options {
 export interface UseCommentsResult extends Result {
     comments: (Comment | undefined)[];
 }
+export interface UseValidateCommentOptions extends Options {
+    comment?: Comment;
+    validateReplies?: boolean;
+}
+export interface UseValidateCommentResult extends Result {
+    valid: boolean;
+}
 export interface UseRepliesOptions extends Options {
     commentCid?: string;
     sortType?: string;

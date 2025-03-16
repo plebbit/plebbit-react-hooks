@@ -13,7 +13,7 @@ catch (e) { }
 // accounts
 import { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useEditedComment, useNotifications, useAccountSubplebbits, usePubsubSubscribe, } from './hooks/accounts';
 // comments
-import { useComment, useComments, useReplies } from './hooks/comments';
+import { useComment, useComments, useReplies, useValidateComment } from './hooks/comments';
 // subplebbits
 import { useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress } from './hooks/subplebbits';
 // feeds
@@ -38,7 +38,7 @@ export {
 // accounts
 useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, 
 // comments
-useComment, useComments, useEditedComment, useReplies, 
+useComment, useComments, useEditedComment, useReplies, useValidateComment, 
 // subplebbits
 useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, 
 // authors
@@ -73,6 +73,7 @@ const hooks = {
     useComments,
     useEditedComment,
     useReplies,
+    useValidateComment,
     // subplebbits
     useSubplebbit,
     useSubplebbits,

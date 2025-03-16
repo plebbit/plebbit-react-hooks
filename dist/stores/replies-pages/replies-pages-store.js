@@ -30,7 +30,10 @@ const repliesPagesStore = createStore((setState, getState) => ({
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `repliesPagesStore.addNextRepliesPageToStore account '${account}' invalid`);
         // check the preloaded replies on comment.replies.pages first, then the comment.replies.pageCids
         const repliesFirstPageCid = getRepliesFirstPageCid(comment, sortType);
-        assert(repliesFirstPageCid && typeof repliesFirstPageCid === 'string', `repliesPagesStore.addNextRepliesPageToStore comment '${comment === null || comment === void 0 ? void 0 : comment.cid}' sortType '${sortType}' repliesFirstPageCid '${repliesFirstPageCid}' invalid`);
+        if (!repliesFirstPageCid) {
+            log(`repliesPagesStore.addNextRepliesPageToStore comment '${comment === null || comment === void 0 ? void 0 : comment.cid}' sortType '${sortType}' no repliesFirstPageCid`);
+            return;
+        }
         // all replies pages in store
         const repliesPagesStore = getState();
         // only specific pages of the comment+sortType

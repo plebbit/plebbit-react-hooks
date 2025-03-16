@@ -16,6 +16,7 @@ import assert from 'assert';
 import useCommentsStore from '../stores/comments';
 import useAccountsStore from '../stores/accounts';
 import useRepliesStore from '../stores/replies';
+import { commentIsValid } from '../lib/utils';
 import useSubplebbitsPagesStore from '../stores/subplebbits-pages';
 import useRepliesPagesStore from '../stores/replies-pages';
 import shallow from 'zustand/shallow';
@@ -239,3 +240,58 @@ function useRepliesFeedName(accountId, commentCid, sortType, flat, accountCommen
         return accountId + '-' + commentCid + '-' + sortType + '-' + flat + '-' + accountComments + '-' + repliesPerPage + '-' + (filter === null || filter === void 0 ? void 0 : filter.key);
     }, [accountId, commentCid, sortType, flat, accountComments, repliesPerPage, filter === null || filter === void 0 ? void 0 : filter.key]);
 }
+export function useValidateComment(options) {
+    assert(!options || typeof options === 'object', `useValidateComment options argument '${options}' not an object`);
+    let { comment, validateReplies, accountName } = options || {};
+    const account = useAccount({ accountName });
+    if (validateReplies === undefined || validateReplies === null) {
+        validateReplies = true;
+    }
+    const [validated, setValidated] = useState();
+    const [errors, setErrors] = useState([]);
+    useEffect(() => {
+        if (!comment || !account) {
+            setValidated(undefined);
+            return;
+        }
+        commentIsValid(validateReplies ? comment : removeReplies(comment), account).then((validated) => setValidated(validated));
+    }, [comment, validateReplies, account === null || account === void 0 ? void 0 : account.plebbit]);
+    let state = 'initializing';
+    if (validated === true) {
+        state = 'succeeded';
+    }
+    if (validated === false) {
+        state = 'failed';
+    }
+    // start valid at true always because most of the time the value will be true and we dont want to cause a rerender
+    let valid = true;
+    if (validated == false) {
+        valid = false;
+    }
+    // if comment isn't defined, it would be confusing for valid to be true
+    if (!comment) {
+        valid = false;
+    }
+    return useMemo(() => ({
+        valid,
+        state,
+        error: errors[errors.length - 1],
+        errors,
+    }), [valid, state]);
+}
+const removeReplies = (comment) => {
+    comment = Object.assign({}, comment);
+    if (comment.pageComment) {
+        comment.pageComment = Object.assign({}, comment.pageComment);
+        if (comment.pageComment.commentUpdate) {
+            comment.pageComment.commentUpdate = Object.assign({}, comment.pageComment.commentUpdate);
+            delete comment.pageComment.commentUpdate.replies;
+        }
+    }
+    if (comment.commentUpdate) {
+        comment.commentUpdate = Object.assign({}, comment.commentUpdate);
+        delete comment.commentUpdate.replies;
+    }
+    delete comment.replies;
+    return comment;
+};

@@ -30,7 +30,10 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`);
         // check the preloaded posts on subplebbit.posts.pages first, then the subplebbit.posts.pageCids
         const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType);
-        assert(subplebbitFirstPageCid && typeof subplebbitFirstPageCid === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address}' sortType '${sortType}' subplebbitFirstPageCid '${subplebbitFirstPageCid}' invalid`);
+        if (!subplebbitFirstPageCid) {
+            log(`subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address}' sortType '${sortType}' no subplebbitFirstPageCid`);
+            return;
+        }
         // all subplebbits pages in store
         const { subplebbitsPages } = getState();
         // only specific pages of the subplebbit+sortType
