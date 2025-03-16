@@ -143,10 +143,12 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       expect(rendered.result.current.validateComment.valid).to.equal(true)
       console.log('after validate comment')
 
+      await waitFor(() => rendered.result.current.validateCommentWithoutReplies.state === 'succeeded')
       expect(rendered.result.current.validateCommentWithoutReplies.state).to.equal('succeeded')
       expect(rendered.result.current.validateCommentWithoutReplies.valid).to.equal(true)
       console.log('after validate comment without replies')
 
+      await waitFor(() => rendered.result.current.validateCommentInvalid.state === 'failed')
       expect(rendered.result.current.validateCommentInvalid.state).to.equal('failed')
       expect(rendered.result.current.validateCommentInvalid.valid).to.equal(false)
     })
