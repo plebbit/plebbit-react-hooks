@@ -323,6 +323,10 @@ export const getFeedsCommentsLoadedCount = (feedsComments: Map<string, Comment>)
 export const getSortTypeFromComment = (comment: Comment, feedOptions: RepliesFeedOptions) => {
   let {sortType, flat} = feedOptions
 
+  if (!comment) {
+    return sortType
+  }
+
   // 'topAll' and 'best' are similar enough to be used interchangeably
   if (sortType === 'best' && !comment.replies?.pages?.best && !comment.replies?.pageCids?.best && (comment.replies?.pages?.topAll || comment.replies?.pageCids?.topAll)) {
     sortType = 'topAll'
