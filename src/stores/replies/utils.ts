@@ -2,7 +2,7 @@ import assert from 'assert'
 import {Feed, Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Account, Accounts, RepliesPage, RepliesPages} from '../../types'
 import {getRepliesPages, getRepliesFirstPageCid} from '../replies-pages'
 import repliesSorter from '../feeds/feed-sorter'
-import {flattenCommentsPages} from '../../lib/utils'
+import {flattenCommentsPages, commentIsValid} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
 
@@ -66,7 +66,7 @@ export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, commen
 export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
   const loadedFeedsMissingReplies: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber, repliesPerPage, accountId} = feedsOptions[feedName]
+    const {pageNumber, repliesPerPage} = feedsOptions[feedName]
     const loadedFeedReplyCount = pageNumber * repliesPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.length
@@ -80,7 +80,7 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
         break
       }
       // verify signature
-      if (!(await replyIsValid(reply, accounts[accountId]))) {
+      if (!(await commentIsValid(reply))) {
         continue
       }
       missingReplies.push(reply)
@@ -151,7 +151,6 @@ export const getUpdatedFeeds = async (feedsOptions: RepliesFeedsOptions, filtere
 
   const newUpdatedFeeds: Feeds = {...updatedFeeds}
   for (const feedName in filteredSortedFeeds) {
-    const account = accounts[feedsOptions[feedName].accountId]
     const updatedFeed = [...(updatedFeeds[feedName] || [])]
     const onlyHasNewReplies = updatedFeed.length === 0
     let updatedFeedChanged = false
@@ -167,7 +166,7 @@ export const getUpdatedFeeds = async (feedsOptions: RepliesFeedsOptions, filtere
       for (const reply of filteredSortedFeeds[feedName]) {
         if (updatedFeedsReplies[feedName]?.[reply.cid]) {
           const {index, updatedReply} = updatedFeedsReplies[feedName][reply.cid]
-          if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await replyIsValid(reply, account))) {
+          if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await commentIsValid(reply))) {
             updatedFeed[index] = reply
             updatedFeedChanged = true
           }
@@ -378,33 +377,4 @@ export const getSortTypeFromComment = (comment: Comment, feedOptions: RepliesFee
   //   }
   // }
   return sortType
-}
-
-// TODO: replace with plebbit.validateComment()
-const subplebbitsWithInvalidReplies: {[subplebbitAddress: string]: boolean} = {}
-const replyIsValidComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
-export const replyIsValid = async (reply: Comment, account: Account) => {
-  if (!account) {
-    return false
-  }
-  if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
-    log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`)
-    return false
-  }
-  if (!replyIsValidComments[reply.cid]) {
-    replyIsValidComments[reply.cid] = await account.plebbit.createComment({
-      subplebbitAddress: reply.subplebbitAddress,
-      postCid: reply.postCid,
-      cid: reply.cid,
-      depth: reply.depth,
-    })
-  }
-  try {
-    await replyIsValidComments[reply.cid].replies.validatePage({comments: [reply]})
-    return true
-  } catch (e) {
-    subplebbitsWithInvalidReplies[reply.cid] = true
-    log('invalid reply', {reply, error: e})
-  }
-  return false
 }

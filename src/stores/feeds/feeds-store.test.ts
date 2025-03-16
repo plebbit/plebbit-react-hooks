@@ -6,6 +6,8 @@ import subplebbitsStore from '../subplebbits'
 import subplebbitsPagesStore from '../subplebbits-pages'
 import EventEmitter from 'events'
 import accountsStore from '../accounts'
+import {setPlebbitJs} from '../..'
+import PlebbitJsMock from '../../lib/plebbit-js/plebbit-js-mock'
 
 const subplebbitGetPageCommentCount = 100
 
@@ -71,6 +73,9 @@ const mockAccount: any = {
 describe('feeds store', () => {
   let accountsStoreGetState = accountsStore.getState
   beforeAll(() => {
+    // set plebbit-js mock
+    setPlebbitJs(PlebbitJsMock)
+
     testUtils.silenceReactWarnings()
 
     // mock accountsStore

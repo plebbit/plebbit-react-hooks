@@ -6,6 +6,8 @@ import commentsStore from '../comments'
 import repliesPagesStore from '../replies-pages'
 import EventEmitter from 'events'
 import accountsStore from '../accounts'
+import {setPlebbitJs} from '../..'
+import PlebbitJsMock from '../../lib/plebbit-js/plebbit-js-mock'
 
 const getPageCommentCount = 100
 
@@ -85,6 +87,9 @@ const mockAccount: any = {
 describe('replies store', () => {
   let accountsStoreGetState = accountsStore.getState
   beforeAll(() => {
+    // set plebbit-js mock
+    setPlebbitJs(PlebbitJsMock)
+
     testUtils.silenceReactWarnings()
 
     // mock accountsStore
@@ -150,7 +155,7 @@ describe('replies store', () => {
     // feeds become defined
     expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
     expect(rendered.result.current.loadedFeeds[feedName]).not.toBe(undefined)
-    expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
+    expect(rendered.result.current.updatedFeeds[feedName]?.length).toBe(rendered.result.current.loadedFeeds[feedName].length)
     expect(rendered.result.current.bufferedFeedsReplyCounts[feedName]).not.toBe(undefined)
     expect(rendered.result.current.feedsHaveMore[feedName]).toBe(true)
 

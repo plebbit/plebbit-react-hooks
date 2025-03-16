@@ -15,7 +15,7 @@ import {
 } from '../../types'
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
-import {subplebbitPostsCacheExpired} from '../../lib/utils'
+import {subplebbitPostsCacheExpired, commentIsValid} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:feeds:stores')
 
@@ -110,7 +110,7 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
 export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
   const loadedFeedsMissingPosts: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber, postsPerPage, accountId} = feedsOptions[feedName]
+    const {pageNumber, postsPerPage} = feedsOptions[feedName]
     const loadedFeedPostCount = pageNumber * postsPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
@@ -124,7 +124,7 @@ export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Fe
         break
       }
       // verify signature
-      if (!(await postIsValid(post, accounts[accountId]))) {
+      if (!(await commentIsValid(post, {validateReplies: false}))) {
         continue
       }
       missingPosts.push(post)
@@ -195,7 +195,6 @@ export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSorted
 
   const newUpdatedFeeds: Feeds = {...updatedFeeds}
   for (const feedName in filteredSortedFeeds) {
-    const account = accounts[feedsOptions[feedName].accountId]
     const updatedFeed = [...(updatedFeeds[feedName] || [])]
     const onlyHasNewPosts = updatedFeed.length === 0
     let updatedFeedChanged = false
@@ -211,7 +210,7 @@ export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSorted
       for (const post of filteredSortedFeeds[feedName]) {
         if (updatedFeedsPosts[feedName]?.[post.cid]) {
           const {index, updatedPost} = updatedFeedsPosts[feedName][post.cid]
-          if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await postIsValid(post, account))) {
+          if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}))) {
             updatedFeed[index] = post
             updatedFeedChanged = true
           }
@@ -521,29 +520,5 @@ export const feedsHaveChangedBlockedCids = (feedsOptions: FeedsOptions, buffered
     }
   }
 
-  return false
-}
-
-const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
-const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = async (post: Comment, account: Account) => {
-  if (!account) {
-    return false
-  }
-  if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
-    log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
-    return false
-  }
-  if (!postIsValidSubplebbits[post.subplebbitAddress]) {
-    postIsValidSubplebbits[post.subplebbitAddress] = await account.plebbit.createSubplebbit({address: post.subplebbitAddress})
-  }
-  const postWithoutReplies = {...post, replies: undefined} // feed doesn't show replies, don't validate them
-  try {
-    await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
-    return true
-  } catch (e) {
-    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
-    log('invalid post', {post, error: e})
-  }
   return false
 }
