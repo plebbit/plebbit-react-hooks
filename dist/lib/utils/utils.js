@@ -282,16 +282,17 @@ const replyIsValid = (reply, plebbit, blockSubplebbit) => __awaiter(void 0, void
         log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`);
         return false;
     }
-    if (!replyIsValidComments[reply.cid]) {
-        replyIsValidComments[reply.cid] = yield plebbit.createComment({
+    const cid = reply.parentCid || reply.cid;
+    if (!replyIsValidComments[cid]) {
+        replyIsValidComments[cid] = yield plebbit.createComment({
             subplebbitAddress: reply.subplebbitAddress,
             postCid: reply.postCid,
-            cid: reply.cid,
+            cid,
             depth: reply.depth,
         });
     }
     try {
-        yield replyIsValidComments[reply.cid].replies.validatePage({ comments: [reply] });
+        yield replyIsValidComments[cid].replies.validatePage({ comments: [reply] });
         return true;
     }
     catch (e) {

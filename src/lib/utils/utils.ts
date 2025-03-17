@@ -296,16 +296,17 @@ const replyIsValid = async (reply: Comment, plebbit: any, blockSubplebbit: boole
     log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`)
     return false
   }
-  if (!replyIsValidComments[reply.cid]) {
-    replyIsValidComments[reply.cid] = await plebbit.createComment({
+  const cid = reply.parentCid || reply.cid
+  if (!replyIsValidComments[cid]) {
+    replyIsValidComments[cid] = await plebbit.createComment({
       subplebbitAddress: reply.subplebbitAddress,
       postCid: reply.postCid,
-      cid: reply.cid,
+      cid,
       depth: reply.depth,
     })
   }
   try {
-    await replyIsValidComments[reply.cid].replies.validatePage({comments: [reply]})
+    await replyIsValidComments[cid].replies.validatePage({comments: [reply]})
     return true
   } catch (e) {
     if (blockSubplebbit) {
