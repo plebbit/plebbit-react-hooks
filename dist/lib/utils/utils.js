@@ -215,7 +215,7 @@ export const subplebbitPostsCacheExpired = (subplebbit) => {
 };
 let plebbit;
 // TODO: replace with plebbit.validateComment()
-export const commentIsValid = (comment, { validateReplies } = {}) => __awaiter(void 0, void 0, void 0, function* () {
+export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {}) => __awaiter(void 0, void 0, void 0, function* () {
     if (!comment) {
         return false;
     }
@@ -228,10 +228,13 @@ export const commentIsValid = (comment, { validateReplies } = {}) => __awaiter(v
     if (!plebbit) {
         plebbit = yield PlebbitJs.Plebbit({ validatePages: false });
     }
-    if (comment.depth === 0) {
-        return postIsValid(comment, plebbit);
+    if (blockSubplebbit === undefined || blockSubplebbit === null) {
+        blockSubplebbit = true;
     }
-    return replyIsValid(comment, plebbit);
+    if (comment.depth === 0) {
+        return postIsValid(comment, plebbit, blockSubplebbit);
+    }
+    return replyIsValid(comment, plebbit, blockSubplebbit);
 });
 const removeReplies = (comment) => {
     comment = Object.assign({}, comment);
@@ -251,7 +254,7 @@ const removeReplies = (comment) => {
 };
 const subplebbitsWithInvalidPosts = {};
 const postIsValidSubplebbits = {}; // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = (post, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
+const postIsValid = (post, plebbit, blockSubplebbit) => __awaiter(void 0, void 0, void 0, function* () {
     if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
         log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`);
         return false;
@@ -265,14 +268,16 @@ const postIsValid = (post, plebbit) => __awaiter(void 0, void 0, void 0, functio
         return true;
     }
     catch (e) {
-        subplebbitsWithInvalidPosts[post.subplebbitAddress] = true;
+        if (blockSubplebbit) {
+            subplebbitsWithInvalidPosts[post.subplebbitAddress] = true;
+        }
         log('invalid post', { post, error: e });
     }
     return false;
 });
 const subplebbitsWithInvalidReplies = {};
 const replyIsValidComments = {}; // cache plebbit.createComment because sometimes it's slow
-const replyIsValid = (reply, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
+const replyIsValid = (reply, plebbit, blockSubplebbit) => __awaiter(void 0, void 0, void 0, function* () {
     if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
         log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`);
         return false;
@@ -290,7 +295,9 @@ const replyIsValid = (reply, plebbit) => __awaiter(void 0, void 0, void 0, funct
         return true;
     }
     catch (e) {
-        subplebbitsWithInvalidReplies[reply.cid] = true;
+        if (blockSubplebbit) {
+            subplebbitsWithInvalidReplies[reply.cid] = true;
+        }
         log('invalid reply', { reply, error: e });
     }
     return false;

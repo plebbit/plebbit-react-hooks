@@ -30,13 +30,25 @@ export const getFilteredSortedFeeds = (feedsOptions, comments, repliesPages, acc
             // use comment preloaded replies if any
             const preloadedReplies = (_c = (_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
             if (preloadedReplies) {
-                bufferedFeedReplies.push(...preloadedReplies);
+                for (const reply of preloadedReplies) {
+                    // replies are manually validated, could have fake subplebbitAddress
+                    if (reply.subplebbitAddress !== comment.subplebbitAddress) {
+                        break;
+                    }
+                    bufferedFeedReplies.push(reply);
+                }
             }
             // add all replies from comment replies pages
             const _repliesPages = getRepliesPages(comment, sortType, repliesPages);
             for (const repliesPage of _repliesPages) {
                 if (repliesPage === null || repliesPage === void 0 ? void 0 : repliesPage.comments) {
-                    bufferedFeedReplies.push(...repliesPage.comments);
+                    for (const reply of repliesPage.comments) {
+                        // replies are manually validated, could have fake subplebbitAddress
+                        if (reply.subplebbitAddress !== comment.subplebbitAddress) {
+                            break;
+                        }
+                        bufferedFeedReplies.push(reply);
+                    }
                 }
             }
         }
@@ -294,6 +306,9 @@ export const getFeedsCommentsLoadedCount = (feedsComments) => {
 export const getSortTypeFromComment = (comment, feedOptions) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15;
     let { sortType, flat } = feedOptions;
+    if (!comment) {
+        return sortType;
+    }
     // 'topAll' and 'best' are similar enough to be used interchangeably
     if (sortType === 'best' && !((_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b.best) && !((_d = (_c = comment.replies) === null || _c === void 0 ? void 0 : _c.pageCids) === null || _d === void 0 ? void 0 : _d.best) && (((_f = (_e = comment.replies) === null || _e === void 0 ? void 0 : _e.pages) === null || _f === void 0 ? void 0 : _f.topAll) || ((_h = (_g = comment.replies) === null || _g === void 0 ? void 0 : _g.pageCids) === null || _h === void 0 ? void 0 : _h.topAll))) {
         sortType = 'topAll';

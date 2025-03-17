@@ -37,13 +37,25 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
             // use subplebbit preloaded posts if any
             const preloadedPosts = (_c = (_b = (_a = subplebbits[subplebbitAddress].posts) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
             if (preloadedPosts) {
-                bufferedFeedPosts.push(...preloadedPosts);
+                for (const post of preloadedPosts) {
+                    // posts are manually validated, could have fake subplebbitAddress
+                    if (post.subplebbitAddress !== subplebbitAddress) {
+                        break;
+                    }
+                    bufferedFeedPosts.push(post);
+                }
             }
             // add all posts from subplebbit pages
             const subplebbitPages = getSubplebbitPages(subplebbits[subplebbitAddress], sortType, subplebbitsPages);
             for (const subplebbitPage of subplebbitPages) {
                 if (subplebbitPage === null || subplebbitPage === void 0 ? void 0 : subplebbitPage.comments) {
-                    bufferedFeedPosts.push(...subplebbitPage.comments);
+                    for (const post of subplebbitPage.comments) {
+                        // posts are manually validated, could have fake subplebbitAddress
+                        if (post.subplebbitAddress !== subplebbitAddress) {
+                            break;
+                        }
+                        bufferedFeedPosts.push(post);
+                    }
                 }
             }
         }

@@ -242,20 +242,22 @@ function useRepliesFeedName(accountId, commentCid, sortType, flat, accountCommen
 }
 export function useValidateComment(options) {
     assert(!options || typeof options === 'object', `useValidateComment options argument '${options}' not an object`);
-    let { comment, validateReplies, accountName } = options || {};
-    const account = useAccount({ accountName });
+    let { comment, validateReplies } = options || {};
     if (validateReplies === undefined || validateReplies === null) {
         validateReplies = true;
     }
     const [validated, setValidated] = useState();
     const [errors, setErrors] = useState([]);
     useEffect(() => {
-        if (!comment || !account) {
+        if (!comment) {
             setValidated(undefined);
             return;
         }
-        commentIsValid(validateReplies ? comment : removeReplies(comment), account).then((validated) => setValidated(validated));
-    }, [comment, validateReplies, account === null || account === void 0 ? void 0 : account.plebbit]);
+        // don't automatically block subplebbit because what subplebbit it comes from
+        // a malicious subplebbit could try to block other subplebbits, etc
+        const blockSubplebbit = false;
+        commentIsValid(comment, { validateReplies, blockSubplebbit }).then((validated) => setValidated(validated));
+    }, [comment, validateReplies]);
     let state = 'initializing';
     if (validated === true) {
         state = 'succeeded';
@@ -279,19 +281,3 @@ export function useValidateComment(options) {
         errors,
     }), [valid, state]);
 }
-const removeReplies = (comment) => {
-    comment = Object.assign({}, comment);
-    if (comment.pageComment) {
-        comment.pageComment = Object.assign({}, comment.pageComment);
-        if (comment.pageComment.commentUpdate) {
-            comment.pageComment.commentUpdate = Object.assign({}, comment.pageComment.commentUpdate);
-            delete comment.pageComment.commentUpdate.replies;
-        }
-    }
-    if (comment.commentUpdate) {
-        comment.commentUpdate = Object.assign({}, comment.commentUpdate);
-        delete comment.commentUpdate.replies;
-    }
-    delete comment.replies;
-    return comment;
-};

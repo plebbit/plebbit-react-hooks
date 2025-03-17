@@ -4,7 +4,7 @@ export declare const memo: (functionToMemo: Function, memoOptions: any) => (...a
 export declare const memoSync: (functionToMemo: Function, memoOptions: any) => (...args: any) => any;
 export declare const clientsOnStateChange: (clients: any, onStateChange: Function) => void;
 export declare const subplebbitPostsCacheExpired: (subplebbit: any) => boolean;
-export declare const commentIsValid: (comment: Comment, { validateReplies }?: any) => Promise<boolean>;
+export declare const commentIsValid: (comment: Comment, { validateReplies, blockSubplebbit }?: any) => Promise<boolean>;
 declare const utils: {
     merge: (...args: any) => any;
     clone: (obj: any) => any;
@@ -16,7 +16,7 @@ declare const utils: {
     retryInfinityMaxTimeout: number;
     clientsOnStateChange: (clients: any, onStateChange: Function) => void;
     subplebbitPostsCacheExpired: (subplebbit: any) => boolean;
-    commentIsValid: (comment: Comment, { validateReplies }?: any) => Promise<boolean>;
+    commentIsValid: (comment: Comment, { validateReplies, blockSubplebbit }?: any) => Promise<boolean>;
 };
 export declare const retryInfinity: (functionToRetry: any, options?: any) => Promise<any>;
 export default utils;
