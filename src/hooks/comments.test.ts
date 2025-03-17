@@ -901,6 +901,7 @@ describe('comment replies', () => {
     test('replies.pages has 1 reply with no next cid, hasMore false', async () => {
       const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       Comment.prototype.simulateUpdateEvent = async function () {
+        this.subplebbitAddress = 'subplebbit address'
         this.replies.pages = {
           best: {
             comments: [
@@ -932,7 +933,7 @@ describe('comment replies', () => {
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
 
-    test.only('updated reply is updated, loaded reply is not', async () => {
+    test('updated reply is updated, loaded reply is not', async () => {
       const page1 = {
         comments: [
           {
