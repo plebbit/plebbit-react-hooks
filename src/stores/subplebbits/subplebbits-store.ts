@@ -57,8 +57,12 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
       if (subplebbitData) {
         fetchedAt = subplebbitData.fetchedAt
         delete subplebbitData.fetchedAt // not part of plebbit-js schema
-        delete subplebbitData.clients // schema changed
-        subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
+        try {
+          subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
+        } catch (e) {
+          // need to log this always or it could silently fail in production and cache never be used
+          console.error('failed plebbit.createSubplebbit(cachedSubplebbit)', {cachedSubplebbit: subplebbitData, error: e})
+        }
       }
       if (subplebbit) {
         // add page comments to subplebbitsPagesStore so they can be used in useComment
