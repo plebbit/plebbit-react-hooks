@@ -118,9 +118,14 @@ const getCommentFromDatabase = (commentCid, account) => __awaiter(void 0, void 0
     if (!commentData) {
         return;
     }
-    delete commentData.clients; // schema changed
-    const comment = yield account.plebbit.createComment(commentData);
-    return comment;
+    try {
+        const comment = yield account.plebbit.createComment(commentData);
+        return comment;
+    }
+    catch (e) {
+        // need to log this always or it could silently fail in production and cache never be used
+        console.error('failed plebbit.createComment(cachedComment)', { cachedComment: commentData, error: e });
+    }
 });
 // reset store in between tests
 const originalState = commentsStore.getState();
