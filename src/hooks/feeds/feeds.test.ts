@@ -481,7 +481,6 @@ describe('feeds', () => {
 
       expect(rendered.result.current.feed.length).toBe(postsPerPage)
       expect(rendered.result.current.updatedFeed.length).toBe(rendered.result.current.feed.length)
-      console.log(rendered.result.current.feed)
       expect(rendered.result.current.feed[0].timestamp).toBe(100)
       expect(rendered.result.current.feed[1].timestamp).toBe(100)
       expect(rendered.result.current.feed[2].timestamp).toBe(100)

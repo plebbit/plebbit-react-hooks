@@ -26,14 +26,26 @@ export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, commen
       // use comment preloaded replies if any
       const preloadedReplies = comment.replies?.pages?.[sortType]?.comments
       if (preloadedReplies) {
-        bufferedFeedReplies.push(...preloadedReplies)
+        for (const reply of preloadedReplies) {
+          // replies are manually validated, could have fake subplebbitAddress
+          if (reply.subplebbitAddress !== comment.subplebbitAddress) {
+            break
+          }
+          bufferedFeedReplies.push(reply)
+        }
       }
 
       // add all replies from comment replies pages
       const _repliesPages = getRepliesPages(comment, sortType, repliesPages)
       for (const repliesPage of _repliesPages) {
         if (repliesPage?.comments) {
-          bufferedFeedReplies.push(...repliesPage.comments)
+          for (const reply of repliesPage.comments) {
+            // replies are manually validated, could have fake subplebbitAddress
+            if (reply.subplebbitAddress !== comment.subplebbitAddress) {
+              break
+            }
+            bufferedFeedReplies.push(reply)
+          }
         }
       }
     }

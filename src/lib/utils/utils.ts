@@ -230,7 +230,7 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
 
 let plebbit: any
 // TODO: replace with plebbit.validateComment()
-export const commentIsValid = async (comment: Comment, {validateReplies}: any = {}) => {
+export const commentIsValid = async (comment: Comment, {validateReplies, blockSubplebbit}: any = {}) => {
   if (!comment) {
     return false
   }
@@ -243,10 +243,13 @@ export const commentIsValid = async (comment: Comment, {validateReplies}: any = 
   if (!plebbit) {
     plebbit = await PlebbitJs.Plebbit({validatePages: false})
   }
-  if (comment.depth === 0) {
-    return postIsValid(comment, plebbit)
+  if (blockSubplebbit === undefined || blockSubplebbit === null) {
+    blockSubplebbit = true
   }
-  return replyIsValid(comment, plebbit)
+  if (comment.depth === 0) {
+    return postIsValid(comment, plebbit, blockSubplebbit)
+  }
+  return replyIsValid(comment, plebbit, blockSubplebbit)
 }
 const removeReplies = (comment: Comment) => {
   comment = {...comment}
@@ -266,7 +269,7 @@ const removeReplies = (comment: Comment) => {
 }
 const subplebbitsWithInvalidPosts: {[subplebbitAddress: string]: boolean} = {}
 const postIsValidSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = async (post: Comment, plebbit: any) => {
+const postIsValid = async (post: Comment, plebbit: any, blockSubplebbit: boolean) => {
   if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
     log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`)
     return false
@@ -279,14 +282,16 @@ const postIsValid = async (post: Comment, plebbit: any) => {
     await postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({comments: [postWithoutReplies]})
     return true
   } catch (e) {
-    subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
+    if (blockSubplebbit) {
+      subplebbitsWithInvalidPosts[post.subplebbitAddress] = true
+    }
     log('invalid post', {post, error: e})
   }
   return false
 }
 const subplebbitsWithInvalidReplies: {[subplebbitAddress: string]: boolean} = {}
 const replyIsValidComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
-const replyIsValid = async (reply: Comment, plebbit: any) => {
+const replyIsValid = async (reply: Comment, plebbit: any, blockSubplebbit: boolean) => {
   if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
     log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`)
     return false
@@ -303,7 +308,9 @@ const replyIsValid = async (reply: Comment, plebbit: any) => {
     await replyIsValidComments[reply.cid].replies.validatePage({comments: [reply]})
     return true
   } catch (e) {
-    subplebbitsWithInvalidReplies[reply.cid] = true
+    if (blockSubplebbit) {
+      subplebbitsWithInvalidReplies[reply.cid] = true
+    }
     log('invalid reply', {reply, error: e})
   }
   return false

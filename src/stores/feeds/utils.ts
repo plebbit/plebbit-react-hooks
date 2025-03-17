@@ -47,14 +47,26 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
       // use subplebbit preloaded posts if any
       const preloadedPosts = subplebbits[subplebbitAddress].posts?.pages?.[sortType]?.comments
       if (preloadedPosts) {
-        bufferedFeedPosts.push(...preloadedPosts)
+        for (const post of preloadedPosts) {
+          // posts are manually validated, could have fake subplebbitAddress
+          if (post.subplebbitAddress !== subplebbitAddress) {
+            break
+          }
+          bufferedFeedPosts.push(post)
+        }
       }
 
       // add all posts from subplebbit pages
       const subplebbitPages = getSubplebbitPages(subplebbits[subplebbitAddress], sortType, subplebbitsPages)
       for (const subplebbitPage of subplebbitPages) {
         if (subplebbitPage?.comments) {
-          bufferedFeedPosts.push(...subplebbitPage.comments)
+          for (const post of subplebbitPage.comments) {
+            // posts are manually validated, could have fake subplebbitAddress
+            if (post.subplebbitAddress !== subplebbitAddress) {
+              break
+            }
+            bufferedFeedPosts.push(post)
+          }
         }
       }
     }

@@ -301,8 +301,7 @@ function useRepliesFeedName(
 
 export function useValidateComment(options?: UseValidateCommentOptions): UseValidateCommentResult {
   assert(!options || typeof options === 'object', `useValidateComment options argument '${options}' not an object`)
-  let {comment, validateReplies, accountName} = options || {}
-  const account = useAccount({accountName})
+  let {comment, validateReplies} = options || {}
   if (validateReplies === undefined || validateReplies === null) {
     validateReplies = true
   }
@@ -310,12 +309,15 @@ export function useValidateComment(options?: UseValidateCommentOptions): UseVali
   const [errors, setErrors] = useState([])
 
   useEffect(() => {
-    if (!comment || !account) {
+    if (!comment) {
       setValidated(undefined)
       return
     }
-    commentIsValid(validateReplies ? comment : removeReplies(comment), account).then((validated) => setValidated(validated))
-  }, [comment, validateReplies, account?.plebbit])
+    // don't automatically block subplebbit because what subplebbit it comes from
+    // a malicious subplebbit could try to block other subplebbits, etc
+    const blockSubplebbit = false
+    commentIsValid(comment, {validateReplies, blockSubplebbit}).then((validated) => setValidated(validated))
+  }, [comment, validateReplies])
 
   let state = 'initializing'
   if (validated === true) {
@@ -344,21 +346,4 @@ export function useValidateComment(options?: UseValidateCommentOptions): UseVali
     }),
     [valid, state]
   )
-}
-
-const removeReplies = (comment: Comment) => {
-  comment = {...comment}
-  if (comment.pageComment) {
-    comment.pageComment = {...comment.pageComment}
-    if (comment.pageComment.commentUpdate) {
-      comment.pageComment.commentUpdate = {...comment.pageComment.commentUpdate}
-      delete comment.pageComment.commentUpdate.replies
-    }
-  }
-  if (comment.commentUpdate) {
-    comment.commentUpdate = {...comment.commentUpdate}
-    delete comment.commentUpdate.replies
-  }
-  delete comment.replies
-  return comment
 }

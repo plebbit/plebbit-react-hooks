@@ -46,6 +46,7 @@ class Client extends EventEmitter {
   state = 'stopped'
 }
 
+const mockCommentSubplebbitAddress = 'subplebbit address 1'
 class Comment extends EventEmitter {
   clients: any = {
     ipfsGateways: {[ipfsGatewayUrl1]: new Client(), [ipfsGatewayUrl2]: new Client(), [ipfsGatewayUrl3]: new Client()},
@@ -57,10 +58,13 @@ class Comment extends EventEmitter {
   cid: string
   timestamp?: number
   updatedAt?: number
-  replies = new Pages()
+  replies: Pages
+  subplebbitAddress: string
   constructor(createCommentOptions: any) {
     super()
     this.cid = createCommentOptions.cid
+    this.subplebbitAddress = mockCommentSubplebbitAddress
+    this.replies = new Pages(this.subplebbitAddress)
   }
 
   async update() {
@@ -97,7 +101,11 @@ class Comment extends EventEmitter {
       this.updatedAt = updatedAt
       this.replies.pages = {
         new: {
-          comments: [{cid: `${this.cid} reply cid 1`}, {cid: `${this.cid} reply cid 2`}, {cid: `${this.cid} reply cid 3`}],
+          comments: [
+            {cid: `${this.cid} reply cid 1`, subplebbitAddress: this.subplebbitAddress},
+            {cid: `${this.cid} reply cid 2`, subplebbitAddress: this.subplebbitAddress},
+            {cid: `${this.cid} reply cid 3`, subplebbitAddress: this.subplebbitAddress},
+          ],
           nextCid: `${this.cid} next replies page cid -`,
         },
       }
@@ -176,6 +184,10 @@ class Pages {
   }
   pages: any = {}
   pageCids = {}
+  subplebbitAddress: string
+  constructor(subplebbitAddress) {
+    this.subplebbitAddress = subplebbitAddress
+  }
   async getPage(pageCid: string) {
     await simulateLoadingTime(100)
     changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs', 'new')
@@ -187,7 +199,11 @@ class Pages {
     changeClientsStates(this.clients, 'plebbitRpcClients', [plebbitRpcClientUrl1, plebbitRpcClientUrl2], 'stopped', 'new')
 
     return {
-      comments: [{cid: `${pageCid} cid 1`}, {cid: `${pageCid} cid 2`}, {cid: `${pageCid} cid 3`}],
+      comments: [
+        {cid: `${pageCid} cid 1`, subplebbitAddress: this.subplebbitAddress},
+        {cid: `${pageCid} cid 2`, subplebbitAddress: this.subplebbitAddress},
+        {cid: `${pageCid} cid 3`, subplebbitAddress: this.subplebbitAddress},
+      ],
     }
   }
   async validatePage(page: any) {}
@@ -201,13 +217,14 @@ class Subplebbit extends EventEmitter {
     plebbitRpcClients: {[plebbitRpcClientUrl1]: new Client(), [plebbitRpcClientUrl2]: new Client(), [plebbitRpcClientUrl3]: new Client()},
     chainProviders: {eth: {[ethChainProviderUrl1]: new Client(), [ethChainProviderUrl2]: new Client(), [ethChainProviderUrl3]: new Client()}},
   }
-  posts = new Pages()
+  posts: Pages
   address: string
   updatedAt?: number
   updatingState: string = 'stopped'
   constructor({address}: any) {
     super()
     this.address = address
+    this.posts = new Pages(this.address)
   }
 
   async update() {
@@ -241,7 +258,11 @@ class Subplebbit extends EventEmitter {
       this.updatedAt = updatedAt
       this.posts.pages = {
         new: {
-          comments: [{cid: `${this.address} cid 1`}, {cid: `${this.address} cid 2`}, {cid: `${this.address} cid 3`}],
+          comments: [
+            {cid: `${this.address} cid 1`, subplebbitAddress: this.address},
+            {cid: `${this.address} cid 2`, subplebbitAddress: this.address},
+            {cid: `${this.address} cid 3`, subplebbitAddress: this.address},
+          ],
           nextCid: `${this.address} next page cid -`,
         },
       }

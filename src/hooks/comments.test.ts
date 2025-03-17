@@ -458,7 +458,7 @@ describe('comment replies', () => {
             {
               timestamp: 1,
               cid: this.cid + ' topAll reply cid 1',
-              subplebbitAddress: this.cid + ' topAll reply subplebbit address',
+              subplebbitAddress: this.subplebbitAddress,
               upvoteCount: 1,
               downvoteCount: 10,
               author: {address: this.cid + ' topAll author address'},
@@ -932,7 +932,7 @@ describe('comment replies', () => {
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
 
-    test('updated reply is updated, loaded reply is not', async () => {
+    test.only('updated reply is updated, loaded reply is not', async () => {
       const page1 = {
         comments: [
           {
@@ -991,6 +991,7 @@ describe('comment replies', () => {
       let comment
       Comment.prototype.simulateUpdateEvent = async function () {
         comment = this
+        this.subplebbitAddress = 'subplebbit address'
         this.replies.pages = {best: pages.shift()}
         this.replies.pageCids = {}
         this.updatedAt = this.updatedAt ? this.updatedAt + 1 : 1

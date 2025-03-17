@@ -126,8 +126,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           invalidComment = JSON.parse(JSON.stringify(feed.feed[0]))
           // change the sub address because we're caching malicious subplebbits
           // and will make other comments invalid
-          invalidComment.subplebbitAddress = 'malicious.eth'
-          invalidComment.pageComment.comment.subplebbitAddress = 'malicious.eth'
+          invalidComment.author.address = 'malicious.eth'
+          invalidComment.pageComment.comment.author.address = 'malicious.eth'
         }
         const validateCommentInvalid = useValidateComment({comment: invalidComment})
         return {...feed, validateComment, validateCommentWithoutReplies, validateCommentInvalid}
@@ -138,6 +138,12 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       expect(rendered.result.current.feed[0].subplebbitAddress).to.equal(subplebbitAddress)
       console.log('after first render')
 
+      // do invalid first to make sure it doesn't block subplebbit
+      await waitFor(() => rendered.result.current.validateCommentInvalid.state === 'failed')
+      expect(rendered.result.current.validateCommentInvalid.state).to.equal('failed')
+      expect(rendered.result.current.validateCommentInvalid.valid).to.equal(false)
+      console.log('after validate invalid comment')
+
       await waitFor(() => rendered.result.current.validateComment.state === 'succeeded')
       expect(rendered.result.current.validateComment.state).to.equal('succeeded')
       expect(rendered.result.current.validateComment.valid).to.equal(true)
@@ -147,10 +153,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       expect(rendered.result.current.validateCommentWithoutReplies.state).to.equal('succeeded')
       expect(rendered.result.current.validateCommentWithoutReplies.valid).to.equal(true)
       console.log('after validate comment without replies')
-
-      await waitFor(() => rendered.result.current.validateCommentInvalid.state === 'failed')
-      expect(rendered.result.current.validateCommentInvalid.state).to.equal('failed')
-      expect(rendered.result.current.validateCommentInvalid.valid).to.equal(false)
     })
   })
 }
