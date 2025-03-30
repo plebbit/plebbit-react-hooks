@@ -147,7 +147,7 @@ const post = useComment({commentCid, onlyIfCached: true})
 const {replies, hasMore, loadMore} = useReplies({comment: post})
 
 // to show a preloaded reply without rerenders, validate manually
-const {valid} = useValidateComment({comment: post.replies.pages.best[0]})
+const {valid} = useValidateComment({comment: post.replies.pages.best.comments[0]})
 if (valid === false) {
   // don't show this reply, it's malicious
 }
@@ -263,7 +263,7 @@ const {subplebbits} = useSubplebbits({subplebbitAddresses: [subplebbitAddress, s
 const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses: [subplebbitAddress]})
 
 // to show a preloaded post without rerenders, validate manually
-const {valid} = useValidateComment({comment: subplebbit.posts.pages.topAll[0]})
+const {valid} = useValidateComment({comment: subplebbit.posts.pages.topAll.comments[0]})
 if (valid === false) {
   // don't show this post, it's malicious
 }
