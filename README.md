@@ -27,7 +27,7 @@ useNotifications(): {notifications: Notification[], markAsRead: Function}
 #### Comments Hooks
 ```
 useComment({commentCid: string, onlyIfCached?: boolean}): Comment
-useReplies({comment: Comment, sortType?: string, flat?: boolean, repliesPerPage?: number, filter>: CommentsFilter}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
+useReplies({comment: Comment, sortType?: string, flat?: boolean, repliesPerPage?: number, filter?: CommentsFilter}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
 useComments({commentCids: string[], onlyIfCached?: boolean}): {comments: Comment[]}
 useEditedComment({comment: Comment}): {editedComment: Comment | undefined}
 useValidateComment({comment: Comment, validateReplies?: boolean}): {valid: boolean}
