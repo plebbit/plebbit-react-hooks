@@ -36,9 +36,6 @@ export const defaultPostsPerPage = 25
 // keep large buffer because fetching cids is slow
 export const subplebbitPostsLeftBeforeNextPage = 50
 
-// reset all event listeners in between tests
-export const listeners: any = []
-
 export type FeedsState = {
   feedsOptions: FeedsOptions
   bufferedFeeds: Feeds
@@ -92,7 +89,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
 
     const {feedsOptions, updateFeeds} = getState()
     // feed is in store already, do nothing
-    // if the feed already exist but is at page 1, reset it to page 1
+    // if the feed already exist but is at page 0, reset it to page 1
     if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
       return
     }
@@ -446,8 +443,6 @@ export const resetFeedsStore = async () => {
   previousFeedsSubplebbitsPostsPagesFirstUpdatedAts = ''
   previousSubplebbitsPages = {}
   updateFeedsPending = false
-  // remove all event listeners
-  listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
   feedsStore.destroy()
   // restore original state

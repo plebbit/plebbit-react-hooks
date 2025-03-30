@@ -5,7 +5,7 @@ import {Feed, Feeds, Comment, Comments, Account, RepliesFeedsOptions, RepliesPag
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
 import accountsStore from '../accounts'
-import commentsStore from '../comments'
+import repliesCommentsStore from './replies-comments-store'
 import repliesPagesStore from '../replies-pages'
 import {
   getFeedsCommentsFirstPageCids,
@@ -29,9 +29,6 @@ export const defaultRepliesPerPage = 25
 // keep large buffer because fetching cids is slow
 export const commentRepliesLeftBeforeNextPage = 50
 
-// reset all event listeners in between tests
-export const listeners: any = []
-
 export type RepliesState = {
   feedsOptions: RepliesFeedsOptions
   bufferedFeeds: Feeds
@@ -40,6 +37,7 @@ export type RepliesState = {
   bufferedFeedsReplyCounts: {[feedName: string]: number}
   feedsHaveMore: {[feedName: string]: boolean}
   addFeedToStore: Function
+  addFeedToStoreOrUpdateComment: Function
   incrementFeedPageNumber: Function
   resetFeed: Function
   updateFeeds: Function
@@ -84,7 +82,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
 
     const {feedsOptions, updateFeeds} = getState()
     // feed is in store already, do nothing
-    // if the feed already exist but is at page 1, reset it to page 1
+    // if the feed already exist but is at page 0, reset it to page 1
     if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
       return
     }
@@ -99,13 +97,8 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}}
     })
 
-    commentsStore
-      .getState()
-      .addCommentToStore(commentCid, account)
-      .catch((error: unknown) => log.error('repliesStore commentsStore.addCommentToStore error', {commentCid, error}))
-
     // subscribe to comments store changes
-    commentsStore.subscribe(updateFeedsOnFeedsCommentsChange)
+    repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange)
 
     // subscribe to bufferedFeedsReplyCounts change
     repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts)
@@ -117,6 +110,32 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     // if no new comments are added by the feed, like for a sort type change,
     // a feed update will never be triggered, so must be triggered it manually
     updateFeeds()
+  },
+
+  async addFeedToStoreOrUpdateComment(
+    feedName: string,
+    comment: Comment,
+    sortType: string,
+    account: Account,
+    flat?: boolean,
+    accountComments?: boolean,
+    repliesPerPage?: number,
+    filter?: CommentsFilter
+  ) {
+    assert(feedName && typeof feedName === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedName '${feedName}' invalid`)
+    assert(comment && comment.cid && typeof comment.cid === 'string', `repliesStore.addFeedToStoreOrUpdateComment comment.cid '${comment?.cid}' invalid`)
+    assert(sortType && typeof sortType === 'string', `repliesStore.addFeedToStoreOrUpdateComment sortType '${sortType}' invalid`)
+    assert(typeof account?.plebbit?.getSubplebbit === 'function', `repliesStore.addFeedToStoreOrUpdateComment account '${account}' invalid`)
+
+    // repliesStore don't use commentsStore to save resources by avoiding calling comment.update()
+    // the repliesCommentsStore must be updated manually every time the comment argument from useReplies changes
+    repliesCommentsStore.getState().addCommentToStoreOrUpdateComment(comment)
+
+    // if replies feed isn't in store yet, add it
+    const {feedsOptions, updateFeeds, addFeedToStore} = getState()
+    if (!feedsOptions[feedName] || feedsOptions[feedName].pageNumber === 0) {
+      addFeedToStore(feedName, comment.cid, sortType, account, flat, accountComments, repliesPerPage, filter)
+    }
   },
 
   incrementFeedPageNumber(feedName: string) {
@@ -183,7 +202,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       // get state from all stores
       const previousState = getState()
       const {feedsOptions} = previousState
-      const {comments} = commentsStore.getState()
+      const {comments} = repliesCommentsStore.getState()
       const {repliesPages} = repliesPagesStore.getState()
       const {accounts} = accountsStore.getState()
 
@@ -235,7 +254,7 @@ let previousBufferedFeedsComments = new Map<string, Comments>()
 let previousBufferedFeedsReplyCounts: {[feedName: string]: number} = {}
 const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState: any) => {
   const {bufferedFeedsReplyCounts, feedsOptions} = repliesStore.getState()
-  const {comments} = commentsStore.getState()
+  const {comments} = repliesCommentsStore.getState()
 
   // if feeds comments have changed, we must try adding them even if buffered replies counts haven't changed
   const bufferedFeedsComments = getFeedsComments(feedsOptions, comments)
@@ -289,8 +308,8 @@ let previousFeedsCommentsFirstPageCids: string[] = []
 let previousFeedsComments: Map<string, Comments> = new Map()
 let previousFeedsCommentsLoadedCount = 0
 let previousFeedsCommentsRepliesPagesFirstUpdatedAts = ''
-const updateFeedsOnFeedsCommentsChange = (commentsStoreState: any) => {
-  const {comments} = commentsStoreState
+const updateFeedsOnFeedsCommentsChange = (repliesCommentsStoreState: any) => {
+  const {comments} = repliesCommentsStoreState
   const {feedsOptions, updateFeeds} = repliesStore.getState()
 
   // feeds comments haven't changed, do nothing
@@ -339,12 +358,11 @@ export const resetRepliesStore = async () => {
   previousFeedsCommentsRepliesPagesFirstUpdatedAts = ''
   previousRepliesPages = {}
   updateFeedsPending = false
-  // remove all event listeners
-  listeners.forEach((listener: any) => listener.removeAllListeners())
   // destroy all component subscriptions to the store
   repliesStore.destroy()
   // restore original state
   repliesStore.setState(originalState)
+  repliesCommentsStore.setState({...repliesCommentsStore.getState(), comments: {}})
 }
 
 // reset database and store in between tests

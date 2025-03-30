@@ -592,7 +592,7 @@ describe('feeds', () => {
 
     test('dynamic filter', async () => {
       const createCidMatchFilter = (cid: string) => ({
-        filter: (comment: Comment) => !!comment.cid.match(cid),
+        filter: (comment: Comment) => !!comment?.cid?.match(cid),
         key: `cid-match-${cid}`,
       })
 
@@ -601,9 +601,9 @@ describe('feeds', () => {
         filter: createCidMatchFilter('13'),
       })
       await waitFor(() => rendered.result.current.feed?.length > 0)
-      expect(rendered.result.current.feed[0].cid).match(/13$/)
-      expect(rendered.result.current.feed[1].cid).match(/13$/)
-      expect(rendered.result.current.feed[2].cid).match(/13$/)
+      expect(rendered.result.current.feed[0].cid).toMatch(/13$/)
+      expect(rendered.result.current.feed[1].cid).toMatch(/13$/)
+      expect(rendered.result.current.feed[2].cid).toMatch(/13$/)
       expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(1)
 
       rendered.rerender({
@@ -611,9 +611,9 @@ describe('feeds', () => {
         filter: createCidMatchFilter('14'),
       })
       await waitFor(() => rendered.result.current.feed?.length > 0)
-      expect(rendered.result.current.feed[0].cid).match(/14$/)
-      expect(rendered.result.current.feed[1].cid).match(/14$/)
-      expect(rendered.result.current.feed[2].cid).match(/14$/)
+      expect(rendered.result.current.feed[0].cid).toMatch(/14$/)
+      expect(rendered.result.current.feed[1].cid).toMatch(/14$/)
+      expect(rendered.result.current.feed[2].cid).toMatch(/14$/)
       expect(Object.keys(feedsStore.getState().feedsOptions).length).toBe(2)
     })
 

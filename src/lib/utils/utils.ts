@@ -95,6 +95,7 @@ export const flattenCommentsPages = (pageInstanceOrPagesInstance: any) => {
     // @ts-ignore
     uniqueFlattened.push(flattenedCommentsObject[cid])
   }
+
   return uniqueFlattened
 }
 

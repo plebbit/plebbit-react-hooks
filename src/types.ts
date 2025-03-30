@@ -121,7 +121,7 @@ export interface UseValidateCommentResult extends Result {
 
 // useReplies(options): result
 export interface UseRepliesOptions extends Options {
-  commentCid?: string
+  comment?: Comment
   sortType?: string
   repliesPerPage?: number
   flat?: boolean

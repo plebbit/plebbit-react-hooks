@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../lib/test-utils'
 import {useComment, useComments, useReplies, useValidateComment, setPlebbitJs} from '..'
 import commentsStore from '../stores/comments'
+import repliesCommentsStore from '../stores/replies/replies-comments-store'
 import subplebbitsPagesStore from '../stores/subplebbits-pages'
 import PlebbitJsMock, {Plebbit, Comment, Pages, simulateLoadingTime} from '../lib/plebbit-js/plebbit-js-mock'
 import utils from '../lib/utils'
@@ -339,7 +340,11 @@ describe('comment replies', () => {
     let rendered, waitFor, scrollOnePage
 
     beforeEach(() => {
-      rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
+      rendered = renderHook<any, any>((useRepliesOptions) => {
+        // useReplies accepts only 'comment', but for ease of use also accept a 'commentCid' in the tests
+        const comment = useComment({commentCid: useRepliesOptions?.commentCid})
+        return useReplies({...useRepliesOptions, commentCid: undefined, comment: useRepliesOptions?.comment || comment})
+      })
       waitFor = testUtils.createWaitFor(rendered)
       scrollOnePage = scrollOnePage = async () => {
         const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
@@ -379,6 +384,48 @@ describe('comment replies', () => {
       await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid 2 page cid old comment cid 1')
       expect(rendered.result.current.replies.length).toBe(repliesPerPage)
       expect(rendered.result.current.replies[0].cid).toBe('comment cid 2 page cid old comment cid 1')
+      expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+    })
+
+    test('sort type new, switch to sort type old, switch to different comment (comment argument)', async () => {
+      expect(rendered.result.current.replies).toEqual([])
+
+      const createMockComment = (comment) => {
+        comment.timestamp = 1
+        comment.updatedAt = 2
+        comment.replies = {
+          pages: {best: new Pages({comment}).pageToGet(comment.cid + ' page cid best')},
+          pageCids: {
+            new: comment.cid + ' page cid new',
+            newFlat: comment.cid + ' page cid newFlat',
+            old: comment.cid + ' page cid old',
+            oldFlat: comment.cid + ' page cid oldFlat',
+          },
+        }
+        return comment
+      }
+
+      const commentAbc = createMockComment({cid: 'comment cid abc', subplebbitAddress: 'subplebbit address 1'})
+      rendered.rerender({comment: commentAbc, sortType: 'new'})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid abc page cid new comment cid 100')
+      expect(rendered.result.current.replies[0].timestamp).toBeGreaterThan(rendered.result.current.replies[repliesPerPage - 1].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({comment: commentAbc, sortType: 'old'})
+      await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid abc page cid old comment cid 1')
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid abc page cid old comment cid 1')
+      expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      const commentXyz = createMockComment({cid: 'comment cid xyz', subplebbitAddress: 'subplebbit address 1'})
+      rendered.rerender({comment: commentXyz, sortType: 'old'})
+      await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid xyz page cid old comment cid 1')
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid xyz page cid old comment cid 1')
       expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
       expect(rendered.result.current.hasMore).toBe(true)
     })
@@ -603,40 +650,6 @@ describe('comment replies', () => {
       expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
     })
 
-    test('can useComment({onlyIfCached: true}) on a comment from replies pages', async () => {
-      rendered = renderHook<any, any>(({useCommentOptions, useRepliesOptions}) => {
-        const comment = useComment(useCommentOptions)
-        const replies = useReplies(useRepliesOptions)
-        return {comment, replies}
-      })
-      waitFor = testUtils.createWaitFor(rendered)
-
-      const useRepliesOptions = {
-        commentCid: 'comment cid 1',
-        // the preloaded page is best
-        sortType: 'best',
-        // the preloaded page size is 100
-        repliesPerPage: 200,
-      }
-      rendered.rerender({useRepliesOptions})
-      await waitFor(() => rendered.result.current.replies.replies.length === useRepliesOptions.repliesPerPage)
-      expect(rendered.result.current.replies.replies.length).toBe(useRepliesOptions.repliesPerPage)
-
-      // first reply (preloaded) is defined
-      const firstCommentCid = rendered.result.current.replies.replies[0].cid
-      rendered.rerender({useRepliesOptions, useCommentOptions: {commentCid: firstCommentCid, onlyIfCached: true}})
-      await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
-      expect(typeof rendered.result.current.comment.updatedAt).toBe('number')
-      expect(rendered.result.current.comment.cid).toBe(firstCommentCid)
-
-      // last reply (from a page) is defined
-      const lastCommentCid = rendered.result.current.replies.replies[useRepliesOptions.repliesPerPage - 1].cid
-      rendered.rerender({useRepliesOptions, useCommentOptions: {commentCid: lastCommentCid, onlyIfCached: true}})
-      await waitFor(() => typeof rendered.result.current.comment.updatedAt === 'number')
-      expect(typeof rendered.result.current.comment.updatedAt).toBe('number')
-      expect(rendered.result.current.comment.cid).toBe(lastCommentCid)
-    })
-
     test.todo('has account comments', async () => {})
 
     test.todo('nested scroll pages', async () => {})
@@ -718,7 +731,12 @@ describe('comment replies', () => {
     let rendered, waitFor, scrollOnePage
 
     beforeEach(() => {
-      rendered = renderHook<any, any>((useRepliesOptions) => useReplies(useRepliesOptions))
+      rendered = renderHook<any, any>((useRepliesOptions) => {
+        // useReplies accepts only 'comment', but for ease of use also accept a 'commentCid' in the tests
+        const comment = useComment({commentCid: useRepliesOptions?.commentCid})
+        return useReplies({...useRepliesOptions, commentCid: undefined, comment: useRepliesOptions?.comment || comment})
+      })
+
       waitFor = testUtils.createWaitFor(rendered)
       scrollOnePage = scrollOnePage = async () => {
         const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
@@ -1019,11 +1037,11 @@ describe('comment replies', () => {
 
       // second comment update (updatedAt doesn't change, so shouldn't update)
       comment.simulateUpdateEvent()
-      await waitFor(() => commentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount === 2)
+      await waitFor(() => repliesCommentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount === 2)
       expect(pages.length).toBe(2)
       // comment in store updated, but the updatedAt didn't change so no change in useReplies().updatedReplies
-      expect(commentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].updatedAt).toBe(1)
-      expect(commentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount).toBe(2)
+      expect(repliesCommentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].updatedAt).toBe(1)
+      expect(repliesCommentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount).toBe(2)
       expect(rendered.result.current.replies.length).toBe(1)
       expect(rendered.result.current.updatedReplies.length).toBe(1)
       expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')

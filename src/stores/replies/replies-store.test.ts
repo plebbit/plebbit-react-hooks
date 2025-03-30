@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
 import useRepliesStore, {defaultRepliesPerPage as repliesPerPage} from './replies-store'
 import {RepliesPage} from '../../types'
-import commentsStore from '../comments'
+import repliesCommentsStore from './replies-comments-store'
 import repliesPagesStore from '../replies-pages'
 import EventEmitter from 'events'
 import accountsStore from '../accounts'
@@ -62,6 +62,8 @@ class MockSubplebbit extends EventEmitter {
 class MockComment extends EventEmitter {
   cid: string
   replies: MockPages
+  postCid: string
+  subplebbitAddress: string
   constructor({cid}: any) {
     super()
     this.cid = cid
@@ -127,6 +129,7 @@ describe('replies store', () => {
     expect(rendered.result.current.loadedFeeds).toEqual({})
     expect(rendered.result.current.updatedFeeds).toEqual({})
     expect(typeof rendered.result.current.addFeedToStore).toBe('function')
+    expect(typeof rendered.result.current.addFeedToStoreOrUpdateComment).toBe('function')
     expect(typeof rendered.result.current.incrementFeedPageNumber).toBe('function')
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
   })
@@ -135,9 +138,10 @@ describe('replies store', () => {
     const commentCid = 'comment cid 1'
     const sortType = 'new'
     const feedName = JSON.stringify([mockAccount?.id, sortType, commentCid])
+    const comment = new MockComment({cid: commentCid})
 
     act(() => {
-      rendered.result.current.addFeedToStore(feedName, commentCid, sortType, mockAccount)
+      rendered.result.current.addFeedToStoreOrUpdateComment(feedName, comment, sortType, mockAccount)
     })
 
     // wait for feed to be added
@@ -147,10 +151,10 @@ describe('replies store', () => {
     expect(rendered.result.current.feedsOptions[feedName].commentCid).toEqual(commentCid)
 
     // wait for feed to load
-    await waitFor(() => rendered.result.current.loadedFeeds[feedName].length > 0)
+    await waitFor(() => rendered.result.current.loadedFeeds[feedName]?.length > 0)
 
     // comment was added to comments store
-    expect(commentsStore.getState().comments[commentCid]).not.toBe(undefined)
+    expect(repliesCommentsStore.getState().comments[commentCid]).not.toBe(undefined)
 
     // feeds become defined
     expect(rendered.result.current.bufferedFeeds[feedName]).not.toBe(undefined)
@@ -169,6 +173,7 @@ describe('replies store', () => {
     // loaded feed has 1 page
     expect(rendered.result.current.loadedFeeds[feedName].length).toBe(repliesPerPage)
     expect(rendered.result.current.updatedFeeds[feedName].length).toBe(rendered.result.current.loadedFeeds[feedName].length)
+
     // increment page
     act(() => {
       rendered.result.current.incrementFeedPageNumber(feedName)

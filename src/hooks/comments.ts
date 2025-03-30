@@ -187,7 +187,7 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
 
 export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`)
-  let {commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter} = options || {}
+  let {comment, sortType, accountName, flat, accountComments, repliesPerPage, filter} = options || {}
   if (!sortType) {
     sortType = 'best'
   }
@@ -198,23 +198,23 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     accountComments = true
   }
 
-  validator.validateUseRepliesArguments(commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter)
+  validator.validateUseRepliesArguments(comment?.cid, sortType, accountName, flat, accountComments, repliesPerPage, filter)
   const account = useAccount({accountName})
-  const addFeedToStore = useRepliesStore((state: RepliesState) => state.addFeedToStore)
+  const addFeedToStoreOrUpdateComment = useRepliesStore((state: RepliesState) => state.addFeedToStoreOrUpdateComment)
   const incrementFeedPageNumber = useRepliesStore((state: RepliesState) => state.incrementFeedPageNumber)
   const resetFeed = useRepliesStore((state: RepliesState) => state.resetFeed)
-  const repliesFeedName = useRepliesFeedName(account?.id, commentCid, sortType, flat, accountComments, repliesPerPage, filter)
+  const repliesFeedName = useRepliesFeedName(account?.id, comment?.cid, sortType, flat, accountComments, repliesPerPage, filter)
   const [errors, setErrors] = useState<Error[]>([])
 
   // add replies to store
   useEffect(() => {
-    if (!commentCid || !account) {
+    if (!comment?.cid || !account || !comment) {
       return
     }
-    addFeedToStore(repliesFeedName, commentCid, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error: unknown) =>
-      log.error('useReplies addFeedToStore error', {repliesFeedName, error})
+    addFeedToStoreOrUpdateComment(repliesFeedName, comment, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error: unknown) =>
+      log.error('useReplies addFeedToStoreOrUpdateComment error', {repliesFeedName, error})
     )
-  }, [repliesFeedName])
+  }, [repliesFeedName, comment])
 
   const replies = useRepliesStore((state: RepliesState) => state.loadedFeeds[repliesFeedName || ''])
   const bufferedReplies = useRepliesStore((state: RepliesState) => state.bufferedFeeds[repliesFeedName || ''])
@@ -224,14 +224,14 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   if (!repliesFeedName || typeof hasMore !== 'boolean') {
     hasMore = true
   }
-  // if the replies is not yet defined, but no comment cid, doesn't have more
-  if (!commentCid) {
+  // if the replies is not yet defined, but no comment, doesn't have more
+  if (!comment) {
     hasMore = false
   }
 
   const loadMore = async () => {
     try {
-      if (!commentCid || !account) {
+      if (!comment?.cid || !account) {
         throw Error('useReplies cannot load more replies not initalized yet')
       }
       incrementFeedPageNumber(repliesFeedName)
@@ -244,7 +244,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
 
   const reset = async () => {
     try {
-      if (!commentCid || !account) {
+      if (!comment?.cid || !account) {
         throw Error('useReplies cannot reset replies not initalized yet')
       }
       resetFeed(repliesFeedName)
@@ -255,11 +255,11 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     }
   }
 
-  if (account && commentCid) {
+  if (account && comment?.cid) {
     log('useReplies', {
       repliesLength: replies?.length || 0,
       hasMore,
-      commentCid,
+      commentCid: comment.cid,
       sortType,
       account,
       repliesStoreOptions: useRepliesStore.getState().feedsOptions,

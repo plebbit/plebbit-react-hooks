@@ -27,7 +27,7 @@ useNotifications(): {notifications: Notification[], markAsRead: Function}
 #### Comments Hooks
 ```
 useComment({commentCid: string, onlyIfCached?: boolean}): Comment
-useReplies({commentCid: string, sortType?: string, flat?: boolean, repliesPerPage?: number, filter>: CommentsFilter}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
+useReplies({comment: Comment, sortType?: string, flat?: boolean, repliesPerPage?: number, filter>: CommentsFilter}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
 useComments({commentCids: string[], onlyIfCached?: boolean}): {comments: Comment[]}
 useEditedComment({comment: Comment}): {editedComment: Comment | undefined}
 useValidateComment({comment: Comment, validateReplies?: boolean}): {valid: boolean}
@@ -144,7 +144,7 @@ const {authorAddress, shortAuthorAddress} = useAuthorAddress({comment: post})
 const post = useComment({commentCid, onlyIfCached: true})
 
 // post.replies are not validated, to show replies
-const {replies, hasMore, loadMore} = useReplies({commentCid})
+const {replies, hasMore, loadMore} = useReplies({comment: post})
 
 // to show a preloaded reply without rerenders, validate manually
 const {valid} = useValidateComment({comment: post.replies.pages.best[0]})
