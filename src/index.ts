@@ -27,7 +27,10 @@ import {
 } from './hooks/accounts'
 
 // comments
-import {useComment, useComments, useReplies, useValidateComment} from './hooks/comments'
+import {useComment, useComments, useValidateComment} from './hooks/comments'
+
+// replies
+import {useReplies} from './hooks/replies'
 
 // subplebbits
 import {useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress} from './hooks/subplebbits'
@@ -92,8 +95,9 @@ export {
   useComment,
   useComments,
   useEditedComment,
-  useReplies,
   useValidateComment,
+  // replies
+  useReplies,
   // subplebbits
   useSubplebbit,
   useSubplebbits,
@@ -156,8 +160,9 @@ const hooks = {
   useComment,
   useComments,
   useEditedComment,
-  useReplies,
   useValidateComment,
+  // replies
+  useReplies,
   // subplebbits
   useSubplebbit,
   useSubplebbits,
