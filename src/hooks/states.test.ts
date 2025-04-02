@@ -309,7 +309,7 @@ describe('states', () => {
     test('fetch comment', async () => {
       const rendered = renderHook<any, any>((commentCid) => {
         const comment = useComment({commentCid})
-        const {replies, loadMore} = useReplies({commentCid, sortType: 'new'})
+        const {replies, loadMore} = useReplies({comment, sortType: 'new'})
         const {states} = useClientsStates({comment})
         return {comment, states, replies, loadMore}
       })

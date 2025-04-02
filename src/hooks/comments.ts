@@ -3,6 +3,7 @@ import {useAccount} from './accounts'
 import validator from '../lib/validator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:comments:hooks')
+const repliesLog = Logger('plebbit-react-hooks:replies:hooks')
 import assert from 'assert'
 import {
   Comment,
@@ -212,7 +213,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
       return
     }
     addFeedToStoreOrUpdateComment(repliesFeedName, comment, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error: unknown) =>
-      log.error('useReplies addFeedToStoreOrUpdateComment error', {repliesFeedName, error})
+      repliesLog.error('useReplies addFeedToStoreOrUpdateComment error', {repliesFeedName, error})
     )
   }, [repliesFeedName, comment])
 
@@ -256,7 +257,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   }
 
   if (account && comment?.cid) {
-    log('useReplies', {
+    repliesLog('useReplies', {
       repliesLength: replies?.length || 0,
       hasMore,
       commentCid: comment.cid,

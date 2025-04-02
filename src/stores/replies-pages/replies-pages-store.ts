@@ -4,7 +4,7 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
 import {RepliesPage, RepliesPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
-import repliesCommentsStore, {RepliesCommentsState} from '../replies/replies-comments-store'
+import commentsStore, {CommentsState} from '../comments'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
@@ -149,7 +149,7 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
 
 // set clients states on comments store so the frontend can display it, dont persist in db because a reload cancels updating
 const onCommentRepliesClientsStateChange = (commentCid: string) => (clientState: string, clientType: string, sortType: string, clientUrl: string) => {
-  repliesCommentsStore.setState((state: RepliesCommentsState) => {
+  commentsStore.setState((state: CommentsState) => {
     // make sure not undefined, sometimes happens in e2e tests
     if (!state.comments[commentCid]) {
       return {}
