@@ -1,7 +1,6 @@
 import { Feeds, RepliesFeedsOptions } from '../../types';
 export declare const defaultRepliesPerPage = 25;
 export declare const commentRepliesLeftBeforeNextPage = 50;
-export declare const listeners: any;
 export type RepliesState = {
     feedsOptions: RepliesFeedsOptions;
     bufferedFeeds: Feeds;
@@ -14,6 +13,7 @@ export type RepliesState = {
         [feedName: string]: boolean;
     };
     addFeedToStore: Function;
+    addFeedToStoreOrUpdateComment: Function;
     incrementFeedPageNumber: Function;
     resetFeed: Function;
     updateFeeds: Function;

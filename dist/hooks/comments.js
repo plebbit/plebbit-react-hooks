@@ -12,6 +12,7 @@ import { useAccount } from './accounts';
 import validator from '../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:comments:hooks');
+const repliesLog = Logger('plebbit-react-hooks:replies:hooks');
 import assert from 'assert';
 import useCommentsStore from '../stores/comments';
 import useAccountsStore from '../stores/accounts';
@@ -149,7 +150,7 @@ export function useComments(options) {
 }
 export function useReplies(options) {
     assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`);
-    let { commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter } = options || {};
+    let { comment, sortType, accountName, flat, accountComments, repliesPerPage, filter } = options || {};
     if (!sortType) {
         sortType = 'best';
     }
@@ -159,20 +160,20 @@ export function useReplies(options) {
     if (accountComments === undefined || accountComments === null) {
         accountComments = true;
     }
-    validator.validateUseRepliesArguments(commentCid, sortType, accountName, flat, accountComments, repliesPerPage, filter);
+    validator.validateUseRepliesArguments(comment === null || comment === void 0 ? void 0 : comment.cid, sortType, accountName, flat, accountComments, repliesPerPage, filter);
     const account = useAccount({ accountName });
-    const addFeedToStore = useRepliesStore((state) => state.addFeedToStore);
+    const addFeedToStoreOrUpdateComment = useRepliesStore((state) => state.addFeedToStoreOrUpdateComment);
     const incrementFeedPageNumber = useRepliesStore((state) => state.incrementFeedPageNumber);
     const resetFeed = useRepliesStore((state) => state.resetFeed);
-    const repliesFeedName = useRepliesFeedName(account === null || account === void 0 ? void 0 : account.id, commentCid, sortType, flat, accountComments, repliesPerPage, filter);
+    const repliesFeedName = useRepliesFeedName(account === null || account === void 0 ? void 0 : account.id, comment === null || comment === void 0 ? void 0 : comment.cid, sortType, flat, accountComments, repliesPerPage, filter);
     const [errors, setErrors] = useState([]);
     // add replies to store
     useEffect(() => {
-        if (!commentCid || !account) {
+        if (!(comment === null || comment === void 0 ? void 0 : comment.cid) || !account || !comment) {
             return;
         }
-        addFeedToStore(repliesFeedName, commentCid, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error) => log.error('useReplies addFeedToStore error', { repliesFeedName, error }));
-    }, [repliesFeedName]);
+        addFeedToStoreOrUpdateComment(repliesFeedName, comment, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error) => repliesLog.error('useReplies addFeedToStoreOrUpdateComment error', { repliesFeedName, error }));
+    }, [repliesFeedName, comment]);
     const replies = useRepliesStore((state) => state.loadedFeeds[repliesFeedName || '']);
     const bufferedReplies = useRepliesStore((state) => state.bufferedFeeds[repliesFeedName || '']);
     const updatedReplies = useRepliesStore((state) => state.updatedFeeds[repliesFeedName || '']);
@@ -181,13 +182,13 @@ export function useReplies(options) {
     if (!repliesFeedName || typeof hasMore !== 'boolean') {
         hasMore = true;
     }
-    // if the replies is not yet defined, but no comment cid, doesn't have more
-    if (!commentCid) {
+    // if the replies is not yet defined, but no comment, doesn't have more
+    if (!comment) {
         hasMore = false;
     }
     const loadMore = () => __awaiter(this, void 0, void 0, function* () {
         try {
-            if (!commentCid || !account) {
+            if (!(comment === null || comment === void 0 ? void 0 : comment.cid) || !account) {
                 throw Error('useReplies cannot load more replies not initalized yet');
             }
             incrementFeedPageNumber(repliesFeedName);
@@ -200,7 +201,7 @@ export function useReplies(options) {
     });
     const reset = () => __awaiter(this, void 0, void 0, function* () {
         try {
-            if (!commentCid || !account) {
+            if (!(comment === null || comment === void 0 ? void 0 : comment.cid) || !account) {
                 throw Error('useReplies cannot reset replies not initalized yet');
             }
             resetFeed(repliesFeedName);
@@ -211,11 +212,11 @@ export function useReplies(options) {
             setErrors([...errors, e]);
         }
     });
-    if (account && commentCid) {
-        log('useReplies', {
+    if (account && (comment === null || comment === void 0 ? void 0 : comment.cid)) {
+        repliesLog('useReplies', {
             repliesLength: (replies === null || replies === void 0 ? void 0 : replies.length) || 0,
             hasMore,
-            commentCid,
+            commentCid: comment.cid,
             sortType,
             account,
             repliesStoreOptions: useRepliesStore.getState().feedsOptions,

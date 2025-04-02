@@ -22,8 +22,6 @@ import { getFeedsSubplebbitsFirstPageCids, getLoadedFeeds, getUpdatedFeeds, getB
 export const defaultPostsPerPage = 25;
 // keep large buffer because fetching cids is slow
 export const subplebbitPostsLeftBeforeNextPage = 50;
-// reset all event listeners in between tests
-export const listeners = [];
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false;
 const updateFeedsMinIntervalTime = 100;
@@ -50,7 +48,7 @@ const feedsStore = createStore((setState, getState) => ({
             assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`);
             const { feedsOptions, updateFeeds } = getState();
             // feed is in store already, do nothing
-            // if the feed already exist but is at page 1, reset it to page 1
+            // if the feed already exist but is at page 0, reset it to page 1
             if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
                 return;
             }
@@ -334,8 +332,6 @@ export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function*
     previousFeedsSubplebbitsPostsPagesFirstUpdatedAts = '';
     previousSubplebbitsPages = {};
     updateFeedsPending = false;
-    // remove all event listeners
-    listeners.forEach((listener) => listener.removeAllListeners());
     // destroy all component subscriptions to the store
     feedsStore.destroy();
     // restore original state

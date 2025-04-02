@@ -13,7 +13,7 @@ const log = Logger('plebbit-react-hooks:replies:stores');
 import createStore from 'zustand';
 import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
-import commentsStore from '../comments';
+import repliesCommentsStore from './replies-comments-store';
 import repliesPagesStore from '../replies-pages';
 import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getUpdatedFeeds, getFeedsReplyCounts, getFeedsHaveMore, feedsCommentsChanged, getFeedsComments, getFeedsCommentsLoadedCount, getFeedsCommentsRepliesPagesFirstUpdatedAts, getFilteredSortedFeeds, getSortTypeFromComment, } from './utils';
 // reddit loads approximately 25 posts per page
@@ -21,8 +21,6 @@ import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutL
 export const defaultRepliesPerPage = 25;
 // keep large buffer because fetching cids is slow
 export const commentRepliesLeftBeforeNextPage = 50;
-// reset all event listeners in between tests
-export const listeners = [];
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false;
 const updateFeedsMinIntervalTime = 100;
@@ -52,7 +50,7 @@ const repliesStore = createStore((setState, getState) => ({
             assert(!filter || typeof (filter === null || filter === void 0 ? void 0 : filter.key) === 'string', `addFeedToStore.addFeedToStore filter.key '${filter === null || filter === void 0 ? void 0 : filter.key}' invalid`);
             const { feedsOptions, updateFeeds } = getState();
             // feed is in store already, do nothing
-            // if the feed already exist but is at page 1, reset it to page 1
+            // if the feed already exist but is at page 0, reset it to page 1
             if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
                 return;
             }
@@ -66,12 +64,8 @@ const repliesStore = createStore((setState, getState) => ({
                 }
                 return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }) };
             });
-            commentsStore
-                .getState()
-                .addCommentToStore(commentCid, account)
-                .catch((error) => log.error('repliesStore commentsStore.addCommentToStore error', { commentCid, error }));
             // subscribe to comments store changes
-            commentsStore.subscribe(updateFeedsOnFeedsCommentsChange);
+            repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange);
             // subscribe to bufferedFeedsReplyCounts change
             repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts);
             // subscribe to replies pages store changes
@@ -80,6 +74,23 @@ const repliesStore = createStore((setState, getState) => ({
             // if no new comments are added by the feed, like for a sort type change,
             // a feed update will never be triggered, so must be triggered it manually
             updateFeeds();
+        });
+    },
+    addFeedToStoreOrUpdateComment(feedName, comment, sortType, account, flat, accountComments, repliesPerPage, filter) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            assert(feedName && typeof feedName === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedName '${feedName}' invalid`);
+            assert(comment && comment.cid && typeof comment.cid === 'string', `repliesStore.addFeedToStoreOrUpdateComment comment.cid '${comment === null || comment === void 0 ? void 0 : comment.cid}' invalid`);
+            assert(sortType && typeof sortType === 'string', `repliesStore.addFeedToStoreOrUpdateComment sortType '${sortType}' invalid`);
+            assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `repliesStore.addFeedToStoreOrUpdateComment account '${account}' invalid`);
+            // repliesStore don't use commentsStore to save resources by avoiding calling comment.update()
+            // the repliesCommentsStore must be updated manually every time the comment argument from useReplies changes
+            repliesCommentsStore.getState().addCommentToStoreOrUpdateComment(comment);
+            // if replies feed isn't in store yet, add it
+            const { feedsOptions, updateFeeds, addFeedToStore } = getState();
+            if (!feedsOptions[feedName] || feedsOptions[feedName].pageNumber === 0) {
+                addFeedToStore(feedName, comment.cid, sortType, account, flat, accountComments, repliesPerPage, filter);
+            }
         });
     },
     incrementFeedPageNumber(feedName) {
@@ -128,7 +139,7 @@ const repliesStore = createStore((setState, getState) => ({
             // get state from all stores
             const previousState = getState();
             const { feedsOptions } = previousState;
-            const { comments } = commentsStore.getState();
+            const { comments } = repliesCommentsStore.getState();
             const { repliesPages } = repliesPagesStore.getState();
             const { accounts } = accountsStore.getState();
             // calculate new feeds
@@ -174,7 +185,7 @@ let previousBufferedFeedsComments = new Map();
 let previousBufferedFeedsReplyCounts = {};
 const addRepliesPagesOnLowBufferedFeedsReplyCounts = (repliesStoreState) => {
     const { bufferedFeedsReplyCounts, feedsOptions } = repliesStore.getState();
-    const { comments } = commentsStore.getState();
+    const { comments } = repliesCommentsStore.getState();
     // if feeds comments have changed, we must try adding them even if buffered replies counts haven't changed
     const bufferedFeedsComments = getFeedsComments(feedsOptions, comments);
     const _feedsCommentsChanged = feedsCommentsChanged(previousBufferedFeedsComments, bufferedFeedsComments);
@@ -216,8 +227,8 @@ let previousFeedsCommentsFirstPageCids = [];
 let previousFeedsComments = new Map();
 let previousFeedsCommentsLoadedCount = 0;
 let previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
-const updateFeedsOnFeedsCommentsChange = (commentsStoreState) => {
-    const { comments } = commentsStoreState;
+const updateFeedsOnFeedsCommentsChange = (repliesCommentsStoreState) => {
+    const { comments } = repliesCommentsStoreState;
     const { feedsOptions, updateFeeds } = repliesStore.getState();
     // feeds comments haven't changed, do nothing
     const feedsComments = getFeedsComments(feedsOptions, comments);
@@ -260,12 +271,11 @@ export const resetRepliesStore = () => __awaiter(void 0, void 0, void 0, functio
     previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
     previousRepliesPages = {};
     updateFeedsPending = false;
-    // remove all event listeners
-    listeners.forEach((listener) => listener.removeAllListeners());
     // destroy all component subscriptions to the store
     repliesStore.destroy();
     // restore original state
     repliesStore.setState(originalState);
+    repliesCommentsStore.setState(Object.assign(Object.assign({}, repliesCommentsStore.getState()), { comments: {} }));
 });
 // reset database and store in between tests
 export const resetRepliesDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {

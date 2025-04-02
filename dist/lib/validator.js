@@ -215,7 +215,7 @@ export const validateRepliesSortType = (sortType) => {
 };
 export const validateUseRepliesArguments = (commentCid, sortType, accountName, flat, accountComments, postsPerPage, filter) => {
     if (commentCid) {
-        assert(typeof commentCid === 'string', `useReplies commentCid argument '${commentCid}' not a string`);
+        assert(typeof commentCid === 'string', `useReplies comment.cid argument '${commentCid}' not a string`);
     }
     assert(repliesSortTypes.has(sortType), `useReplies sortType argument '${sortType}' invalid`);
     if (accountName) {
