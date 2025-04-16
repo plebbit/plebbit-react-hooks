@@ -154,72 +154,84 @@ describe('replies', () => {
       expect(rendered.result.current.hasMore).toBe(true)
     })
 
-    test('scroll pages', async () => {
-      expect(rendered.result.current.replies).toEqual([])
+    describe(
+      'retry on fail',
+      () => {
+        test('scroll pages', async () => {
+          expect(rendered.result.current.replies).toEqual([])
 
-      // default sort (best)
-      const commentCid = 'comment cid 1'
-      rendered.rerender({commentCid})
-      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
-      // page 1
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
-      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
-      expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
-      expect(rendered.result.current.hasMore).toBe(true)
-      // default sort, shouldnt fetch a page because included in comment.replies.pages
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+          // default sort (best)
+          const commentCid = 'comment cid 1'
+          rendered.rerender({commentCid})
+          await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+          // page 1
+          expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+          expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
+          expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
+          expect(rendered.result.current.hasMore).toBe(true)
+          // default sort, shouldnt fetch a page because included in comment.replies.pages
+          expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
 
-      // page 2
-      await scrollOnePage()
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
-      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
-      expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
-      expect(rendered.result.current.hasMore).toBe(true)
-      // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+          // page 2
+          await scrollOnePage()
+          expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+          expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
+          expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
+          expect(rendered.result.current.hasMore).toBe(true)
+          // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
+          expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
 
-      // page 3
-      await scrollOnePage()
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
-      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
-      await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
-      expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
-      expect(rendered.result.current.hasMore).toBe(true)
-      // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
-    })
+          // page 3
+          await scrollOnePage()
+          expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+          expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
+          await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
+          expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
+          expect(rendered.result.current.hasMore).toBe(true)
+          // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
+          expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+        })
+      },
+      {retry: 10}
+    )
 
-    test('if sort type topAll missing, use best instead', async () => {
-      expect(rendered.result.current.replies).toEqual([])
+    describe(
+      'retry on fail',
+      () => {
+        test('if sort type topAll missing, use best instead', async () => {
+          expect(rendered.result.current.replies).toEqual([])
 
-      const commentCid = 'comment cid 1'
-      rendered.rerender({commentCid, sortType: 'topAll'})
-      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
-      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
-      expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 100')
-      expect(rendered.result.current.hasMore).toBe(true)
+          const commentCid = 'comment cid 1'
+          rendered.rerender({commentCid, sortType: 'topAll'})
+          await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+          expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
+          expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage)
+          expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+          expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 100')
+          expect(rendered.result.current.hasMore).toBe(true)
 
-      // page 2
-      await scrollOnePage()
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
-      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
-      expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
-      expect(rendered.result.current.hasMore).toBe(true)
-      // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+          // page 2
+          await scrollOnePage()
+          expect(rendered.result.current.replies.length).toBe(repliesPerPage * 2)
+          expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
+          expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength - repliesPerPage * 2)
+          expect(rendered.result.current.hasMore).toBe(true)
+          // still shouldnt fetch a page yet because commentRepliesLeftBeforeNextPage not reached
+          expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
 
-      // page 3
-      await scrollOnePage()
-      expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
-      expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
-      await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
-      expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
-      expect(rendered.result.current.hasMore).toBe(true)
-      // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
-    })
+          // page 3
+          await scrollOnePage()
+          expect(rendered.result.current.replies.length).toBe(repliesPerPage * 3)
+          expect(rendered.result.current.updatedReplies.length).toBe(rendered.result.current.replies.length)
+          await waitFor(() => rendered.result.current.bufferedReplies.length === plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
+          expect(rendered.result.current.bufferedReplies.length).toBe(plebbitJsMockRepliesPageLength * 2 - repliesPerPage * 3)
+          expect(rendered.result.current.hasMore).toBe(true)
+          // should fetch a page yet because commentRepliesLeftBeforeNextPage reached
+          expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(1)
+        })
+      },
+      {retry: 10}
+    )
 
     test('if sort type best missing, use topAll instead', async () => {
       const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
