@@ -128,7 +128,7 @@ describe('replies store', () => {
     expect(rendered.result.current.bufferedFeedsReplyCounts).toEqual({})
     expect(rendered.result.current.loadedFeeds).toEqual({})
     expect(rendered.result.current.updatedFeeds).toEqual({})
-    expect(typeof rendered.result.current.addFeedToStore).toBe('function')
+    expect(typeof rendered.result.current.addFeedsToStore).toBe('function')
     expect(typeof rendered.result.current.addFeedToStoreOrUpdateComment).toBe('function')
     expect(typeof rendered.result.current.incrementFeedPageNumber).toBe('function')
     expect(typeof rendered.result.current.updateFeeds).toBe('function')
