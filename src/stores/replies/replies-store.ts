@@ -1,7 +1,7 @@
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
-import {Feed, Feeds, Comment, Comments, Account, RepliesFeedsOptions, RepliesPage, CommentsFilter} from '../../types'
+import {Feed, Feeds, Comment, Comments, Account, RepliesFeedOptions, RepliesFeedsOptions, RepliesPage, CommentsFilter} from '../../types'
 import createStore from 'zustand'
 import localForageLru from '../../lib/localforage-lru'
 import accountsStore from '../accounts'
@@ -36,12 +36,26 @@ export type RepliesState = {
   updatedFeeds: Feeds
   bufferedFeedsReplyCounts: {[feedName: string]: number}
   feedsHaveMore: {[feedName: string]: boolean}
-  addFeedToStore: Function
   addFeedToStoreOrUpdateComment: Function
   incrementFeedPageNumber: Function
   resetFeed: Function
   updateFeeds: Function
 }
+
+export const feedOptionsToFeedName = (feedOptions: Partial<RepliesFeedOptions>) =>
+  feedOptions?.accountId +
+  '-' +
+  feedOptions?.commentCid +
+  '-' +
+  feedOptions?.sortType +
+  '-' +
+  feedOptions?.flat +
+  '-' +
+  feedOptions?.accountComments +
+  '-' +
+  feedOptions?.repliesPerPage +
+  '-' +
+  feedOptions?.filter?.key
 
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false
@@ -55,86 +69,120 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   bufferedFeedsReplyCounts: {},
   feedsHaveMore: {},
 
-  async addFeedToStore(
-    feedName: string,
-    commentCid: string,
-    sortType: string,
-    account: Account,
-    flat?: boolean,
-    accountComments?: boolean,
-    repliesPerPage?: number,
-    filter?: CommentsFilter
-  ) {
-    assert(feedName && typeof feedName === 'string', `repliesStore.addFeedToStore feedName '${feedName}' invalid`)
-    assert(commentCid && typeof commentCid === 'string', `repliesStore.addFeedToStore commentCid '${commentCid}' invalid`)
-    assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`)
-    assert(typeof account?.plebbit?.getSubplebbit === 'function', `addFeedToStore.addFeedToStore account '${account}' invalid`)
-    if (flat === undefined || flat === null) {
-      flat = false
-    }
-    if (accountComments === undefined || accountComments === null) {
-      accountComments = true
-    }
-    repliesPerPage = repliesPerPage || defaultRepliesPerPage
-    assert(typeof repliesPerPage === 'number', `addFeedToStore.addFeedToStore repliesPerPage '${repliesPerPage}' invalid`)
-    assert(!filter || typeof filter?.filter === 'function', `addFeedToStore.addFeedToStore filter.filter '${filter?.filter}' invalid`)
-    assert(!filter || typeof filter?.key === 'string', `addFeedToStore.addFeedToStore filter.key '${filter?.key}' invalid`)
+  addFeedsToStore(feedOptionsArray: RepliesFeedOptions[]) {
+    const {feedsOptions: previousFeedsOptions} = getState()
+    const newFeedsOptions: RepliesFeedsOptions = {}
 
-    const {feedsOptions, updateFeeds} = getState()
-    // feed is in store already, do nothing
-    // if the feed already exist but is at page 0, reset it to page 1
-    if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-      return
-    }
-    // to add a buffered feed, add a feed with pageNumber 0
-    const feedOptions = {commentCid, sortType, accountId: account.id, pageNumber: 1, flat, accountComments, repliesPerPage, filter}
-    log('repliesStore.addFeedToStore', feedOptions)
-    setState(({feedsOptions}: any) => {
-      // make sure to never overwrite a feed already added
-      if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-        throw Error(`repliesStore.addFeedToStore feed '${feedName}' already added`)
+    // get all newFeedsOptions
+    for (let feedOptions of feedOptionsArray) {
+      const feedName = feedOptionsToFeedName(feedOptions)
+      // feed is in store already, do nothing
+      // if the feed already exist but is at page 0, reset it to page 1
+      if (previousFeedsOptions[feedName] && previousFeedsOptions[feedName].pageNumber !== 0) {
+        continue
       }
-      return {feedsOptions: {...feedsOptions, [feedName]: feedOptions}}
+
+      // set default feed options
+      feedOptions = {...feedOptions}
+      if (feedOptions.flat === undefined || feedOptions.flat === null) {
+        feedOptions.flat = false
+      }
+      if (feedOptions.accountComments === undefined || feedOptions.accountComments === null) {
+        feedOptions.accountComments = true
+      }
+      feedOptions.repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage
+
+      // to add a buffered feed, add a feed with pageNumber 0
+      feedOptions.pageNumber = 1
+      newFeedsOptions[feedName] = feedOptions
+      log('repliesStore.addFeedToStore', feedOptions)
+
+      // TODO: these subscribe functions get triggered 100s of times for nothing
+      // they either need to be tailored with an argument related to the feed options, or only triggered once
+
+      // subscribe to comments store changes
+      repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange)
+
+      // subscribe to bufferedFeedsReplyCounts change
+      repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts)
+
+      // subscribe to replies pages store changes
+      repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange)
+    }
+
+    // set new feedsOptions state
+    let feedsChanged = false
+    setState(({feedsOptions}: RepliesState) => {
+      for (const feedName in newFeedsOptions) {
+        // make sure to never overwrite a feed already added
+        if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
+          delete newFeedsOptions[feedName]
+        }
+      }
+      if (!Object.keys(newFeedsOptions).length) {
+        return {}
+      }
+      feedsChanged = true
+      return {feedsOptions: {...feedsOptions, ...newFeedsOptions}}
     })
-
-    // subscribe to comments store changes
-    repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange)
-
-    // subscribe to bufferedFeedsReplyCounts change
-    repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts)
-
-    // subscribe to replies pages store changes
-    repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange)
-
-    // update feeds right away to use the already loaded comments and pages
-    // if no new comments are added by the feed, like for a sort type change,
-    // a feed update will never be triggered, so must be triggered it manually
-    updateFeeds()
+    return feedsChanged
   },
 
-  async addFeedToStoreOrUpdateComment(
-    feedName: string,
-    comment: Comment,
-    sortType: string,
-    account: Account,
-    flat?: boolean,
-    accountComments?: boolean,
-    repliesPerPage?: number,
-    filter?: CommentsFilter
-  ) {
-    assert(feedName && typeof feedName === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedName '${feedName}' invalid`)
+  async addFeedToStoreOrUpdateComment(comment: Comment, feedOptions: RepliesFeedOptions) {
+    // validate options
     assert(comment && comment.cid && typeof comment.cid === 'string', `repliesStore.addFeedToStoreOrUpdateComment comment.cid '${comment?.cid}' invalid`)
-    assert(sortType && typeof sortType === 'string', `repliesStore.addFeedToStoreOrUpdateComment sortType '${sortType}' invalid`)
-    assert(typeof account?.plebbit?.getSubplebbit === 'function', `repliesStore.addFeedToStoreOrUpdateComment account '${account}' invalid`)
-
-    // repliesStore don't use commentsStore to save resources by avoiding calling comment.update()
-    // the repliesCommentsStore must be updated manually every time the comment argument from useReplies changes
-    repliesCommentsStore.getState().addCommentToStoreOrUpdateComment(comment)
+    assert(
+      feedOptions.commentCid && typeof feedOptions.commentCid === 'string',
+      `repliesStore.addFeedToStoreOrUpdateComment feedOptions.commentCid '${feedOptions.commentCid}' invalid`
+    )
+    assert(
+      feedOptions.sortType && typeof feedOptions.sortType === 'string',
+      `repliesStore.addFeedToStoreOrUpdateComment feedOptions.sortType '${feedOptions.sortType}' invalid`
+    )
+    const account = accountsStore.getState().accounts[feedOptions.accountId]
+    assert(typeof account?.plebbit?.getSubplebbit === 'function', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.accountId '${feedOptions.accountId}' invalid`)
+    assert(
+      !feedOptions.repliesPerPage || typeof feedOptions.repliesPerPage === 'number',
+      `repliesStore.addFeedToStoreOrUpdateComment feedOptions.repliesPerPage '${feedOptions.repliesPerPage}' invalid`
+    )
+    assert(
+      !feedOptions.filter || typeof feedOptions.filter?.filter === 'function',
+      `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.filter '${feedOptions.filter?.filter}' invalid`
+    )
+    assert(
+      !feedOptions.filter || typeof feedOptions.filter?.key === 'string',
+      `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.key '${feedOptions.filter?.key}' invalid`
+    )
 
     // if replies feed isn't in store yet, add it
-    const {feedsOptions, updateFeeds, addFeedToStore} = getState()
-    if (!feedsOptions[feedName] || feedsOptions[feedName].pageNumber === 0) {
-      addFeedToStore(feedName, comment.cid, sortType, account, flat, accountComments, repliesPerPage, filter)
+    const commentsToAddToStoreOrUpdate = [comment]
+    const feedsToAddToStore = [feedOptions]
+
+    // if children replies feed arent in store yet, add them
+    const addRepliesFeedsToStoreRecursively = (comment: Comment) => {
+      // TODO: should we add all sort types, or only feedOptions.sortType?
+      for (const sortType in comment.replies?.pages) {
+        for (const reply of comment.replies.pages[sortType].comments || []) {
+          // reply has no replies, so doesn't need a feed
+          if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
+            continue
+          }
+          commentsToAddToStoreOrUpdate.push(reply)
+          feedsToAddToStore.push({...feedOptions, commentCid: reply?.cid})
+          addRepliesFeedsToStoreRecursively(reply)
+        }
+      }
+    }
+    addRepliesFeedsToStoreRecursively(comment)
+
+    // add comments to store
+    repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
+
+    // add feeds to store and update feeds
+    const {addFeedsToStore, updateFeeds} = getState()
+    const feedsChanged = addFeedsToStore(feedsToAddToStore)
+    if (feedsChanged) {
+      updateFeeds()
     }
   },
 

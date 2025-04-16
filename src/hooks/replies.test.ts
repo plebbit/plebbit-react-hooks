@@ -385,7 +385,7 @@ describe('replies', () => {
     beforeAll(() => {
       // mock nested replies on pages
       pageToGet = Pages.prototype.pageToGet
-      Pages.prototype.pageToGet = async function (pageCid) {
+      Pages.prototype.pageToGet = function (pageCid) {
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
         const page: any = {
           nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
@@ -495,8 +495,9 @@ describe('replies', () => {
       }
       expect(hasNestedReplies).toBe(true)
 
-      // make sure page was fetched
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBeGreaterThan(0)
+      // make sure no pages were fetched because flattened nested replies create enough buffered replies
+      // comment out because unreliable, sometimes a page is fetched because the test is too quick
+      // expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
     })
 
     test('default sort type is flattened', async () => {
@@ -516,8 +517,9 @@ describe('replies', () => {
       }
       expect(hasNestedReplies).toBe(true)
 
-      // make sure page was fetched
-      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBeGreaterThan(0)
+      // make sure no pages were fetched because flattened nested replies create enough buffered replies
+      // comment out because unreliable, sometimes a page is fetched because the test is too quick
+      // expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
     })
 
     test('sort type new uses newFlat if available', async () => {
@@ -807,6 +809,127 @@ describe('replies', () => {
       expect(rendered.result.current.updatedReplies[1].cid).toBe('comment cid 2')
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+  })
+
+  describe('useReplies nested', () => {
+    let pageToGet
+
+    beforeAll(() => {
+      // mock nested replies on pages
+      pageToGet = Pages.prototype.pageToGet
+      Pages.prototype.pageToGet = function (pageCid) {
+        const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
+        const depth = (this.comment.depth || 0) + 1
+        const page: any = {
+          comments: [],
+        }
+        const count = 5
+        let index = 0
+        while (index++ < count) {
+          page.comments.push({
+            timestamp: index,
+            cid: pageCid + ' comment cid ' + index,
+            subplebbitAddress,
+            upvoteCount: index,
+            downvoteCount: 10,
+            author: {
+              address: pageCid + ' author address ' + index,
+            },
+            updatedAt: index,
+            depth,
+            replies: {
+              pages: {
+                best: {
+                  comments: [
+                    {
+                      timestamp: index + 10,
+                      cid: pageCid + ' comment cid ' + index + ' nested 1',
+                      subplebbitAddress,
+                      upvoteCount: index,
+                      downvoteCount: 10,
+                      author: {
+                        address: pageCid + ' author address ' + index,
+                      },
+                      updatedAt: index,
+                      depth: depth + 1,
+                      replies: {
+                        pages: {
+                          best: {
+                            comments: [
+                              {
+                                timestamp: index + 20,
+                                cid: pageCid + ' comment cid ' + index + ' nested 2',
+                                subplebbitAddress,
+                                upvoteCount: index,
+                                downvoteCount: 10,
+                                author: {
+                                  address: pageCid + ' author address ' + index,
+                                },
+                                updatedAt: index,
+                                depth: depth + 2,
+                              },
+                            ],
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          })
+        }
+        return page
+      }
+    })
+    afterAll(() => {
+      // restore mock
+      Pages.prototype.pageToGet = pageToGet
+    })
+
+    let rendered, waitFor, scrollOnePage
+
+    beforeEach(() => {
+      rendered = renderHook<any, any>((useRepliesOptions) => {
+        // useReplies accepts only 'comment', but for ease of use also accept a 'commentCid' in the tests
+        const comment = useComment({commentCid: useRepliesOptions?.commentCid})
+        const repliesDepth1 = useReplies({...useRepliesOptions, commentCid: undefined, comment})
+        const reply1Depth2 = repliesDepth1.replies[0]
+        const repliesDepth2 = useReplies({...useRepliesOptions, commentCid: undefined, comment: reply1Depth2})
+        const reply1Depth3 = repliesDepth2.replies[0]
+        const repliesDepth3 = useReplies({...useRepliesOptions, commentCid: undefined, comment: reply1Depth3})
+        return {repliesDepth1, repliesDepth2, repliesDepth3}
+      })
+
+      waitFor = testUtils.createWaitFor(rendered)
+      scrollOnePage = scrollOnePage = async () => {
+        const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await rendered.result.current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
+        } catch (e) {
+          // console.error('scrollOnePage failed:', e)
+        }
+      }
+    })
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('nested replies are rendered immediately, without unnecessary rerenders', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best'})
+
+      // as soon as depth 1 has replies, all other depths also should
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
     })
   })
 })

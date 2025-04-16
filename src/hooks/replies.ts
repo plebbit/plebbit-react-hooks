@@ -5,7 +5,7 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:hooks')
 import assert from 'assert'
 import {Comment, UseRepliesOptions, UseRepliesResult, CommentsFilter} from '../types'
-import useRepliesStore, {RepliesState} from '../stores/replies'
+import useRepliesStore, {RepliesState, feedOptionsToFeedName} from '../stores/replies'
 import shallow from 'zustand/shallow'
 
 export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
@@ -14,28 +14,21 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   if (!sortType) {
     sortType = 'best'
   }
-  if (flat === undefined || flat === null) {
-    flat = false
-  }
-  if (accountComments === undefined || accountComments === null) {
-    accountComments = true
-  }
+  validator.validateUseRepliesArguments(comment, sortType, accountName, flat, accountComments, repliesPerPage, filter)
 
-  validator.validateUseRepliesArguments(comment?.cid, sortType, accountName, flat, accountComments, repliesPerPage, filter)
-  const account = useAccount({accountName})
-  const addFeedToStoreOrUpdateComment = useRepliesStore((state: RepliesState) => state.addFeedToStoreOrUpdateComment)
-  const incrementFeedPageNumber = useRepliesStore((state: RepliesState) => state.incrementFeedPageNumber)
-  const resetFeed = useRepliesStore((state: RepliesState) => state.resetFeed)
-  const repliesFeedName = useRepliesFeedName(account?.id, comment?.cid, sortType, flat, accountComments, repliesPerPage, filter)
   const [errors, setErrors] = useState<Error[]>([])
 
   // add replies to store
+  const account = useAccount({accountName})
+  const feedOptions = {commentCid: comment?.cid, sortType, accountId: account?.id, repliesPerPage, flat, accountComments, filter}
+  const repliesFeedName = feedOptionsToFeedName(feedOptions)
+  const addFeedToStoreOrUpdateComment = useRepliesStore((state: RepliesState) => state.addFeedToStoreOrUpdateComment)
   useEffect(() => {
-    if (!comment?.cid || !account || !comment) {
+    if (!comment?.cid || !account) {
       return
     }
-    addFeedToStoreOrUpdateComment(repliesFeedName, comment, sortType, account, flat, accountComments, repliesPerPage, filter).catch((error: unknown) =>
-      log.error('useReplies addFeedToStoreOrUpdateComment error', {repliesFeedName, error})
+    addFeedToStoreOrUpdateComment(comment, feedOptions).catch((error: unknown) =>
+      log.error('useReplies addFeedToStoreOrUpdateComment error', {repliesFeedName, comment, feedOptions, error})
     )
   }, [repliesFeedName, comment])
 
@@ -52,6 +45,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     hasMore = false
   }
 
+  const incrementFeedPageNumber = useRepliesStore((state: RepliesState) => state.incrementFeedPageNumber)
   const loadMore = async () => {
     try {
       if (!comment?.cid || !account) {
@@ -65,6 +59,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     }
   }
 
+  const resetFeed = useRepliesStore((state: RepliesState) => state.resetFeed)
   const reset = async () => {
     try {
       if (!comment?.cid || !account) {

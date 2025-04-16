@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks'
 import testUtils from '../../lib/test-utils'
-import useRepliesStore, {defaultRepliesPerPage as repliesPerPage} from './replies-store'
+import useRepliesStore, {defaultRepliesPerPage as repliesPerPage, feedOptionsToFeedName} from './replies-store'
 import {RepliesPage} from '../../types'
 import repliesCommentsStore from './replies-comments-store'
 import repliesPagesStore from '../replies-pages'
@@ -137,11 +137,12 @@ describe('replies store', () => {
   test('add feed, increment page', async () => {
     const commentCid = 'comment cid 1'
     const sortType = 'new'
-    const feedName = JSON.stringify([mockAccount?.id, sortType, commentCid])
+    const feedOptions = {sortType, commentCid, accountId: mockAccount.id}
+    const feedName = feedOptionsToFeedName(feedOptions)
     const comment = new MockComment({cid: commentCid})
 
     act(() => {
-      rendered.result.current.addFeedToStoreOrUpdateComment(feedName, comment, sortType, mockAccount)
+      rendered.result.current.addFeedToStoreOrUpdateComment(comment, feedOptions)
     })
 
     // wait for feed to be added
@@ -149,6 +150,7 @@ describe('replies store', () => {
     expect(rendered.result.current.feedsOptions[feedName].pageNumber).toBe(1)
     expect(rendered.result.current.feedsOptions[feedName].sortType).toBe(sortType)
     expect(rendered.result.current.feedsOptions[feedName].commentCid).toEqual(commentCid)
+    expect(rendered.result.current.feedsOptions[feedName].accountId).toEqual(mockAccount.id)
 
     // wait for feed to load
     await waitFor(() => rendered.result.current.loadedFeeds[feedName]?.length > 0)

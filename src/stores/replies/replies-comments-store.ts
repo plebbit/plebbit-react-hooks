@@ -3,18 +3,25 @@ import createStore from 'zustand'
 
 export type RepliesCommentsState = {
   comments: Comments
-  addCommentToStoreOrUpdateComment: Function
+  addCommentsToStoreOrUpdateComments: Function
 }
 
 const repliesCommentsStore = createStore<RepliesCommentsState>((setState: Function, getState: Function) => ({
   comments: {},
-  addCommentToStoreOrUpdateComment(comment: Comment) {
+  addCommentsToStoreOrUpdateComments(comments: Comment[]) {
     setState((state: RepliesCommentsState) => {
-      // updatedAt hasn't changed so no need to update the comment
-      if (state.comments[comment.cid] && comment.updatedAt <= state.comments[comment.cid].updatedAt) {
-        return
+      const newComments: Comments = {}
+      for (const comment of comments) {
+        // updatedAt hasn't changed so no need to update the comment
+        if (state.comments[comment.cid] && comment.updatedAt <= state.comments[comment.cid].updatedAt) {
+          continue
+        }
+        newComments[comment.cid] = comment
       }
-      return {comments: {...state.comments, [comment.cid]: comment}}
+      if (!Object.keys(newComments).length) {
+        return {}
+      }
+      return {comments: {...state.comments, ...newComments}}
     })
   },
 }))
