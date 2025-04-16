@@ -21,6 +21,22 @@ import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutL
 export const defaultRepliesPerPage = 25;
 // keep large buffer because fetching cids is slow
 export const commentRepliesLeftBeforeNextPage = 50;
+export const feedOptionsToFeedName = (feedOptions) => {
+    var _a;
+    return (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountId) +
+        '-' +
+        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.commentCid) +
+        '-' +
+        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.sortType) +
+        '-' +
+        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.flat) +
+        '-' +
+        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountComments) +
+        '-' +
+        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.repliesPerPage) +
+        '-' +
+        ((_a = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.filter) === null || _a === void 0 ? void 0 : _a.key);
+};
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false;
 const updateFeedsMinIntervalTime = 100;
@@ -31,65 +47,95 @@ const repliesStore = createStore((setState, getState) => ({
     updatedFeeds: {},
     bufferedFeedsReplyCounts: {},
     feedsHaveMore: {},
-    addFeedToStore(feedName, commentCid, sortType, account, flat, accountComments, repliesPerPage, filter) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function* () {
-            assert(feedName && typeof feedName === 'string', `repliesStore.addFeedToStore feedName '${feedName}' invalid`);
-            assert(commentCid && typeof commentCid === 'string', `repliesStore.addFeedToStore commentCid '${commentCid}' invalid`);
-            assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`);
-            assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `addFeedToStore.addFeedToStore account '${account}' invalid`);
-            if (flat === undefined || flat === null) {
-                flat = false;
-            }
-            if (accountComments === undefined || accountComments === null) {
-                accountComments = true;
-            }
-            repliesPerPage = repliesPerPage || defaultRepliesPerPage;
-            assert(typeof repliesPerPage === 'number', `addFeedToStore.addFeedToStore repliesPerPage '${repliesPerPage}' invalid`);
-            assert(!filter || typeof (filter === null || filter === void 0 ? void 0 : filter.filter) === 'function', `addFeedToStore.addFeedToStore filter.filter '${filter === null || filter === void 0 ? void 0 : filter.filter}' invalid`);
-            assert(!filter || typeof (filter === null || filter === void 0 ? void 0 : filter.key) === 'string', `addFeedToStore.addFeedToStore filter.key '${filter === null || filter === void 0 ? void 0 : filter.key}' invalid`);
-            const { feedsOptions, updateFeeds } = getState();
+    addFeedsToStore(feedOptionsArray) {
+        const { feedsOptions: previousFeedsOptions } = getState();
+        const newFeedsOptions = {};
+        // get all newFeedsOptions
+        for (let feedOptions of feedOptionsArray) {
+            const feedName = feedOptionsToFeedName(feedOptions);
             // feed is in store already, do nothing
             // if the feed already exist but is at page 0, reset it to page 1
-            if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-                return;
+            if (previousFeedsOptions[feedName] && previousFeedsOptions[feedName].pageNumber !== 0) {
+                continue;
             }
+            // set default feed options
+            feedOptions = Object.assign({}, feedOptions);
+            if (feedOptions.flat === undefined || feedOptions.flat === null) {
+                feedOptions.flat = false;
+            }
+            if (feedOptions.accountComments === undefined || feedOptions.accountComments === null) {
+                feedOptions.accountComments = true;
+            }
+            feedOptions.repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage;
             // to add a buffered feed, add a feed with pageNumber 0
-            const feedOptions = { commentCid, sortType, accountId: account.id, pageNumber: 1, flat, accountComments, repliesPerPage, filter };
+            feedOptions.pageNumber = 1;
+            newFeedsOptions[feedName] = feedOptions;
             log('repliesStore.addFeedToStore', feedOptions);
-            setState(({ feedsOptions }) => {
-                // make sure to never overwrite a feed already added
-                if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
-                    throw Error(`repliesStore.addFeedToStore feed '${feedName}' already added`);
-                }
-                return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }) };
-            });
+            // TODO: these subscribe functions get triggered 100s of times for nothing
+            // they either need to be tailored with an argument related to the feed options, or only triggered once
             // subscribe to comments store changes
             repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange);
             // subscribe to bufferedFeedsReplyCounts change
             repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts);
             // subscribe to replies pages store changes
             repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange);
-            // update feeds right away to use the already loaded comments and pages
-            // if no new comments are added by the feed, like for a sort type change,
-            // a feed update will never be triggered, so must be triggered it manually
-            updateFeeds();
+        }
+        // set new feedsOptions state
+        let feedsChanged = false;
+        setState(({ feedsOptions }) => {
+            for (const feedName in newFeedsOptions) {
+                // make sure to never overwrite a feed already added
+                if (feedsOptions[feedName] && feedsOptions[feedName].pageNumber !== 0) {
+                    delete newFeedsOptions[feedName];
+                }
+            }
+            if (!Object.keys(newFeedsOptions).length) {
+                return {};
+            }
+            feedsChanged = true;
+            return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), newFeedsOptions) };
         });
+        return feedsChanged;
     },
-    addFeedToStoreOrUpdateComment(feedName, comment, sortType, account, flat, accountComments, repliesPerPage, filter) {
-        var _a;
+    addFeedToStoreOrUpdateComment(comment, feedOptions) {
+        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
-            assert(feedName && typeof feedName === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedName '${feedName}' invalid`);
+            // validate options
             assert(comment && comment.cid && typeof comment.cid === 'string', `repliesStore.addFeedToStoreOrUpdateComment comment.cid '${comment === null || comment === void 0 ? void 0 : comment.cid}' invalid`);
-            assert(sortType && typeof sortType === 'string', `repliesStore.addFeedToStoreOrUpdateComment sortType '${sortType}' invalid`);
-            assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `repliesStore.addFeedToStoreOrUpdateComment account '${account}' invalid`);
-            // repliesStore don't use commentsStore to save resources by avoiding calling comment.update()
-            // the repliesCommentsStore must be updated manually every time the comment argument from useReplies changes
-            repliesCommentsStore.getState().addCommentToStoreOrUpdateComment(comment);
+            assert(feedOptions.commentCid && typeof feedOptions.commentCid === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.commentCid '${feedOptions.commentCid}' invalid`);
+            assert(feedOptions.sortType && typeof feedOptions.sortType === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.sortType '${feedOptions.sortType}' invalid`);
+            const account = accountsStore.getState().accounts[feedOptions.accountId];
+            assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.getSubplebbit) === 'function', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.accountId '${feedOptions.accountId}' invalid`);
+            assert(!feedOptions.repliesPerPage || typeof feedOptions.repliesPerPage === 'number', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.repliesPerPage '${feedOptions.repliesPerPage}' invalid`);
+            assert(!feedOptions.filter || typeof ((_b = feedOptions.filter) === null || _b === void 0 ? void 0 : _b.filter) === 'function', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.filter '${(_c = feedOptions.filter) === null || _c === void 0 ? void 0 : _c.filter}' invalid`);
+            assert(!feedOptions.filter || typeof ((_d = feedOptions.filter) === null || _d === void 0 ? void 0 : _d.key) === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.key '${(_e = feedOptions.filter) === null || _e === void 0 ? void 0 : _e.key}' invalid`);
             // if replies feed isn't in store yet, add it
-            const { feedsOptions, updateFeeds, addFeedToStore } = getState();
-            if (!feedsOptions[feedName] || feedsOptions[feedName].pageNumber === 0) {
-                addFeedToStore(feedName, comment.cid, sortType, account, flat, accountComments, repliesPerPage, filter);
+            const commentsToAddToStoreOrUpdate = [comment];
+            const feedsToAddToStore = [feedOptions];
+            // if children replies feed arent in store yet, add them
+            const addRepliesFeedsToStoreRecursively = (comment) => {
+                var _a, _b, _c;
+                // TODO: should we add all sort types, or only feedOptions.sortType?
+                for (const sortType in (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) {
+                    for (const reply of comment.replies.pages[sortType].comments || []) {
+                        // reply has no replies, so doesn't need a feed
+                        if (Object.keys(((_b = reply === null || reply === void 0 ? void 0 : reply.replies) === null || _b === void 0 ? void 0 : _b.pages) || {}).length + Object.keys(((_c = reply === null || reply === void 0 ? void 0 : reply.replies) === null || _c === void 0 ? void 0 : _c.pageCids) || {}).length === 0) {
+                            continue;
+                        }
+                        commentsToAddToStoreOrUpdate.push(reply);
+                        feedsToAddToStore.push(Object.assign(Object.assign({}, feedOptions), { commentCid: reply === null || reply === void 0 ? void 0 : reply.cid }));
+                        addRepliesFeedsToStoreRecursively(reply);
+                    }
+                }
+            };
+            addRepliesFeedsToStoreRecursively(comment);
+            // add comments to store
+            repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate);
+            // add feeds to store and update feeds
+            const { addFeedsToStore, updateFeeds } = getState();
+            const feedsChanged = addFeedsToStore(feedsToAddToStore);
+            if (feedsChanged) {
+                updateFeeds();
             }
         });
     },

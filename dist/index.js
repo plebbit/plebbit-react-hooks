@@ -13,7 +13,9 @@ catch (e) { }
 // accounts
 import { useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useEditedComment, useNotifications, useAccountSubplebbits, usePubsubSubscribe, } from './hooks/accounts';
 // comments
-import { useComment, useComments, useReplies, useValidateComment } from './hooks/comments';
+import { useComment, useComments, useValidateComment } from './hooks/comments';
+// replies
+import { useReplies } from './hooks/replies';
 // subplebbits
 import { useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress } from './hooks/subplebbits';
 // feeds
@@ -38,7 +40,9 @@ export {
 // accounts
 useAccount, useAccounts, useAccountComment, useAccountComments, useAccountVotes, useAccountVote, useAccountEdits, useAccountSubplebbits, useNotifications, usePubsubSubscribe, 
 // comments
-useComment, useComments, useEditedComment, useReplies, useValidateComment, 
+useComment, useComments, useEditedComment, useValidateComment, 
+// replies
+useReplies, 
 // subplebbits
 useSubplebbit, useSubplebbits, useSubplebbitStats, useResolvedSubplebbitAddress, 
 // authors
@@ -72,8 +76,9 @@ const hooks = {
     useComment,
     useComments,
     useEditedComment,
-    useReplies,
     useValidateComment,
+    // replies
+    useReplies,
     // subplebbits
     useSubplebbit,
     useSubplebbits,

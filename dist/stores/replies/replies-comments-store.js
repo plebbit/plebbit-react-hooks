@@ -1,13 +1,20 @@
 import createStore from 'zustand';
 const repliesCommentsStore = createStore((setState, getState) => ({
     comments: {},
-    addCommentToStoreOrUpdateComment(comment) {
+    addCommentsToStoreOrUpdateComments(comments) {
         setState((state) => {
-            // updatedAt hasn't changed so no need to update the comment
-            if (state.comments[comment.cid] && comment.updatedAt <= state.comments[comment.cid].updatedAt) {
-                return;
+            const newComments = {};
+            for (const comment of comments) {
+                // updatedAt hasn't changed so no need to update the comment
+                if (state.comments[comment.cid] && comment.updatedAt <= state.comments[comment.cid].updatedAt) {
+                    continue;
+                }
+                newComments[comment.cid] = comment;
             }
-            return { comments: Object.assign(Object.assign({}, state.comments), { [comment.cid]: comment }) };
+            if (!Object.keys(newComments).length) {
+                return {};
+            }
+            return { comments: Object.assign(Object.assign({}, state.comments), newComments) };
         });
     },
 }));

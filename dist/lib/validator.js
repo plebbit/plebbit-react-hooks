@@ -213,10 +213,9 @@ const repliesSortTypes = new Set(['best', 'topHour', 'topDay', 'topWeek', 'topMo
 export const validateRepliesSortType = (sortType) => {
     assert(repliesSortTypes.has(sortType), `invalid replies sort type '${sortType}'`);
 };
-export const validateUseRepliesArguments = (commentCid, sortType, accountName, flat, accountComments, postsPerPage, filter) => {
-    if (commentCid) {
-        assert(typeof commentCid === 'string', `useReplies comment.cid argument '${commentCid}' not a string`);
-    }
+export const validateUseRepliesArguments = (comment, sortType, accountName, flat, accountComments, postsPerPage, filter) => {
+    assert(!comment || typeof comment === 'object', `useReplies comment argument '${comment}' not an object`);
+    assert(!(comment === null || comment === void 0 ? void 0 : comment.cid) || typeof comment.cid === 'string', `useReplies comment.cid argument '${comment === null || comment === void 0 ? void 0 : comment.cid}' not a string`);
     assert(repliesSortTypes.has(sortType), `useReplies sortType argument '${sortType}' invalid`);
     if (accountName) {
         assert(typeof accountName === 'string', `useReplies accountName argument '${accountName}' not a string`);

@@ -18,7 +18,7 @@ export declare const validateFeedSortType: (sortType: any) => void;
 export declare const validateUseFeedArguments: (subplebbitAddresses?: any, sortType?: any, accountName?: any, postsPerPage?: any, filter?: any, newerThan?: any) => void;
 export declare const validateUseBufferedFeedsArguments: (feedsOptions?: any, accountName?: any) => void;
 export declare const validateRepliesSortType: (sortType: any) => void;
-export declare const validateUseRepliesArguments: (commentCid?: any, sortType?: any, accountName?: any, flat?: any, accountComments?: any, postsPerPage?: any, filter?: any) => void;
+export declare const validateUseRepliesArguments: (comment?: any, sortType?: any, accountName?: any, flat?: any, accountComments?: any, postsPerPage?: any, filter?: any) => void;
 declare const validator: {
     validateAccountsActionsPublishCommentArguments: ({ publishCommentOptions, accountName, account }: any) => void;
     validateAccountsActionsPublishCommentEditArguments: ({ publishCommentEditOptions, accountName, account }: any) => void;
@@ -40,6 +40,6 @@ declare const validator: {
     validateUseFeedArguments: (subplebbitAddresses?: any, sortType?: any, accountName?: any, postsPerPage?: any, filter?: any, newerThan?: any) => void;
     validateUseBufferedFeedsArguments: (feedsOptions?: any, accountName?: any) => void;
     validateRepliesSortType: (sortType: any) => void;
-    validateUseRepliesArguments: (commentCid?: any, sortType?: any, accountName?: any, flat?: any, accountComments?: any, postsPerPage?: any, filter?: any) => void;
+    validateUseRepliesArguments: (comment?: any, sortType?: any, accountName?: any, flat?: any, accountComments?: any, postsPerPage?: any, filter?: any) => void;
 };
 export default validator;

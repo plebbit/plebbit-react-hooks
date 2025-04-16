@@ -1,7 +1,7 @@
 import { Comments } from '../../types';
 export type RepliesCommentsState = {
     comments: Comments;
-    addCommentToStoreOrUpdateComment: Function;
+    addCommentsToStoreOrUpdateComments: Function;
 };
 declare const repliesCommentsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<RepliesCommentsState>>;
 export default repliesCommentsStore;
