@@ -36,6 +36,8 @@ const feedsStore = createStore((setState, getState) => ({
     addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            // init here because must be called after async accounts store finished initializing
+            initializeFeedsStore();
             assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`);
             assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`);
             assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`);
@@ -63,16 +65,6 @@ const feedsStore = createStore((setState, getState) => ({
                 return { feedsOptions: Object.assign(Object.assign({}, feedsOptions), { [feedName]: feedOptions }) };
             });
             addSubplebbitsToSubplebbitsStore(subplebbitAddresses, account);
-            // subscribe to subplebbits store changes
-            subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange);
-            // subscribe to bufferedFeedsSubplebbitsPostCounts change
-            feedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts);
-            // subscribe to subplebbits pages store changes
-            subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange);
-            // subscribe to accounts store change (for blocked addresses)
-            accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange);
-            // subscribe to accounts store change (for blocked cids)
-            accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange);
             // update feeds right away to use the already loaded subplebbits and pages
             // if no new subplebbits are added by the feed, like for a sort type change,
             // a feed update will never be triggered, so must be triggered it manually
@@ -154,6 +146,23 @@ const feedsStore = createStore((setState, getState) => ({
         }), timeUntilNextUpdate);
     },
 }));
+let feedsStoreInitialized = false;
+const initializeFeedsStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (feedsStoreInitialized) {
+        return;
+    }
+    // TODO: optimize subscriptions e.g. updateFeedsOnFeedsSubplebbitsChange(subplebbits)
+    // subscribe to subplebbits store changes
+    subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange);
+    // subscribe to bufferedFeedsSubplebbitsPostCounts change
+    feedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts);
+    // subscribe to subplebbits pages store changes
+    subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange);
+    // subscribe to accounts store change (for blocked addresses)
+    accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange);
+    // subscribe to accounts store change (for blocked cids)
+    accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange);
+});
 let previousBlockedAddresses = [];
 let previousAccountsBlockedAddresses = [];
 const updateFeedsOnAccountsBlockedAddressesChange = (accountsStoreState) => {
@@ -336,6 +345,7 @@ export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function*
     feedsStore.destroy();
     // restore original state
     feedsStore.setState(originalState);
+    feedsStoreInitialized = false;
 });
 // reset database and store in between tests
 export const resetFeedsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {

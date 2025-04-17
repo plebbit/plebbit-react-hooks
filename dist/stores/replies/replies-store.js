@@ -21,22 +21,7 @@ import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutL
 export const defaultRepliesPerPage = 25;
 // keep large buffer because fetching cids is slow
 export const commentRepliesLeftBeforeNextPage = 50;
-export const feedOptionsToFeedName = (feedOptions) => {
-    var _a;
-    return (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountId) +
-        '-' +
-        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.commentCid) +
-        '-' +
-        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.sortType) +
-        '-' +
-        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.flat) +
-        '-' +
-        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountComments) +
-        '-' +
-        (feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.repliesPerPage) +
-        '-' +
-        ((_a = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.filter) === null || _a === void 0 ? void 0 : _a.key);
-};
+export const feedOptionsToFeedName = (feedOptions) => { var _a; return `${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountId}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.commentCid}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.sortType}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.flat}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountComments}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.repliesPerPage}-${(_a = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.filter) === null || _a === void 0 ? void 0 : _a.key}`; };
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false;
 const updateFeedsMinIntervalTime = 100;
@@ -71,14 +56,6 @@ const repliesStore = createStore((setState, getState) => ({
             feedOptions.pageNumber = 1;
             newFeedsOptions[feedName] = feedOptions;
             log('repliesStore.addFeedToStore', feedOptions);
-            // TODO: these subscribe functions get triggered 100s of times for nothing
-            // they either need to be tailored with an argument related to the feed options, or only triggered once
-            // subscribe to comments store changes
-            repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange);
-            // subscribe to bufferedFeedsReplyCounts change
-            repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts);
-            // subscribe to replies pages store changes
-            repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange);
         }
         // set new feedsOptions state
         let feedsChanged = false;
@@ -100,6 +77,8 @@ const repliesStore = createStore((setState, getState) => ({
     addFeedToStoreOrUpdateComment(comment, feedOptions) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
+            // init here because must be called after async accounts store finished initializing
+            initializeRepliesStore();
             // validate options
             assert(comment && comment.cid && typeof comment.cid === 'string', `repliesStore.addFeedToStoreOrUpdateComment comment.cid '${comment === null || comment === void 0 ? void 0 : comment.cid}' invalid`);
             assert(feedOptions.commentCid && typeof feedOptions.commentCid === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.commentCid '${feedOptions.commentCid}' invalid`);
@@ -212,6 +191,20 @@ const repliesStore = createStore((setState, getState) => ({
         }), timeUntilNextUpdate);
     },
 }));
+let repliesStoreInitialized = false;
+const initializeRepliesStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (repliesStoreInitialized) {
+        return;
+    }
+    repliesStoreInitialized = true;
+    // TODO: optimize subscriptions e.g. updateFeedsOnFeedsCommentsChange(comment)
+    // subscribe to comments store changes
+    repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange);
+    // subscribe to bufferedFeedsReplyCounts change
+    repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts);
+    // subscribe to replies pages store changes
+    repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange);
+});
 let previousRepliesPages = {};
 const updateFeedsOnFeedsRepliesPagesChange = (repliesPagesStoreState) => {
     const { repliesPages } = repliesPagesStoreState;
@@ -322,6 +315,7 @@ export const resetRepliesStore = () => __awaiter(void 0, void 0, void 0, functio
     // restore original state
     repliesStore.setState(originalState);
     repliesCommentsStore.setState(Object.assign(Object.assign({}, repliesCommentsStore.getState()), { comments: {} }));
+    repliesStoreInitialized = false;
 });
 // reset database and store in between tests
 export const resetRepliesDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
