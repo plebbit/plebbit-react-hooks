@@ -43,19 +43,7 @@ export type RepliesState = {
 }
 
 export const feedOptionsToFeedName = (feedOptions: Partial<RepliesFeedOptions>) =>
-  feedOptions?.accountId +
-  '-' +
-  feedOptions?.commentCid +
-  '-' +
-  feedOptions?.sortType +
-  '-' +
-  feedOptions?.flat +
-  '-' +
-  feedOptions?.accountComments +
-  '-' +
-  feedOptions?.repliesPerPage +
-  '-' +
-  feedOptions?.filter?.key
+  `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}`
 
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false
@@ -96,18 +84,6 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       feedOptions.pageNumber = 1
       newFeedsOptions[feedName] = feedOptions
       log('repliesStore.addFeedToStore', feedOptions)
-
-      // TODO: these subscribe functions get triggered 100s of times for nothing
-      // they either need to be tailored with an argument related to the feed options, or only triggered once
-
-      // subscribe to comments store changes
-      repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange)
-
-      // subscribe to bufferedFeedsReplyCounts change
-      repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts)
-
-      // subscribe to replies pages store changes
-      repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange)
     }
 
     // set new feedsOptions state
@@ -129,6 +105,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   },
 
   async addFeedToStoreOrUpdateComment(comment: Comment, feedOptions: RepliesFeedOptions) {
+    // init here because must be called after async accounts store finished initializing
+    initializeRepliesStore()
+
     // validate options
     assert(comment && comment.cid && typeof comment.cid === 'string', `repliesStore.addFeedToStoreOrUpdateComment comment.cid '${comment?.cid}' invalid`)
     assert(
@@ -280,6 +259,21 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   },
 }))
 
+let repliesStoreInitialized = false
+const initializeRepliesStore = async () => {
+  if (repliesStoreInitialized) {
+    return
+  }
+  repliesStoreInitialized = true
+  // TODO: optimize subscriptions e.g. updateFeedsOnFeedsCommentsChange(comment)
+  // subscribe to comments store changes
+  repliesCommentsStore.subscribe(updateFeedsOnFeedsCommentsChange)
+  // subscribe to bufferedFeedsReplyCounts change
+  repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts)
+  // subscribe to replies pages store changes
+  repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange)
+}
+
 let previousRepliesPages: {[pageCid: string]: RepliesPage} = {}
 const updateFeedsOnFeedsRepliesPagesChange = (repliesPagesStoreState: any) => {
   const {repliesPages} = repliesPagesStoreState
@@ -411,6 +405,7 @@ export const resetRepliesStore = async () => {
   // restore original state
   repliesStore.setState(originalState)
   repliesCommentsStore.setState({...repliesCommentsStore.getState(), comments: {}})
+  repliesStoreInitialized = false
 }
 
 // reset database and store in between tests

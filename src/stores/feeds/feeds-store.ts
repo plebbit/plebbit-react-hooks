@@ -73,6 +73,9 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     filter?: CommentsFilter,
     newerThan?: number
   ) {
+    // init here because must be called after async accounts store finished initializing
+    initializeFeedsStore()
+
     assert(feedName && typeof feedName === 'string', `feedsStore.addFeedToStore feedName '${feedName}' invalid`)
     assert(Array.isArray(subplebbitAddresses), `addFeedToStore.addFeedToStore subplebbitAddresses '${subplebbitAddresses}' invalid`)
     assert(sortType && typeof sortType === 'string', `addFeedToStore.addFeedToStore sortType '${sortType}' invalid`)
@@ -105,21 +108,6 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     })
 
     addSubplebbitsToSubplebbitsStore(subplebbitAddresses, account)
-
-    // subscribe to subplebbits store changes
-    subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange)
-
-    // subscribe to bufferedFeedsSubplebbitsPostCounts change
-    feedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts)
-
-    // subscribe to subplebbits pages store changes
-    subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange)
-
-    // subscribe to accounts store change (for blocked addresses)
-    accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange)
-
-    // subscribe to accounts store change (for blocked cids)
-    accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange)
 
     // update feeds right away to use the already loaded subplebbits and pages
     // if no new subplebbits are added by the feed, like for a sort type change,
@@ -226,6 +214,24 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     }, timeUntilNextUpdate)
   },
 }))
+
+let feedsStoreInitialized = false
+const initializeFeedsStore = async () => {
+  if (feedsStoreInitialized) {
+    return
+  }
+  // TODO: optimize subscriptions e.g. updateFeedsOnFeedsSubplebbitsChange(subplebbits)
+  // subscribe to subplebbits store changes
+  subplebbitsStore.subscribe(updateFeedsOnFeedsSubplebbitsChange)
+  // subscribe to bufferedFeedsSubplebbitsPostCounts change
+  feedsStore.subscribe(addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts)
+  // subscribe to subplebbits pages store changes
+  subplebbitsPagesStore.subscribe(updateFeedsOnFeedsSubplebbitsPagesChange)
+  // subscribe to accounts store change (for blocked addresses)
+  accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange)
+  // subscribe to accounts store change (for blocked cids)
+  accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange)
+}
 
 let previousBlockedAddresses: string[] = []
 let previousAccountsBlockedAddresses: {[address: string]: boolean}[] = []
@@ -447,6 +453,7 @@ export const resetFeedsStore = async () => {
   feedsStore.destroy()
   // restore original state
   feedsStore.setState(originalState)
+  feedsStoreInitialized = false
 }
 
 // reset database and store in between tests
