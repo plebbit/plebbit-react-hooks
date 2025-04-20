@@ -52,6 +52,8 @@ export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, commen
 
     if (flat) {
       bufferedFeedReplies = flattenCommentsPages({comments: bufferedFeedReplies})
+      // make sure there are no replies
+      bufferedFeedReplies = bufferedFeedReplies.map((comment) => ({...comment, replies: {pages: {}, pageCids: {}}}))
     }
 
     // sort the feed before filtering to get more accurate results

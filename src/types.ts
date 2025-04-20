@@ -135,7 +135,7 @@ export interface UseRepliesResult extends Result {
 }
 export type UseRepliesOptionsAccountComments = {
   newerThan?: number
-  append?: boolean
+  append?: boolean // default to prepend, set append: true to append instead
 }
 
 // useEditedComment(options): result
