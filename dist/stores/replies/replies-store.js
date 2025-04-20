@@ -92,6 +92,7 @@ const repliesStore = createStore((setState, getState) => ({
             const commentsToAddToStoreOrUpdate = [comment];
             const feedsToAddToStore = [feedOptions];
             // if children replies feed arent in store yet, add them
+            // TODO: optimize performance by only adding feeds that are in page 1, and add more on each page increase
             const addRepliesFeedsToStoreRecursively = (comment) => {
                 var _a, _b, _c;
                 // TODO: should we add all sort types, or only feedOptions.sortType?
