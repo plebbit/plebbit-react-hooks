@@ -500,16 +500,22 @@ describe('replies', () => {
       expect(rendered.result.current.hasMore).toBe(true)
       let hasNestedReplies = false
       for (const reply of rendered.result.current.replies) {
-        // replies should be removed with flat: true
-        expect(reply.replies.pages).toEqual({})
-        expect(reply.replies.pageCids).toEqual({})
-
         if (reply.cid.includes('nested')) {
           hasNestedReplies = true
           break
         }
       }
       expect(hasNestedReplies).toBe(true)
+
+      // replies should be removed with flat: true
+      for (const [i] of rendered.result.current.replies.entries()) {
+        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
+      }
 
       // make sure no pages were fetched because flattened nested replies create enough buffered replies
       // comment out because unreliable, sometimes a page is fetched because the test is too quick
@@ -526,16 +532,22 @@ describe('replies', () => {
       expect(rendered.result.current.hasMore).toBe(true)
       let hasNestedReplies = false
       for (const reply of rendered.result.current.replies) {
-        // replies should be removed with flat: true
-        expect(reply.replies.pages).toEqual({})
-        expect(reply.replies.pageCids).toEqual({})
-
         if (reply.cid.includes('nested')) {
           hasNestedReplies = true
           break
         }
       }
       expect(hasNestedReplies).toBe(true)
+
+      // replies should be removed with flat: true
+      for (const [i] of rendered.result.current.replies.entries()) {
+        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
+      }
 
       // make sure no pages were fetched because flattened nested replies create enough buffered replies
       // comment out because unreliable, sometimes a page is fetched because the test is too quick
@@ -583,10 +595,14 @@ describe('replies', () => {
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'newFlat', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
 
-      for (const reply of rendered.result.current.replies) {
-        // replies should be removed with flat: true
-        expect(reply.replies.pages).toEqual({})
-        expect(reply.replies.pageCids).toEqual({})
+      // replies should be removed with flat: true
+      for (const [i] of rendered.result.current.replies.entries()) {
+        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
       }
 
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
@@ -613,10 +629,14 @@ describe('replies', () => {
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'new', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
 
-      for (const reply of rendered.result.current.replies) {
-        // replies should be removed with flat: true
-        expect(reply.replies.pages).toEqual({})
-        expect(reply.replies.pageCids).toEqual({})
+      // replies should be removed with flat: true
+      for (const [i] of rendered.result.current.replies.entries()) {
+        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
       }
 
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
@@ -643,10 +663,14 @@ describe('replies', () => {
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'oldFlat', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
 
-      for (const reply of rendered.result.current.replies) {
-        // replies should be removed with flat: true
-        expect(reply.replies.pages).toEqual({})
-        expect(reply.replies.pageCids).toEqual({})
+      // replies should be removed with flat: true
+      for (const [i] of rendered.result.current.replies.entries()) {
+        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
       }
 
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
@@ -673,10 +697,14 @@ describe('replies', () => {
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'old', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
 
-      for (const reply of rendered.result.current.replies) {
-        // replies should be removed with flat: true
-        expect(reply.replies.pages).toEqual({})
-        expect(reply.replies.pageCids).toEqual({})
+      // replies should be removed with flat: true
+      for (const [i] of rendered.result.current.replies.entries()) {
+        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
+        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
       }
 
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
@@ -974,6 +1002,23 @@ describe('replies', () => {
       expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+    })
+
+    test('nested replies should be removed with flat: true', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'new', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
     })
   })
 })

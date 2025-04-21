@@ -153,7 +153,10 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
         }
       }
     }
-    addRepliesFeedsToStoreRecursively(comment)
+    // flat doesn't need nested feeds
+    if (!feedOptions.flat) {
+      addRepliesFeedsToStoreRecursively(comment)
+    }
 
     // add comments to store
     repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
