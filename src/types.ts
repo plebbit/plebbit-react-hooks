@@ -125,6 +125,7 @@ export interface UseRepliesOptions extends Options {
   sortType?: string
   repliesPerPage?: number
   flat?: boolean
+  flatDepth?: number
   accountComments?: boolean
   filter?: CommentsFilter
 }

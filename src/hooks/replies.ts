@@ -10,10 +10,14 @@ import shallow from 'zustand/shallow'
 
 export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`)
-  let {comment, sortType, accountName, flat, accountComments, repliesPerPage, filter} = options || {}
+  let {comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter} = options || {}
   if (!sortType) {
     sortType = 'best'
   }
+  if (typeof flatDepth !== 'number') {
+    flatDepth = 0
+  }
+  const invalidFlatDepth = flat && typeof comment?.depth === 'number' && flatDepth !== comment.depth
   validator.validateUseRepliesArguments(comment, sortType, accountName, flat, accountComments, repliesPerPage, filter)
 
   const [errors, setErrors] = useState<Error[]>([])
@@ -24,7 +28,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   const repliesFeedName = feedOptionsToFeedName(feedOptions)
   const addFeedToStoreOrUpdateComment = useRepliesStore((state: RepliesState) => state.addFeedToStoreOrUpdateComment)
   useEffect(() => {
-    if (!comment?.cid || !account) {
+    if (!comment?.cid || !account || invalidFlatDepth) {
       return
     }
     addFeedToStoreOrUpdateComment(comment, feedOptions).catch((error: unknown) =>
@@ -32,9 +36,9 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     )
   }, [repliesFeedName, comment])
 
-  const replies = useRepliesStore((state: RepliesState) => state.loadedFeeds[repliesFeedName || ''])
-  const bufferedReplies = useRepliesStore((state: RepliesState) => state.bufferedFeeds[repliesFeedName || ''])
-  const updatedReplies = useRepliesStore((state: RepliesState) => state.updatedFeeds[repliesFeedName || ''])
+  let replies = useRepliesStore((state: RepliesState) => state.loadedFeeds[repliesFeedName || ''])
+  let bufferedReplies = useRepliesStore((state: RepliesState) => state.bufferedFeeds[repliesFeedName || ''])
+  let updatedReplies = useRepliesStore((state: RepliesState) => state.updatedFeeds[repliesFeedName || ''])
   let hasMore = useRepliesStore((state: RepliesState) => state.feedsHaveMore[repliesFeedName || ''])
   // if the replies is not yet defined, then it has more
   if (!repliesFeedName || typeof hasMore !== 'boolean') {
@@ -46,7 +50,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   }
 
   const incrementFeedPageNumber = useRepliesStore((state: RepliesState) => state.incrementFeedPageNumber)
-  const loadMore = async () => {
+  let loadMore = async () => {
     try {
       if (!comment?.cid || !account) {
         throw Error('useReplies cannot load more replies not initalized yet')
@@ -60,7 +64,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   }
 
   const resetFeed = useRepliesStore((state: RepliesState) => state.resetFeed)
-  const reset = async () => {
+  let reset = async () => {
     try {
       if (!comment?.cid || !account) {
         throw Error('useReplies cannot reset replies not initalized yet')
@@ -73,15 +77,29 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     }
   }
 
+  // don't display nested replies when flat
+  // to start flat replies at a depth other than 0, e.g. a twitter reply thread, change flatDepth
+  if (invalidFlatDepth) {
+    replies = emptyArray
+    bufferedReplies = emptyArray
+    updatedReplies = emptyArray
+    hasMore = false
+    loadMore = emptyFunction
+    reset = emptyFunction
+  }
+
   if (account && comment?.cid) {
     log('useReplies', {
       repliesLength: replies?.length || 0,
       hasMore,
       commentCid: comment.cid,
       sortType,
+      flat,
+      flatDepth,
       account,
       repliesStoreOptions: useRepliesStore.getState().feedsOptions,
       repliesStore: useRepliesStore.getState(),
+      invalidFlatDepth,
     })
   }
 
@@ -103,16 +121,5 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   )
 }
 
-function useRepliesFeedName(
-  accountId: string,
-  commentCid: string | undefined,
-  sortType: string,
-  flat?: boolean,
-  accountComments?: boolean,
-  repliesPerPage?: number,
-  filter?: CommentsFilter
-) {
-  return useMemo(() => {
-    return accountId + '-' + commentCid + '-' + sortType + '-' + flat + '-' + accountComments + '-' + repliesPerPage + '-' + filter?.key
-  }, [accountId, commentCid, sortType, flat, accountComments, repliesPerPage, filter?.key])
-}
+const emptyArray: any = []
+const emptyFunction = async () => {}

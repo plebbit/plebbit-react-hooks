@@ -34,6 +34,7 @@ describe('replies', () => {
       this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
       this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
       this.updatedAt = Math.floor(Date.now() / 1000)
+      this.depth = 0
 
       const bestPageCid = this.cid + ' page cid best'
       this.replies.pages.best = this.replies.pageToGet(bestPageCid)
@@ -398,7 +399,9 @@ describe('replies', () => {
       // mock nested replies on pages
       pageToGet = Pages.prototype.pageToGet
       Pages.prototype.pageToGet = function (pageCid) {
+        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old)\b/)?.[1] || 'best'
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
+        const depth = (this.comment.depth || 0) + 1
         const page: any = {
           nextCid: subplebbitAddress + ' ' + pageCid + ' - next page cid',
           comments: [],
@@ -416,9 +419,10 @@ describe('replies', () => {
               address: pageCid + ' author address ' + index,
             },
             updatedAt: index,
+            depth,
             replies: {
               pages: {
-                best: {
+                [pageCidSortType]: {
                   comments: [
                     {
                       timestamp: index + 10,
@@ -430,9 +434,10 @@ describe('replies', () => {
                         address: pageCid + ' author address ' + index,
                       },
                       updatedAt: index,
+                      depth: depth + 1,
                       replies: {
                         pages: {
-                          best: {
+                          [pageCidSortType]: {
                             comments: [
                               {
                                 timestamp: index + 20,
@@ -444,6 +449,7 @@ describe('replies', () => {
                                   address: pageCid + ' author address ' + index,
                                 },
                                 updatedAt: index,
+                                depth: depth + 2,
                               },
                             ],
                           },
@@ -507,16 +513,6 @@ describe('replies', () => {
       }
       expect(hasNestedReplies).toBe(true)
 
-      // replies should be removed with flat: true
-      for (const [i] of rendered.result.current.replies.entries()) {
-        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
-      }
-
       // make sure no pages were fetched because flattened nested replies create enough buffered replies
       // comment out because unreliable, sometimes a page is fetched because the test is too quick
       // expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
@@ -538,16 +534,6 @@ describe('replies', () => {
         }
       }
       expect(hasNestedReplies).toBe(true)
-
-      // replies should be removed with flat: true
-      for (const [i] of rendered.result.current.replies.entries()) {
-        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
-      }
 
       // make sure no pages were fetched because flattened nested replies create enough buffered replies
       // comment out because unreliable, sometimes a page is fetched because the test is too quick
@@ -595,16 +581,6 @@ describe('replies', () => {
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'newFlat', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
 
-      // replies should be removed with flat: true
-      for (const [i] of rendered.result.current.replies.entries()) {
-        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
-      }
-
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
       expect(pageCids.length).toBe(1)
       expect(pageCids[0]).not.toMatch('newFlat')
@@ -628,16 +604,6 @@ describe('replies', () => {
 
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'new', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
-
-      // replies should be removed with flat: true
-      for (const [i] of rendered.result.current.replies.entries()) {
-        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
-      }
 
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
       expect(pageCids.length).toBe(1)
@@ -663,16 +629,6 @@ describe('replies', () => {
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'oldFlat', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
 
-      // replies should be removed with flat: true
-      for (const [i] of rendered.result.current.replies.entries()) {
-        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
-      }
-
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
       expect(pageCids.length).toBe(1)
       expect(pageCids[0]).not.toMatch('oldFlat')
@@ -696,16 +652,6 @@ describe('replies', () => {
 
       rendered.rerender({commentCid: 'comment cid 1', sortType: 'old', flat: true})
       await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
-
-      // replies should be removed with flat: true
-      for (const [i] of rendered.result.current.replies.entries()) {
-        expect(rendered.result.current.replies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.replies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.updatedReplies[i].replies.pageCids).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pages).toEqual({})
-        expect(rendered.result.current.bufferedReplies[i].replies.pageCids).toEqual({})
-      }
 
       const pageCids = Object.keys(repliesPagesStore.getState().repliesPages)
       expect(pageCids.length).toBe(1)
@@ -891,12 +837,13 @@ describe('replies', () => {
       // mock nested replies on pages
       pageToGet = Pages.prototype.pageToGet
       Pages.prototype.pageToGet = function (pageCid) {
+        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old)\b/)?.[1] || 'best'
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
         const depth = (this.comment.depth || 0) + 1
         const page: any = {
           comments: [],
         }
-        const count = 5
+        const count = 3
         let index = 0
         while (index++ < count) {
           page.comments.push({
@@ -912,7 +859,7 @@ describe('replies', () => {
             depth,
             replies: {
               pages: {
-                best: {
+                [pageCidSortType]: {
                   comments: [
                     {
                       timestamp: index + 10,
@@ -927,7 +874,7 @@ describe('replies', () => {
                       depth: depth + 1,
                       replies: {
                         pages: {
-                          best: {
+                          [pageCidSortType]: {
                             comments: [
                               {
                                 timestamp: index + 20,
@@ -991,7 +938,7 @@ describe('replies', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test('nested replies are rendered immediately, without unnecessary rerenders', async () => {
+    test('best sort type, nested replies are rendered immediately, without unnecessary rerenders', async () => {
       // make sure pages were reset properly
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
 
@@ -999,6 +946,20 @@ describe('replies', () => {
 
       // as soon as depth 1 has replies, all other depths also should
       await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+    })
+
+    test('new sort type, nested replies are rendered immediately, without unnecessary rerenders', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'new'})
+
+      // as soon as depth 1 has replies, all other depths also should
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      console.log(rendered.result.current)
       expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
@@ -1019,6 +980,84 @@ describe('replies', () => {
       expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
       expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+    })
+
+    test('sort type best, changing flat: true to false, false to true', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      // sort type best, flat true to false
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+
+      // sort type best, flat false to true
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'best', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'best', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'best', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+    })
+
+    test('sort type new, changing flat: true to false, false to true', async () => {
+      // make sure pages were reset properly
+      expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
+
+      // sort type new, flat true to false
+      rendered.rerender({commentCid: 'comment cid 3', sortType: 'new', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+      rendered.rerender({commentCid: 'comment cid 3', sortType: 'new', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+      rendered.rerender({commentCid: 'comment cid 3', sortType: 'new', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+
+      // sort type new, flat false to true
+      rendered.rerender({commentCid: 'comment cid 4', sortType: 'new', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+      rendered.rerender({commentCid: 'comment cid 4', sortType: 'new', flat: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBe(0)
+      rendered.rerender({commentCid: 'comment cid 4', sortType: 'new', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
     })
   })
 })

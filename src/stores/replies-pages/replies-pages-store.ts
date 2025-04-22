@@ -5,6 +5,7 @@ const log = Logger('plebbit-react-hooks:replies:stores')
 import {RepliesPage, RepliesPages, Account, Comment, Comments} from '../../types'
 import accountsStore from '../accounts'
 import commentsStore, {CommentsState} from '../comments'
+import {addChildrenRepliesFeedsToAddToStore} from './utils'
 import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
@@ -96,6 +97,9 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
         hasNewComments = true
       }
     }
+
+    // add missing children replies feeds
+    addChildrenRepliesFeedsToAddToStore(page, comment)
 
     setState(({repliesPages, comments}: any) => {
       const newState: any = {repliesPages: {...repliesPages, [pageCidToAdd]: page}}

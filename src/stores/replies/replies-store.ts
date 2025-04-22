@@ -36,14 +36,29 @@ export type RepliesState = {
   updatedFeeds: Feeds
   bufferedFeedsReplyCounts: {[feedName: string]: number}
   feedsHaveMore: {[feedName: string]: boolean}
+  addFeedsToStore: Function
   addFeedToStoreOrUpdateComment: Function
   incrementFeedPageNumber: Function
   resetFeed: Function
   updateFeeds: Function
 }
 
-export const feedOptionsToFeedName = (feedOptions: Partial<RepliesFeedOptions>) =>
-  `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}`
+const addDefaultFeedOptions = (feedOptions: any) => {
+  feedOptions = {...feedOptions}
+  if (feedOptions.flat === undefined || feedOptions.flat === null) {
+    feedOptions.flat = false
+  }
+  if (feedOptions.accountComments === undefined || feedOptions.accountComments === null) {
+    feedOptions.accountComments = true
+  }
+  feedOptions.repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage
+  return feedOptions
+}
+
+export const feedOptionsToFeedName = (feedOptions: Partial<RepliesFeedOptions>) => {
+  feedOptions = addDefaultFeedOptions(feedOptions)
+  return `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}`
+}
 
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false
@@ -58,6 +73,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   feedsHaveMore: {},
 
   addFeedsToStore(feedOptionsArray: RepliesFeedOptions[]) {
+    if (!feedOptionsArray.length) {
+      return
+    }
     const {feedsOptions: previousFeedsOptions} = getState()
     const newFeedsOptions: RepliesFeedsOptions = {}
 
@@ -70,20 +88,11 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
         continue
       }
 
-      // set default feed options
-      feedOptions = {...feedOptions}
-      if (feedOptions.flat === undefined || feedOptions.flat === null) {
-        feedOptions.flat = false
-      }
-      if (feedOptions.accountComments === undefined || feedOptions.accountComments === null) {
-        feedOptions.accountComments = true
-      }
-      feedOptions.repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage
+      feedOptions = addDefaultFeedOptions(feedOptions)
 
       // to add a buffered feed, add a feed with pageNumber 0
       feedOptions.pageNumber = 1
       newFeedsOptions[feedName] = feedOptions
-      log('repliesStore.addFeedToStore', feedOptions)
     }
 
     // set new feedsOptions state
@@ -101,6 +110,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       feedsChanged = true
       return {feedsOptions: {...feedsOptions, ...newFeedsOptions}}
     })
+    if (feedsChanged) {
+      log('repliesStore.addFeedsToStore', newFeedsOptions)
+    }
     return feedsChanged
   },
 
@@ -140,17 +152,14 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     // if children replies feed arent in store yet, add them
     // TODO: optimize performance by only adding feeds that are in page 1, and add more on each page increase
     const addRepliesFeedsToStoreRecursively = (comment: Comment) => {
-      // TODO: should we add all sort types, or only feedOptions.sortType?
-      for (const sortType in comment.replies?.pages) {
-        for (const reply of comment.replies.pages[sortType].comments || []) {
-          // reply has no replies, so doesn't need a feed
-          if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
-            continue
-          }
-          commentsToAddToStoreOrUpdate.push(reply)
-          feedsToAddToStore.push({...feedOptions, commentCid: reply?.cid})
-          addRepliesFeedsToStoreRecursively(reply)
+      for (const reply of comment.replies?.pages?.[feedOptions.sortType]?.comments || []) {
+        // reply has no replies, so doesn't need a feed
+        if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
+          continue
         }
+        commentsToAddToStoreOrUpdate.push(reply)
+        feedsToAddToStore.push({...feedOptions, commentCid: reply?.cid})
+        addRepliesFeedsToStoreRecursively(reply)
       }
     }
     // flat doesn't need nested feeds
@@ -158,12 +167,11 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       addRepliesFeedsToStoreRecursively(comment)
     }
 
-    // add comments to store
-    repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
-
     // add feeds to store and update feeds
     const {addFeedsToStore, updateFeeds} = getState()
     const feedsChanged = addFeedsToStore(feedsToAddToStore)
+    // add comments to store (do it after addFeedsToStore because it can trigger updateFeeds)
+    repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
     if (feedsChanged) {
       updateFeeds()
     }
@@ -249,7 +257,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
 
       // set new feeds
       setState((state: any) => ({bufferedFeeds, loadedFeeds, bufferedFeedsReplyCounts, updatedFeeds, feedsHaveMore}))
-      log.trace('repliesStore.updateFeeds', {
+      log('repliesStore.updateFeeds', {
         feedsOptions,
         bufferedFeeds,
         loadedFeeds,
