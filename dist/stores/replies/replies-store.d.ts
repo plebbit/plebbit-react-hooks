@@ -12,6 +12,7 @@ export type RepliesState = {
     feedsHaveMore: {
         [feedName: string]: boolean;
     };
+    addFeedsToStore: Function;
     addFeedToStoreOrUpdateComment: Function;
     incrementFeedPageNumber: Function;
     resetFeed: Function;

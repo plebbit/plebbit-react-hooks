@@ -13,6 +13,7 @@ import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:replies:stores');
 import accountsStore from '../accounts';
 import commentsStore from '../comments';
+import { addChildrenRepliesFeedsToAddToStore } from './utils';
 import localForageLru from '../../lib/localforage-lru';
 import createStore from 'zustand';
 import assert from 'assert';
@@ -89,6 +90,8 @@ const repliesPagesStore = createStore((setState, getState) => ({
                 hasNewComments = true;
             }
         }
+        // add missing children replies feeds
+        addChildrenRepliesFeedsToAddToStore(page, comment);
         setState(({ repliesPages, comments }) => {
             const newState = { repliesPages: Object.assign(Object.assign({}, repliesPages), { [pageCidToAdd]: page }) };
             if (hasNewComments) {
