@@ -1,10 +1,11 @@
 import repliesStore from '../replies';
+import { getSortTypeFromComment } from '../replies/utils';
 import repliesCommentsStore from '../replies/replies-comments-store';
 export const addChildrenRepliesFeedsToAddToStore = (page, comment) => {
     const { feedsOptions, addFeedsToStore } = repliesStore.getState();
     const commentsToAddToStoreOrUpdate = [];
     const feedsToAddToStore = [];
-    const addRepliesFeedsToStoreRecursively = (page, feedOptions) => {
+    const addRepliesFeedsToStoreRecursively = (page, feedOptions, sortType) => {
         var _a, _b;
         for (const reply of (page === null || page === void 0 ? void 0 : page.comments) || []) {
             // reply has no replies, so doesn't need a feed
@@ -13,12 +14,14 @@ export const addChildrenRepliesFeedsToAddToStore = (page, comment) => {
             }
             commentsToAddToStoreOrUpdate.push(reply);
             feedsToAddToStore.push(Object.assign(Object.assign({}, feedOptions), { commentCid: reply === null || reply === void 0 ? void 0 : reply.cid }));
-            addRepliesFeedsToStoreRecursively(reply.replies.pages[feedOptions.sortType], feedOptions);
+            addRepliesFeedsToStoreRecursively(reply.replies.pages[sortType], feedOptions, sortType);
         }
     };
     const feedsOptionsToAddToStore = Object.values(feedsOptions).filter((feedOptions) => feedOptions.commentCid === comment.cid && !feedOptions.flat);
     for (const feedOptions of feedsOptionsToAddToStore) {
-        addRepliesFeedsToStoreRecursively(page, feedOptions);
+        // use the sort type availabe on the comment when missing
+        const sortType = getSortTypeFromComment(comment, feedOptions);
+        addRepliesFeedsToStoreRecursively(page, feedOptions, sortType);
     }
     addFeedsToStore(feedsToAddToStore);
     repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate);
