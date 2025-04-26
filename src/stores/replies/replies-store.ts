@@ -151,8 +151,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
 
     // if children replies feed arent in store yet, add them
     // TODO: optimize performance by only adding feeds that are in page 1, and add more on each page increase
+    const sortType = getSortTypeFromComment(comment, feedOptions) // use the sort type availabe on the comment when missing
     const addRepliesFeedsToStoreRecursively = (comment: Comment) => {
-      for (const reply of comment.replies?.pages?.[feedOptions.sortType]?.comments || []) {
+      for (const reply of comment.replies?.pages?.[sortType]?.comments || []) {
         // reply has no replies, so doesn't need a feed
         if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
           continue

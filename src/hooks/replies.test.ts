@@ -399,7 +399,7 @@ describe('replies', () => {
       // mock nested replies on pages
       pageToGet = Pages.prototype.pageToGet
       Pages.prototype.pageToGet = function (pageCid) {
-        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old)\b/)?.[1] || 'best'
+        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old|topAll)\b/)?.[1] || 'best'
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
         const depth = (this.comment.depth || 0) + 1
         const page: any = {
@@ -837,7 +837,7 @@ describe('replies', () => {
       // mock nested replies on pages
       pageToGet = Pages.prototype.pageToGet
       Pages.prototype.pageToGet = function (pageCid) {
-        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old)\b/)?.[1] || 'best'
+        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old|topAll)\b/)?.[1] || 'best'
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
         const depth = (this.comment.depth || 0) + 1
         const page: any = {
@@ -951,6 +951,28 @@ describe('replies', () => {
       expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
     })
 
+    test('best sort type missing, use topAll, nested replies are rendered immediately, without unnecessary rerenders', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.updatedAt = Math.floor(Date.now() / 1000)
+        this.depth = 0
+        this.replies.pages.topAll = this.replies.pageToGet(this.cid + ' page cid topAll')
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best'})
+
+      // as soon as depth 1 has replies, all other depths also should
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
+      expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
     test('new sort type, nested replies are rendered immediately, without unnecessary rerenders', async () => {
       // make sure pages were reset properly
       expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
@@ -959,7 +981,6 @@ describe('replies', () => {
 
       // as soon as depth 1 has replies, all other depths also should
       await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
-      console.log(rendered.result.current)
       expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
