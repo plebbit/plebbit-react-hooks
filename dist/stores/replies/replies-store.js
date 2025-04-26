@@ -128,6 +128,7 @@ const repliesStore = createStore((setState, getState) => ({
             // add comments to store (do it after addFeedsToStore because it can trigger updateFeeds)
             repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate);
             if (feedsChanged) {
+                log('repliesStore.addFeedToStoreOrUpdateComment', { comment, feedOptions, sortType, feedsToAddToStore, commentsToAddToStoreOrUpdate });
                 updateFeeds();
             }
         });
