@@ -392,6 +392,112 @@ describe('replies', () => {
     test.todo('nested scroll pages', async () => {})
   })
 
+  describe('useReplies no pageCids, no page.nextCid', () => {
+    let pageToGet, simulateUpdateEvent
+    beforeAll(async () => {
+      pageToGet = Pages.prototype.pageToGet
+      Pages.prototype.pageToGet = function (pageCid) {
+        const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old|topAll)\b/)?.[1] || 'best'
+        const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
+        const depth = (this.comment.depth || 0) + 1
+        const page: any = {comments: []}
+        const count = 35
+        let index = 0
+        while (index++ < count) {
+          page.comments.push({
+            timestamp: index,
+            cid: pageCid + ' comment cid ' + index,
+            subplebbitAddress,
+            upvoteCount: index,
+            downvoteCount: 10,
+            author: {address: pageCid + ' author address ' + index},
+            updatedAt: index,
+            depth,
+          })
+        }
+        return page
+      }
+      simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        // if timestamp isn't defined, simulate fetching the comment ipfs
+        if (!this.timestamp) {
+          this.simulateFetchCommentIpfsUpdateEvent()
+          return
+        }
+
+        // simulate finding vote counts on an IPNS record
+        this.upvoteCount = typeof this.upvoteCount === 'number' ? this.upvoteCount + 2 : 3
+        this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
+        this.updatedAt = Math.floor(Date.now() / 1000)
+        this.depth = 0
+
+        const bestPageCid = this.cid + ' page cid best'
+        this.replies.pages.best = this.replies.pageToGet(bestPageCid)
+        this.replies.pageCids = {}
+
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+      }
+    })
+    afterAll(() => {
+      // restore mock
+      Pages.prototype.pageToGet = pageToGet
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    let rendered, waitFor, scrollOnePage
+
+    beforeEach(() => {
+      rendered = renderHook<any, any>((useRepliesOptions) => {
+        // useReplies accepts only 'comment', but for ease of use also accept a 'commentCid' in the tests
+        const comment = useComment({commentCid: useRepliesOptions?.commentCid})
+        return useReplies({...useRepliesOptions, commentCid: undefined, comment: useRepliesOptions?.comment || comment})
+      })
+      waitFor = testUtils.createWaitFor(rendered)
+      scrollOnePage = scrollOnePage = async () => {
+        const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await rendered.result.current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
+        } catch (e) {
+          // console.error('scrollOnePage failed:', e)
+        }
+      }
+    })
+    afterEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('sort type new, switch to sort type old, switch to different comment', async () => {
+      expect(rendered.result.current.replies).toEqual([])
+
+      const commentCid = 'comment cid 1'
+      rendered.rerender({commentCid, sortType: 'new'})
+      await waitFor(() => rendered.result.current.replies.length === repliesPerPage)
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 35')
+      expect(rendered.result.current.replies[0].timestamp).toBeGreaterThan(rendered.result.current.replies[repliesPerPage - 1].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({commentCid, sortType: 'old'})
+      await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid 1 page cid best comment cid 1')
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1 page cid best comment cid 1')
+      expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'old'})
+      await waitFor(() => rendered.result.current.replies[0].cid === 'comment cid 2 page cid best comment cid 1')
+      expect(rendered.result.current.replies.length).toBe(repliesPerPage)
+      expect(rendered.result.current.replies[0].cid).toBe('comment cid 2 page cid best comment cid 1')
+      expect(rendered.result.current.replies[repliesPerPage - 1].timestamp).toBeGreaterThan(rendered.result.current.replies[0].timestamp)
+      expect(rendered.result.current.hasMore).toBe(true)
+    })
+  })
+
   describe('useReplies flat', () => {
     let pageToGet
 

@@ -24,7 +24,7 @@ export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, commen
     // comment has loaded and cache not expired
     if (comment) {
       // use comment preloaded replies if any
-      const preloadedReplies = comment.replies?.pages?.[sortType]?.comments
+      const preloadedReplies = getPreloadedReplies(comment, sortType)
       if (preloadedReplies) {
         for (const reply of preloadedReplies) {
           // replies are manually validated, could have fake subplebbitAddress
@@ -73,6 +73,28 @@ export const getFilteredSortedFeeds = (feedsOptions: RepliesFeedsOptions, commen
     feeds[feedName] = filteredSortedBufferedFeedReplies
   }
   return feeds
+}
+
+const getPreloadedReplies = (comment: Comment, sortType: string) => {
+  let preloadedReplies = comment.replies?.pages?.[sortType]?.comments
+  if (preloadedReplies) {
+    return preloadedReplies
+  }
+  const hasPageCids = Object.keys(comment.replies?.pageCids || {}).length !== 0
+  if (hasPageCids) {
+    return
+  }
+  const pages = Object.values(comment.replies?.pages || {})
+  if (!pages.length) {
+    return
+  }
+  const nextCids = pages.map((page) => page?.nextCid).filter((nextCid) => !!nextCid)
+  if (nextCids.length > 0) {
+    return
+  }
+  // if has a preloaded page, but no pageCids and no nextCids, it means all replies fit in a single preloaded page
+  // so any sort type can be used, and later be resorted by the client
+  return pages[0].comments
 }
 
 export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
