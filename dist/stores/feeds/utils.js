@@ -16,7 +16,7 @@ const log = Logger('plebbit-react-hooks:feeds:stores');
  * Calculate the feeds from all the loaded subplebbit pages, filter and sort them
  */
 export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPages, accounts) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d;
     // calculate each feed
     let feeds = {};
     for (const feedName in feedsOptions) {
@@ -35,7 +35,7 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
                 continue;
             }
             // use subplebbit preloaded posts if any
-            const preloadedPosts = (_c = (_b = (_a = subplebbits[subplebbitAddress].posts) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
+            const preloadedPosts = getPreloadedPosts(subplebbits[subplebbitAddress], sortType);
             if (preloadedPosts) {
                 for (const post of preloadedPosts) {
                     // posts are manually validated, could have fake subplebbitAddress
@@ -65,11 +65,11 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
         const filteredSortedBufferedFeedPosts = [];
         for (const post of sortedBufferedFeedPosts) {
             // address is blocked
-            if (((_d = accounts[accountId]) === null || _d === void 0 ? void 0 : _d.blockedAddresses[post.subplebbitAddress]) || (((_e = post.author) === null || _e === void 0 ? void 0 : _e.address) && ((_f = accounts[accountId]) === null || _f === void 0 ? void 0 : _f.blockedAddresses[post.author.address]))) {
+            if (((_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.blockedAddresses[post.subplebbitAddress]) || (((_b = post.author) === null || _b === void 0 ? void 0 : _b.address) && ((_c = accounts[accountId]) === null || _c === void 0 ? void 0 : _c.blockedAddresses[post.author.address]))) {
                 continue;
             }
             // comment cid is blocked
-            if ((_g = accounts[accountId]) === null || _g === void 0 ? void 0 : _g.blockedCids[post.cid]) {
+            if ((_d = accounts[accountId]) === null || _d === void 0 ? void 0 : _d.blockedCids[post.cid]) {
                 continue;
             }
             // if a feed has more than 1 sub, don't include pinned posts
@@ -99,6 +99,28 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
         feeds[feedName] = filteredSortedBufferedFeedPosts;
     }
     return feeds;
+};
+const getPreloadedPosts = (subplebbit, sortType) => {
+    var _a, _b, _c, _d, _e;
+    let preloadedPosts = (_c = (_b = (_a = subplebbit.posts) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
+    if (preloadedPosts) {
+        return preloadedPosts;
+    }
+    const hasPageCids = Object.keys(((_d = subplebbit.posts) === null || _d === void 0 ? void 0 : _d.pageCids) || {}).length !== 0;
+    if (hasPageCids) {
+        return;
+    }
+    const pages = Object.values(((_e = subplebbit.posts) === null || _e === void 0 ? void 0 : _e.pages) || {});
+    if (!pages.length) {
+        return;
+    }
+    const nextCids = pages.map((page) => page === null || page === void 0 ? void 0 : page.nextCid).filter((nextCid) => !!nextCid);
+    if (nextCids.length > 0) {
+        return;
+    }
+    // if has a preloaded page, but no pageCids and no nextCids, it means all posts fit in a single preloaded page
+    // so any sort type can be used, and later be resorted by the client
+    return pages[0].comments;
 };
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     const loadedFeedsMissingPosts = {};

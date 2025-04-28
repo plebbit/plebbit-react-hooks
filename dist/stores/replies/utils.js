@@ -16,7 +16,6 @@ const log = Logger('plebbit-react-hooks:replies:stores');
  * Calculate the feeds from all the loaded replies pages, filter and sort them
  */
 export const getFilteredSortedFeeds = (feedsOptions, comments, repliesPages, accounts) => {
-    var _a, _b, _c;
     // calculate each feed
     let feeds = {};
     for (const feedName in feedsOptions) {
@@ -28,7 +27,7 @@ export const getFilteredSortedFeeds = (feedsOptions, comments, repliesPages, acc
         // comment has loaded and cache not expired
         if (comment) {
             // use comment preloaded replies if any
-            const preloadedReplies = (_c = (_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
+            const preloadedReplies = getPreloadedReplies(comment, sortType);
             if (preloadedReplies) {
                 for (const reply of preloadedReplies) {
                     // replies are manually validated, could have fake subplebbitAddress
@@ -70,6 +69,28 @@ export const getFilteredSortedFeeds = (feedsOptions, comments, repliesPages, acc
         feeds[feedName] = filteredSortedBufferedFeedReplies;
     }
     return feeds;
+};
+const getPreloadedReplies = (comment, sortType) => {
+    var _a, _b, _c, _d, _e;
+    let preloadedReplies = (_c = (_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
+    if (preloadedReplies) {
+        return preloadedReplies;
+    }
+    const hasPageCids = Object.keys(((_d = comment.replies) === null || _d === void 0 ? void 0 : _d.pageCids) || {}).length !== 0;
+    if (hasPageCids) {
+        return;
+    }
+    const pages = Object.values(((_e = comment.replies) === null || _e === void 0 ? void 0 : _e.pages) || {});
+    if (!pages.length) {
+        return;
+    }
+    const nextCids = pages.map((page) => page === null || page === void 0 ? void 0 : page.nextCid).filter((nextCid) => !!nextCid);
+    if (nextCids.length > 0) {
+        return;
+    }
+    // if has a preloaded page, but no pageCids and no nextCids, it means all replies fit in a single preloaded page
+    // so any sort type can be used, and later be resorted by the client
+    return pages[0].comments;
 };
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     const loadedFeedsMissingReplies = {};
