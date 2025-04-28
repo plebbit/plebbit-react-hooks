@@ -1464,6 +1464,35 @@ describe('feeds', () => {
       Subplebbit.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
 
+    test('no pageCids, no page.nextCid, use any preloaded page sort', async () => {
+      const update = Subplebbit.prototype.update
+      Subplebbit.prototype.update = async function () {
+        this.updatedAt = Math.floor(Date.now() / 1000)
+        const hotPageCid = this.address + ' page cid hot'
+        this.posts.pages.hot = this.posts.pageToGet(hotPageCid)
+        delete this.posts.pages.hot.nextCid
+        this.posts.pageCids = {}
+        this.state = 'updating'
+        this.updatingState = 'succeeded'
+        this.emit('update', this)
+        this.emit('statechange', 'updating')
+        this.emit('updatingstatechange', 'succeeded')
+      }
+
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'new'})
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 100')
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      rendered.rerender({subplebbitAddresses: ['subplebbit address 1'], sortType: 'controversialAll'})
+      await waitFor(() => rendered.result.current.feed.length > 0)
+      expect(rendered.result.current.feed[0].cid).toBe('subplebbit address 1 page cid hot comment cid 9')
+      expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+      // restore mock
+      Subplebbit.prototype.update = update
+    })
+
     // TODO: not implemented
     // at the moment a comment already inside a loaded feed will ignore all updates from future pages
     test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`)

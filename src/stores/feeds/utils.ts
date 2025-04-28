@@ -45,7 +45,7 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
       }
 
       // use subplebbit preloaded posts if any
-      const preloadedPosts = subplebbits[subplebbitAddress].posts?.pages?.[sortType]?.comments
+      const preloadedPosts = getPreloadedPosts(subplebbits[subplebbitAddress], sortType)
       if (preloadedPosts) {
         for (const post of preloadedPosts) {
           // posts are manually validated, could have fake subplebbitAddress
@@ -117,6 +117,28 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
     feeds[feedName] = filteredSortedBufferedFeedPosts
   }
   return feeds
+}
+
+const getPreloadedPosts = (subplebbit: Subplebbit, sortType: string) => {
+  let preloadedPosts = subplebbit.posts?.pages?.[sortType]?.comments
+  if (preloadedPosts) {
+    return preloadedPosts
+  }
+  const hasPageCids = Object.keys(subplebbit.posts?.pageCids || {}).length !== 0
+  if (hasPageCids) {
+    return
+  }
+  const pages: any[] = Object.values(subplebbit.posts?.pages || {})
+  if (!pages.length) {
+    return
+  }
+  const nextCids = pages.map((page: any) => page?.nextCid).filter((nextCid) => !!nextCid)
+  if (nextCids.length > 0) {
+    return
+  }
+  // if has a preloaded page, but no pageCids and no nextCids, it means all posts fit in a single preloaded page
+  // so any sort type can be used, and later be resorted by the client
+  return pages[0].comments
 }
 
 export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {

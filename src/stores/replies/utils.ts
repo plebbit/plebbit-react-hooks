@@ -84,11 +84,11 @@ const getPreloadedReplies = (comment: Comment, sortType: string) => {
   if (hasPageCids) {
     return
   }
-  const pages = Object.values(comment.replies?.pages || {})
+  const pages: any[] = Object.values(comment.replies?.pages || {})
   if (!pages.length) {
     return
   }
-  const nextCids = pages.map((page) => page?.nextCid).filter((nextCid) => !!nextCid)
+  const nextCids = pages.map((page: any) => page?.nextCid).filter((nextCid) => !!nextCid)
   if (nextCids.length > 0) {
     return
   }
