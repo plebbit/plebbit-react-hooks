@@ -38,7 +38,7 @@ export const addChildrenRepliesFeedsToAddToStore = (page, comment) => {
     for (const feedOptions of feedsOptionsToAddToStore) {
         addRepliesFeedsToStoreRecursively(page, feedOptions);
     }
-    log('addChildrenRepliesFeedsToAddToStore', { feedsToAddToStore, commentsToAddToStoreOrUpdate, });
+    log('addChildrenRepliesFeedsToAddToStore', { feedsToAddToStore, commentsToAddToStoreOrUpdate });
     addFeedsToStore(feedsToAddToStore);
     repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate);
 };
