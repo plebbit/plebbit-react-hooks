@@ -107,7 +107,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         console.log('after set account')
       })
 
-      it.only('create and edit a subplebbit', async () => {
+      it('create and edit a subplebbit', async () => {
         console.log('before create subplebbit')
         const createdSubplebbitTitle = 'my title'
         let subplebbit

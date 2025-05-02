@@ -28,7 +28,8 @@ const privateKey = signers[0].privateKey
 
   const {default: Plebbit} = await import('@plebbit/plebbit-js')
   const plebbit = await Plebbit(plebbitOptions)
-  const plebbit2 = await Plebbit(plebbitOptions)
+  // TODO: dataPath: undefined should not be needed, plebbit-js bug
+  const plebbit2 = await Plebbit({...plebbitOptions, dataPath: undefined})
   const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
 
   console.log(`creating subplebbit with address '${signer.address}'...`)

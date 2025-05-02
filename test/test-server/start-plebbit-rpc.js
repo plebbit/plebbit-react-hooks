@@ -17,7 +17,7 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
   }
 
   console.log('plebbit rpc: starting...')
-  const {default: PlebbitRpc} = await import('@plebbit/plebbit-js/dist/node/rpc/src/index.js')
+  const {default: PlebbitRpc} = await import('@plebbit/plebbit-js/rpc')
   const plebbitWebSocketServer = await PlebbitRpc.PlebbitWsServer({port, plebbitOptions})
   plebbitWebSocketServer.ws.on('connection', (socket, request) => {
     console.log('plebbit rpc: new connection')

@@ -122,12 +122,12 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
         const validateComment = useValidateComment({comment: feed.feed[0]})
         const validateCommentWithoutReplies = useValidateComment({comment: feed.feed[0], validateReplies: false})
         let invalidComment
-        if (feed.feed[0]) {
+        if (feed.feed[0] && feed.feed[0].raw) {
           invalidComment = JSON.parse(JSON.stringify(feed.feed[0]))
           // change the sub address because we're caching malicious subplebbits
           // and will make other comments invalid
           invalidComment.author.address = 'malicious.eth'
-          invalidComment.pageComment.comment.author.address = 'malicious.eth'
+          invalidComment.raw.comment.author.address = 'malicious.eth'
         }
         const validateCommentInvalid = useValidateComment({comment: invalidComment})
         return {...feed, validateComment, validateCommentWithoutReplies, validateCommentInvalid}
