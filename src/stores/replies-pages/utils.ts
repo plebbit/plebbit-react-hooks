@@ -20,14 +20,15 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
   const {feedsOptions, addFeedsToStore} = repliesStore.getState()
   const commentsToAddToStoreOrUpdate: Comment[] = []
   const feedsToAddToStore: RepliesFeedOptions[] = []
-  const addRepliesFeedsToStoreRecursivelyCalls = []
+  const addRepliesFeedsToStoreRecursivelyCalls: any[] = []
+  const beforeAddRepliesFeedsToStoreRecursivelyCalls: any[] = []
 
   // assume a page always uses the same sort type recursively
   // could be incorrect, but we don't care about bad pages implementations for now
   const sortType = getSortTypeFromPage(page) || 'best'
 
   const addRepliesFeedsToStoreRecursively = (page: RepliesPage, feedOptions: RepliesFeedOptions) => {
-    addRepliesFeedsToStoreRecursivelyCalls.push({page, feedOptions})
+    addRepliesFeedsToStoreRecursivelyCalls.push({sortType, page, feedOptions})
     for (const reply of page?.comments || []) {
       // reply has no replies, so doesn't need a feed
       if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
@@ -35,6 +36,7 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
       }
       commentsToAddToStoreOrUpdate.push(reply)
       feedsToAddToStore.push({...feedOptions, commentCid: reply?.cid})
+      beforeAddRepliesFeedsToStoreRecursivelyCalls.push({sortType, reply, page: reply.replies.pages[sortType], feedOptions: {...feedOptions, commentCid: reply?.cid}})
       addRepliesFeedsToStoreRecursively(reply.replies.pages[sortType], feedOptions)
     }
   }
@@ -42,7 +44,12 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
   for (const feedOptions of feedsOptionsToAddToStore) {
     addRepliesFeedsToStoreRecursively(page, feedOptions)
   }
-  log('addChildrenRepliesFeedsToAddToStore', {feedsToAddToStore, commentsToAddToStoreOrUpdate})
+  log('repliesPagesStore.addChildrenRepliesFeedsToAddToStore', {
+    feedsToAddToStore,
+    commentsToAddToStoreOrUpdate,
+    addRepliesFeedsToStoreRecursivelyCalls,
+    beforeAddRepliesFeedsToStoreRecursivelyCalls,
+  })
   addFeedsToStore(feedsToAddToStore)
   repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
 }

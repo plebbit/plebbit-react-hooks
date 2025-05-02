@@ -18,12 +18,13 @@ export const addChildrenRepliesFeedsToAddToStore = (page, comment) => {
     const commentsToAddToStoreOrUpdate = [];
     const feedsToAddToStore = [];
     const addRepliesFeedsToStoreRecursivelyCalls = [];
+    const beforeAddRepliesFeedsToStoreRecursivelyCalls = [];
     // assume a page always uses the same sort type recursively
     // could be incorrect, but we don't care about bad pages implementations for now
     const sortType = getSortTypeFromPage(page) || 'best';
     const addRepliesFeedsToStoreRecursively = (page, feedOptions) => {
         var _a, _b;
-        addRepliesFeedsToStoreRecursivelyCalls.push({ page, feedOptions });
+        addRepliesFeedsToStoreRecursivelyCalls.push({ sortType, page, feedOptions });
         for (const reply of (page === null || page === void 0 ? void 0 : page.comments) || []) {
             // reply has no replies, so doesn't need a feed
             if (Object.keys(((_a = reply === null || reply === void 0 ? void 0 : reply.replies) === null || _a === void 0 ? void 0 : _a.pages) || {}).length + Object.keys(((_b = reply === null || reply === void 0 ? void 0 : reply.replies) === null || _b === void 0 ? void 0 : _b.pageCids) || {}).length === 0) {
@@ -31,6 +32,7 @@ export const addChildrenRepliesFeedsToAddToStore = (page, comment) => {
             }
             commentsToAddToStoreOrUpdate.push(reply);
             feedsToAddToStore.push(Object.assign(Object.assign({}, feedOptions), { commentCid: reply === null || reply === void 0 ? void 0 : reply.cid }));
+            beforeAddRepliesFeedsToStoreRecursivelyCalls.push({ sortType, reply, page: reply.replies.pages[sortType], feedOptions: Object.assign(Object.assign({}, feedOptions), { commentCid: reply === null || reply === void 0 ? void 0 : reply.cid }) });
             addRepliesFeedsToStoreRecursively(reply.replies.pages[sortType], feedOptions);
         }
     };
@@ -38,7 +40,12 @@ export const addChildrenRepliesFeedsToAddToStore = (page, comment) => {
     for (const feedOptions of feedsOptionsToAddToStore) {
         addRepliesFeedsToStoreRecursively(page, feedOptions);
     }
-    log('addChildrenRepliesFeedsToAddToStore', { feedsToAddToStore, commentsToAddToStoreOrUpdate });
+    log('repliesPagesStore.addChildrenRepliesFeedsToAddToStore', {
+        feedsToAddToStore,
+        commentsToAddToStoreOrUpdate,
+        addRepliesFeedsToStoreRecursivelyCalls,
+        beforeAddRepliesFeedsToStoreRecursivelyCalls,
+    });
     addFeedsToStore(feedsToAddToStore);
     repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate);
 };
