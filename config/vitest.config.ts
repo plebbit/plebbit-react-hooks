@@ -13,6 +13,7 @@ const config = {
     alias: {
       // mock plebbit-js with random package or parsing errors
       '@plebbit/plebbit-js/dist/browser/index': 'react',
+      '@plebbit/plebbit-js': 'react',
     },
     root: 'src/',
     setupFiles: ['../config/vitest.setup.js'],
