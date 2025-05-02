@@ -121,6 +121,7 @@ const repliesStore = createStore((setState, getState) => ({
                     }
                 }
             };
+            addRepliesFeedsToStoreRecursively(comment);
             // add feeds to store and update feeds
             const { addFeedsToStore, updateFeeds } = getState();
             const feedsChanged = addFeedsToStore(feedsToAddToStore);
