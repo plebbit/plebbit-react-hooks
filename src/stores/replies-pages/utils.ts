@@ -2,6 +2,9 @@ import {RepliesPage, RepliesFeedOptions, RepliesFeedsOptions, Comment} from '../
 import repliesStore from '../replies'
 import {getSortTypeFromComment} from '../replies/utils'
 import repliesCommentsStore from '../replies/replies-comments-store'
+import Logger from '@plebbit/plebbit-logger'
+// include replies pages store with feeds for debugging
+const log = Logger('plebbit-react-hooks:replies:stores')
 
 const getSortTypeFromPage = (page: RepliesPage) => {
   for (const reply of page.comments || []) {
@@ -17,12 +20,14 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
   const {feedsOptions, addFeedsToStore} = repliesStore.getState()
   const commentsToAddToStoreOrUpdate: Comment[] = []
   const feedsToAddToStore: RepliesFeedOptions[] = []
+  const addRepliesFeedsToStoreRecursivelyCalls = []
 
   // assume a page always uses the same sort type recursively
   // could be incorrect, but we don't care about bad pages implementations for now
   const sortType = getSortTypeFromPage(page) || 'best'
 
   const addRepliesFeedsToStoreRecursively = (page: RepliesPage, feedOptions: RepliesFeedOptions) => {
+    addRepliesFeedsToStoreRecursivelyCalls.push({page, feedOptions})
     for (const reply of page?.comments || []) {
       // reply has no replies, so doesn't need a feed
       if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
@@ -37,6 +42,7 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
   for (const feedOptions of feedsOptionsToAddToStore) {
     addRepliesFeedsToStoreRecursively(page, feedOptions)
   }
+  log('addChildrenRepliesFeedsToAddToStore', {feedsToAddToStore, commentsToAddToStoreOrUpdate})
   addFeedsToStore(feedsToAddToStore)
   repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
 }
