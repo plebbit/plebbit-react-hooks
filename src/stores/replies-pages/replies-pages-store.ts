@@ -70,6 +70,7 @@ const repliesPagesStore = createStore<RepliesPagesState>((setState: Function, ge
       page = await fetchPage(pageCidToAdd, comment, account)
       log.trace('repliesPagesStore.addNextRepliesPageToStore comment.replies.getPage', {
         pageCid: pageCidToAdd,
+        page,
         commentCid: comment.cid,
         subplebbitAddress: comment.subplebbitAddress,
         account,

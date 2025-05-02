@@ -63,6 +63,7 @@ const repliesPagesStore = createStore((setState, getState) => ({
             page = yield fetchPage(pageCidToAdd, comment, account);
             log.trace('repliesPagesStore.addNextRepliesPageToStore comment.replies.getPage', {
                 pageCid: pageCidToAdd,
+                page,
                 commentCid: comment.cid,
                 subplebbitAddress: comment.subplebbitAddress,
                 account,
