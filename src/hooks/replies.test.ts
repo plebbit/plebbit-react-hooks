@@ -943,11 +943,15 @@ describe('replies', () => {
       // mock nested replies on pages
       pageToGet = Pages.prototype.pageToGet
       Pages.prototype.pageToGet = function (pageCid) {
+        if (pageCid === 'next') {
+          return {comments: []}
+        }
         const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old|topAll)\b/)?.[1] || 'best'
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
         const depth = (this.comment.depth || 0) + 1
         const page: any = {
           comments: [],
+          nextCid: 'next'
         }
         const count = 3
         let index = 0

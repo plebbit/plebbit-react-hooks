@@ -179,9 +179,6 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       log('repliesStore.addFeedToStoreOrUpdateComment', {comment, feedOptions, sortType, feedsToAddToStore, commentsToAddToStoreOrUpdate})
       updateFeeds()
     }
-    else {
-      log('repliesStore.addFeedToStoreOrUpdateComment feeds not changed', {comment, feedOptions, sortType, feedsToAddToStore, commentsToAddToStoreOrUpdate})
-    }
   },
 
   incrementFeedPageNumber(feedName: string) {

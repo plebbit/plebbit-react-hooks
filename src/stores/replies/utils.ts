@@ -80,10 +80,11 @@ const getPreloadedReplies = (comment: Comment, sortType: string) => {
   if (preloadedReplies) {
     return preloadedReplies
   }
-  const hasPageCids = Object.keys(comment.replies?.pageCids || {}).length !== 0
-  if (hasPageCids) {
-    return
-  }
+  // don't check pageCids, it's possible to have pageCids but still want to use preloadedReplies, if they have no nextCid (all replies are preloaded)
+  // const hasPageCids = Object.keys(comment.replies?.pageCids || {}).length !== 0
+  // if (hasPageCids) {
+  //   return
+  // }
   const pages: any[] = Object.values(comment.replies?.pages || {})
   if (!pages.length) {
     return
@@ -94,7 +95,9 @@ const getPreloadedReplies = (comment: Comment, sortType: string) => {
   }
   // if has a preloaded page, but no pageCids and no nextCids, it means all replies fit in a single preloaded page
   // so any sort type can be used, and later be resorted by the client
-  return pages[0].comments
+  if (pages[0]?.comments?.length) {
+    return pages[0].comments
+  }
 }
 
 export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
