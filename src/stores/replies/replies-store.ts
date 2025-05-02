@@ -145,28 +145,30 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
       `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.key '${feedOptions.filter?.key}' invalid`
     )
 
-    // if replies feed isn't in store yet, add it
-    const commentsToAddToStoreOrUpdate = [comment]
-    const feedsToAddToStore = [feedOptions]
-
-    // if children replies feed arent in store yet, add them
+    // if replies feed aren't in store yet, add them recursively
     // TODO: optimize performance by only adding feeds that are in page 1, and add more on each page increase
-    const sortType = getSortTypeFromComment(comment, feedOptions) // use the sort type availabe on the comment when missing
+    const commentsToAddToStoreOrUpdate: Comment[] = []
+    const feedsToAddToStore: RepliesFeedOptions[] = []
+
+    // use the sort type availabe on the comment when missing
+    const sortType = getSortTypeFromComment(comment, feedOptions) 
+
     const addRepliesFeedsToStoreRecursively = (comment: Comment) => {
-      for (const reply of comment.replies?.pages?.[sortType]?.comments || []) {
-        // reply has no replies, so doesn't need a feed
-        if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
-          continue
+      // comment has no replies, so doesn't need a feed
+      if (Object.keys(comment?.replies?.pages || {}).length + Object.keys(comment?.replies?.pageCids || {}).length === 0) {
+        return
+      }
+      commentsToAddToStoreOrUpdate.push(comment)
+      feedsToAddToStore.push({...feedOptions, commentCid: comment?.cid})
+
+      // flat doesn't need nested feeds
+      if (!feedOptions.flat) {
+        for (const reply of comment.replies?.pages?.[sortType]?.comments || []) {
+          addRepliesFeedsToStoreRecursively(reply)
         }
-        commentsToAddToStoreOrUpdate.push(reply)
-        feedsToAddToStore.push({...feedOptions, commentCid: reply?.cid})
-        addRepliesFeedsToStoreRecursively(reply)
       }
     }
-    // flat doesn't need nested feeds
-    if (!feedOptions.flat) {
-      addRepliesFeedsToStoreRecursively(comment)
-    }
+    addRepliesFeedsToStoreRecursively(comment)
 
     // add feeds to store and update feeds
     const {addFeedsToStore, updateFeeds} = getState()

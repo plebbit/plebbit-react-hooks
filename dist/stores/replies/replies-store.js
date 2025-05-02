@@ -100,28 +100,27 @@ const repliesStore = createStore((setState, getState) => ({
             assert(!feedOptions.repliesPerPage || typeof feedOptions.repliesPerPage === 'number', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.repliesPerPage '${feedOptions.repliesPerPage}' invalid`);
             assert(!feedOptions.filter || typeof ((_b = feedOptions.filter) === null || _b === void 0 ? void 0 : _b.filter) === 'function', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.filter '${(_c = feedOptions.filter) === null || _c === void 0 ? void 0 : _c.filter}' invalid`);
             assert(!feedOptions.filter || typeof ((_d = feedOptions.filter) === null || _d === void 0 ? void 0 : _d.key) === 'string', `repliesStore.addFeedToStoreOrUpdateComment feedOptions.filter.key '${(_e = feedOptions.filter) === null || _e === void 0 ? void 0 : _e.key}' invalid`);
-            // if replies feed isn't in store yet, add it
-            const commentsToAddToStoreOrUpdate = [comment];
-            const feedsToAddToStore = [feedOptions];
-            // if children replies feed arent in store yet, add them
+            // if replies feed aren't in store yet, add them recursively
             // TODO: optimize performance by only adding feeds that are in page 1, and add more on each page increase
-            const sortType = getSortTypeFromComment(comment, feedOptions); // use the sort type availabe on the comment when missing
+            const commentsToAddToStoreOrUpdate = [];
+            const feedsToAddToStore = [];
+            // use the sort type availabe on the comment when missing
+            const sortType = getSortTypeFromComment(comment, feedOptions);
             const addRepliesFeedsToStoreRecursively = (comment) => {
                 var _a, _b, _c, _d, _e;
-                for (const reply of ((_c = (_b = (_a = comment.replies) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments) || []) {
-                    // reply has no replies, so doesn't need a feed
-                    if (Object.keys(((_d = reply === null || reply === void 0 ? void 0 : reply.replies) === null || _d === void 0 ? void 0 : _d.pages) || {}).length + Object.keys(((_e = reply === null || reply === void 0 ? void 0 : reply.replies) === null || _e === void 0 ? void 0 : _e.pageCids) || {}).length === 0) {
-                        continue;
+                // comment has no replies, so doesn't need a feed
+                if (Object.keys(((_a = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _a === void 0 ? void 0 : _a.pages) || {}).length + Object.keys(((_b = comment === null || comment === void 0 ? void 0 : comment.replies) === null || _b === void 0 ? void 0 : _b.pageCids) || {}).length === 0) {
+                    return;
+                }
+                commentsToAddToStoreOrUpdate.push(comment);
+                feedsToAddToStore.push(Object.assign(Object.assign({}, feedOptions), { commentCid: comment === null || comment === void 0 ? void 0 : comment.cid }));
+                // flat doesn't need nested feeds
+                if (!feedOptions.flat) {
+                    for (const reply of ((_e = (_d = (_c = comment.replies) === null || _c === void 0 ? void 0 : _c.pages) === null || _d === void 0 ? void 0 : _d[sortType]) === null || _e === void 0 ? void 0 : _e.comments) || []) {
+                        addRepliesFeedsToStoreRecursively(reply);
                     }
-                    commentsToAddToStoreOrUpdate.push(reply);
-                    feedsToAddToStore.push(Object.assign(Object.assign({}, feedOptions), { commentCid: reply === null || reply === void 0 ? void 0 : reply.cid }));
-                    addRepliesFeedsToStoreRecursively(reply);
                 }
             };
-            // flat doesn't need nested feeds
-            if (!feedOptions.flat) {
-                addRepliesFeedsToStoreRecursively(comment);
-            }
             // add feeds to store and update feeds
             const { addFeedsToStore, updateFeeds } = getState();
             const feedsChanged = addFeedsToStore(feedsToAddToStore);
