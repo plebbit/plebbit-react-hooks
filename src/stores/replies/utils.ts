@@ -80,11 +80,13 @@ const getPreloadedReplies = (comment: Comment, sortType: string) => {
   if (preloadedReplies) {
     return preloadedReplies
   }
-  // don't check pageCids, it's possible to have pageCids but still want to use preloadedReplies, if they have no nextCid (all replies are preloaded)
-  // const hasPageCids = Object.keys(comment.replies?.pageCids || {}).length !== 0
-  // if (hasPageCids) {
-  //   return
-  // }
+  // TODO: should we check pageCids? it's possible to have pageCids 
+  // and use 'best' preloadedReplies, if they have no nextCid (all replies are preloaded)
+  // but will impact nested immediate react renders
+  const hasPageCids = Object.keys(comment.replies?.pageCids || {}).length !== 0
+  if (hasPageCids) {
+    return
+  }
   const pages: any[] = Object.values(comment.replies?.pages || {})
   if (!pages.length) {
     return
