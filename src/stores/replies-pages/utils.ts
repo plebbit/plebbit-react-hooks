@@ -7,7 +7,12 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
   const {feedsOptions, addFeedsToStore} = repliesStore.getState()
   const commentsToAddToStoreOrUpdate: Comment[] = []
   const feedsToAddToStore: RepliesFeedOptions[] = []
-  const addRepliesFeedsToStoreRecursively = (page: RepliesPage, feedOptions: RepliesFeedOptions, sortType: string) => {
+  const addRepliesFeedsToStoreRecursively = (page: RepliesPage, feedOptions: RepliesFeedOptions) => {
+    // use the sort type availabe on the comment when missing
+    // recalculate sort type every addRepliesFeedsToStoreRecursively call
+    // because a 'new' page could have nested 'best' preloaded comments
+    const sortType = getSortTypeFromComment(comment, feedOptions)
+
     for (const reply of page?.comments || []) {
       // reply has no replies, so doesn't need a feed
       if (Object.keys(reply?.replies?.pages || {}).length + Object.keys(reply?.replies?.pageCids || {}).length === 0) {
@@ -15,14 +20,12 @@ export const addChildrenRepliesFeedsToAddToStore = (page: RepliesPage, comment: 
       }
       commentsToAddToStoreOrUpdate.push(reply)
       feedsToAddToStore.push({...feedOptions, commentCid: reply?.cid})
-      addRepliesFeedsToStoreRecursively(reply.replies.pages[sortType], feedOptions, sortType)
+      addRepliesFeedsToStoreRecursively(reply.replies.pages[sortType], feedOptions)
     }
   }
   const feedsOptionsToAddToStore = Object.values(feedsOptions).filter((feedOptions) => feedOptions.commentCid === comment.cid && !feedOptions.flat)
   for (const feedOptions of feedsOptionsToAddToStore) {
-    // use the sort type availabe on the comment when missing
-    const sortType = getSortTypeFromComment(comment, feedOptions)
-    addRepliesFeedsToStoreRecursively(page, feedOptions, sortType)
+    addRepliesFeedsToStoreRecursively(page, feedOptions)
   }
   addFeedsToStore(feedsToAddToStore)
   repliesCommentsStore.getState().addCommentsToStoreOrUpdateComments(commentsToAddToStoreOrUpdate)
