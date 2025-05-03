@@ -138,7 +138,9 @@ const getPreloadedPosts = (subplebbit: Subplebbit, sortType: string) => {
   }
   // if has a preloaded page, but no pageCids and no nextCids, it means all posts fit in a single preloaded page
   // so any sort type can be used, and later be resorted by the client
-  return pages[0].comments
+  if (pages[0]?.comments?.length) {
+    return pages[0].comments
+  }
 }
 
 export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
