@@ -101,7 +101,7 @@ export const getFilteredSortedFeeds = (feedsOptions, subplebbits, subplebbitsPag
     return feeds;
 };
 const getPreloadedPosts = (subplebbit, sortType) => {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     let preloadedPosts = (_c = (_b = (_a = subplebbit.posts) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments;
     if (preloadedPosts) {
         return preloadedPosts;
@@ -120,7 +120,9 @@ const getPreloadedPosts = (subplebbit, sortType) => {
     }
     // if has a preloaded page, but no pageCids and no nextCids, it means all posts fit in a single preloaded page
     // so any sort type can be used, and later be resorted by the client
-    return pages[0].comments;
+    if ((_g = (_f = pages[0]) === null || _f === void 0 ? void 0 : _f.comments) === null || _g === void 0 ? void 0 : _g.length) {
+        return pages[0].comments;
+    }
 };
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     const loadedFeedsMissingPosts = {};

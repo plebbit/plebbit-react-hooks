@@ -78,9 +78,10 @@ const getPreloadedReplies = (comment, sortType) => {
     }
     // TODO: should we check pageCids? it's possible to have pageCids 
     // and use 'best' preloadedReplies, if they have no nextCid (all replies are preloaded)
-    // but will impact nested immediate react renders
+    // changing this might bug out nested immediate react renders
+    // only check on comment.depth: 0 for now
     const hasPageCids = Object.keys(((_d = comment.replies) === null || _d === void 0 ? void 0 : _d.pageCids) || {}).length !== 0;
-    if (hasPageCids) {
+    if (hasPageCids && comment.depth === 0) {
         return;
     }
     const pages = Object.values(((_e = comment.replies) === null || _e === void 0 ? void 0 : _e.pages) || {});
