@@ -166,8 +166,6 @@ export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Fe
       missingPosts.push(post)
     }
 
-    // TODO: update posts in already loaded feeds with new votes and reply counts
-
     // the current loaded feed already exist and doesn't need new posts
     if (missingPosts.length === 0 && loadedFeeds[feedName]) {
       continue

@@ -173,9 +173,6 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     const timeUntilNextUpdate = Date.now() % updateFeedsMinIntervalTime
 
     setTimeout(async () => {
-      // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
-      updateFeedsPending = false
-
       // get state from all stores
       const previousState = getState()
       const {feedsOptions} = previousState
@@ -211,6 +208,9 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
         subplebbitsPages,
         feedsSubplebbitAddressesWithNewerPosts,
       })
+
+      // TODO: if updateFeeds was called while updateFeedsPending = true, maybe we should recall updateFeeds here
+      updateFeedsPending = false
     }, timeUntilNextUpdate)
   },
 }))

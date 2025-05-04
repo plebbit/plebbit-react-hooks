@@ -239,9 +239,6 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     const timeUntilNextUpdate = Date.now() % updateFeedsMinIntervalTime
 
     setTimeout(async () => {
-      // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
-      updateFeedsPending = false
-
       // get state from all stores
       const previousState = getState()
       const {feedsOptions} = previousState
@@ -271,6 +268,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
         comments,
         repliesPages,
       })
+
+      // TODO: if updateFeeds was called while updateFeedsPending = true, maybe we should recall updateFeeds here
+      updateFeedsPending = false
     }, timeUntilNextUpdate)
   },
 }))
