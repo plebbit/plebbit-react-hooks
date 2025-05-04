@@ -174,8 +174,6 @@ const repliesStore = createStore((setState, getState) => ({
         // don't update feeds more than once per updateFeedsMinIntervalTime
         const timeUntilNextUpdate = Date.now() % updateFeedsMinIntervalTime;
         setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-            // allow a new update to be scheduled as soon as updateFeedsMinIntervalTime elapses
-            updateFeedsPending = false;
             // get state from all stores
             const previousState = getState();
             const { feedsOptions } = previousState;
@@ -203,6 +201,8 @@ const repliesStore = createStore((setState, getState) => ({
                 comments,
                 repliesPages,
             });
+            // TODO: if updateFeeds was called while updateFeedsPending = true, maybe we should recall updateFeeds here
+            updateFeedsPending = false;
         }), timeUntilNextUpdate);
     },
 }));
