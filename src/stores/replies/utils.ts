@@ -2,7 +2,7 @@ import assert from 'assert'
 import {Feed, Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Account, Accounts, RepliesPage, RepliesPages} from '../../types'
 import {getRepliesPages, getRepliesFirstPageCid} from '../replies-pages'
 import repliesSorter from '../feeds/feed-sorter'
-import {flattenCommentsPages, commentIsValid} from '../../lib/utils'
+import {flattenCommentsPages, commentIsValid, removeInvalidComments} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
 
@@ -114,19 +114,17 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
     // get new replies from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
 
-    const missingReplies = []
+    let missingReplies: any[] = []
     for (const reply of bufferedFeed) {
       if (missingReplies.length === missingRepliesCount) {
-        break
-      }
-      // verify signature
-      if (!(await commentIsValid(reply))) {
-        continue
+        missingReplies = await removeInvalidComments(missingReplies, {validateReplies: false})
+        // only stop if there were no invalid comments
+        if (missingReplies.length === missingRepliesCount) {
+          break
+        }
       }
       missingReplies.push(reply)
     }
-
-    // TODO: update replies in already loaded feeds with new votes and reply counts
 
     // the current loaded feed already exist and doesn't need new replies
     if (missingReplies.length === 0 && loadedFeeds[feedName]) {
@@ -203,15 +201,19 @@ export const getUpdatedFeeds = async (feedsOptions: RepliesFeedsOptions, filtere
 
     // add updated replies from filteredSortedFeed
     if (!onlyHasNewReplies) {
+      const promises = []
       for (const reply of filteredSortedFeeds[feedName]) {
         if (updatedFeedsReplies[feedName]?.[reply.cid]) {
           const {index, updatedReply} = updatedFeedsReplies[feedName][reply.cid]
-          if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await commentIsValid(reply))) {
-            updatedFeed[index] = reply
-            updatedFeedChanged = true
-          }
+          promises.push((async () => {
+            if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await commentIsValid(reply, {validateReplies: false}))) {
+              updatedFeed[index] = reply
+              updatedFeedChanged = true
+            }
+          })())
         }
       }
+      await Promise.all(promises)
     }
 
     if (updatedFeedChanged) {

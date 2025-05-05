@@ -229,7 +229,27 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
   return oneHourAgo > subplebbit.fetchedAt
 }
 
-let plebbit: any
+let plebbit: any, plebbitPromise: any
+const waitForPlebbit = async () => {
+  if (plebbitPromise) {
+    return plebbitPromise
+  }
+  plebbit = await PlebbitJs.Plebbit({validatePages: false})
+}
+plebbitPromise = waitForPlebbit()
+
+export const removeInvalidComments = async (comments: Comment[], {validateReplies, blockSubplebbit}: any) => {
+  if (!plebbit) {
+    await waitForPlebbit()
+  }
+  if (blockSubplebbit === undefined || blockSubplebbit === null) {
+    blockSubplebbit = true
+  }
+  const isValid = await Promise.all(comments.map(comment => commentIsValid(comment, {validateReplies, blockSubplebbit})))
+  const validComments = comments.filter((_, i) => isValid[i])
+  return validComments
+}
+
 // TODO: replace with plebbit.validateComment()
 export const commentIsValid = async (comment: Comment, {validateReplies, blockSubplebbit}: any = {}) => {
   if (!comment) {
@@ -241,11 +261,11 @@ export const commentIsValid = async (comment: Comment, {validateReplies, blockSu
   if (validateReplies) {
     comment = removeReplies(comment)
   }
-  if (!plebbit) {
-    plebbit = await PlebbitJs.Plebbit({validatePages: false})
-  }
   if (blockSubplebbit === undefined || blockSubplebbit === null) {
     blockSubplebbit = true
+  }
+  if (!plebbit) {
+    await waitForPlebbit()
   }
   if (comment.depth === 0) {
     return postIsValid(comment, plebbit, blockSubplebbit)

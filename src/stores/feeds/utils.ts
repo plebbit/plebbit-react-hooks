@@ -15,7 +15,7 @@ import {
 } from '../../types'
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
 import feedSorter from './feed-sorter'
-import {subplebbitPostsCacheExpired, commentIsValid} from '../../lib/utils'
+import {subplebbitPostsCacheExpired, commentIsValid, removeInvalidComments} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:feeds:stores')
 
@@ -154,14 +154,14 @@ export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Fe
     // get new posts from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
 
-    const missingPosts = []
+    let missingPosts: any[] = []
     for (const post of bufferedFeed) {
       if (missingPosts.length === missingPostsCount) {
-        break
-      }
-      // verify signature
-      if (!(await commentIsValid(post, {validateReplies: false}))) {
-        continue
+        missingPosts = await removeInvalidComments(missingPosts, {validateReplies: false})
+        // only stop if there were no invalid comments
+        if (missingPosts.length === missingPostsCount) {
+          break
+        }
       }
       missingPosts.push(post)
     }
@@ -241,15 +241,20 @@ export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSorted
 
     // add updated post from filteredSortedFeed
     if (!onlyHasNewPosts) {
+      const promises = []
       for (const post of filteredSortedFeeds[feedName]) {
         if (updatedFeedsPosts[feedName]?.[post.cid]) {
           const {index, updatedPost} = updatedFeedsPosts[feedName][post.cid]
-          if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}))) {
-            updatedFeed[index] = post
-            updatedFeedChanged = true
-          }
+          // faster to validate comments async
+          promises.push((async () => {
+            if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}))) {
+              updatedFeed[index] = post
+              updatedFeedChanged = true
+            }
+          })())
         }
       }
+      await Promise.all(promises)
     }
 
     if (updatedFeedChanged) {
