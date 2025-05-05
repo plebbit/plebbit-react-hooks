@@ -27,6 +27,7 @@ export declare class Plebbit extends EventEmitter {
             'http://localhost:9138': PlebbitRpcClient;
         };
     };
+    validateComment(comment: any, validateCommentOptions: any): Promise<void>;
 }
 declare class PlebbitRpcClient extends EventEmitter {
     state: string;

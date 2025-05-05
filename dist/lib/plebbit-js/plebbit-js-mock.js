@@ -154,6 +154,9 @@ export class Plebbit extends EventEmitter {
     pubsubUnsubscribe(subplebbitAddress) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
+    validateComment(comment, validateCommentOptions) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
 }
 class PlebbitRpcClient extends EventEmitter {
     constructor() {
