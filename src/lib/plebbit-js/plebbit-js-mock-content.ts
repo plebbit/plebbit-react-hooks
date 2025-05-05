@@ -835,6 +835,8 @@ class Plebbit extends EventEmitter {
       'http://localhost:9138': new PlebbitRpcClient(),
     },
   }
+
+  async validateComment(comment: any, validateCommentOptions: any) {}
 }
 
 class PlebbitRpcClient extends EventEmitter {
