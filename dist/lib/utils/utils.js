@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import assert from 'assert';
 import QuickLru from 'quick-lru';
 import Logger from '@plebbit/plebbit-logger';
-import PlebbitJs from '../plebbit-js';
 const log = Logger('plebbit-react-hooks:utils');
 const merge = (...args) => {
     // @ts-ignore
@@ -213,10 +212,17 @@ export const subplebbitPostsCacheExpired = (subplebbit) => {
     const oneHourAgo = Date.now() / 1000 - 60 * 60;
     return oneHourAgo > subplebbit.fetchedAt;
 };
-let plebbit;
+export const removeInvalidComments = (comments, { validateReplies, blockSubplebbit }, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
+    if (blockSubplebbit === undefined || blockSubplebbit === null) {
+        blockSubplebbit = true;
+    }
+    const isValid = yield Promise.all(comments.map(comment => commentIsValid(comment, { validateReplies, blockSubplebbit }, plebbit)));
+    const validComments = comments.filter((_, i) => isValid[i]);
+    return validComments;
+});
 // TODO: replace with plebbit.validateComment()
-export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {}) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!comment) {
+export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {}, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!comment || !plebbit || !plebbit.createComment) {
         return false;
     }
     if (validateReplies === undefined || validateReplies === null) {
@@ -224,9 +230,6 @@ export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {
     }
     if (validateReplies) {
         comment = removeReplies(comment);
-    }
-    if (!plebbit) {
-        plebbit = yield PlebbitJs.Plebbit({ validatePages: false });
     }
     if (blockSubplebbit === undefined || blockSubplebbit === null) {
         blockSubplebbit = true;
@@ -315,6 +318,7 @@ const utils = {
     clientsOnStateChange,
     subplebbitPostsCacheExpired,
     commentIsValid,
+    removeInvalidComments
 };
 export const retryInfinity = (functionToRetry, options) => __awaiter(void 0, void 0, void 0, function* () {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

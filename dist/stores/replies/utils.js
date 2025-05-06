@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { getRepliesPages, getRepliesFirstPageCid } from '../replies-pages';
 import repliesSorter from '../feeds/feed-sorter';
-import { flattenCommentsPages, commentIsValid } from '../../lib/utils';
+import { flattenCommentsPages, commentIsValid, removeInvalidComments } from '../../lib/utils';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:replies:stores');
 /**
@@ -99,26 +99,27 @@ const getPreloadedReplies = (comment, sortType) => {
     }
 };
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const loadedFeedsMissingReplies = {};
     for (const feedName in feedsOptions) {
-        const { pageNumber, repliesPerPage } = feedsOptions[feedName];
+        const { pageNumber, repliesPerPage, accountId } = feedsOptions[feedName];
+        const plebbit = (_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.plebbit;
         const loadedFeedReplyCount = pageNumber * repliesPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];
         const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.length;
         // get new replies from buffered feed
         const bufferedFeed = bufferedFeeds[feedName] || [];
-        const missingReplies = [];
+        let missingReplies = [];
         for (const reply of bufferedFeed) {
             if (missingReplies.length === missingRepliesCount) {
-                break;
-            }
-            // verify signature
-            if (!(yield commentIsValid(reply))) {
-                continue;
+                missingReplies = yield removeInvalidComments(missingReplies, { validateReplies: false }, plebbit);
+                // only stop if there were no invalid comments
+                if (missingReplies.length === missingRepliesCount) {
+                    break;
+                }
             }
             missingReplies.push(reply);
         }
-        // TODO: update replies in already loaded feeds with new votes and reply counts
         // the current loaded feed already exist and doesn't need new replies
         if (missingReplies.length === 0 && loadedFeeds[feedName]) {
             continue;
@@ -167,7 +168,7 @@ export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) =
     return newBufferedFeeds;
 };
 export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds, loadedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b, _c, _d;
     // contruct a list of replies already loaded to remove them from buffered feeds
     const updatedFeedsReplies = {};
     for (const feedName in updatedFeeds) {
@@ -178,6 +179,7 @@ export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds,
     }
     const newUpdatedFeeds = Object.assign({}, updatedFeeds);
     for (const feedName in filteredSortedFeeds) {
+        const plebbit = (_c = accounts[(_b = feedsOptions[feedName]) === null || _b === void 0 ? void 0 : _b.accountId]) === null || _c === void 0 ? void 0 : _c.plebbit;
         const updatedFeed = [...(updatedFeeds[feedName] || [])];
         const onlyHasNewReplies = updatedFeed.length === 0;
         let updatedFeedChanged = false;
@@ -188,15 +190,19 @@ export const getUpdatedFeeds = (feedsOptions, filteredSortedFeeds, updatedFeeds,
         }
         // add updated replies from filteredSortedFeed
         if (!onlyHasNewReplies) {
+            const promises = [];
             for (const reply of filteredSortedFeeds[feedName]) {
-                if ((_a = updatedFeedsReplies[feedName]) === null || _a === void 0 ? void 0 : _a[reply.cid]) {
+                if ((_d = updatedFeedsReplies[feedName]) === null || _d === void 0 ? void 0 : _d[reply.cid]) {
                     const { index, updatedReply } = updatedFeedsReplies[feedName][reply.cid];
-                    if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (yield commentIsValid(reply))) {
-                        updatedFeed[index] = reply;
-                        updatedFeedChanged = true;
-                    }
+                    promises.push((() => __awaiter(void 0, void 0, void 0, function* () {
+                        if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (yield commentIsValid(reply, { validateReplies: false }, plebbit))) {
+                            updatedFeed[index] = reply;
+                            updatedFeedChanged = true;
+                        }
+                    }))());
                 }
             }
+            yield Promise.all(promises);
         }
         if (updatedFeedChanged) {
             newUpdatedFeeds[feedName] = updatedFeed;
