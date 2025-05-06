@@ -146,7 +146,8 @@ const getPreloadedPosts = (subplebbit: Subplebbit, sortType: string) => {
 export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
   const loadedFeedsMissingPosts: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {pageNumber, postsPerPage} = feedsOptions[feedName]
+    const {pageNumber, postsPerPage, accountId} = feedsOptions[feedName]
+    const plebbit = accounts[accountId]?.plebbit
     const loadedFeedPostCount = pageNumber * postsPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
     const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
@@ -157,7 +158,7 @@ export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Fe
     let missingPosts: any[] = []
     for (const post of bufferedFeed) {
       if (missingPosts.length === missingPostsCount) {
-        missingPosts = await removeInvalidComments(missingPosts, {validateReplies: false})
+        missingPosts = await removeInvalidComments(missingPosts, {validateReplies: false}, plebbit)
         // only stop if there were no invalid comments
         if (missingPosts.length === missingPostsCount) {
           break
@@ -229,6 +230,7 @@ export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSorted
 
   const newUpdatedFeeds: Feeds = {...updatedFeeds}
   for (const feedName in filteredSortedFeeds) {
+    const plebbit = accounts[feedsOptions[feedName]?.accountId]?.plebbit
     const updatedFeed = [...(updatedFeeds[feedName] || [])]
     const onlyHasNewPosts = updatedFeed.length === 0
     let updatedFeedChanged = false
@@ -247,7 +249,7 @@ export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSorted
           const {index, updatedPost} = updatedFeedsPosts[feedName][post.cid]
           // faster to validate comments async
           promises.push((async () => {
-            if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}))) {
+            if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}, plebbit))) {
               updatedFeed[index] = post
               updatedFeedChanged = true
             }

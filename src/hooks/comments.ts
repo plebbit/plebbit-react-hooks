@@ -184,23 +184,24 @@ export function useComments(options?: UseCommentsOptions): UseCommentsResult {
 
 export function useValidateComment(options?: UseValidateCommentOptions): UseValidateCommentResult {
   assert(!options || typeof options === 'object', `useValidateComment options argument '${options}' not an object`)
-  let {comment, validateReplies} = options || {}
+  let {comment, validateReplies, accountName} = options || {}
   if (validateReplies === undefined || validateReplies === null) {
     validateReplies = true
   }
   const [validated, setValidated] = useState<boolean | undefined>()
   const [errors, setErrors] = useState([])
+  const account = useAccount({accountName})
 
   useEffect(() => {
-    if (!comment) {
+    if (!comment || !account?.plebbit) {
       setValidated(undefined)
       return
     }
     // don't automatically block subplebbit because what subplebbit it comes from
     // a malicious subplebbit could try to block other subplebbits, etc
     const blockSubplebbit = false
-    commentIsValid(comment, {validateReplies, blockSubplebbit}).then((validated) => setValidated(validated))
-  }, [comment, validateReplies])
+    commentIsValid(comment, {validateReplies, blockSubplebbit}, account.plebbit).then((validated) => setValidated(validated))
+  }, [comment, validateReplies, account?.plebbit])
 
   let state = 'initializing'
   if (validated === true) {

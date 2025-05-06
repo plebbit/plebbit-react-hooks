@@ -229,30 +229,18 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
   return oneHourAgo > subplebbit.fetchedAt
 }
 
-let plebbit: any, plebbitPromise: any
-const waitForPlebbit = async () => {
-  if (plebbitPromise) {
-    return plebbitPromise
-  }
-  plebbit = await PlebbitJs.Plebbit({validatePages: false})
-}
-plebbitPromise = waitForPlebbit()
-
-export const removeInvalidComments = async (comments: Comment[], {validateReplies, blockSubplebbit}: any) => {
-  if (!plebbit) {
-    await waitForPlebbit()
-  }
+export const removeInvalidComments = async (comments: Comment[], {validateReplies, blockSubplebbit}: any, plebbit: any) => {
   if (blockSubplebbit === undefined || blockSubplebbit === null) {
     blockSubplebbit = true
   }
-  const isValid = await Promise.all(comments.map(comment => commentIsValid(comment, {validateReplies, blockSubplebbit})))
+  const isValid = await Promise.all(comments.map(comment => commentIsValid(comment, {validateReplies, blockSubplebbit}, plebbit)))
   const validComments = comments.filter((_, i) => isValid[i])
   return validComments
 }
 
 // TODO: replace with plebbit.validateComment()
-export const commentIsValid = async (comment: Comment, {validateReplies, blockSubplebbit}: any = {}) => {
-  if (!comment) {
+export const commentIsValid = async (comment: Comment, {validateReplies, blockSubplebbit}: any = {}, plebbit: any) => {
+  if (!comment || !plebbit || !plebbit.createComment) {
     return false
   }
   if (validateReplies === undefined || validateReplies === null) {
@@ -263,9 +251,6 @@ export const commentIsValid = async (comment: Comment, {validateReplies, blockSu
   }
   if (blockSubplebbit === undefined || blockSubplebbit === null) {
     blockSubplebbit = true
-  }
-  if (!plebbit) {
-    await waitForPlebbit()
   }
   if (comment.depth === 0) {
     return postIsValid(comment, plebbit, blockSubplebbit)
@@ -352,6 +337,7 @@ const utils = {
   clientsOnStateChange,
   subplebbitPostsCacheExpired,
   commentIsValid,
+  removeInvalidComments
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {
