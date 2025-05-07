@@ -213,15 +213,16 @@ export const subplebbitPostsCacheExpired = (subplebbit) => {
     return oneHourAgo > subplebbit.fetchedAt;
 };
 export const removeInvalidComments = (comments, { validateReplies, blockSubplebbit }, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
-    if (blockSubplebbit === undefined || blockSubplebbit === null) {
-        blockSubplebbit = true;
-    }
     const isValid = yield Promise.all(comments.map(comment => commentIsValid(comment, { validateReplies, blockSubplebbit }, plebbit)));
     const validComments = comments.filter((_, i) => isValid[i]);
     return validComments;
 });
 const subplebbitsWithInvalidComments = {};
 export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {}, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
+    validateReplies = Boolean(validateReplies);
+    if (blockSubplebbit === undefined || blockSubplebbit === null) {
+        blockSubplebbit = true;
+    }
     if (!comment) {
         return false;
     }
@@ -230,7 +231,7 @@ export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {
         return false;
     }
     try {
-        yield plebbit.validateComment(comment, { validateReplies: Boolean(validateReplies) });
+        yield plebbit.validateComment(comment, { validateReplies });
     }
     catch (e) {
         if (blockSubplebbit) {
