@@ -230,9 +230,6 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
 }
 
 export const removeInvalidComments = async (comments: Comment[], {validateReplies, blockSubplebbit}: any, plebbit: any) => {
-  if (blockSubplebbit === undefined || blockSubplebbit === null) {
-    blockSubplebbit = true
-  }
   const isValid = await Promise.all(comments.map(comment => commentIsValid(comment, {validateReplies, blockSubplebbit}, plebbit)))
   const validComments = comments.filter((_, i) => isValid[i])
   return validComments
@@ -240,6 +237,10 @@ export const removeInvalidComments = async (comments: Comment[], {validateReplie
 
 const subplebbitsWithInvalidComments: {[subplebbitAddress: string]: boolean} = {}
 export const commentIsValid = async (comment: Comment, {validateReplies, blockSubplebbit}: any = {}, plebbit: any) => {
+  validateReplies = Boolean(validateReplies)
+  if (blockSubplebbit === undefined || blockSubplebbit === null) {
+    blockSubplebbit = true
+  }
   if (!comment) {
     return false
   }
@@ -248,7 +249,7 @@ export const commentIsValid = async (comment: Comment, {validateReplies, blockSu
     return false
   }
   try {
-    await plebbit.validateComment(comment, {validateReplies: Boolean(validateReplies)})
+    await plebbit.validateComment(comment, {validateReplies})
   }
   catch (e) {
     if (blockSubplebbit) {
