@@ -334,8 +334,8 @@ describe('comments', () => {
     })
 
     test('is invalid', async () => {
-      const validatePage = Pages.prototype.validatePage
-      Pages.prototype.validatePage = async function () {
+      const validateComment = Pages.prototype.validateComment
+      Plebbit.prototype.validateComment = async function () {
         throw Error('mocked page invalid')
       }
 
@@ -352,7 +352,7 @@ describe('comments', () => {
       expect(rendered.result.current.valid).toBe(false)
       expect(rendered.result.current.state).toBe('failed')
 
-      Pages.prototype.validatePage = validatePage
+      Plebbit.prototype.validateComment = validateComment
     })
   })
 })
