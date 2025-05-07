@@ -220,90 +220,26 @@ export const removeInvalidComments = (comments, { validateReplies, blockSubplebb
     const validComments = comments.filter((_, i) => isValid[i]);
     return validComments;
 });
-// TODO: replace with plebbit.validateComment()
+const subplebbitsWithInvalidComments = {};
 export const commentIsValid = (comment, { validateReplies, blockSubplebbit } = {}, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!comment || !plebbit || !plebbit.createComment) {
+    if (!comment) {
         return false;
     }
-    if (validateReplies === undefined || validateReplies === null) {
-        validateReplies = true;
-    }
-    if (validateReplies) {
-        comment = removeReplies(comment);
-    }
-    if (blockSubplebbit === undefined || blockSubplebbit === null) {
-        blockSubplebbit = true;
-    }
-    if (comment.depth === 0) {
-        return postIsValid(comment, plebbit, blockSubplebbit);
-    }
-    return replyIsValid(comment, plebbit, blockSubplebbit);
-});
-const removeReplies = (comment) => {
-    comment = Object.assign({}, comment);
-    if (comment.pageComment) {
-        comment.pageComment = Object.assign({}, comment.pageComment);
-        if (comment.pageComment.commentUpdate) {
-            comment.pageComment.commentUpdate = Object.assign({}, comment.pageComment.commentUpdate);
-            delete comment.pageComment.commentUpdate.replies;
-        }
-    }
-    if (comment.commentUpdate) {
-        comment.commentUpdate = Object.assign({}, comment.commentUpdate);
-        delete comment.commentUpdate.replies;
-    }
-    delete comment.replies;
-    return comment;
-};
-const subplebbitsWithInvalidPosts = {};
-const postIsValidSubplebbits = {}; // cache plebbit.createSubplebbits because sometimes it's slow
-const postIsValid = (post, plebbit, blockSubplebbit) => __awaiter(void 0, void 0, void 0, function* () {
-    if (subplebbitsWithInvalidPosts[post.subplebbitAddress]) {
-        log(`subplebbit '${post.subplebbitAddress}' had an invalid post, invalidate all its future posts to avoid wasting resources`);
+    if (subplebbitsWithInvalidComments[comment.subplebbitAddress]) {
+        console.log(`subplebbit '${comment.subplebbitAddress}' had an invalid comment, invalidate all its future comments to avoid wasting resources`);
         return false;
     }
-    if (!postIsValidSubplebbits[post.subplebbitAddress]) {
-        postIsValidSubplebbits[post.subplebbitAddress] = yield plebbit.createSubplebbit({ address: post.subplebbitAddress });
-    }
-    const postWithoutReplies = Object.assign(Object.assign({}, post), { replies: undefined }); // feed doesn't show replies, don't validate them
     try {
-        yield postIsValidSubplebbits[post.subplebbitAddress].posts.validatePage({ comments: [postWithoutReplies] });
-        return true;
+        yield plebbit.validateComment(comment, { validateReplies: Boolean(validateReplies) });
     }
     catch (e) {
         if (blockSubplebbit) {
-            subplebbitsWithInvalidPosts[post.subplebbitAddress] = true;
+            subplebbitsWithInvalidComments[comment.subplebbitAddress] = true;
         }
-        log('invalid post', { post, error: e });
-    }
-    return false;
-});
-const subplebbitsWithInvalidReplies = {};
-const replyIsValidComments = {}; // cache plebbit.createComment because sometimes it's slow
-const replyIsValid = (reply, plebbit, blockSubplebbit) => __awaiter(void 0, void 0, void 0, function* () {
-    if (subplebbitsWithInvalidReplies[reply.subplebbitAddress]) {
-        log(`subplebbit '${reply.subplebbitAddress}' had an invalid reply, invalidate all its future replies to avoid wasting resources`);
+        console.log('invalid comment', { comment, error: e });
         return false;
     }
-    const subplebbitAddress = reply.subplebbitAddress;
-    const postCid = reply.postCid;
-    const cid = reply.parentCid;
-    const depth = reply.depth - 1;
-    const cacheKey = subplebbitAddress + postCid + cid + depth;
-    if (!replyIsValidComments[cacheKey]) {
-        replyIsValidComments[cacheKey] = yield plebbit.createComment({ subplebbitAddress, postCid, cid, depth });
-    }
-    try {
-        yield replyIsValidComments[cacheKey].replies.validatePage({ comments: [reply] });
-        return true;
-    }
-    catch (e) {
-        if (blockSubplebbit) {
-            subplebbitsWithInvalidReplies[subplebbitAddress] = true;
-        }
-        log('invalid reply', { reply, error: e });
-    }
-    return false;
+    return true;
 });
 const utils = {
     merge,
