@@ -213,6 +213,9 @@ export const subplebbitPostsCacheExpired = (subplebbit) => {
     return oneHourAgo > subplebbit.fetchedAt;
 };
 export const removeInvalidComments = (comments, { validateReplies, blockSubplebbit }, plebbit) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!comments.length) {
+        return [];
+    }
     const isValid = yield Promise.all(comments.map(comment => commentIsValid(comment, { validateReplies, blockSubplebbit }, plebbit)));
     const validComments = comments.filter((_, i) => isValid[i]);
     return validComments;
