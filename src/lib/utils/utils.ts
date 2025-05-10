@@ -230,6 +230,9 @@ export const subplebbitPostsCacheExpired = (subplebbit: any) => {
 }
 
 export const removeInvalidComments = async (comments: Comment[], {validateReplies, blockSubplebbit}: any, plebbit: any) => {
+  if (!comments.length) {
+    return []
+  }
   const isValid = await Promise.all(comments.map(comment => commentIsValid(comment, {validateReplies, blockSubplebbit}, plebbit)))
   const validComments = comments.filter((_, i) => isValid[i])
   return validComments

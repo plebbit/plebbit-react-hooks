@@ -258,11 +258,11 @@ export const subscribe = async (subplebbitAddress: string, accountName?: string)
   }
   assert(account?.id, `accountsActions.subscribe account.id '${account?.id}' doesn't exist, activeAccountId '${activeAccountId}' accountName '${accountName}'`)
 
-  const subscriptions: string[] = account.subscriptions || []
+  let subscriptions: string[] = account.subscriptions || []
   if (subscriptions.includes(subplebbitAddress)) {
     throw Error(`account '${account.id}' already subscribed to '${subplebbitAddress}'`)
   }
-  subscriptions.push(subplebbitAddress)
+  subscriptions = [...subscriptions, subplebbitAddress]
 
   const updatedAccount: Account = {...account, subscriptions}
   // update account in db async for instant feedback speed
