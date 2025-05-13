@@ -10,7 +10,7 @@ import shallow from 'zustand/shallow'
 
 export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`)
-  let {comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter} = options || {}
+  let {comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter, streamPage} = options || {}
   if (!sortType) {
     sortType = 'best'
   }
@@ -24,7 +24,7 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
 
   // add replies to store
   const account = useAccount({accountName})
-  const feedOptions = {commentCid: comment?.cid, sortType, accountId: account?.id, repliesPerPage, flat, accountComments, filter}
+  const feedOptions = {commentCid: comment?.cid, commentDepth: comment?.depth, sortType, accountId: account?.id, repliesPerPage, flat, accountComments, filter, streamPage}
   const repliesFeedName = feedOptionsToFeedName(feedOptions)
   const addFeedToStoreOrUpdateComment = useRepliesStore((state: RepliesState) => state.addFeedToStoreOrUpdateComment)
   useEffect(() => {
@@ -92,11 +92,10 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
     log('useReplies', {
       repliesLength: replies?.length || 0,
       hasMore,
-      commentCid: comment.cid,
+      comment,
       sortType,
       flat,
       flatDepth,
-      account,
       repliesStoreOptions: useRepliesStore.getState().feedsOptions,
       repliesStore: useRepliesStore.getState(),
       invalidFlatDepth,

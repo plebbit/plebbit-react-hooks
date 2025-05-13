@@ -57,11 +57,12 @@ const addDefaultFeedOptions = (feedOptions: any) => {
 
 export const feedOptionsToFeedName = (feedOptions: Partial<RepliesFeedOptions>) => {
   feedOptions = addDefaultFeedOptions(feedOptions)
-  return `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}`
+  return `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}-${feedOptions?.streamPage}`
 }
 
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false
+let updateFeedsAgain = false
 const updateFeedsMinIntervalTime = 100
 
 const repliesStore = createStore<RepliesState>((setState: Function, getState: Function) => ({
@@ -154,12 +155,9 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     const sortType = getSortTypeFromComment(comment, feedOptions) 
 
     const addRepliesFeedsToStoreRecursively = (comment: Comment) => {
-      // comment has no replies, so doesn't need a feed
-      if (Object.keys(comment?.replies?.pages || {}).length + Object.keys(comment?.replies?.pageCids || {}).length === 0) {
-        return
-      }
+      // NOTE: even a comment with no replies needs a feed, to know it has 0 replies and not displace the UI when a new replies appears
       commentsToAddToStoreOrUpdate.push(comment)
-      feedsToAddToStore.push({...feedOptions, commentCid: comment?.cid})
+      feedsToAddToStore.push({...feedOptions, commentCid: comment?.cid, commentDepth: comment?.depth})
 
       // flat doesn't need nested feeds
       if (!feedOptions.flat) {
@@ -182,19 +180,24 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   },
 
   incrementFeedPageNumber(feedName: string) {
-    const {feedsOptions, loadedFeeds, updateFeeds} = getState()
+    const {feedsOptions, loadedFeeds, bufferedFeeds, updateFeeds} = getState()
     assert(feedsOptions[feedName], `repliesStore.incrementFeedPageNumber feed name '${feedName}' does not exist in feeds store`)
     log('repliesStore.incrementFeedPageNumber', {feedName})
 
-    assert(
-      feedsOptions[feedName].pageNumber * feedsOptions[feedName].repliesPerPage <= loadedFeeds[feedName].length,
-      `repliesStore.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
-    )
+    // TODO: fix design issue, pageNumber shouldnt be increased when loadMore is called and repliesPerPage not reached
+    // assert(
+    //   feedsOptions[feedName].pageNumber * feedsOptions[feedName].repliesPerPage <= loadedFeeds[feedName].length,
+    //   `repliesStore.incrementFeedPageNumber cannot increment feed page number before current page has loaded`
+    // )
+    if (feedsOptions[feedName].pageNumber * feedsOptions[feedName].repliesPerPage <= loadedFeeds[feedName].length) {
+      assert(bufferedFeeds[feedName].length > 0, `repliesStore.incrementFeedPageNumber cannot increment feed page number before current page has loaded`)
+    }
+
     setState(({feedsOptions, loadedFeeds}: any) => {
       // don't increment page number before the current page has loaded
-      if (feedsOptions[feedName].pageNumber * feedsOptions[feedName].repliesPerPage > loadedFeeds[feedName].length) {
-        return {}
-      }
+      // if (feedsOptions[feedName].pageNumber * feedsOptions[feedName].repliesPerPage > loadedFeeds[feedName].length) {
+      //   return {}
+      // }
       const feedOptions = {
         ...feedsOptions[feedName],
         pageNumber: feedsOptions[feedName].pageNumber + 1,
@@ -231,6 +234,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
   // recalculate all feeds using new comments.replies.pages, repliesPagesStore and page numbers
   updateFeeds() {
     if (updateFeedsPending) {
+      updateFeedsAgain = true
       return
     }
     updateFeedsPending = true
@@ -241,7 +245,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     setTimeout(async () => {
       // get state from all stores
       const previousState = getState()
-      const {feedsOptions} = previousState
+      const {feedsOptions, updateFeeds} = previousState
       const {comments} = repliesCommentsStore.getState()
       const {repliesPages} = repliesPagesStore.getState()
       const {accounts} = accountsStore.getState()
@@ -269,8 +273,13 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
         repliesPages,
       })
 
-      // TODO: if updateFeeds was called while updateFeedsPending = true, maybe we should recall updateFeeds here
       updateFeedsPending = false
+
+      // if updateFeeds was called while updateFeedsPending = true, call updateFeeds again
+      if (updateFeedsAgain) {
+        updateFeedsAgain = false
+        updateFeeds()
+      }
     }, timeUntilNextUpdate)
   },
 }))

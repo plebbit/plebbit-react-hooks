@@ -373,7 +373,7 @@ describe('replies', () => {
       expect(rendered.result.current.replies[0].cid).toBe('comment cid a page cid new comment cid 100')
       expect(rendered.result.current.replies[1].cid).toBe('comment cid a page cid new comment cid 91')
       expect(rendered.result.current.replies[2].cid).toBe('comment cid a page cid new comment cid 81')
-      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(1)
+      // expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(1)
 
       rendered.rerender({
         commentCid: 'comment cid b',
@@ -384,7 +384,7 @@ describe('replies', () => {
       expect(rendered.result.current.replies[0].cid).toBe('comment cid b page cid new comment cid 92')
       expect(rendered.result.current.replies[1].cid).toBe('comment cid b page cid new comment cid 82')
       expect(rendered.result.current.replies[2].cid).toBe('comment cid b page cid new comment cid 72')
-      expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
+      // expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
     })
 
     test.todo('has account comments', async () => {})
@@ -775,7 +775,7 @@ describe('replies', () => {
             comments: [
               {
                 timestamp: 1,
-                cid: 'comment cid 1',
+                cid: 'reply cid 1',
                 subplebbitAddress: 'subplebbit address',
                 updatedAt: 1,
                 upvoteCount: 1,
@@ -794,7 +794,7 @@ describe('replies', () => {
       rendered.rerender({commentCid})
       await waitFor(() => rendered.result.current.replies.length === 1)
       expect(rendered.result.current.replies.length).toBe(1)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].cid).toBe('reply cid 1')
       await waitFor(() => rendered.result.current.hasMore === false)
       expect(rendered.result.current.hasMore).toBe(false)
 
@@ -806,7 +806,7 @@ describe('replies', () => {
         comments: [
           {
             timestamp: 1,
-            cid: 'comment cid 1',
+            cid: 'reply cid 1',
             subplebbitAddress: 'subplebbit address',
             updatedAt: 1,
             upvoteCount: 1,
@@ -818,7 +818,7 @@ describe('replies', () => {
         comments: [
           {
             timestamp: 1,
-            cid: 'comment cid 1',
+            cid: 'reply cid 1',
             subplebbitAddress: 'subplebbit address',
             updatedAt: 1,
             upvoteCount: 2,
@@ -829,7 +829,7 @@ describe('replies', () => {
         comments: [
           {
             timestamp: 1,
-            cid: 'comment cid 1',
+            cid: 'reply cid 1',
             subplebbitAddress: 'subplebbit address',
             updatedAt: 2,
             upvoteCount: 2,
@@ -840,14 +840,14 @@ describe('replies', () => {
         comments: [
           {
             timestamp: 100,
-            cid: 'comment cid 2',
+            cid: 'reply cid 2',
             subplebbitAddress: 'subplebbit address',
             updatedAt: 100,
             upvoteCount: 100,
           },
           {
             timestamp: 1,
-            cid: 'comment cid 1',
+            cid: 'reply cid 1',
             subplebbitAddress: 'subplebbit address',
             updatedAt: 3,
             upvoteCount: 3,
@@ -877,8 +877,8 @@ describe('replies', () => {
       expect(pages.length).toBe(3)
       expect(rendered.result.current.replies.length).toBe(1)
       expect(rendered.result.current.updatedReplies.length).toBe(1)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
-      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].cid).toBe('reply cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('reply cid 1')
       expect(rendered.result.current.replies[0].updatedAt).toBe(1)
       expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(1)
       expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
@@ -894,8 +894,8 @@ describe('replies', () => {
       expect(repliesCommentsStore.getState().comments['comment cid 1'].replies.pages.best.comments[0].upvoteCount).toBe(2)
       expect(rendered.result.current.replies.length).toBe(1)
       expect(rendered.result.current.updatedReplies.length).toBe(1)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
-      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].cid).toBe('reply cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('reply cid 1')
       expect(rendered.result.current.replies[0].updatedAt).toBe(1)
       expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(1)
       expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
@@ -908,8 +908,8 @@ describe('replies', () => {
       expect(pages.length).toBe(1)
       expect(rendered.result.current.replies.length).toBe(1)
       expect(rendered.result.current.updatedReplies.length).toBe(1)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
-      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].cid).toBe('reply cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('reply cid 1')
       expect(rendered.result.current.replies[0].updatedAt).toBe(1)
       expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(2)
       expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
@@ -922,15 +922,15 @@ describe('replies', () => {
       expect(pages.length).toBe(0)
       expect(rendered.result.current.replies.length).toBe(2)
       expect(rendered.result.current.updatedReplies.length).toBe(2)
-      expect(rendered.result.current.replies[0].cid).toBe('comment cid 1')
-      expect(rendered.result.current.updatedReplies[0].cid).toBe('comment cid 1')
+      expect(rendered.result.current.replies[0].cid).toBe('reply cid 1')
+      expect(rendered.result.current.updatedReplies[0].cid).toBe('reply cid 1')
       expect(rendered.result.current.replies[0].updatedAt).toBe(1)
       expect(rendered.result.current.updatedReplies[0].updatedAt).toBe(3)
       expect(rendered.result.current.replies[0].upvoteCount).toBe(1)
       expect(rendered.result.current.updatedReplies[0].upvoteCount).toBe(3)
       expect(rendered.result.current.hasMore).toBe(false)
-      expect(rendered.result.current.replies[1].cid).toBe('comment cid 2')
-      expect(rendered.result.current.updatedReplies[1].cid).toBe('comment cid 2')
+      expect(rendered.result.current.replies[1].cid).toBe('reply cid 2')
+      expect(rendered.result.current.updatedReplies[1].cid).toBe('reply cid 2')
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
     })
@@ -1209,127 +1209,160 @@ describe('replies', () => {
       expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
       expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
     })
+
+    test('new nested replies are not automatically added to feed, loadMore must be called', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.updatedAt = Math.floor(Date.now() / 1000)
+        this.depth = 0
+        this.updatingState = 'succeeded'
+        this.replies.pages.best = {comments: [{
+          timestamp: 1,
+          cid: this.cid + ' - reply cid 1',
+          subplebbitAddress: this.subplebbitAddress,
+          updatedAt: this.updatedAt,
+          depth: 1,
+          replies: {pages: {best: {comments: [
+            {
+              timestamp: 2,
+              cid: this.cid + ' - reply cid 1 - nested 1',
+              subplebbitAddress: this.subplebbitAddress,
+              updatedAt: this.updatedAt,
+              depth: 2
+            }
+          ]}}}
+        }]}
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+
+        // add another reply after the replies feed rendered once
+        setTimeout(() => {
+          this.updatedAt += 1
+          this.replies.pages.best.comments[0].updatedAt = this.updatedAt
+          this.replies.pages.best.comments[0].replies.pages.best.comments[0].updatedAt = this.updatedAt
+          this.replies.pages.best.comments[0].replies.pages.best.comments.push({
+            timestamp: 3,
+            cid: this.cid + ' - reply cid 1 - nested 2',
+            subplebbitAddress: this.subplebbitAddress,
+            updatedAt: this.updatedAt,
+            depth: 2
+          })
+          this.emit('update', this)
+          this.emit('updatingstatechange', 'succeeded')
+        }, 200)
+      }
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
+
+      await waitFor(() => rendered.result.current.repliesDepth2.bufferedReplies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(true)
+
+      // load page
+      await act(async () => {
+        await rendered.result.current.repliesDepth2.loadMore()
+      })
+      await waitFor(() => rendered.result.current.repliesDepth2.replies.length > 1)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(2)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+
+      // with streamPage: false
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'best', flat: false, streamPage: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
+
+      await waitFor(() => rendered.result.current.repliesDepth2.replies.length > 1)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(2)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    test('new nested replies (with no nested replies initially) are not automatically added to feed, loadMore must be called', async () => {
+      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
+      Comment.prototype.simulateUpdateEvent = async function () {
+        this.updatedAt = Math.floor(Date.now() / 1000)
+        this.depth = 0
+        this.updatingState = 'succeeded'
+        this.replies.pages.best = {comments: [{
+          timestamp: 1,
+          cid: this.cid + ' - reply cid 1',
+          subplebbitAddress: this.subplebbitAddress,
+          updatedAt: this.updatedAt,
+          depth: 1,
+          replies: {pages: {}}
+        }]}
+        this.emit('update', this)
+        this.emit('updatingstatechange', 'succeeded')
+
+        // add a nested reply after the replies feed rendered once
+        setTimeout(() => {
+          this.updatedAt += 1
+          this.replies.pages.best.comments[0].updatedAt = this.updatedAt
+          this.replies.pages.best.comments[0].replies.pages.best = {comments: [
+            {
+              timestamp: 2,
+              cid: this.cid + ' - reply cid 1 - nested 1',
+              subplebbitAddress: this.subplebbitAddress,
+              updatedAt: this.updatedAt,
+              depth: 2
+            }
+          ]}
+          this.emit('update', this)
+          this.emit('updatingstatechange', 'succeeded')
+        }, 200)
+      }
+
+      rendered.rerender({commentCid: 'comment cid 1', sortType: 'best', flat: false})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
+
+      await waitFor(() => rendered.result.current.repliesDepth2.bufferedReplies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(true)
+
+      // load page
+      await act(async () => {
+        await rendered.result.current.repliesDepth2.loadMore()
+      })
+      await waitFor(() => rendered.result.current.repliesDepth2.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+
+      // with streamPage: false
+      rendered.rerender({commentCid: 'comment cid 2', sortType: 'best', flat: false, streamPage: true})
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
+
+      await waitFor(() => rendered.result.current.repliesDepth2.replies.length > 0)
+      expect(rendered.result.current.repliesDepth1.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.replies.length).toBe(1)
+      expect(rendered.result.current.repliesDepth2.bufferedReplies.length).toBe(0)
+      expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
+
+      Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
   })
-
-  // describe.only('useReplies nested 2', () => {
-  //   let pageToGet
-
-  //   beforeAll(() => {
-  //     // mock nested replies on pages
-  //     pageToGet = Pages.prototype.pageToGet
-  //     Pages.prototype.pageToGet = function (pageCid) {
-  //       const pageCidSortType = 'best'
-  //       const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
-  //       const depth = (this.comment.depth || 0) + 1
-  //       const page: any = {
-  //         comments: [],
-  //       }
-  //       const count = 3
-  //       let index = 0
-  //       while (index++ < count) {
-  //         page.comments.push({
-  //           timestamp: index,
-  //           cid: pageCid + ' comment cid ' + index,
-  //           subplebbitAddress,
-  //           upvoteCount: index,
-  //           downvoteCount: 10,
-  //           author: {
-  //             address: pageCid + ' author address ' + index,
-  //           },
-  //           updatedAt: index,
-  //           depth,
-  //           replies: {
-  //             pages: {
-  //               [pageCidSortType]: {
-  //                 comments: [
-  //                   {
-  //                     timestamp: index + 10,
-  //                     cid: pageCid + ' comment cid ' + index + ' nested 1',
-  //                     subplebbitAddress,
-  //                     upvoteCount: index,
-  //                     downvoteCount: 10,
-  //                     author: {
-  //                       address: pageCid + ' author address ' + index,
-  //                     },
-  //                     updatedAt: index,
-  //                     depth: depth + 1,
-  //                     replies: {
-  //                       pages: {
-  //                         [pageCidSortType]: {
-  //                           comments: [
-  //                             {
-  //                               timestamp: index + 20,
-  //                               cid: pageCid + ' comment cid ' + index + ' nested 2',
-  //                               subplebbitAddress,
-  //                               upvoteCount: index,
-  //                               downvoteCount: 10,
-  //                               author: {
-  //                                 address: pageCid + ' author address ' + index,
-  //                               },
-  //                               updatedAt: index,
-  //                               depth: depth + 2,
-  //                             },
-  //                           ],
-  //                         },
-  //                       },
-  //                     },
-  //                   },
-  //                 ],
-  //               },
-  //             },
-  //           },
-  //         })
-  //       }
-  //       return page
-  //     }
-  //   })
-  //   afterAll(() => {
-  //     // restore mock
-  //     Pages.prototype.pageToGet = pageToGet
-  //   })
-
-  //   let rendered, waitFor, scrollOnePage
-
-  //   beforeEach(() => {
-  //     rendered = renderHook<any, any>((useRepliesOptions) => {
-  //       // useReplies accepts only 'comment', but for ease of use also accept a 'commentCid' in the tests
-  //       const comment = useComment({commentCid: useRepliesOptions?.commentCid})
-  //       const repliesDepth1 = useReplies({...useRepliesOptions, commentCid: undefined, comment})
-  //       const reply1Depth2 = repliesDepth1.replies[0]
-  //       const repliesDepth2 = useReplies({...useRepliesOptions, commentCid: undefined, comment: reply1Depth2})
-  //       const reply1Depth3 = repliesDepth2.replies[0]
-  //       const repliesDepth3 = useReplies({...useRepliesOptions, commentCid: undefined, comment: reply1Depth3})
-  //       return {repliesDepth1, repliesDepth2, repliesDepth3}
-  //     })
-
-  //     waitFor = testUtils.createWaitFor(rendered)
-  //     scrollOnePage = scrollOnePage = async () => {
-  //       const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
-  //       await act(async () => {
-  //         await rendered.result.current.loadMore()
-  //       })
-  //       try {
-  //         await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
-  //       } catch (e) {
-  //         // console.error('scrollOnePage failed:', e)
-  //       }
-  //     }
-  //   })
-  //   afterEach(async () => {
-  //     await testUtils.resetDatabasesAndStores()
-  //   })
-
-  //   test('new sort type, nested replies are rendered immediately, without unnecessary rerenders', async () => {
-  //     // make sure pages were reset properly
-  //     expect(Object.keys(repliesPagesStore.getState().repliesPages).length).toBe(0)
-
-  //     rendered.rerender({commentCid: 'comment cid 1', sortType: 'new'})
-
-  //     // as soon as depth 1 has replies, all other depths also should
-  //     await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
-  //     expect(rendered.result.current.repliesDepth1.replies.length).toBeGreaterThan(0)
-  //     expect(rendered.result.current.repliesDepth2.replies.length).toBeGreaterThan(0)
-  //     expect(rendered.result.current.repliesDepth3.replies.length).toBeGreaterThan(0)
-  //   })
-  // })
 })

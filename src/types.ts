@@ -128,6 +128,7 @@ export interface UseRepliesOptions extends Options {
   flatDepth?: number
   accountComments?: boolean
   filter?: CommentsFilter
+  streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
 }
 export interface UseRepliesResult extends Result {
   replies: Comment[]
@@ -607,6 +608,7 @@ export type CommentsFilter = {
  */
 export type RepliesFeedOptions = {
   commentCid: string
+  commentDepth: number
   sortType: string
   accountId: string
   pageNumber: number
@@ -614,6 +616,8 @@ export type RepliesFeedOptions = {
   flat?: boolean
   accountComments?: boolean
   filter?: CommentsFilter
+  streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
+  drainCount?: number
 }
 export type RepliesFeedsOptions = {[feedName: string]: RepliesFeedOptions}
 export type RepliesPage = SubplebbitPage

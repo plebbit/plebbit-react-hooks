@@ -336,7 +336,7 @@ describe('comments', () => {
     test('is invalid', async () => {
       const validateComment = Pages.prototype.validateComment
       Plebbit.prototype.validateComment = async function () {
-        throw Error('mocked page invalid')
+        throw Error('this is not an error, plebbit.validateComment was mocked by a test to throw invalid')
       }
 
       expect(rendered.result.current.valid).toBe(false)

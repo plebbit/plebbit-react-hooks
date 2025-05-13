@@ -81,6 +81,7 @@ const mockAccount: any = {
     createComment: async ({cid}: any) => new MockComment({cid}),
     getSubplebbit: async (subplebbitAddress: string) => new MockSubplebbit({address: subplebbitAddress}),
     subplebbits: [],
+    async validateComment(comment: any) {}
   },
   blockedAddresses: {},
   blockedCids: {},
