@@ -98,11 +98,43 @@ const getPreloadedReplies = (comment, sortType) => {
         return pages[0].comments;
     }
 };
+const previousPageNumbers = {};
+const pageNumberIncreased = (feedName, pageNumber, loadedFeed, bufferedFeed) => {
+    const isFirstPage = !loadedFeed && (bufferedFeed === null || bufferedFeed === void 0 ? void 0 : bufferedFeed.length);
+    // first page should always update
+    // pageNumber has changed should always update
+    if (isFirstPage || previousPageNumbers[feedName] !== pageNumber) {
+        previousPageNumbers[feedName] = pageNumber;
+        return true;
+    }
+    return false;
+};
+const alwaysStreamPage = (feedOptions) => {
+    // feedOptions.streamPage set to true means always stream page
+    if (feedOptions.streamPage) {
+        return true;
+    }
+    // always stream top level replies and/or flat
+    return (feedOptions.commentDepth > 0 && !feedOptions.flat) ? false : true;
+};
 export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, accounts) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const loadedFeedsMissingReplies = {};
     for (const feedName in feedsOptions) {
-        const { pageNumber, repliesPerPage, accountId } = feedsOptions[feedName];
+        const { pageNumber, repliesPerPage, accountId, streamPage } = feedsOptions[feedName];
+        // TODO: fix design issue, pageNumber shouldnt be increased when loadMore is called and repliesPerPage not reached
+        // if not always streaming replies, and page number didn't increase, skip updating
+        // so UI isn't displaced when new nested replies are added
+        if (!alwaysStreamPage(feedsOptions[feedName]) && !pageNumberIncreased(feedName, pageNumber, loadedFeeds[feedName], bufferedFeeds[feedName])) {
+            continue;
+        }
+        // const _alwaysStreamPage = alwaysStreamPage(feedsOptions[feedName])
+        // const _pageNumberIncreased = pageNumberIncreased(feedName, pageNumber, loadedFeeds[feedName], bufferedFeeds[feedName])
+        // if (!_alwaysStreamPage && !_pageNumberIncreased) {
+        //   console.log(feedName, {_alwaysStreamPage, _pageNumberIncreased}, loadedFeeds[feedName], bufferedFeeds[feedName], 'SKIPPED')
+        //   continue
+        // }
+        // console.log(feedName, {_alwaysStreamPage, _pageNumberIncreased}, loadedFeeds[feedName], bufferedFeeds[feedName])
         const plebbit = (_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.plebbit;
         const loadedFeedReplyCount = pageNumber * repliesPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];

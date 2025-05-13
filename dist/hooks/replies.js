@@ -16,7 +16,7 @@ import assert from 'assert';
 import useRepliesStore, { feedOptionsToFeedName } from '../stores/replies';
 export function useReplies(options) {
     assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`);
-    let { comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter } = options || {};
+    let { comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter, streamPage } = options || {};
     if (!sortType) {
         sortType = 'best';
     }
@@ -28,7 +28,7 @@ export function useReplies(options) {
     const [errors, setErrors] = useState([]);
     // add replies to store
     const account = useAccount({ accountName });
-    const feedOptions = { commentCid: comment === null || comment === void 0 ? void 0 : comment.cid, sortType, accountId: account === null || account === void 0 ? void 0 : account.id, repliesPerPage, flat, accountComments, filter };
+    const feedOptions = { commentCid: comment === null || comment === void 0 ? void 0 : comment.cid, commentDepth: comment === null || comment === void 0 ? void 0 : comment.depth, sortType, accountId: account === null || account === void 0 ? void 0 : account.id, repliesPerPage, flat, accountComments, filter, streamPage };
     const repliesFeedName = feedOptionsToFeedName(feedOptions);
     const addFeedToStoreOrUpdateComment = useRepliesStore((state) => state.addFeedToStoreOrUpdateComment);
     useEffect(() => {
@@ -91,11 +91,10 @@ export function useReplies(options) {
         log('useReplies', {
             repliesLength: (replies === null || replies === void 0 ? void 0 : replies.length) || 0,
             hasMore,
-            commentCid: comment.cid,
+            comment,
             sortType,
             flat,
             flatDepth,
-            account,
             repliesStoreOptions: useRepliesStore.getState().feedsOptions,
             repliesStore: useRepliesStore.getState(),
             invalidFlatDepth,

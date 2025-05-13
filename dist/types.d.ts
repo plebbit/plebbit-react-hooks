@@ -94,6 +94,7 @@ export interface UseRepliesOptions extends Options {
     flatDepth?: number;
     accountComments?: boolean;
     filter?: CommentsFilter;
+    streamPage?: boolean;
 }
 export interface UseRepliesResult extends Result {
     replies: Comment[];
@@ -510,6 +511,7 @@ export type CommentsFilter = {
  */
 export type RepliesFeedOptions = {
     commentCid: string;
+    commentDepth: number;
     sortType: string;
     accountId: string;
     pageNumber: number;
@@ -517,6 +519,8 @@ export type RepliesFeedOptions = {
     flat?: boolean;
     accountComments?: boolean;
     filter?: CommentsFilter;
+    streamPage?: boolean;
+    drainCount?: number;
 };
 export type RepliesFeedsOptions = {
     [feedName: string]: RepliesFeedOptions;
