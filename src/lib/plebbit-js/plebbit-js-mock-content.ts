@@ -713,7 +713,7 @@ const createdSubplebbits: any = {}
 class Plebbit extends EventEmitter {
   async createSigner() {
     return {
-      privateKey: 'private key private key private key private key',
+      privateKey: 'private key',
       address: await getCidHash(String(Math.random())),
     }
   }

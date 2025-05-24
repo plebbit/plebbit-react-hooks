@@ -6,6 +6,7 @@ import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 import validator from '../../lib/validator'
+import chain from '../../lib/chain'
 import assert from 'assert'
 const log = Logger('plebbit-react-hooks:accounts:stores')
 import {
@@ -116,6 +117,22 @@ export const setAccount = async (account: Account) => {
   if (account.author.address !== accounts[account.id].author.address) {
     const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits)
     account = {...account, subplebbits}
+
+    // wallet.signature changes if author.address changes
+    if (account.author.wallets?.eth) {
+      const plebbitSignerWalletWithNewAuthorAddress = await chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.author.address)
+      // wallet is using plebbit signer, redo signature with new author.address
+      if (account.author.wallets.eth.address === plebbitSignerWalletWithNewAuthorAddress?.address) {
+        account.author.wallets = {...account.author.wallets, eth: plebbitSignerWalletWithNewAuthorAddress}
+      }
+    }
+    if (account.author.wallets?.sol) {
+      const plebbitSignerWalletWithNewAuthorAddress = await chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.author.address)
+      // wallet is using plebbit signer, redo signature with new author.address
+      if (account.author.wallets.sol.address === plebbitSignerWalletWithNewAuthorAddress?.address) {
+        account.author.wallets = {...account.author.wallets, sol: plebbitSignerWalletWithNewAuthorAddress}
+      }
+    }
   }
 
   // use this function to serialize and update all databases

@@ -1,5 +1,6 @@
 import PlebbitJs from '../../lib/plebbit-js'
 import validator from '../../lib/validator'
+import chain from '../../lib/chain'
 import assert from 'assert'
 import localForage from 'localforage'
 import localForageLru from '../../lib/localforage-lru'
@@ -21,7 +22,7 @@ const getAccounts = async (accountIds: string[]) => {
   const accountsArray: any = await Promise.all(promises)
   for (const [i, accountId] of accountIds.entries()) {
     assert(accountsArray[i], `accountId '${accountId}' not found in database`)
-    accounts[accountId] = migrateAccount(accountsArray[i])
+    accounts[accountId] = await migrateAccount(accountsArray[i])
     // plebbit options aren't saved to database if they are default
     if (!accounts[accountId].plebbitOptions) {
       accounts[accountId].plebbitOptions = getDefaultPlebbitOptions()
@@ -35,10 +36,13 @@ const getAccounts = async (accountIds: string[]) => {
   return accounts
 }
 
-const migrateAccount = (account: any) => {
+const accountVersion = 3
+const migrateAccount = async (account: any) => {
+  let version = account.version || 1
+
   // version 2
-  if (!account.version) {
-    account.version = 2
+  if (version === 1) {
+    version++
     if (account.plebbitOptions?.ipfsHttpClientsOptions) {
       account.plebbitOptions.kuboRpcClientsOptions = account.plebbitOptions.ipfsHttpClientsOptions
       delete account.plebbitOptions.ipfsHttpClientsOptions
@@ -48,6 +52,22 @@ const migrateAccount = (account: any) => {
       delete account.plebbitOptions.pubsubHttpClientsOptions
     }
   }
+
+  // version 3
+  if (version === 2) {
+    version++
+    if (!account.author.wallets) {
+      account.author.wallets = {}
+    }
+    if (!account.author.wallets.eth) {
+      account.author.wallets.eth = await chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address)
+    }
+    if (!account.author.wallets.sol) {
+      account.author.wallets.eth = await chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address)
+    }
+  }
+
+  account.version = accountVersion
   return account
 }
 
@@ -434,6 +454,7 @@ const database = {
   getAccountsEdits,
   getAccountEdits,
   addAccountEdit,
+  accountVersion
 }
 
 export default database

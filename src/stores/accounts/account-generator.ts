@@ -1,5 +1,6 @@
 import PlebbitJs from '../../lib/plebbit-js'
 import validator from '../../lib/validator'
+import chain from '../../lib/chain'
 import {v4 as uuid} from 'uuid'
 import accountsDatabase from './accounts-database'
 import {Accounts, AccountSubplebbit, ChainProviders} from '../../types'
@@ -78,6 +79,10 @@ export const generateDefaultAccount = async () => {
   const signer = await plebbit.createSigner()
   const author = {
     address: signer.address,
+    wallets: {
+      eth: await chain.getEthWalletFromPlebbitPrivateKey(signer.privateKey, signer.address),
+      sol: await chain.getSolWalletFromPlebbitPrivateKey(signer.privateKey, signer.address)
+    }
   }
 
   const accountName = await getNextAvailableDefaultAccountName()
@@ -87,7 +92,7 @@ export const generateDefaultAccount = async () => {
 
   const account = {
     id: uuid(),
-    version: 2,
+    version: accountsDatabase.accountVersion,
     name: accountName,
     author,
     signer,

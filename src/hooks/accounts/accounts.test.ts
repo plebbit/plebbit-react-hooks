@@ -23,6 +23,7 @@ import commentsStore from '../../stores/comments'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
 import PlebbitJsMock, {Plebbit, Comment, Subplebbit, Pages, resetPlebbitJsMock, debugPlebbitJsMock} from '../../lib/plebbit-js/plebbit-js-mock'
 import accountsStore from '../../stores/accounts'
+import chain from '../../lib/chain'
 
 describe('accounts', () => {
   beforeAll(async () => {
@@ -2430,6 +2431,106 @@ describe('accounts', () => {
       expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
       expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
       expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+    })
+  })
+
+  describe('wallets', () => {
+    const createSigner = Plebbit.prototype.createSigner
+    beforeAll(() => {
+      Plebbit.prototype.createSigner = async () => ({
+        type: 'ed25519',
+        privateKey: 'mV8GRU5TGScen7UYZOuNQQ1CKe2G46DCc60moM1yLF4',
+        publicKey: 'lF41sWk/JHHdfQSH5VAR55uGZp0/Cv9/xXxwS+vOOVI',
+        address: '12D3KooWKoXpxTwfnjA5ExuFbeverNKhjKy6a4KesBSh3e6VLaW5',
+        shortAddress: 'KoXpxTwfnjA5'
+      })
+    })
+    afterAll(() => {
+      Plebbit.prototype.createSigner = createSigner
+    })
+    beforeEach(async () => {
+      await testUtils.resetDatabasesAndStores()
+    })
+
+    test('author has wallets', async () => {
+      // on first render, the account is undefined because it's not yet loaded from database
+      const rendered = renderHook(() => useAccount())
+      const waitFor = testUtils.createWaitFor(rendered)
+
+      // on second render, you get the default generated account
+      await waitFor(() => rendered.result.current.author.address)
+      const author = rendered.result.current.author
+      expect(author.address).toBe('12D3KooWKoXpxTwfnjA5ExuFbeverNKhjKy6a4KesBSh3e6VLaW5')
+      expect(author.wallets.eth.address).toBe('0x37BC48124fDf985DC3983E2e8414606D4a996ED7')
+      expect(typeof author.wallets.eth.timestamp).toBe('number')
+      expect(typeof author.wallets.eth.signature.signature).toBe('string')
+      expect(author.wallets.eth.signature.type).toBe('eip191')
+      expect(author.wallets.sol.address).toBe('AzAfDLMxbptaq5Ppy4BK5aEsEzvTYNFAub5ffewbSdn9')
+      expect(typeof author.wallets.sol.timestamp).toBe('number')
+      expect(typeof author.wallets.sol.signature.signature).toBe('string')
+      expect(author.wallets.sol.signature.type).toBe('sol')
+      await chain.validateEthWallet(author.wallets.eth, author.address)
+      await chain.validateSolWallet(author.wallets.sol, author.address)
+    })
+
+    test('changing author address changes wallet signature', async () => {
+      // on first render, the account is undefined because it's not yet loaded from database
+      const rendered = renderHook(() => useAccount())
+      const waitFor = testUtils.createWaitFor(rendered)
+
+      // on second render, you get the default generated account
+      await waitFor(() => rendered.result.current.author.address)
+      expect(rendered.result.current.author.address).toBe('12D3KooWKoXpxTwfnjA5ExuFbeverNKhjKy6a4KesBSh3e6VLaW5')
+      const previousWallets = rendered.result.current.author.wallets
+      expect(previousWallets.eth.address).toBe('0x37BC48124fDf985DC3983E2e8414606D4a996ED7')
+      expect(typeof previousWallets.eth.timestamp).toBe('number')
+      expect(typeof previousWallets.eth.signature.signature).toBe('string')
+      expect(previousWallets.eth.signature.type).toBe('eip191')
+      expect(previousWallets.sol.address).toBe('AzAfDLMxbptaq5Ppy4BK5aEsEzvTYNFAub5ffewbSdn9')
+      expect(typeof previousWallets.sol.timestamp).toBe('number')
+      expect(typeof previousWallets.sol.signature.signature).toBe('string')
+      expect(previousWallets.sol.signature.type).toBe('sol')
+      await chain.validateEthWallet(previousWallets.eth, rendered.result.current.author.address)
+      await chain.validateSolWallet(previousWallets.sol, rendered.result.current.author.address)
+
+      // change author address, wallets should update
+      await act(async () => {
+        const author = {...rendered.result.current.author, address: 'authoraddress.eth'}
+        const account = {...rendered.result.current, author}
+        await accountsActions.setAccount(account)
+      })
+
+      await waitFor(() => rendered.result.current.address === 'authoraddress.eth')
+      expect(rendered.result.current.author.address).toBe('authoraddress.eth')
+      const wallets = rendered.result.current.author.wallets
+      expect(wallets.eth.address).toBe('0x37BC48124fDf985DC3983E2e8414606D4a996ED7')
+      expect(typeof wallets.eth.timestamp).toBe('number')
+      expect(wallets.eth.timestamp).toBeGreaterThan(previousWallets.eth.timestamp)
+      expect(typeof wallets.eth.signature.signature).toBe('string')
+      expect(wallets.eth.signature.signature).not.toBe(previousWallets.eth.signature.signature)
+      expect(wallets.eth.signature.type).toBe('eip191')
+      expect(wallets.sol.address).toBe('AzAfDLMxbptaq5Ppy4BK5aEsEzvTYNFAub5ffewbSdn9')
+      expect(typeof wallets.sol.timestamp).toBe('number')
+      expect(wallets.sol.timestamp).toBeGreaterThan(previousWallets.sol.timestamp)
+      expect(typeof wallets.sol.signature.signature).toBe('string')
+      expect(wallets.sol.signature.signature).not.toBe(previousWallets.sol.signature.signature)
+      expect(wallets.sol.signature.type).toBe('sol')
+      await chain.validateEthWallet(wallets.eth, rendered.result.current.author.address)
+      await chain.validateSolWallet(wallets.sol, rendered.result.current.author.address)
+
+      // change author display name, wallets should not update
+      const previousEthSignature = wallets.eth.signature.signature
+      const previousSolSignature = wallets.sol.signature.signature
+      await act(async () => {
+        const author = {...rendered.result.current.author, displayName: 'John'}
+        const account = {...rendered.result.current, author}
+        await accountsActions.setAccount(account)
+      })
+
+      await waitFor(() => rendered.result.current.displayName === 'John')
+      expect(rendered.result.current.author.displayName).toBe('John')
+      expect(rendered.result.current.author.wallets.eth.signature.signature).toBe(previousEthSignature)
+      expect(rendered.result.current.author.wallets.sol.signature.signature).toBe(previousSolSignature)
     })
   })
 })

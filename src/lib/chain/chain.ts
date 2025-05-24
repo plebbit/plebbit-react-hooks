@@ -1,5 +1,5 @@
 import assert from 'assert'
-import {Nft, ChainProviders} from '../../types'
+import {Nft, ChainProviders, Wallet} from '../../types'
 import {ethers} from 'ethers'
 import fetch from 'node-fetch'
 import utils from '../utils'
@@ -112,9 +112,142 @@ const nftAbi = [
   },
 ]
 
+const getWalletMessageToSign = (authorAddress: string, timestamp: number) => {
+  let messageToSign: any = {}
+  // the property names must be in this order for the signature to match
+  // insert props one at a time otherwise babel/webpack will reorder
+  messageToSign.domainSeparator = 'plebbit-author-wallet'
+  messageToSign.authorAddress = authorAddress
+  messageToSign.timestamp = timestamp
+  // use plain JSON so the user can read what he's signing
+  const messageToSignJson = JSON.stringify(messageToSign)
+  return messageToSignJson
+}
+
+export const getEthWalletFromPlebbitPrivateKey = async (privateKeyBase64: string, authorAddress: string) => {
+  // ignore private key used in plebbit-js signer mock so tests run faster, also make sure nobody uses it
+  if (privateKeyBase64 === 'private key') {
+    return
+  }
+
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  if (privateKeyBytes.length !== 32) {
+    throw Error('failed getting eth address from private key not 32 bytes')
+  }
+  const publicKeyHex = ethers.utils.computePublicKey(privateKeyBytes, false)
+  const privateKeyHex = ethers.utils.hexlify(privateKeyBytes)
+  const ethAddress = ethers.utils.computeAddress(publicKeyHex)
+
+  // generate signature
+  const timestamp = Date.now()
+  const signature = await new ethers.Wallet(privateKeyHex).signMessage(getWalletMessageToSign(authorAddress, timestamp))
+  
+  return {address: ethAddress, timestamp, signature: {signature, type: 'eip191'}}
+}
+
+export const getEthPrivateKeyFromPlebbitPrivateKey = async (privateKeyBase64: string, authorAddress: string) => {
+  // ignore private key used in plebbit-js signer mock so tests run faster, also make sure nobody uses it
+  if (privateKeyBase64 === 'private key') {
+    return
+  }
+
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  if (privateKeyBytes.length !== 32) {
+    throw Error('failed getting eth address from private key not 32 bytes')
+  }
+  const privateKeyHex = ethers.utils.hexlify(privateKeyBytes)
+  return privateKeyHex
+}
+
+import {getPublicKey as ed25519GetPublicKey, sign as ed25519Sign, verify as ed25519Verify} from '@noble/ed25519'
+import {toString as uint8ArrayToString, fromString as uint8ArrayFromString} from 'uint8arrays'
+export const getSolWalletFromPlebbitPrivateKey = async (privateKeyBase64: string, authorAddress: string) => {
+  // ignore private key used in plebbit-js signer mock so tests run faster, also make sure nobody uses it
+  if (privateKeyBase64 === 'private key') {
+    return
+  }
+
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  if (privateKeyBytes.length !== 32) {
+    throw Error('failed getting sol address from private key not 32 bytes')
+  }
+  const publicKeyBytes = await ed25519GetPublicKey(privateKeyBytes)
+  const solAddress = uint8ArrayToString(publicKeyBytes, 'base58btc')
+
+  // generate signature (https://solscan.io/verifiedsignatures)
+  const timestamp = Date.now()
+  const messageBytes = uint8ArrayFromString(getWalletMessageToSign(authorAddress, timestamp), 'utf8')
+  const signatureBytes = await ed25519Sign(messageBytes, privateKeyBytes)
+  const signatureBase58 = uint8ArrayToString(signatureBytes, 'base58btc')
+
+  return {
+    address: solAddress, timestamp, 
+    signature: {
+      signature: signatureBase58,
+      // solana has no signature standard so just call it 'sol' for now
+      // can't use just 'ed25519' because we use it for plebbit signature with base64
+      type: 'sol'
+    }
+  }
+}
+
+export const getSolPrivateKeyFromPlebbitPrivateKey = async (privateKeyBase64: string, authorAddress: string) => {
+  // ignore private key used in plebbit-js signer mock so tests run faster, also make sure nobody uses it
+  if (privateKeyBase64 === 'private key') {
+    return
+  }
+
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  if (privateKeyBytes.length !== 32) {
+    throw Error('failed getting sol address from private key not 32 bytes')
+  }
+  const publicKeyBytes = await ed25519GetPublicKey(privateKeyBytes)
+  const bytes = new Uint8Array(64)
+  bytes.set(privateKeyBytes, 0)
+  bytes.set(publicKeyBytes, 32)
+  const privateKeyBase58 = uint8ArrayToString(bytes, 'base58btc')
+  return privateKeyBase58
+}
+
+export const validateEthWallet = async (wallet: Wallet, authorAddress: string) => {
+  assert(wallet && typeof wallet === 'object', `validateEthWallet invalid wallet argument '${wallet}'`)
+  assert(wallet?.address, `validateEthWallet invalid wallet.address '${wallet?.address}'`)
+  assert(typeof wallet?.timestamp === 'number', `validateEthWallet invalid wallet.timestamp '${wallet?.timestamp}' not a number`)
+  assert(wallet?.signature, `validateEthWallet invalid wallet.signature '${wallet?.signature}'`)
+  assert(wallet?.signature?.signature, `validateEthWallet invalid wallet.signature.signature '${wallet?.signature?.signature}'`)
+  assert(wallet.signature.type === 'eip191', `validateEthWallet invalid wallet.signature.type '${wallet?.signature?.type}'`)
+  assert(authorAddress && typeof authorAddress === 'string', `validateEthWallet invalid authorAddress '${authorAddress}'`)
+  const signatureAddress = ethers.utils.verifyMessage(getWalletMessageToSign(authorAddress, wallet.timestamp), wallet.signature.signature)
+  if (wallet.address !== signatureAddress) {
+    throw Error('wallet address does not equal signature address')
+  }
+}
+
+export const validateSolWallet = async (wallet: Wallet, authorAddress: string) => {
+  assert(wallet && typeof wallet === 'object', `validateSolWallet invalid wallet argument '${wallet}'`)
+  assert(wallet?.address, `validateSolWallet invalid wallet.address '${wallet?.address}'`)
+  assert(typeof wallet?.timestamp === 'number', `validateSolWallet invalid wallet.timestamp '${wallet?.timestamp}' not a number`)
+  assert(wallet?.signature, `validateSolWallet invalid wallet.signature '${wallet?.signature}'`)
+  assert(wallet?.signature?.signature, `validateSolWallet invalid wallet.signature.signature '${wallet?.signature?.signature}'`)
+  assert(authorAddress && typeof authorAddress === 'string', `validateSolWallet invalid authorAddress '${authorAddress}'`)
+  const signatureBytes = uint8ArrayFromString(wallet.signature.signature, 'base58btc')
+  const messageBytes = uint8ArrayFromString(getWalletMessageToSign(authorAddress, wallet.timestamp), 'utf8')
+  const publicKeyBytes = uint8ArrayFromString(wallet.address, 'base58btc')
+  const verified = await ed25519Verify(signatureBytes, messageBytes, publicKeyBytes)
+  if (!verified) {
+    throw Error('signature invalid')
+  }
+}
+
 export default {
   getNftOwner,
   getNftMetadataUrl,
   getNftImageUrl,
   resolveEnsTxtRecord,
+  getEthWalletFromPlebbitPrivateKey,
+  getSolWalletFromPlebbitPrivateKey,
+  getEthPrivateKeyFromPlebbitPrivateKey,
+  getSolPrivateKeyFromPlebbitPrivateKey,
+  validateEthWallet,
+  validateSolWallet
 }

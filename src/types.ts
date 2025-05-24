@@ -528,6 +528,7 @@ export type SubplebbitStats = {[key: string]: any}
 export type Notification = {[key: string]: any}
 export type Nft = {[key: string]: any}
 export type Author = {[key: string]: any}
+export type Wallet = {[key: string]: any}
 
 /**
  * Subplebbits and comments store
@@ -617,7 +618,6 @@ export type RepliesFeedOptions = {
   accountComments?: boolean
   filter?: CommentsFilter
   streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
-  drainCount?: number
 }
 export type RepliesFeedsOptions = {[feedName: string]: RepliesFeedOptions}
 export type RepliesPage = SubplebbitPage
