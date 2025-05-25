@@ -63,7 +63,7 @@ const migrateAccount = async (account: any) => {
       account.author.wallets.eth = await chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address)
     }
     if (!account.author.wallets.sol) {
-      account.author.wallets.eth = await chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address)
+      account.author.wallets.sol = await chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address)
     }
   }
 
