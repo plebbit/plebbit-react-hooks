@@ -68,7 +68,7 @@ const migrateAccount = (account) => __awaiter(void 0, void 0, void 0, function* 
             account.author.wallets.eth = yield chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
         }
         if (!account.author.wallets.sol) {
-            account.author.wallets.eth = yield chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
+            account.author.wallets.sol = yield chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
         }
     }
     account.version = accountVersion;
