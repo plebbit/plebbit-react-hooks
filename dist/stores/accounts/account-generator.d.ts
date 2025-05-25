@@ -11,6 +11,24 @@ export declare const generateDefaultAccount: () => Promise<{
     name: string;
     author: {
         address: any;
+        wallets: {
+            eth: {
+                address: string;
+                timestamp: number;
+                signature: {
+                    signature: string;
+                    type: string;
+                };
+            } | undefined;
+            sol: {
+                address: string;
+                timestamp: number;
+                signature: {
+                    signature: string;
+                    type: string;
+                };
+            } | undefined;
+        };
     };
     signer: any;
     plebbitOptions: any;
@@ -30,6 +48,24 @@ declare const accountGenerator: {
         name: string;
         author: {
             address: any;
+            wallets: {
+                eth: {
+                    address: string;
+                    timestamp: number;
+                    signature: {
+                        signature: string;
+                        type: string;
+                    };
+                } | undefined;
+                sol: {
+                    address: string;
+                    timestamp: number;
+                    signature: {
+                        signature: string;
+                        type: string;
+                    };
+                } | undefined;
+            };
         };
         signer: any;
         plebbitOptions: any;

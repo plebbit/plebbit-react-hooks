@@ -19,5 +19,6 @@ declare const database: {
     getAccountsEdits: (accountIds: string[]) => Promise<any>;
     getAccountEdits: (accountId: string) => Promise<any>;
     addAccountEdit: (accountId: string, createEditOptions: CreateCommentOptions) => Promise<void>;
+    accountVersion: number;
 };
 export default database;

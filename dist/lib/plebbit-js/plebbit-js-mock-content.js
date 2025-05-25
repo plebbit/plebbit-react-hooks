@@ -653,7 +653,7 @@ class Plebbit extends EventEmitter {
     createSigner() {
         return __awaiter(this, void 0, void 0, function* () {
             return {
-                privateKey: 'private key private key private key private key',
+                privateKey: 'private key',
                 address: yield getCidHash(String(Math.random())),
             };
         });

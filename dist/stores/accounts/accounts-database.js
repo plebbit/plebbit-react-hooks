@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import PlebbitJs from '../../lib/plebbit-js';
 import validator from '../../lib/validator';
+import chain from '../../lib/chain';
 import assert from 'assert';
 import localForage from 'localforage';
 import localForageLru from '../../lib/localforage-lru';
@@ -28,7 +29,7 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     const accountsArray = yield Promise.all(promises);
     for (const [i, accountId] of accountIds.entries()) {
         assert(accountsArray[i], `accountId '${accountId}' not found in database`);
-        accounts[accountId] = migrateAccount(accountsArray[i]);
+        accounts[accountId] = yield migrateAccount(accountsArray[i]);
         // plebbit options aren't saved to database if they are default
         if (!accounts[accountId].plebbitOptions) {
             accounts[accountId].plebbitOptions = getDefaultPlebbitOptions();
@@ -41,11 +42,13 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     }
     return accounts;
 });
-const migrateAccount = (account) => {
+const accountVersion = 3;
+const migrateAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
+    let version = account.version || 1;
     // version 2
-    if (!account.version) {
-        account.version = 2;
+    if (version === 1) {
+        version++;
         if ((_a = account.plebbitOptions) === null || _a === void 0 ? void 0 : _a.ipfsHttpClientsOptions) {
             account.plebbitOptions.kuboRpcClientsOptions = account.plebbitOptions.ipfsHttpClientsOptions;
             delete account.plebbitOptions.ipfsHttpClientsOptions;
@@ -55,8 +58,22 @@ const migrateAccount = (account) => {
             delete account.plebbitOptions.pubsubHttpClientsOptions;
         }
     }
+    // version 3
+    if (version === 2) {
+        version++;
+        if (!account.author.wallets) {
+            account.author.wallets = {};
+        }
+        if (!account.author.wallets.eth) {
+            account.author.wallets.eth = yield chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
+        }
+        if (!account.author.wallets.sol) {
+            account.author.wallets.eth = yield chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
+        }
+    }
+    account.version = accountVersion;
     return account;
-};
+});
 const getAccount = (accountId) => __awaiter(void 0, void 0, void 0, function* () {
     const accounts = yield getAccounts([accountId]);
     return accounts[accountId];
@@ -91,7 +108,7 @@ const getDatabaseAsArray = (database) => __awaiter(void 0, void 0, void 0, funct
     return items;
 });
 const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _c, _d, _e;
     validator.validateAccountsDatabaseAddAccountArguments(account);
     let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
     // handle no duplicate names
@@ -113,7 +130,7 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     if (accountToPutInDatabase.plebbitOptions) {
         const plebbit = yield PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions);
         plebbit.on('error', () => { });
-        (_c = (_a = plebbit.destroy) === null || _a === void 0 ? void 0 : (_b = _a.call(plebbit)).catch) === null || _c === void 0 ? void 0 : _c.call(_b, (error) => log('database.addAccount plebbit.destroy error', { error })); // make sure it's garbage collected
+        (_e = (_c = plebbit.destroy) === null || _c === void 0 ? void 0 : (_d = _c.call(plebbit)).catch) === null || _e === void 0 ? void 0 : _e.call(_d, (error) => log('database.addAccount plebbit.destroy error', { error })); // make sure it's garbage collected
     }
     yield accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase);
     // handle updating accountNamesToAccountIds database
@@ -403,5 +420,6 @@ const database = {
     getAccountsEdits,
     getAccountEdits,
     addAccountEdit,
+    accountVersion
 };
 export default database;

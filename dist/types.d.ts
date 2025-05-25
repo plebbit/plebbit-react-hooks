@@ -400,6 +400,9 @@ export type Nft = {
 export type Author = {
     [key: string]: any;
 };
+export type Wallet = {
+    [key: string]: any;
+};
 /**
  * Subplebbits and comments store
  */
@@ -520,7 +523,6 @@ export type RepliesFeedOptions = {
     accountComments?: boolean;
     filter?: CommentsFilter;
     streamPage?: boolean;
-    drainCount?: number;
 };
 export type RepliesFeedsOptions = {
     [feedName: string]: RepliesFeedOptions;

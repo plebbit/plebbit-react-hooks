@@ -14,6 +14,7 @@ import accountsDatabase from './accounts-database';
 import accountGenerator from './account-generator';
 import Logger from '@plebbit/plebbit-logger';
 import validator from '../../lib/validator';
+import chain from '../../lib/chain';
 import assert from 'assert';
 const log = Logger('plebbit-react-hooks:accounts:stores');
 import * as accountsActionsInternal from './accounts-actions-internal';
@@ -94,6 +95,7 @@ export const setActiveAccount = (accountName) => __awaiter(void 0, void 0, void 
     accountsStore.setState({ activeAccountId: accountId });
 });
 export const setAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { accounts } = accountsStore.getState();
     validator.validateAccountsActionsSetAccountArguments(account);
     assert(accounts === null || accounts === void 0 ? void 0 : accounts[account.id], `cannot set account with account.id '${account.id}' id does not exist in database`);
@@ -102,6 +104,21 @@ export const setAccount = (account) => __awaiter(void 0, void 0, void 0, functio
     if (account.author.address !== accounts[account.id].author.address) {
         const subplebbits = getAccountSubplebbits(account, subplebbitsStore.getState().subplebbits);
         account = Object.assign(Object.assign({}, account), { subplebbits });
+        // wallet.signature changes if author.address changes
+        if ((_a = account.author.wallets) === null || _a === void 0 ? void 0 : _a.eth) {
+            const plebbitSignerWalletWithNewAuthorAddress = yield chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.author.address);
+            // wallet is using plebbit signer, redo signature with new author.address
+            if (account.author.wallets.eth.address === (plebbitSignerWalletWithNewAuthorAddress === null || plebbitSignerWalletWithNewAuthorAddress === void 0 ? void 0 : plebbitSignerWalletWithNewAuthorAddress.address)) {
+                account.author.wallets = Object.assign(Object.assign({}, account.author.wallets), { eth: plebbitSignerWalletWithNewAuthorAddress });
+            }
+        }
+        if ((_b = account.author.wallets) === null || _b === void 0 ? void 0 : _b.sol) {
+            const plebbitSignerWalletWithNewAuthorAddress = yield chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.author.address);
+            // wallet is using plebbit signer, redo signature with new author.address
+            if (account.author.wallets.sol.address === (plebbitSignerWalletWithNewAuthorAddress === null || plebbitSignerWalletWithNewAuthorAddress === void 0 ? void 0 : plebbitSignerWalletWithNewAuthorAddress.address)) {
+                account.author.wallets = Object.assign(Object.assign({}, account.author.wallets), { sol: plebbitSignerWalletWithNewAuthorAddress });
+            }
+        }
     }
     // use this function to serialize and update all databases
     yield accountsDatabase.addAccount(account);
@@ -133,7 +150,7 @@ export const setAccountsOrder = (newOrderedAccountNames) => __awaiter(void 0, vo
     accountsStore.setState({ accountIds });
 });
 export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _c, _d;
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
     assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
     let imported;
@@ -141,7 +158,7 @@ export const importAccount = (serializedAccount) => __awaiter(void 0, void 0, vo
         imported = JSON.parse(serializedAccount);
     }
     catch (e) { }
-    assert((imported === null || imported === void 0 ? void 0 : imported.account) && ((_a = imported === null || imported === void 0 ? void 0 : imported.account) === null || _a === void 0 ? void 0 : _a.id) && ((_b = imported === null || imported === void 0 ? void 0 : imported.account) === null || _b === void 0 ? void 0 : _b.name), `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`);
+    assert((imported === null || imported === void 0 ? void 0 : imported.account) && ((_c = imported === null || imported === void 0 ? void 0 : imported.account) === null || _c === void 0 ? void 0 : _c.id) && ((_d = imported === null || imported === void 0 ? void 0 : imported.account) === null || _d === void 0 ? void 0 : _d.name), `accountsActions.importAccount failed JSON.stringify json serializedAccount '${serializedAccount}'`);
     // add subplebbit roles already in subplebbits store to imported account
     // TODO: add test to check if roles get added
     const subplebbits = getAccountSubplebbits(imported.account, subplebbitsStore.getState().subplebbits);
@@ -348,7 +365,7 @@ export const unblockCid = (cid, accountName) => __awaiter(void 0, void 0, void 0
     accountsStore.setState({ accounts: updatedAccounts });
 });
 export const publishComment = (publishCommentOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d;
+    var _e, _f;
     const { accounts, accountsComments, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
     assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
     let account = accounts[activeAccountId];
@@ -362,7 +379,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
         .filter((comment) => comment.cid)
         // author can change his address, his previousCommentCid becomes invalid
         .filter((comment) => { var _a, _b; return ((_a = comment.author) === null || _a === void 0 ? void 0 : _a.address) === ((_b = account.author) === null || _b === void 0 ? void 0 : _b.address); });
-    const previousCommentCid = (_c = accountCommentsWithCids[accountCommentsWithCids.length - 1]) === null || _c === void 0 ? void 0 : _c.cid;
+    const previousCommentCid = (_e = accountCommentsWithCids[accountCommentsWithCids.length - 1]) === null || _e === void 0 ? void 0 : _e.cid;
     const author = Object.assign({}, account.author);
     if (previousCommentCid) {
         author.previousCommentCid = previousCommentCid;
@@ -377,7 +394,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     // set fetching link dimensions state
     let fetchingLinkDimensionsStates;
     if (publishCommentOptions.link) {
-        (_d = publishCommentOptions.onPublishingStateChange) === null || _d === void 0 ? void 0 : _d.call(publishCommentOptions, 'fetching-link-dimensions');
+        (_f = publishCommentOptions.onPublishingStateChange) === null || _f === void 0 ? void 0 : _f.call(publishCommentOptions, 'fetching-link-dimensions');
         fetchingLinkDimensionsStates = { state: 'publishing', publishingState: 'fetching-link-dimensions' };
     }
     // save comment to db
@@ -536,7 +553,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
     let vote = yield account.plebbit.createVote(createVoteOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _e;
+        var _g;
         vote.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             lastChallenge = challenge;
             publishVoteOptions.onChallenge(challenge, vote);
@@ -561,7 +578,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
             yield vote.publish();
         }
         catch (error) {
-            (_e = publishVoteOptions.onError) === null || _e === void 0 ? void 0 : _e.call(publishVoteOptions, error, vote);
+            (_g = publishVoteOptions.onError) === null || _g === void 0 ? void 0 : _g.call(publishVoteOptions, error, vote);
         }
     });
     publishAndRetryFailedChallengeVerification();
@@ -588,7 +605,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
     let commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _f;
+        var _h;
         commentEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishCommentEditOptions.onChallenge(challenge, commentEdit);
         }));
@@ -612,7 +629,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
             yield commentEdit.publish();
         }
         catch (error) {
-            (_f = publishCommentEditOptions.onError) === null || _f === void 0 ? void 0 : _f.call(publishCommentEditOptions, error, commentEdit);
+            (_h = publishCommentEditOptions.onError) === null || _h === void 0 ? void 0 : _h.call(publishCommentEditOptions, error, commentEdit);
         }
     });
     publishAndRetryFailedChallengeVerification();
@@ -645,7 +662,7 @@ export const publishCommentModeration = (publishCommentModerationOptions, accoun
     let commentModeration = yield account.plebbit.createCommentModeration(createCommentModerationOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _g;
+        var _j;
         commentModeration.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishCommentModerationOptions.onChallenge(challenge, commentModeration);
         }));
@@ -669,7 +686,7 @@ export const publishCommentModeration = (publishCommentModerationOptions, accoun
             yield commentModeration.publish();
         }
         catch (error) {
-            (_g = publishCommentModerationOptions.onError) === null || _g === void 0 ? void 0 : _g.call(publishCommentModerationOptions, error, commentModeration);
+            (_j = publishCommentModerationOptions.onError) === null || _j === void 0 ? void 0 : _j.call(publishCommentModerationOptions, error, commentModeration);
         }
     });
     publishAndRetryFailedChallengeVerification();
@@ -686,7 +703,7 @@ export const publishCommentModeration = (publishCommentModerationOptions, accoun
     });
 });
 export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
-    var _h;
+    var _k;
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
     assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountActions before initialized`);
     let account = accounts[activeAccountId];
@@ -706,7 +723,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         yield subplebbitsStore.getState().editSubplebbit(subplebbitAddress, subplebbitEditOptions, account);
         // create fake success challenge verification for consistent behavior with remote subplebbit edit
         publishSubplebbitEditOptions.onChallengeVerification({ challengeSuccess: true });
-        (_h = publishSubplebbitEditOptions.onPublishingStateChange) === null || _h === void 0 ? void 0 : _h.call(publishSubplebbitEditOptions, 'succeeded');
+        (_k = publishSubplebbitEditOptions.onPublishingStateChange) === null || _k === void 0 ? void 0 : _k.call(publishSubplebbitEditOptions, 'succeeded');
         return;
     }
     assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
@@ -716,7 +733,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {
-        var _j;
+        var _l;
         subplebbitEdit.once('challenge', (challenge) => __awaiter(void 0, void 0, void 0, function* () {
             publishSubplebbitEditOptions.onChallenge(challenge, subplebbitEdit);
         }));
@@ -740,7 +757,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
             yield subplebbitEdit.publish();
         }
         catch (error) {
-            (_j = publishSubplebbitEditOptions.onError) === null || _j === void 0 ? void 0 : _j.call(publishSubplebbitEditOptions, error, subplebbitEdit);
+            (_l = publishSubplebbitEditOptions.onError) === null || _l === void 0 ? void 0 : _l.call(publishSubplebbitEditOptions, error, subplebbitEdit);
         }
     });
     publishAndRetryFailedChallengeVerification();

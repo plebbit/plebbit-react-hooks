@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import PlebbitJs from '../../lib/plebbit-js';
 import validator from '../../lib/validator';
+import chain from '../../lib/chain';
 import { v4 as uuid } from 'uuid';
 import accountsDatabase from './accounts-database';
 import Logger from '@plebbit/plebbit-logger';
@@ -72,13 +73,17 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
     const signer = yield plebbit.createSigner();
     const author = {
         address: signer.address,
+        wallets: {
+            eth: yield chain.getEthWalletFromPlebbitPrivateKey(signer.privateKey, signer.address),
+            sol: yield chain.getSolWalletFromPlebbitPrivateKey(signer.privateKey, signer.address)
+        }
     };
     const accountName = yield getNextAvailableDefaultAccountName();
     // subplebbits where the account has a role, like moderator, admin, owner, etc.
     const subplebbits = {};
     const account = {
         id: uuid(),
-        version: 2,
+        version: accountsDatabase.accountVersion,
         name: accountName,
         author,
         signer,
