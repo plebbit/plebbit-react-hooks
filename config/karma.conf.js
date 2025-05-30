@@ -81,6 +81,8 @@ module.exports = function (config) {
     frameworks: ['mocha', 'chai', 'sinon'],
     client: {
       mocha: mochaConfig,
+      // log network errors
+      captureConsole: true,
     },
     plugins: [
       require('karma-chrome-launcher'),
@@ -121,6 +123,9 @@ module.exports = function (config) {
     browserNoActivityTimeout: mochaConfig.timeout,
     browserDisconnectTimeout: mochaConfig.timeout,
     browserDisconnectTolerance: 5,
+
+    // log network errors
+    browserConsoleLogOptions: {level: 'debug', terminal: true},
   })
 }
 
