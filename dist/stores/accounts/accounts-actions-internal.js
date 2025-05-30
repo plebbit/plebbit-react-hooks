@@ -55,19 +55,9 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = (comment, accoun
         });
         // update AccountCommentsReplies with new replies if has any new replies
         const replyPageArray = Object.values(((_a = updatedComment.replies) === null || _a === void 0 ? void 0 : _a.pages) || {});
-        // validate replies pages
-        let replyPagesValid = true;
-        const subplebbit = yield account.plebbit.createSubplebbit({ address: comment.subplebbitAddress });
-        try {
-            for (const replyPage of replyPageArray) {
-                replyPage && (yield subplebbit.posts.validatePage(replyPage));
-            }
-        }
-        catch (e) {
-            replyPagesValid = false;
-        }
         const hasReplies = replyPageArray.length && replyPageArray.map((replyPage) => { var _a; return ((_a = replyPage === null || replyPage === void 0 ? void 0 : replyPage.comments) === null || _a === void 0 ? void 0 : _a.length) || 0; }).reduce((prev, curr) => prev + curr) > 0;
-        if (hasReplies && replyPagesValid) {
+        const repliesAreValid = yield utils.repliesAreValid(updatedComment, { validateReplies: false, blockSubplebbit: true }, account.plebbit);
+        if (hasReplies && repliesAreValid) {
             accountsStore.setState(({ accountsCommentsReplies }) => {
                 var _a, _b;
                 // account no longer exists
