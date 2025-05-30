@@ -264,6 +264,47 @@ export const commentIsValid = async (comment: Comment, {validateReplies, blockSu
   return true
 }
 
+export const repliesAreValid = async (comment: Comment, {validateReplies, blockSubplebbit}: any = {}, plebbit: any) => {
+  validateReplies = Boolean(validateReplies)
+  if (blockSubplebbit === undefined || blockSubplebbit === null) {
+    blockSubplebbit = true
+  }
+  if (!comment) {
+    return false
+  }
+  if (subplebbitsWithInvalidComments[comment.subplebbitAddress]) {
+    console.log(`subplebbit '${comment.subplebbitAddress}' had an invalid comment, invalidate all its future comments to avoid wasting resources`)
+    return false
+  }
+  const replyPageArray: any[] = Object.values(comment.replies?.pages || {})
+  const replies = replyPageArray.flatMap(({comments}) => comments)
+
+  // manual validation
+  for (const reply of replies) {
+    if (reply.subplebbitAddress !== comment.subplebbitAddress || reply.depth !== comment.depth + 1 || reply.parentCid !== comment.cid) {
+      if (blockSubplebbit) {
+        subplebbitsWithInvalidComments[comment.subplebbitAddress] = true
+      }
+      console.log('invalid comment', {comment: reply, error: 'reply.subplebbitAddress !== comment.subplebbitAddress || reply.depth !== comment.depth + 1 || reply.parentCid !== comment.cid'})
+      return false
+    }
+  }
+
+  // signature verification
+  try {
+    const promises = replies.map((reply) => commentIsValid(reply, {validateReplies: false, blockSubplebbit: true}, plebbit))
+    await Promise.all(promises)
+  }
+  catch (e: any) {
+    if (blockSubplebbit) {
+      subplebbitsWithInvalidComments[comment.subplebbitAddress] = true
+    }
+    console.log('invalid comment', {comment, error: e})
+    return false
+  }
+  return true
+}
+
 const utils = {
   merge,
   clone,
@@ -277,7 +318,8 @@ const utils = {
   clientsOnStateChange,
   subplebbitPostsCacheExpired,
   commentIsValid,
-  removeInvalidComments
+  removeInvalidComments,
+  repliesAreValid
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {

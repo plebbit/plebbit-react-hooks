@@ -1,6 +1,6 @@
 const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
 const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useAccountVotes, useAccountComments, debugUtils} = require('../../dist')
+const {useAccount, useAccountVotes, useAccountComments, useNotifications, useComment, useReplies, debugUtils} = require('../../dist')
 const accountsActions = require('../../dist/stores/accounts/accounts-actions')
 const testUtils = require('../../dist/lib/test-utils').default
 const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
@@ -92,11 +92,14 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       let rendered, waitFor, publishedCid
 
       before(async () => {
-        rendered = renderHook(() => {
+        rendered = renderHook((commentCid) => {
           const account = useAccount()
           const {accountVotes} = useAccountVotes()
           const {accountComments} = useAccountComments()
-          return {account, accountVotes, accountComments, ...accountsActions}
+          const notifications = useNotifications()
+          const comment = useComment({commentCid})
+          const replies = useReplies({comment})
+          return {account, accountVotes, accountComments, notifications, replies, ...accountsActions}
         })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
@@ -170,6 +173,8 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           expect(typeof challengeVerification.commentUpdate.cid).to.equal('string')
           expect(commentVerified.constructor.name).to.match(/Comment|Post/)
           console.log('after onChallengeVerification')
+
+          publishedCid = challengeVerification.commentUpdate.cid
         })
 
         it(`published comment is in account comments (${plebbitOptionsType})`, async () => {
@@ -188,6 +193,53 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           // expect(typeof rendered.result.current.accountComments[0].cid).to.equal('string')
           // publishedCid = rendered.result.current.accountComments[0].cid
           // console.log('after cid', publishedCid)
+        })
+
+        it(`publish reply (${plebbitOptionsType})`, async () => {
+          // make sure there's no notifications
+          expect(rendered.result.current.notifications.notifications.length).to.equal(0)
+
+          const onChallenge = (challenge, comment) => {
+            console.log('onChallenge')
+            console.log(challenge)
+            comment.publishChallengeAnswers(['2'])
+          }
+          let replyChallengeVerification
+          const onChallengeVerification = (challengeVerification, comment) => {
+            console.log('onChallengeVerification')
+            console.log(challengeVerification)
+            replyChallengeVerification = challengeVerification
+          }
+          const publishCommentOptions = {
+            subplebbitAddress,
+            parentCid: publishedCid,
+            postCid: publishedCid,
+            content: 'some content',
+            onChallenge,
+            onChallengeVerification,
+          }
+          await act(async () => {
+            console.log('before publishComment')
+            await rendered.result.current.publishComment(publishCommentOptions)
+            console.log('after publishComment')
+          })
+
+          // wait for reply challenge verification
+          await waitFor(() => replyChallengeVerification)
+          expect(replyChallengeVerification.challengeSuccess).to.equal(true)
+          console.log('after onChallengeVerification')
+
+          // wait for useReplies
+          expect(typeof publishedCid).to.equal('string')
+          rendered.rerender(publishedCid)
+          await waitFor(() => rendered.result.current.replies.replies.length > 0)
+          expect(rendered.result.current.replies.replies.length).to.equal(1)
+          console.log('after useReplies')
+
+          // wait for useNotifications
+          await waitFor(() => rendered.result.current.notifications.notifications.length > 0)
+          expect(rendered.result.current.notifications.notifications.length).to.equal(1)
+          console.log('after useNotifications')
         })
       })
     })

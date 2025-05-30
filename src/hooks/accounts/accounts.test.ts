@@ -1610,14 +1610,18 @@ describe('accounts', () => {
 
       act(() => {
         // update the comment with replies to see get notifications
+        comment.depth = 0
+        const depth = comment.depth + 1
+        const subplebbitAddress = comment.subplebbitAddress
+        const parentCid = comment.cid
         comment.replies = {
           pages: {
             topAll: {
               nextCid: undefined,
               comments: [
-                {cid: 'reply cid 1', timestamp: 1},
-                {cid: 'reply cid 2', timestamp: 2},
-                {cid: 'reply cid 3', timestamp: 3},
+                {cid: 'reply cid 1', timestamp: 1, depth, subplebbitAddress, parentCid},
+                {cid: 'reply cid 2', timestamp: 2, depth, subplebbitAddress, parentCid},
+                {cid: 'reply cid 3', timestamp: 3, depth, subplebbitAddress, parentCid},
               ],
             },
           },
@@ -1658,13 +1662,18 @@ describe('accounts', () => {
 
       act(() => {
         // update the comment with one unread reply and one read reply
+        comment.depth = 0
+        const depth = comment.depth + 1
+        comment.subplebbitAddress = 'blocked subplebbit address'
+        const subplebbitAddress = comment.subplebbitAddress
+        const parentCid = comment.cid
         comment.replies = {
           pages: {
             topAll: {
               nextCid: undefined,
               comments: [
-                {cid: 'reply cid 3', timestamp: 3, subplebbitAddress: 'blocked subplebbit address', postCid: 'blocked post cid'},
-                {cid: 'reply cid 4', timestamp: 4, author: {address: 'blocked author address'}, parentCid: 'blocked parent cid'},
+                {cid: 'reply cid 3', timestamp: 3, depth, subplebbitAddress, parentCid, postCid: 'blocked post cid'},
+                {cid: 'reply cid 4', timestamp: 4, depth, subplebbitAddress, parentCid, author: {address: 'blocked author address'}},
               ],
             },
           },
@@ -1713,9 +1722,9 @@ describe('accounts', () => {
 
       // block cids
       await act(async () => {
-        await accountsActions.blockCid('blocked parent cid')
         await accountsActions.blockCid('blocked post cid')
         await accountsActions.blockCid('reply cid 2')
+        await accountsActions.blockCid('reply cid 4')
       })
       await waitFor(() => rendered.result.current.notifications.length === 1)
       expect(rendered.result.current.notifications.length).toBe(1)
@@ -1724,9 +1733,9 @@ describe('accounts', () => {
 
       // unblock cids
       await act(async () => {
-        await accountsActions.unblockCid('blocked parent cid')
         await accountsActions.unblockCid('blocked post cid')
         await accountsActions.unblockCid('reply cid 2')
+        await accountsActions.unblockCid('reply cid 4')
       })
       await waitFor(() => rendered.result.current.notifications.length === 4)
       expect(rendered.result.current.notifications.length).toBe(4)

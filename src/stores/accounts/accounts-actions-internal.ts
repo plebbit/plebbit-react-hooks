@@ -62,20 +62,10 @@ export const startUpdatingAccountCommentOnCommentUpdateEvents = async (comment: 
 
     // update AccountCommentsReplies with new replies if has any new replies
     const replyPageArray: any[] = Object.values(updatedComment.replies?.pages || {})
-
-    // validate replies pages
-    let replyPagesValid = true
-    const subplebbit = await account.plebbit.createSubplebbit({address: comment.subplebbitAddress})
-    try {
-      for (const replyPage of replyPageArray) {
-        replyPage && (await subplebbit.posts.validatePage(replyPage))
-      }
-    } catch (e) {
-      replyPagesValid = false
-    }
-
     const hasReplies = replyPageArray.length && replyPageArray.map((replyPage) => replyPage?.comments?.length || 0).reduce((prev, curr) => prev + curr) > 0
-    if (hasReplies && replyPagesValid) {
+    const repliesAreValid = await utils.repliesAreValid(updatedComment, {validateReplies: false, blockSubplebbit: true}, account.plebbit)
+
+    if (hasReplies && repliesAreValid) {
       accountsStore.setState(({accountsCommentsReplies}) => {
         // account no longer exists
         if (!accountsCommentsReplies[account.id]) {
