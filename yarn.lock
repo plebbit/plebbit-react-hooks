@@ -8070,19 +8070,6 @@ globby@^11.0.1, globby@^11.0.4:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-go-ipfs@0.16.0:
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/go-ipfs/-/go-ipfs-0.16.0.tgz#01ddde23969810989dfaa14f8d154d9c7aadaaba"
-  integrity sha512-AxA/CGZgXlU3NCIAFJKdnCcF5TmOiryxtjxH4SmT7FdquAwemgQWzOWxUZzhDDzqlk32mqoDID2sVxmAOfcfcA==
-  dependencies:
-    cachedir "^2.3.0"
-    got "^11.7.0"
-    gunzip-maybe "^1.4.2"
-    hasha "^5.2.2"
-    pkg-conf "^3.1.0"
-    tar-fs "^2.1.0"
-    unzip-stream "^0.3.0"
-
 gopd@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/gopd/-/gopd-1.0.1.tgz#29ff76de69dac7489b7c0918a5788e56477c332c"
@@ -10211,6 +10198,19 @@ kubo-rpc-client@5.1.0:
     stream-to-it "^1.0.1"
     uint8arrays "^5.0.3"
     wherearewe "^2.0.1"
+
+kubo@0.34.1:
+  version "0.34.1"
+  resolved "https://registry.yarnpkg.com/kubo/-/kubo-0.34.1.tgz#ac055ff29a363ae0310a05566e6c244c07378104"
+  integrity sha512-gQSyEY/LWJyJ37CVg/IyPYATKjTrGSvYdRIHrdASyL7BiHMR346fumhwOacBsHh7AYXqpbm416s5OaNh0Opvpg==
+  dependencies:
+    cachedir "^2.3.0"
+    got "^11.7.0"
+    gunzip-maybe "^1.4.2"
+    hasha "^5.2.2"
+    pkg-conf "^3.1.0"
+    tar-fs "^2.1.0"
+    unzip-stream "^0.3.0"
 
 leven@^3.1.0:
   version "3.1.0"

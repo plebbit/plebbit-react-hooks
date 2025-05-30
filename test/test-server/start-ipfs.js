@@ -2,7 +2,7 @@
 
 const {exec, execSync} = require('child_process')
 const getTmpFolderPath = require('tempy').directory
-const ipfsPath = require('go-ipfs').path()
+const ipfsPath = require('kubo').path()
 const assert = require('assert')
 
 const startIpfs = ({apiPort, gatewayPort, args = ''} = {}) => {
@@ -30,6 +30,9 @@ const startIpfs = ({apiPort, gatewayPort, args = ''} = {}) => {
   // set ports
   execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config Addresses.API /ip4/127.0.0.1/tcp/${apiPort}`, {stdio: 'inherit'})
   execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config Addresses.Gateway /ip4/127.0.0.1/tcp/${gatewayPort}`, {stdio: 'inherit'})
+
+  // add hello for monitoring
+  execSync(`echo "hello" | "${ipfsPath}" add -`, {stdio: 'inherit', env: {IPFS_PATH: ipfsDataPath}, shell: true})
 
   // start ipfs daemon
   const ipfsProcess = exec(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" daemon ${args}`)

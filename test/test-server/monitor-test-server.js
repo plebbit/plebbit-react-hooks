@@ -40,12 +40,12 @@ export const assertTestServerDidntCrash = async () => {
   if (testServerText !== 'test server ready') {
     throw Error('test server crashed http://localhost:59281: ' + testServerError?.message || '')
   }
-  const [offlineIpfsText, offlineIpfsError] = await fetchText(`http://localhost:${offlineIpfs.gatewayPort}/ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme`)
-  if (!offlineIpfsText?.startsWith('Hello and Welcome to IPFS')) {
+  const [offlineIpfsText, offlineIpfsError] = await fetchText(`http://localhost:${offlineIpfs.gatewayPort}/ipfs/QmZULkCELmmk5XNfCgTnCyFgAVxBRBXyDHGGMVoLFLiXEN`)
+  if (!offlineIpfsText?.startsWith('hello')) {
     throw Error(`test server crashed offline ipfs daemon http://localhost:${offlineIpfs.gatewayPort}: ` + offlineIpfsError?.message || '')
   }
-  const [pubsubIpfsText, pubsubIpfsError] = await fetchText(`http://localhost:${pubsubIpfs.gatewayPort}/ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme`)
-  if (!pubsubIpfsText?.startsWith('Hello and Welcome to IPFS')) {
+  const [pubsubIpfsText, pubsubIpfsError] = await fetchText(`http://localhost:${pubsubIpfs.gatewayPort}/ipfs/QmZULkCELmmk5XNfCgTnCyFgAVxBRBXyDHGGMVoLFLiXEN`)
+  if (!pubsubIpfsText?.startsWith('hello')) {
     throw Error(`test server crashed pubsub ipfs daemon http://localhost:${pubsubIpfs.gatewayPort}` + pubsubIpfsError?.message || '')
   }
 }
