@@ -19,6 +19,7 @@ const startIpfs = ({apiPort, gatewayPort, args = ''} = {}) => {
   // allow * origin on ipfs api to bypass cors browser error
   // very insecure do not do this in production
   execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'`, {stdio: 'inherit'})
+  execSync(`IPFS_PATH="${ipfsDataPath}" "${ipfsPath}" config --json API.HTTPHeaders.Access-Control-Allow-Headers '["*"]'`, {stdio: 'inherit'})
 
   // disable subdomain gateway
   execSync(
