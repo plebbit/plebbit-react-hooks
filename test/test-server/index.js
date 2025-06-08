@@ -9,6 +9,7 @@ const signers = require('../fixtures/signers')
 
 // always use the same private key and subplebbit address when testing
 const privateKey = signers[0].privateKey
+const adminRoleAddress = signers[1].address
 
 // set up a subplebbit for testing
 ;(async () => {
@@ -29,7 +30,7 @@ const privateKey = signers[0].privateKey
   const {default: Plebbit} = await import('@plebbit/plebbit-js')
   const plebbit = await Plebbit(plebbitOptions)
   // TODO: dataPath: undefined should not be needed, plebbit-js bug
-  const plebbit2 = await Plebbit({...plebbitOptions, dataPath: undefined})
+  const plebbit2 = await Plebbit({...plebbitOptions, dataPath: getTmpFolderPath()})
   const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
 
   console.log(`creating subplebbit with address '${signer.address}'...`)
@@ -38,7 +39,10 @@ const privateKey = signers[0].privateKey
   })
   subplebbit.on('challengerequest', console.log)
   subplebbit.on('challengeanswer', console.log)
-  await subplebbit.edit({settings: {challenges: [{name: 'question', options: {question: '1+1=?', answer: '2'}}]}})
+  await subplebbit.edit({
+    settings: {challenges: [{name: 'question', options: {question: '1+1=?', answer: '2'}}]},
+    roles: {[adminRoleAddress]: {role: 'admin'}},
+  })
   console.log('subplebbit created')
 
   console.log('starting subplebbit...')

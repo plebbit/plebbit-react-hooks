@@ -5,4 +5,9 @@ signers[0] = {
   address: '12D3KooWMZPQsQdYtrakc4D1XtzGXwN1X3DBnAobcCjcPYYXTB6o',
 }
 
+signers[1] = {
+  privateKey: `5IyiLWVpqdgV9vC/fdNOWu+6IqzNmt49S5ZNws8VkZQ`,
+  address: '12D3KooWS3z6sH3Q7NU2FWU5KL9t1XXSmfnE15BE7vjuFXSvQYSZ',
+}
+
 module.exports = signers

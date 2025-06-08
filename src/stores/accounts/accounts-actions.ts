@@ -841,9 +841,9 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
     timestamp: Math.round(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
-    ...subplebbitEditOptions,
     // not possible to edit subplebbit.address over pubsub, only locally
-    address: subplebbitAddress,
+    subplebbitAddress,
+    subplebbitEdit: subplebbitEditOptions,
   }
 
   let subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)

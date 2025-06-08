@@ -147,7 +147,7 @@ const initializeStartSubplebbits = async () => {
   startedSubplebbits = {}
   pendingStartedSubplebbits = {}
 
-  const startSubplebbitsPollTime = 10000
+  const startSubplebbitsPollTime = 1000
   startSubplebbitsInterval = setInterval(async () => {
     const {accounts, activeAccountId} = accountsStore.getState()
     const account = accounts?.[activeAccountId || '']
