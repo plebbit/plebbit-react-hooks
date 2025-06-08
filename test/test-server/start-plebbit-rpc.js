@@ -1,6 +1,8 @@
 const path = require('path')
 const assert = require('assert')
 const tcpPortUsed = require('tcp-port-used')
+const getTmpFolderPath = require('tempy').directory
+const plebbitDataPath = getTmpFolderPath()
 
 const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
   assert(typeof port === 'number', `startPlebbitRpc port '${port}' not a number`)
@@ -8,7 +10,7 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
   assert(typeof pubsubApiPort === 'number', `startPlebbitRpc pubsubApiPort '${pubsubApiPort}' not a number`)
 
   const plebbitOptions = {
-    dataPath: path.join(__dirname, '..', '.plebbit', 'rpc'),
+    dataPath: plebbitDataPath,
     kuboRpcClientsOptions: [`http://127.0.0.1:${ipfsApiPort}/api/v0`],
     pubsubKuboRpcClientsOptions: [`http://127.0.0.1:${pubsubApiPort}/api/v0`],
     httpRoutersOptions: [],

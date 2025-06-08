@@ -29,7 +29,7 @@ const adminRoleAddress = signers[1].address
 
   const {default: Plebbit} = await import('@plebbit/plebbit-js')
   const plebbit = await Plebbit(plebbitOptions)
-  // TODO: dataPath: undefined should not be needed, plebbit-js bug
+  // TODO: dataPath: getTmpFolderPath() should not be needed, plebbit-js bug
   const plebbit2 = await Plebbit({...plebbitOptions, dataPath: getTmpFolderPath()})
   const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
 

@@ -4,6 +4,8 @@
 // to not have to type it every time
 require('dotenv').config()
 
+const isFirefox = process.argv.includes('--firefox')
+
 // same as .mocharc.js
 const mochaConfig = {
   // set large value for manual debugging
@@ -33,16 +35,16 @@ let browsers = [
   // 'CustomChrome',
   'DebugChrome',
 ]
-
-// use headless for manual debugging
-if (process.env.HEADLESS) {
-  browsers = ['CustomChrome']
+if (isFirefox) {
+  browsers = ['Firefox']
 }
 
-// add firefox during CI
 // make sure non-headless DebugChrome is not included as it breaks the CI
-if (process.env.CI) {
-  browsers = ['CustomChrome', 'FirefoxHeadless']
+if (process.env.CI || process.env.HEADLESS) {
+  browsers = ['CustomChrome']
+  if (isFirefox) {
+    browsers = ['FirefoxHeadless']
+  }
 }
 
 // inject browser code before each test file
