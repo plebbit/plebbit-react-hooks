@@ -727,9 +727,14 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
         return;
     }
     assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
-    let createSubplebbitEditOptions = Object.assign(Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, subplebbitEditOptions), { 
+    let createSubplebbitEditOptions = {
+        timestamp: Math.round(Date.now() / 1000),
+        author: account.author,
+        signer: account.signer,
         // not possible to edit subplebbit.address over pubsub, only locally
-        address: subplebbitAddress });
+        subplebbitAddress,
+        subplebbitEdit: subplebbitEditOptions,
+    };
     let subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
     let lastChallenge;
     const publishAndRetryFailedChallengeVerification = () => __awaiter(void 0, void 0, void 0, function* () {

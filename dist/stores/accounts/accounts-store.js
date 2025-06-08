@@ -114,7 +114,7 @@ const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, funct
     // don't start subplebbits twice
     startedSubplebbits = {};
     pendingStartedSubplebbits = {};
-    const startSubplebbitsPollTime = 10000;
+    const startSubplebbitsPollTime = 1000;
     startSubplebbitsInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const { accounts, activeAccountId } = accountsStore.getState();
         const account = accounts === null || accounts === void 0 ? void 0 : accounts[activeAccountId || ''];
