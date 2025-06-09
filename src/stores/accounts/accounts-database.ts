@@ -38,13 +38,15 @@ const migrate = async () => {
     promises.push(previousAccountsMetadataDatabase.getItem(key).then((value) => accountsMetadataDatabase.setItem(key, value)))
   }
   const accountIds = await previousAccountsMetadataDatabase.getItem('accountIds')
-  const databaseNames = ['accountComments', 'accountVotes', 'accountCommentsReplies', 'accountEdits']
-  for (const databaseName of databaseNames) {
-    for (const accountId of accountIds || []) {
-      const previousDatabase = localForage.createInstance({name: `${databaseName}-${accountId}`})
-      const database = localForage.createInstance({name: `plebbitReactHooks-${databaseName}-${accountId}`})
-      for (const key of await previousDatabase.keys()) {
-        promises.push(previousDatabase.getItem(key).then((value) => database.setItem(key, value)))
+  if (Array.isArray(accountIds)) {
+    const databaseNames = ['accountComments', 'accountVotes', 'accountCommentsReplies', 'accountEdits']
+    for (const databaseName of databaseNames) {
+      for (const accountId of accountIds) {
+        const previousDatabase = localForage.createInstance({name: `${databaseName}-${accountId}`})
+        const database = localForage.createInstance({name: `plebbitReactHooks-${databaseName}-${accountId}`})
+        for (const key of await previousDatabase.keys()) {
+          promises.push(previousDatabase.getItem(key).then((value) => database.setItem(key, value)))
+        }
       }
     }
   }
