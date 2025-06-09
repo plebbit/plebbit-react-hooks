@@ -458,7 +458,7 @@ export const resetFeedsStore = async () => {
 
 // reset database and store in between tests
 export const resetFeedsDatabaseAndStore = async () => {
-  await localForageLru.createInstance({name: 'subplebbitsPages'}).clear()
+  await localForageLru.createInstance({name: 'plebbitReactHooks-subplebbitsPages'}).clear()
   await resetFeedsStore()
 }
 

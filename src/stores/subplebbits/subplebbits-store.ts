@@ -1,6 +1,6 @@
 import assert from 'assert'
 import localForageLru from '../../lib/localforage-lru'
-const subplebbitsDatabase = localForageLru.createInstance({name: 'subplebbits', size: 500})
+const subplebbitsDatabase = localForageLru.createInstance({name: 'plebbitReactHooks-subplebbits', size: 500})
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:subplebbits:stores')
 import {Subplebbit, Subplebbits, Account, CreateSubplebbitOptions} from '../../types'
@@ -237,7 +237,7 @@ export const resetSubplebbitsStore = async () => {
 
 // reset database and store in between tests
 export const resetSubplebbitsDatabaseAndStore = async () => {
-  await localForageLru.createInstance({name: 'subplebbits'}).clear()
+  await localForageLru.createInstance({name: 'plebbitReactHooks-subplebbits'}).clear()
   await resetSubplebbitsStore()
 }
 

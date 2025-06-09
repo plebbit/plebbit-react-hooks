@@ -58,6 +58,8 @@ const accountsStore = createStore<AccountsState>((setState: Function, getState: 
 
 // load accounts from database once on load
 const initializeAccountsStore = async () => {
+  await accountsDatabase.migrate()
+
   let accountIds: string[] | undefined
   let activeAccountId: string | undefined
   let accounts: Accounts
@@ -238,7 +240,10 @@ export const resetAccountsDatabaseAndStore = async () => {
   // don't reset while initializing, it could happen during quick successive tests
   await waitForInitialized()
 
-  await Promise.all([localForage.createInstance({name: 'accountsMetadata'}).clear(), localForage.createInstance({name: 'accounts'}).clear()])
+  await Promise.all([
+    localForage.createInstance({name: 'plebbitReactHooks-accountsMetadata'}).clear(),
+    localForage.createInstance({name: 'plebbitReactHooks-accounts'}).clear(),
+  ])
   await resetAccountsStore()
 }
 

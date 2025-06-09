@@ -1,6 +1,6 @@
 import validator from '../../lib/validator'
 import localForageLru from '../../lib/localforage-lru'
-const commentsDatabase = localForageLru.createInstance({name: 'comments', size: 5000})
+const commentsDatabase = localForageLru.createInstance({name: 'plebbitReactHooks-comments', size: 5000})
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:comments:stores')
 import {Comment, Comments, Account} from '../../types'
@@ -156,7 +156,7 @@ export const resetCommentsStore = async () => {
 
 // reset database and store in between tests
 export const resetCommentsDatabaseAndStore = async () => {
-  await localForageLru.createInstance({name: 'comments'}).clear()
+  await localForageLru.createInstance({name: 'plebbitReactHooks-comments'}).clear()
   await resetCommentsStore()
 }
 

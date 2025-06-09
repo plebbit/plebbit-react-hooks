@@ -4,13 +4,37 @@ import chain from '../../lib/chain'
 import assert from 'assert'
 import localForage from 'localforage'
 import localForageLru from '../../lib/localforage-lru'
-const accountsDatabase = localForage.createInstance({name: 'accounts'})
-const accountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
 import {Accounts, AccountNamesToAccountIds, CreateCommentOptions, Account, Comment, AccountsComments, AccountCommentReply, AccountsCommentsReplies} from '../../types'
 import utils from '../../lib/utils'
 import {getDefaultPlebbitOptions, overwritePlebbitOptions} from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
+
+// TODO: remove this eventually after everyone has migrated
+// migrate to name with safe prefix
+const previousAccountsDatabase = localForage.createInstance({name: 'accounts'})
+const previousAccountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
+const accountsDatabase = localForage.createInstance({name: 'plebbitReactHooks-accounts'})
+const accountsMetadataDatabase = localForage.createInstance({name: 'plebbitReactHooks-accountsMetadata'})
+const migrate = async () => {
+  // no previous db to migrate
+  if (!(await previousAccountsMetadataDatabase.getItem('activeAccountId'))) {
+    return
+  }
+  // db already migrated
+  if (await accountsMetadataDatabase.getItem('activeAccountId')) {
+    return
+  }
+  // migrate
+  const promises = []
+  for (const key of await previousAccountsDatabase.keys()) {
+    promises.push(previousAccountsDatabase.getItem(key).then((value) => accountsDatabase.setItem(key, value)))
+  }
+  for (const key of await previousAccountsMetadataDatabase.keys()) {
+    promises.push(previousAccountsMetadataDatabase.getItem(key).then((value) => accountsMetadataDatabase.setItem(key, value)))
+  }
+  await Promise.all(promises)
+}
 
 const getAccounts = async (accountIds: string[]) => {
   validator.validateAccountsDatabaseGetAccountsArguments(accountIds)
@@ -202,7 +226,7 @@ const accountsCommentsDatabases: any = {}
 const getAccountCommentsDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountCommentsDatabase '${accountId}' not a string`)
   if (!accountsCommentsDatabases[accountId]) {
-    accountsCommentsDatabases[accountId] = localForage.createInstance({name: `accountComments-${accountId}`})
+    accountsCommentsDatabases[accountId] = localForage.createInstance({name: `plebbitReactHooks-accountComments-${accountId}`})
   }
   return accountsCommentsDatabases[accountId]
 }
@@ -257,7 +281,7 @@ const accountsVotesDatabases: any = {}
 const getAccountVotesDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountVotesDatabase '${accountId}' not a string`)
   if (!accountsVotesDatabases[accountId]) {
-    accountsVotesDatabases[accountId] = localForage.createInstance({name: `accountVotes-${accountId}`})
+    accountsVotesDatabases[accountId] = localForage.createInstance({name: `plebbitReactHooks-accountVotes-${accountId}`})
   }
   return accountsVotesDatabases[accountId]
 }
@@ -323,7 +347,7 @@ const getAccountCommentsRepliesDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountCommentsRepliesDatabase '${accountId}' not a string`)
   if (!accountsCommentsRepliesDatabases[accountId]) {
     accountsCommentsRepliesDatabases[accountId] = localForageLru.createInstance({
-      name: `accountCommentsReplies-${accountId}`,
+      name: `plebbitReactHooks-accountCommentsReplies-${accountId}`,
       size: 1000,
     })
   }
@@ -364,7 +388,7 @@ const accountsEditsDatabases: any = {}
 const getAccountEditsDatabase = (accountId: string) => {
   assert(accountId && typeof accountId === 'string', `getAccountEditsDatabase '${accountId}' not a string`)
   if (!accountsEditsDatabases[accountId]) {
-    accountsEditsDatabases[accountId] = localForage.createInstance({name: `accountEdits-${accountId}`})
+    accountsEditsDatabases[accountId] = localForage.createInstance({name: `plebbitReactHooks-accountEdits-${accountId}`})
   }
   return accountsEditsDatabases[accountId]
 }
@@ -454,7 +478,8 @@ const database = {
   getAccountsEdits,
   getAccountEdits,
   addAccountEdit,
-  accountVersion
+  accountVersion,
+  migrate,
 }
 
 export default database

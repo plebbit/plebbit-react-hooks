@@ -152,7 +152,7 @@ const repliesStore = createStore<RepliesState>((setState: Function, getState: Fu
     const feedsToAddToStore: RepliesFeedOptions[] = []
 
     // use the sort type availabe on the comment when missing
-    const sortType = getSortTypeFromComment(comment, feedOptions) 
+    const sortType = getSortTypeFromComment(comment, feedOptions)
 
     const addRepliesFeedsToStoreRecursively = (comment: Comment) => {
       // NOTE: even a comment with no replies needs a feed, to know it has 0 replies and not displace the UI when a new replies appears
@@ -435,7 +435,7 @@ export const resetRepliesStore = async () => {
 
 // reset database and store in between tests
 export const resetRepliesDatabaseAndStore = async () => {
-  await localForageLru.createInstance({name: 'repliesPages'}).clear()
+  await localForageLru.createInstance({name: 'plebbitReactHooks-repliesPages'}).clear()
   await resetRepliesStore()
 }
 

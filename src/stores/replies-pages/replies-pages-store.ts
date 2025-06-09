@@ -10,7 +10,7 @@ import localForageLru from '../../lib/localforage-lru'
 import createStore from 'zustand'
 import assert from 'assert'
 
-const repliesPagesDatabase = localForageLru.createInstance({name: 'repliesPages', size: 500})
+const repliesPagesDatabase = localForageLru.createInstance({name: 'plebbitReactHooks-repliesPages', size: 500})
 
 // reset all event listeners in between tests
 export const listeners: any = []
@@ -272,7 +272,7 @@ export const resetRepliesPagesStore = async () => {
 
 // reset database and store in between tests
 export const resetRepliesPagesDatabaseAndStore = async () => {
-  await localForageLru.createInstance({name: 'repliesPages'}).clear()
+  await localForageLru.createInstance({name: 'plebbitReactHooks-repliesPages'}).clear()
   await resetRepliesPagesStore()
 }
 
