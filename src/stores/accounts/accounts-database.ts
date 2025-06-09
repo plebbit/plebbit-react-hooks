@@ -9,23 +9,27 @@ import utils from '../../lib/utils'
 import {getDefaultPlebbitOptions, overwritePlebbitOptions} from './account-generator'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
+const accountsDatabase = localForage.createInstance({name: 'plebbitReactHooks-accounts'})
+const accountsMetadataDatabase = localForage.createInstance({name: 'plebbitReactHooks-accountsMetadata'})
 
 // TODO: remove this eventually after everyone has migrated
 // migrate to name with safe prefix
-const previousAccountsDatabase = localForage.createInstance({name: 'accounts'})
-const previousAccountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
-const accountsDatabase = localForage.createInstance({name: 'plebbitReactHooks-accounts'})
-const accountsMetadataDatabase = localForage.createInstance({name: 'plebbitReactHooks-accountsMetadata'})
 const migrate = async () => {
+  const previousAccountsDatabase = localForage.createInstance({name: 'accounts'})
+  const previousAccountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
   // no previous db to migrate
   if (!(await previousAccountsMetadataDatabase.getItem('activeAccountId'))) {
+    console.log('no previous db to migrate')
     return
   }
   // db already migrated
   if (await accountsMetadataDatabase.getItem('activeAccountId')) {
+    console.log('db already migrated')
     return
   }
   // migrate
+  const before = Date.now()
+  console.log('migrating....')
   const promises = []
   for (const key of await previousAccountsDatabase.keys()) {
     promises.push(previousAccountsDatabase.getItem(key).then((value) => accountsDatabase.setItem(key, value)))
@@ -33,7 +37,19 @@ const migrate = async () => {
   for (const key of await previousAccountsMetadataDatabase.keys()) {
     promises.push(previousAccountsMetadataDatabase.getItem(key).then((value) => accountsMetadataDatabase.setItem(key, value)))
   }
+  const accountIds = await previousAccountsMetadataDatabase.getItem('accountIds')
+  const databaseNames = ['accountComments', 'accountVotes', 'accountCommentsReplies', 'accountEdits']
+  for (const databaseName of databaseNames) {
+    for (const accountId of accountIds || []) {
+      const previousDatabase = localForage.createInstance({name: `${databaseName}-${accountId}`})
+      const database = localForage.createInstance({name: `plebbitReactHooks-${databaseName}-${accountId}`})
+      for (const key of await previousDatabase.keys()) {
+        promises.push(previousDatabase.getItem(key).then((value) => database.setItem(key, value)))
+      }
+    }
+  }
   await Promise.all(promises)
+  console.log(`migrated in ${Date.now() - before}ms`)
 }
 
 const getAccounts = async (accountIds: string[]) => {
