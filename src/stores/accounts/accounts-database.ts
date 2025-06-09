@@ -19,17 +19,13 @@ const migrate = async () => {
   const previousAccountsMetadataDatabase = localForage.createInstance({name: 'accountsMetadata'})
   // no previous db to migrate
   if (!(await previousAccountsMetadataDatabase.getItem('activeAccountId'))) {
-    console.log('no previous db to migrate')
     return
   }
   // db already migrated
   if (await accountsMetadataDatabase.getItem('activeAccountId')) {
-    console.log('db already migrated')
     return
   }
   // migrate
-  const before = Date.now()
-  console.log('migrating....')
   const promises = []
   for (const key of await previousAccountsDatabase.keys()) {
     promises.push(previousAccountsDatabase.getItem(key).then((value) => accountsDatabase.setItem(key, value)))
@@ -51,7 +47,6 @@ const migrate = async () => {
     }
   }
   await Promise.all(promises)
-  console.log(`migrated in ${Date.now() - before}ms`)
 }
 
 const getAccounts = async (accountIds: string[]) => {
