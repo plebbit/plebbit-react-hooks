@@ -26,17 +26,13 @@ const migrate = () => __awaiter(void 0, void 0, void 0, function* () {
     const previousAccountsMetadataDatabase = localForage.createInstance({ name: 'accountsMetadata' });
     // no previous db to migrate
     if (!(yield previousAccountsMetadataDatabase.getItem('activeAccountId'))) {
-        console.log('no previous db to migrate');
         return;
     }
     // db already migrated
     if (yield accountsMetadataDatabase.getItem('activeAccountId')) {
-        console.log('db already migrated');
         return;
     }
     // migrate
-    const before = Date.now();
-    console.log('migrating....');
     const promises = [];
     for (const key of yield previousAccountsDatabase.keys()) {
         promises.push(previousAccountsDatabase.getItem(key).then((value) => accountsDatabase.setItem(key, value)));
@@ -58,7 +54,6 @@ const migrate = () => __awaiter(void 0, void 0, void 0, function* () {
         }
     }
     yield Promise.all(promises);
-    console.log(`migrated in ${Date.now() - before}ms`);
 });
 const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* () {
     validator.validateAccountsDatabaseGetAccountsArguments(accountIds);
