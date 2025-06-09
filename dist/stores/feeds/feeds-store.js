@@ -349,7 +349,7 @@ export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function*
 });
 // reset database and store in between tests
 export const resetFeedsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield localForageLru.createInstance({ name: 'subplebbitsPages' }).clear();
+    yield localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbitsPages' }).clear();
     yield resetFeedsStore();
 });
 export default feedsStore;

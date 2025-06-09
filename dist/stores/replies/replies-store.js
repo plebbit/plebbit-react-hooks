@@ -344,7 +344,7 @@ export const resetRepliesStore = () => __awaiter(void 0, void 0, void 0, functio
 });
 // reset database and store in between tests
 export const resetRepliesDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield localForageLru.createInstance({ name: 'repliesPages' }).clear();
+    yield localForageLru.createInstance({ name: 'plebbitReactHooks-repliesPages' }).clear();
     yield resetRepliesStore();
 });
 export default repliesStore;

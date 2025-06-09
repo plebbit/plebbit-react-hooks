@@ -20,5 +20,6 @@ declare const database: {
     getAccountEdits: (accountId: string) => Promise<any>;
     addAccountEdit: (accountId: string, createEditOptions: CreateCommentOptions) => Promise<void>;
     accountVersion: number;
+    migrate: () => Promise<void>;
 };
 export default database;

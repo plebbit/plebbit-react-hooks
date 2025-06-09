@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import assert from 'assert';
 import localForageLru from '../../lib/localforage-lru';
-const subplebbitsDatabase = localForageLru.createInstance({ name: 'subplebbits', size: 500 });
+const subplebbitsDatabase = localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbits', size: 500 });
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:subplebbits:stores');
 import utils from '../../lib/utils';
@@ -203,7 +203,7 @@ export const resetSubplebbitsStore = () => __awaiter(void 0, void 0, void 0, fun
 });
 // reset database and store in between tests
 export const resetSubplebbitsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield localForageLru.createInstance({ name: 'subplebbits' }).clear();
+    yield localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbits' }).clear();
     yield resetSubplebbitsStore();
 });
 export default subplebbitsStore;

@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import localForageLru from '../../lib/localforage-lru';
-const commentsDatabase = localForageLru.createInstance({ name: 'comments', size: 5000 });
+const commentsDatabase = localForageLru.createInstance({ name: 'plebbitReactHooks-comments', size: 5000 });
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:comments:stores');
 import utils from '../../lib/utils';
@@ -141,7 +141,7 @@ export const resetCommentsStore = () => __awaiter(void 0, void 0, void 0, functi
 });
 // reset database and store in between tests
 export const resetCommentsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield localForageLru.createInstance({ name: 'comments' }).clear();
+    yield localForageLru.createInstance({ name: 'plebbitReactHooks-comments' }).clear();
     yield resetCommentsStore();
 });
 export default commentsStore;

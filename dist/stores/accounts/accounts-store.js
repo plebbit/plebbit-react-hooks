@@ -35,6 +35,7 @@ const accountsStore = createStore((setState, getState) => ({
 }));
 // load accounts from database once on load
 const initializeAccountsStore = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield accountsDatabase.migrate();
     let accountIds;
     let activeAccountId;
     let accounts;
@@ -197,7 +198,10 @@ export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, functi
 export const resetAccountsDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
     // don't reset while initializing, it could happen during quick successive tests
     yield waitForInitialized();
-    yield Promise.all([localForage.createInstance({ name: 'accountsMetadata' }).clear(), localForage.createInstance({ name: 'accounts' }).clear()]);
+    yield Promise.all([
+        localForage.createInstance({ name: 'plebbitReactHooks-accountsMetadata' }).clear(),
+        localForage.createInstance({ name: 'plebbitReactHooks-accounts' }).clear(),
+    ]);
     yield resetAccountsStore();
 });
 export default accountsStore;

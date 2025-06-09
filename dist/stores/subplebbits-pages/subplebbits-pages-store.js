@@ -16,7 +16,7 @@ import subplebbitsStore from '../subplebbits';
 import localForageLru from '../../lib/localforage-lru';
 import createStore from 'zustand';
 import assert from 'assert';
-const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'subplebbitsPages', size: 500 });
+const subplebbitsPagesDatabase = localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbitsPages', size: 500 });
 // reset all event listeners in between tests
 export const listeners = [];
 const subplebbitsPagesStore = createStore((setState, getState) => ({
@@ -239,7 +239,7 @@ export const resetSubplebbitsPagesStore = () => __awaiter(void 0, void 0, void 0
 });
 // reset database and store in between tests
 export const resetSubplebbitsPagesDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield localForageLru.createInstance({ name: 'subplebbitsPages' }).clear();
+    yield localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbitsPages' }).clear();
     yield resetSubplebbitsPagesStore();
 });
 export default subplebbitsPagesStore;

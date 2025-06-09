@@ -17,7 +17,7 @@ import { addChildrenRepliesFeedsToAddToStore } from './utils';
 import localForageLru from '../../lib/localforage-lru';
 import createStore from 'zustand';
 import assert from 'assert';
-const repliesPagesDatabase = localForageLru.createInstance({ name: 'repliesPages', size: 500 });
+const repliesPagesDatabase = localForageLru.createInstance({ name: 'plebbitReactHooks-repliesPages', size: 500 });
 // reset all event listeners in between tests
 export const listeners = [];
 const repliesPagesStore = createStore((setState, getState) => ({
@@ -253,7 +253,7 @@ export const resetRepliesPagesStore = () => __awaiter(void 0, void 0, void 0, fu
 });
 // reset database and store in between tests
 export const resetRepliesPagesDatabaseAndStore = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield localForageLru.createInstance({ name: 'repliesPages' }).clear();
+    yield localForageLru.createInstance({ name: 'plebbitReactHooks-repliesPages' }).clear();
     yield resetRepliesPagesStore();
 });
 export default repliesPagesStore;

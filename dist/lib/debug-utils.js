@@ -1,16 +1,16 @@
 import localForage from 'localforage';
 import localForageLru from '../lib/localforage-lru';
 const deleteDatabases = () => Promise.all([
-    localForage.createInstance({ name: 'accountsMetadata' }).clear(),
-    localForage.createInstance({ name: 'accounts' }).clear(),
-    localForageLru.createInstance({ name: 'subplebbits' }).clear(),
-    localForageLru.createInstance({ name: 'comments' }).clear(),
-    localForageLru.createInstance({ name: 'subplebbitsPages' }).clear(),
+    localForage.createInstance({ name: 'plebbitReactHooks-accountsMetadata' }).clear(),
+    localForage.createInstance({ name: 'plebbitReactHooks-accounts' }).clear(),
+    localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbits' }).clear(),
+    localForageLru.createInstance({ name: 'plebbitReactHooks-comments' }).clear(),
+    localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbitsPages' }).clear(),
 ]);
 const deleteCaches = () => Promise.all([
-    localForageLru.createInstance({ name: 'subplebbits' }).clear(),
-    localForageLru.createInstance({ name: 'comments' }).clear(),
-    localForageLru.createInstance({ name: 'subplebbitsPages' }).clear(),
+    localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbits' }).clear(),
+    localForageLru.createInstance({ name: 'plebbitReactHooks-comments' }).clear(),
+    localForageLru.createInstance({ name: 'plebbitReactHooks-subplebbitsPages' }).clear(),
 ]);
 const debugUtils = {
     deleteDatabases,
