@@ -3651,9 +3651,9 @@
   resolved "https://registry.yarnpkg.com/@perseveranza-pets/milo/-/milo-0.2.1.tgz#e1862004f14c5baa03516968d95a7429a813ce37"
   integrity sha512-Q96Q1cdYfofu5Rbaj3z5HYzkhlDS+pljh/g+GX/JHr/TlodpDDxFZ1sVuQI6O3+rFdfrU5ScgD1kx4NyCYebbw==
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#bce2c69926d3e5d59e0395236458b184a2ba24ff":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#1f08af3c40f264dd51dddf6ef60594d568dfdbad":
   version "0.0.7"
-  resolved "https://github.com/plebbit/plebbit-js.git#bce2c69926d3e5d59e0395236458b184a2ba24ff"
+  resolved "https://github.com/plebbit/plebbit-js.git#1f08af3c40f264dd51dddf6ef60594d568dfdbad"
   dependencies:
     "@bonfida/spl-name-service" "3.0.10"
     "@chainsafe/libp2p-gossipsub" "14.1.1"
@@ -3712,7 +3712,7 @@
     typestub-ipfs-only-hash "4.0.0"
     uuid "11.1.0"
     viem "2.29.0"
-    zod "3.24.4"
+    zod "3.25.64"
 
 "@plebbit/plebbit-logger@github:plebbit/plebbit-logger#355a96d7659ed820047980049dfa627d30d83a69":
   version "0.0.1"
@@ -14383,6 +14383,7 @@ workerpool@6.2.1:
   integrity sha512-ILEIE97kDZvF9Wb9f6h5aXK4swSlKGUcOEGiIYb2OOu/IrDU9iwj0fD//SsA6E5ibwJxpEvhullJY4Sl4GcpAw==
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -14563,10 +14564,10 @@ yocto-queue@^1.0.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-1.0.0.tgz#7f816433fb2cbc511ec8bf7d263c3b58a1a3c251"
   integrity sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==
 
-zod@3.24.4:
-  version "3.24.4"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.4.tgz#e2e2cca5faaa012d76e527d0d36622e0a90c315f"
-  integrity sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==
+zod@3.25.64:
+  version "3.25.64"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.64.tgz#57b5c7e76dd64e447f7e710285fcdb396b32f803"
+  integrity sha512-hbP9FpSZf7pkS7hRVUrOjhwKJNyampPgtXKc3AN6DsWtoHsg2Sb4SQaS4Tcay380zSwd2VPo9G9180emBACp5g==
 
 zustand@4.0.0:
   version "4.0.0"
