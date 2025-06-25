@@ -44,9 +44,11 @@ export const getDefaultPlebbitOptions = () => {
     // default plebbit options defined by the electron process
     // @ts-ignore
     if (window.defaultPlebbitOptions) {
-        // add missing chain providers
         // @ts-ignore
-        const defaultPlebbitOptions = JSON.parse(JSON.stringify(window.defaultPlebbitOptions));
+        const defaultPlebbitOptions = JSON.parse(JSON.stringify(Object.assign(Object.assign({}, window.defaultPlebbitOptions), { libp2pJsClientsOptions: undefined })));
+        // @ts-ignore
+        defaultPlebbitOptions.libp2pJsClientsOptions = window.defaultPlebbitOptions.libp2pJsClientsOptions; // libp2pJsClientsOptions is not always just json
+        // add missing chain providers
         if (!defaultPlebbitOptions.chainProviders) {
             defaultPlebbitOptions.chainProviders = {};
         }
@@ -75,8 +77,8 @@ export const generateDefaultAccount = () => __awaiter(void 0, void 0, void 0, fu
         address: signer.address,
         wallets: {
             eth: yield chain.getEthWalletFromPlebbitPrivateKey(signer.privateKey, signer.address),
-            sol: yield chain.getSolWalletFromPlebbitPrivateKey(signer.privateKey, signer.address)
-        }
+            sol: yield chain.getSolWalletFromPlebbitPrivateKey(signer.privateKey, signer.address),
+        },
     };
     const accountName = yield getNextAvailableDefaultAccountName();
     // subplebbits where the account has a role, like moderator, admin, owner, etc.
