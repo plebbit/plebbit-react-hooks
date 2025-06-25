@@ -39,10 +39,12 @@ export const getDefaultPlebbitOptions = () => {
   // default plebbit options defined by the electron process
   // @ts-ignore
   if (window.defaultPlebbitOptions) {
-    // add missing chain providers
     // @ts-ignore
-    const defaultPlebbitOptions: any = JSON.parse(JSON.stringify(window.defaultPlebbitOptions))
+    const defaultPlebbitOptions: any = JSON.parse(JSON.stringify({...window.defaultPlebbitOptions, libp2pJsClientsOptions: undefined}))
+    // @ts-ignore
+    defaultPlebbitOptions.libp2pJsClientsOptions = window.defaultPlebbitOptions.libp2pJsClientsOptions // libp2pJsClientsOptions is not always just json
 
+    // add missing chain providers
     if (!defaultPlebbitOptions.chainProviders) {
       defaultPlebbitOptions.chainProviders = {}
     }
@@ -81,8 +83,8 @@ export const generateDefaultAccount = async () => {
     address: signer.address,
     wallets: {
       eth: await chain.getEthWalletFromPlebbitPrivateKey(signer.privateKey, signer.address),
-      sol: await chain.getSolWalletFromPlebbitPrivateKey(signer.privateKey, signer.address)
-    }
+      sol: await chain.getSolWalletFromPlebbitPrivateKey(signer.privateKey, signer.address),
+    },
   }
 
   const accountName = await getNextAvailableDefaultAccountName()
