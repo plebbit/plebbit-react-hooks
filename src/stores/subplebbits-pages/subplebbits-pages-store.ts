@@ -176,6 +176,11 @@ const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Functi
       clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
     }
   }
+  for (const sortType in clients?.libp2pJsClients) {
+    for (const clientUrl in clients?.libp2pJsClients?.[sortType]) {
+      clients?.libp2pJsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'libp2pJsClients', sortType, clientUrl))
+    }
+  }
 }
 
 const fetchPageSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow

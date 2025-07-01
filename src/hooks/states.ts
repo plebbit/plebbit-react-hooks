@@ -60,6 +60,9 @@ export function useClientsStates(options?: UseClientsStatesOptions): UseClientsS
       for (const clientUrl in clients?.plebbitRpcClients) {
         addState(clients.plebbitRpcClients[clientUrl]?.state, clientUrl)
       }
+      for (const clientUrl in clients?.libp2pJsClients) {
+        addState(clients.libp2pJsClients[clientUrl]?.state, clientUrl)
+      }
       for (const chainTicker in clients?.chainProviders) {
         for (const clientUrl in clients.chainProviders[chainTicker]) {
           addState(clients.chainProviders[chainTicker][clientUrl]?.state, clientUrl)

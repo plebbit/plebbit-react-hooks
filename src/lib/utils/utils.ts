@@ -212,6 +212,9 @@ export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   for (const clientUrl in clients?.plebbitRpcClients) {
     clients?.plebbitRpcClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', clientUrl))
   }
+  for (const clientUrl in clients?.libp2pJsClients) {
+    clients?.libp2pJsClients?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'libp2pJsClients', clientUrl))
+  }
   for (const chainTicker in clients?.chainProviders) {
     for (const clientUrl in clients?.chainProviders?.[chainTicker]) {
       clients?.chainProviders?.[chainTicker]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'chainProviders', clientUrl, chainTicker))
@@ -233,7 +236,7 @@ export const removeInvalidComments = async (comments: Comment[], {validateReplie
   if (!comments.length) {
     return []
   }
-  const isValid = await Promise.all(comments.map(comment => commentIsValid(comment, {validateReplies, blockSubplebbit}, plebbit)))
+  const isValid = await Promise.all(comments.map((comment) => commentIsValid(comment, {validateReplies, blockSubplebbit}, plebbit)))
   const validComments = comments.filter((_, i) => isValid[i])
   return validComments
 }
@@ -253,8 +256,7 @@ export const commentIsValid = async (comment: Comment, {validateReplies, blockSu
   }
   try {
     await plebbit.validateComment(comment, {validateReplies})
-  }
-  catch (e) {
+  } catch (e) {
     if (blockSubplebbit) {
       subplebbitsWithInvalidComments[comment.subplebbitAddress] = true
     }
@@ -285,7 +287,10 @@ export const repliesAreValid = async (comment: Comment, {validateReplies, blockS
       if (blockSubplebbit) {
         subplebbitsWithInvalidComments[comment.subplebbitAddress] = true
       }
-      console.log('invalid comment', {comment: reply, error: 'reply.subplebbitAddress !== comment.subplebbitAddress || reply.depth !== comment.depth + 1 || reply.parentCid !== comment.cid'})
+      console.log('invalid comment', {
+        comment: reply,
+        error: 'reply.subplebbitAddress !== comment.subplebbitAddress || reply.depth !== comment.depth + 1 || reply.parentCid !== comment.cid',
+      })
       return false
     }
   }
@@ -294,8 +299,7 @@ export const repliesAreValid = async (comment: Comment, {validateReplies, blockS
   try {
     const promises = replies.map((reply) => commentIsValid(reply, {validateReplies: false, blockSubplebbit: true}, plebbit))
     await Promise.all(promises)
-  }
-  catch (e: any) {
+  } catch (e: any) {
     if (blockSubplebbit) {
       subplebbitsWithInvalidComments[comment.subplebbitAddress] = true
     }
@@ -319,7 +323,7 @@ const utils = {
   subplebbitPostsCacheExpired,
   commentIsValid,
   removeInvalidComments,
-  repliesAreValid
+  repliesAreValid,
 }
 
 export const retryInfinity = async (functionToRetry: any, options?: any) => {

@@ -186,6 +186,11 @@ const commentRepliesClientsOnStateChange = (clients: any, onStateChange: Functio
       clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
     }
   }
+  for (const sortType in clients?.libp2pJsClients) {
+    for (const clientUrl in clients?.libp2pJsClients?.[sortType]) {
+      clients?.libp2pJsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'libp2pJsClients', sortType, clientUrl))
+    }
+  }
 }
 
 const fetchPageComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
