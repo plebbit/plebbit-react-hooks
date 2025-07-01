@@ -156,7 +156,7 @@ const onCommentRepliesClientsStateChange = (commentCid) => (clientState, clientT
     });
 };
 const commentRepliesClientsOnStateChange = (clients, onStateChange) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     for (const sortType in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
         for (const clientUrl in (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[sortType]) {
             (_c = (_b = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsGateways', sortType, clientUrl));
@@ -170,6 +170,11 @@ const commentRepliesClientsOnStateChange = (clients, onStateChange) => {
     for (const sortType in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
         for (const clientUrl in (_g = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _g === void 0 ? void 0 : _g[sortType]) {
             (_j = (_h = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _h === void 0 ? void 0 : _h[sortType]) === null || _j === void 0 ? void 0 : _j[clientUrl].on('statechange', (state) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl));
+        }
+    }
+    for (const sortType in clients === null || clients === void 0 ? void 0 : clients.libp2pJsClients) {
+        for (const clientUrl in (_k = clients === null || clients === void 0 ? void 0 : clients.libp2pJsClients) === null || _k === void 0 ? void 0 : _k[sortType]) {
+            (_m = (_l = clients === null || clients === void 0 ? void 0 : clients.libp2pJsClients) === null || _l === void 0 ? void 0 : _l[sortType]) === null || _m === void 0 ? void 0 : _m[clientUrl].on('statechange', (state) => onStateChange(state, 'libp2pJsClients', sortType, clientUrl));
         }
     }
 };

@@ -184,7 +184,7 @@ export const memoSync = (functionToMemo, memoOptions) => {
     return obj[memoedFunctionName];
 };
 export const clientsOnStateChange = (clients, onStateChange) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) {
         (_a = clients === null || clients === void 0 ? void 0 : clients.ipfsGateways) === null || _a === void 0 ? void 0 : _a[clientUrl].on('statechange', (state) => onStateChange(state, 'ipfsGateways', clientUrl));
     }
@@ -197,9 +197,12 @@ export const clientsOnStateChange = (clients, onStateChange) => {
     for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
         (_d = clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) === null || _d === void 0 ? void 0 : _d[clientUrl].on('statechange', (state) => onStateChange(state, 'plebbitRpcClients', clientUrl));
     }
+    for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.libp2pJsClients) {
+        (_e = clients === null || clients === void 0 ? void 0 : clients.libp2pJsClients) === null || _e === void 0 ? void 0 : _e[clientUrl].on('statechange', (state) => onStateChange(state, 'libp2pJsClients', clientUrl));
+    }
     for (const chainTicker in clients === null || clients === void 0 ? void 0 : clients.chainProviders) {
-        for (const clientUrl in (_e = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _e === void 0 ? void 0 : _e[chainTicker]) {
-            (_g = (_f = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _f === void 0 ? void 0 : _f[chainTicker]) === null || _g === void 0 ? void 0 : _g[clientUrl].on('statechange', (state) => onStateChange(state, 'chainProviders', clientUrl, chainTicker));
+        for (const clientUrl in (_f = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _f === void 0 ? void 0 : _f[chainTicker]) {
+            (_h = (_g = clients === null || clients === void 0 ? void 0 : clients.chainProviders) === null || _g === void 0 ? void 0 : _g[chainTicker]) === null || _h === void 0 ? void 0 : _h[clientUrl].on('statechange', (state) => onStateChange(state, 'chainProviders', clientUrl, chainTicker));
         }
     }
 };
@@ -216,7 +219,7 @@ export const removeInvalidComments = (comments, { validateReplies, blockSubplebb
     if (!comments.length) {
         return [];
     }
-    const isValid = yield Promise.all(comments.map(comment => commentIsValid(comment, { validateReplies, blockSubplebbit }, plebbit)));
+    const isValid = yield Promise.all(comments.map((comment) => commentIsValid(comment, { validateReplies, blockSubplebbit }, plebbit)));
     const validComments = comments.filter((_, i) => isValid[i]);
     return validComments;
 });
@@ -266,7 +269,10 @@ export const repliesAreValid = (comment, { validateReplies, blockSubplebbit } = 
             if (blockSubplebbit) {
                 subplebbitsWithInvalidComments[comment.subplebbitAddress] = true;
             }
-            console.log('invalid comment', { comment: reply, error: 'reply.subplebbitAddress !== comment.subplebbitAddress || reply.depth !== comment.depth + 1 || reply.parentCid !== comment.cid' });
+            console.log('invalid comment', {
+                comment: reply,
+                error: 'reply.subplebbitAddress !== comment.subplebbitAddress || reply.depth !== comment.depth + 1 || reply.parentCid !== comment.cid',
+            });
             return false;
         }
     }
@@ -298,7 +304,7 @@ const utils = {
     subplebbitPostsCacheExpired,
     commentIsValid,
     removeInvalidComments,
-    repliesAreValid
+    repliesAreValid,
 };
 export const retryInfinity = (functionToRetry, options) => __awaiter(void 0, void 0, void 0, function* () {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

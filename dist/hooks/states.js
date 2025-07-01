@@ -20,7 +20,7 @@ export function useClientsStates(options) {
     assert(!(comment && subplebbit), `useClientsStates options.comment and options.subplebbit arguments cannot be defined at the same time`);
     const commentOrSubplebbit = comment || subplebbit;
     const states = useMemo(() => {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         const states = {};
         // if comment is newer than 5 minutes, don't show updating state so user knows it finished
         if ((commentOrSubplebbit === null || commentOrSubplebbit === void 0 ? void 0 : commentOrSubplebbit.cid) && commentOrSubplebbit.timestamp + 5 * 60 > Date.now() / 1000) {
@@ -53,9 +53,12 @@ export function useClientsStates(options) {
             for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.plebbitRpcClients) {
                 addState((_d = clients.plebbitRpcClients[clientUrl]) === null || _d === void 0 ? void 0 : _d.state, clientUrl);
             }
+            for (const clientUrl in clients === null || clients === void 0 ? void 0 : clients.libp2pJsClients) {
+                addState((_e = clients.libp2pJsClients[clientUrl]) === null || _e === void 0 ? void 0 : _e.state, clientUrl);
+            }
             for (const chainTicker in clients === null || clients === void 0 ? void 0 : clients.chainProviders) {
                 for (const clientUrl in clients.chainProviders[chainTicker]) {
-                    addState((_e = clients.chainProviders[chainTicker][clientUrl]) === null || _e === void 0 ? void 0 : _e.state, clientUrl);
+                    addState((_f = clients.chainProviders[chainTicker][clientUrl]) === null || _f === void 0 ? void 0 : _f.state, clientUrl);
                 }
             }
         }
