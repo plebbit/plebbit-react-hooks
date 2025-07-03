@@ -146,12 +146,17 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
         // find client urls
         for (const clientType in subplebbit.clients) {
           if (clientType === 'chainProviders') {
+            // should never happen but it does
+            if (subplebbit.updatingState !== 'resolving-address') {
+              continue
+            }
+
             for (const chainTicker in subplebbit.clients.chainProviders) {
               for (const clientUrl in subplebbit.clients.chainProviders[chainTicker]) {
                 const state = subplebbit.clients.chainProviders[chainTicker][clientUrl].state
-                // match 'resolving' in case plebbit-js has clients with incorrect states
-                // TODO: this should in theory never happen, but it does, and difficult to debug
-                if (state !== 'stopped' && state?.startsWith('resolving')) {
+                // TODO: client states should always be the same as subplebbit.updatingState
+                // but possibly because of a plebbit-js bug they are sometimes not
+                if (state !== 'stopped' && state === subplebbit.updatingState) {
                   states[subplebbit.updatingState].clientUrls.add(clientUrl)
                 }
               }
@@ -159,9 +164,9 @@ export function useSubplebbitsStates(options?: UseSubplebbitsStatesOptions): Use
           } else {
             for (const clientUrl in subplebbit.clients[clientType]) {
               const state = subplebbit.clients[clientType][clientUrl].state
-              // match 'resolving' in case plebbit-js has clients with incorrect states
-              // TODO: this should in theory never happen, but it does, and difficult to debug
-              if (state !== 'stopped' && state?.startsWith('resolving') === false) {
+              // TODO: client states should always be the same as subplebbit.updatingState
+              // but possibly because of a plebbit-js bug they are sometimes not
+              if (state !== 'stopped' && state === subplebbit.updatingState) {
                 states[subplebbit.updatingState].clientUrls.add(clientUrl)
               }
             }
