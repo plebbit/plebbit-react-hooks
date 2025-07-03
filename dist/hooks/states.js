@@ -126,10 +126,6 @@ export function useSubplebbitsStates(options) {
                 // find client urls
                 for (const clientType in subplebbit.clients) {
                     if (clientType === 'chainProviders') {
-                        // should never happen but it does
-                        if (subplebbit.updatingState !== 'resolving-address') {
-                            continue;
-                        }
                         for (const chainTicker in subplebbit.clients.chainProviders) {
                             for (const clientUrl in subplebbit.clients.chainProviders[chainTicker]) {
                                 const state = subplebbit.clients.chainProviders[chainTicker][clientUrl].state;
