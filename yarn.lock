@@ -3651,9 +3651,9 @@
   resolved "https://registry.yarnpkg.com/@perseveranza-pets/milo/-/milo-0.2.1.tgz#e1862004f14c5baa03516968d95a7429a813ce37"
   integrity sha512-Q96Q1cdYfofu5Rbaj3z5HYzkhlDS+pljh/g+GX/JHr/TlodpDDxFZ1sVuQI6O3+rFdfrU5ScgD1kx4NyCYebbw==
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#6612569127ae5c62906b2e66a96c8735a207af0a":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#49d31174f26ba9662f963324844cd6c145672717":
   version "0.0.7"
-  resolved "https://github.com/plebbit/plebbit-js.git#6612569127ae5c62906b2e66a96c8735a207af0a"
+  resolved "https://github.com/plebbit/plebbit-js.git#49d31174f26ba9662f963324844cd6c145672717"
   dependencies:
     "@bonfida/spl-name-service" "3.0.10"
     "@chainsafe/libp2p-gossipsub" "14.1.1"
