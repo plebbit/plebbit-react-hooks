@@ -8,6 +8,7 @@ import PlebbitJsMock, {Plebbit, Comment, Pages, simulateLoadingTime} from '../li
 import utils from '../lib/utils'
 import repliesStore, {defaultRepliesPerPage as repliesPerPage} from '../stores/replies'
 import repliesPagesStore from '../stores/replies-pages'
+import accountsStore from '../stores/accounts'
 
 const plebbitJsMockRepliesPageLength = 100
 
@@ -35,6 +36,9 @@ describe('replies', () => {
       this.downvoteCount = typeof this.downvoteCount === 'number' ? this.downvoteCount + 1 : 1
       this.updatedAt = Math.floor(Date.now() / 1000)
       this.depth = 0
+      if (!this.postCid && !this.parentCid) {
+        this.postCid = this.cid
+      }
 
       const bestPageCid = this.cid + ' page cid best'
       this.replies.pages.best = this.replies.pageToGet(bestPageCid)
@@ -937,7 +941,9 @@ describe('replies', () => {
   })
 
   describe('useReplies nested', () => {
+    // store original functions for mocking
     let pageToGet
+    const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
 
     beforeAll(() => {
       // mock nested replies on pages
@@ -948,10 +954,11 @@ describe('replies', () => {
         }
         const pageCidSortType = pageCid.match(/\b(best|newFlat|new|oldFlat|old|topAll)\b/)?.[1] || 'best'
         const subplebbitAddress = this.subplebbit?.address || this.comment?.subplebbitAddress
-        const depth = (this.comment.depth || 0) + 1
+        const depth = (this.comment?.depth || 0) + 1
+        const postCid = this.comment?.postCid || this.comment?.cid
         const page: any = {
           comments: [],
-          nextCid: 'next'
+          nextCid: 'next',
         }
         const count = 3
         let index = 0
@@ -959,6 +966,7 @@ describe('replies', () => {
           page.comments.push({
             timestamp: index,
             cid: pageCid + ' comment cid ' + index,
+            postCid,
             subplebbitAddress,
             upvoteCount: index,
             downvoteCount: 10,
@@ -974,6 +982,7 @@ describe('replies', () => {
                     {
                       timestamp: index + 10,
                       cid: pageCid + ' comment cid ' + index + ' nested 1',
+                      postCid,
                       subplebbitAddress,
                       upvoteCount: index,
                       downvoteCount: 10,
@@ -989,6 +998,7 @@ describe('replies', () => {
                               {
                                 timestamp: index + 20,
                                 cid: pageCid + ' comment cid ' + index + ' nested 2',
+                                postCid,
                                 subplebbitAddress,
                                 upvoteCount: index,
                                 downvoteCount: 10,
@@ -1062,7 +1072,6 @@ describe('replies', () => {
     })
 
     test('best sort type missing, use topAll, nested replies are rendered immediately, without unnecessary rerenders', async () => {
-      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       Comment.prototype.simulateUpdateEvent = async function () {
         this.updatedAt = Math.floor(Date.now() / 1000)
         this.depth = 0
@@ -1211,27 +1220,36 @@ describe('replies', () => {
     })
 
     test('new nested replies are not automatically added to feed, loadMore must be called', async () => {
-      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       Comment.prototype.simulateUpdateEvent = async function () {
         this.updatedAt = Math.floor(Date.now() / 1000)
         this.depth = 0
         this.updatingState = 'succeeded'
-        this.replies.pages.best = {comments: [{
-          timestamp: 1,
-          cid: this.cid + ' - reply cid 1',
-          subplebbitAddress: this.subplebbitAddress,
-          updatedAt: this.updatedAt,
-          depth: 1,
-          replies: {pages: {best: {comments: [
+        this.replies.pages.best = {
+          comments: [
             {
-              timestamp: 2,
-              cid: this.cid + ' - reply cid 1 - nested 1',
+              timestamp: 1,
+              cid: this.cid + ' - reply cid 1',
               subplebbitAddress: this.subplebbitAddress,
               updatedAt: this.updatedAt,
-              depth: 2
-            }
-          ]}}}
-        }]}
+              depth: 1,
+              replies: {
+                pages: {
+                  best: {
+                    comments: [
+                      {
+                        timestamp: 2,
+                        cid: this.cid + ' - reply cid 1 - nested 1',
+                        subplebbitAddress: this.subplebbitAddress,
+                        updatedAt: this.updatedAt,
+                        depth: 2,
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+        }
         this.emit('update', this)
         this.emit('updatingstatechange', 'succeeded')
 
@@ -1245,7 +1263,7 @@ describe('replies', () => {
             cid: this.cid + ' - reply cid 1 - nested 2',
             subplebbitAddress: this.subplebbitAddress,
             updatedAt: this.updatedAt,
-            depth: 2
+            depth: 2,
           })
           this.emit('update', this)
           this.emit('updatingstatechange', 'succeeded')
@@ -1292,19 +1310,22 @@ describe('replies', () => {
     })
 
     test('new nested replies (with no nested replies initially) are not automatically added to feed, loadMore must be called', async () => {
-      const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       Comment.prototype.simulateUpdateEvent = async function () {
         this.updatedAt = Math.floor(Date.now() / 1000)
         this.depth = 0
         this.updatingState = 'succeeded'
-        this.replies.pages.best = {comments: [{
-          timestamp: 1,
-          cid: this.cid + ' - reply cid 1',
-          subplebbitAddress: this.subplebbitAddress,
-          updatedAt: this.updatedAt,
-          depth: 1,
-          replies: {pages: {}}
-        }]}
+        this.replies.pages.best = {
+          comments: [
+            {
+              timestamp: 1,
+              cid: this.cid + ' - reply cid 1',
+              subplebbitAddress: this.subplebbitAddress,
+              updatedAt: this.updatedAt,
+              depth: 1,
+              replies: {pages: {}},
+            },
+          ],
+        }
         this.emit('update', this)
         this.emit('updatingstatechange', 'succeeded')
 
@@ -1312,15 +1333,17 @@ describe('replies', () => {
         setTimeout(() => {
           this.updatedAt += 1
           this.replies.pages.best.comments[0].updatedAt = this.updatedAt
-          this.replies.pages.best.comments[0].replies.pages.best = {comments: [
-            {
-              timestamp: 2,
-              cid: this.cid + ' - reply cid 1 - nested 1',
-              subplebbitAddress: this.subplebbitAddress,
-              updatedAt: this.updatedAt,
-              depth: 2
-            }
-          ]}
+          this.replies.pages.best.comments[0].replies.pages.best = {
+            comments: [
+              {
+                timestamp: 2,
+                cid: this.cid + ' - reply cid 1 - nested 1',
+                subplebbitAddress: this.subplebbitAddress,
+                updatedAt: this.updatedAt,
+                depth: 2,
+              },
+            ],
+          }
           this.emit('update', this)
           this.emit('updatingstatechange', 'succeeded')
         }, 200)
@@ -1363,6 +1386,222 @@ describe('replies', () => {
       expect(rendered.result.current.repliesDepth2.hasMore).toBe(false)
 
       Comment.prototype.simulateUpdateEvent = simulateUpdateEvent
+    })
+
+    describe('accountComments', () => {
+      const sortType = 'best'
+      const postCid = 'comment cid 1'
+      const accountReplyCid1 = 'comment cid 1 - account reply 1'
+      const accountReplyCid2 = 'comment cid 1 - account reply 2'
+      const reply1Depth2Cid = 'comment cid 1 page cid best comment cid 3'
+      const authorAddress = 'accountcomments.eth'
+
+      beforeEach(() => {
+        // add account comments, sorted by oldest
+        const now = Math.round(Date.now() / 1000)
+        const yearAgo = now - 60 * 60 * 24 * 365
+        const defaultProps = {author: {address: authorAddress}, postCid}
+        accountsStore.setState((state) => {
+          const accountId = Object.keys(state.accountsComments)[0]
+          return {
+            accountsComments: {
+              [accountId]: [
+                {
+                  ...defaultProps,
+                  // no cid, no updatedAt, is pending
+                  timestamp: yearAgo - 1, // very old reply
+                  parentCid: postCid,
+                  depth: 1,
+                },
+                {
+                  ...defaultProps,
+                  // no cid, no updatedAt, is pending
+                  timestamp: yearAgo, // very old reply
+                  parentCid: reply1Depth2Cid,
+                  depth: 2,
+                },
+                {
+                  ...defaultProps,
+                  timestamp: now - 1,
+                  cid: accountReplyCid1, // cid received, not pending, but not published by sub owner yet
+                  parentCid: postCid,
+                  updatedAt: now,
+                  depth: 1,
+                },
+                {
+                  ...defaultProps,
+                  timestamp: now,
+                  cid: accountReplyCid2, // cid received, not pending, but not published by sub owner yet
+                  parentCid: reply1Depth2Cid,
+                  updatedAt: now,
+                  depth: 2,
+                },
+              ],
+            },
+          }
+        })
+      })
+      afterEach(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
+      test('change accountComments options, append, prepend, newerThan', async () => {
+        // default (prepend) + newerThan Infinity
+        rendered.rerender({commentCid: postCid, sortType, accountComments: {newerThan: Infinity}})
+
+        await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+        let res = rendered.result.current
+
+        // as soon as depth 1 has replies, all other depths also should
+        expect(res.repliesDepth1.replies.length).toBeGreaterThan(0)
+        // repliesDepth2 uses first reply, which is an account reply and has no replies
+        expect(res.repliesDepth2.replies.length).toBe(0)
+        expect(res.repliesDepth3.replies.length).toBe(0)
+
+        // has account comments prepended first
+        expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid1)
+        expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+        expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+        // prepend order should be newest first
+        expect(res.repliesDepth1.replies[0].timestamp).toBeGreaterThan(res.repliesDepth1.replies[1].timestamp)
+
+        // append + newerThan Infinity
+        rendered.rerender({commentCid: postCid, sortType, accountComments: {append: true, newerThan: Infinity}})
+
+        await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+        res = rendered.result.current
+
+        // as soon as depth 1 has replies, all other depths also should
+        expect(res.repliesDepth1.replies.length).toBeGreaterThan(0)
+        expect(res.repliesDepth2.replies.length).toBeGreaterThan(0)
+        expect(res.repliesDepth3.replies.length).toBeGreaterThan(0)
+        // has account comments appended last
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].cid).toBe(accountReplyCid1)
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].cid).toBe(undefined)
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].author.address).toBe(authorAddress)
+        // append: true order should be newest last
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].timestamp).toBeGreaterThan(
+          res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].timestamp
+        )
+
+        // depth 2 has account comments appended last
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].cid).toBe(accountReplyCid2)
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].cid).toBe(undefined)
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].author.address).toBe(authorAddress)
+        // depth 2 append: true order should be newest last
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].timestamp).toBeGreaterThan(
+          res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].timestamp
+        )
+
+        // append + newerThan 1h
+        rendered.rerender({commentCid: postCid, sortType, accountComments: {append: true, newerThan: 60 * 60}})
+
+        await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+        res = rendered.result.current
+
+        // as soon as depth 1 has replies, all other depths also should
+        expect(res.repliesDepth1.replies.length).toBeGreaterThan(0)
+        expect(res.repliesDepth2.replies.length).toBeGreaterThan(0)
+        expect(res.repliesDepth3.replies.length).toBeGreaterThan(0)
+        // has account comments newerThan appended last
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].cid).toBe(accountReplyCid1)
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].cid).not.toBe(undefined)
+        expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].author.address).not.toBe(authorAddress)
+
+        // depth 2 has account comments newerThan appended last
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].cid).toBe(accountReplyCid2)
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].cid).not.toBe(undefined)
+        expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].author.address).not.toBe(authorAddress)
+
+        // TODO: test reply that was newer than, but that becomes not newer than later
+      })
+
+      test('flat', async () => {
+        // default (prepend) + newerThan Infinity
+        rendered.rerender({commentCid: postCid, sortType, flat: true, accountComments: {newerThan: Infinity}})
+
+        await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+        let res = rendered.result.current
+
+        // as soon as depth 1 has replies, all other depths also should
+        expect(res.repliesDepth1.replies.length).toBeGreaterThan(0)
+        // flat should not have nested replies
+        expect(res.repliesDepth2.replies.length).toBe(0)
+        expect(res.repliesDepth3.replies.length).toBe(0)
+
+        // has account comments prepended first
+        expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid2)
+        expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid1)
+        expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+        expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[3].cid).toBe(undefined)
+        expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[4].cid).not.toBe(undefined)
+        expect(res.repliesDepth1.replies[4].author.address).not.toBe(authorAddress)
+        // prepend order should be newest first
+        expect(res.repliesDepth1.replies[0].timestamp).toBeGreaterThan(res.repliesDepth1.replies[1].timestamp)
+        expect(res.repliesDepth1.replies[1].timestamp).toBeGreaterThan(res.repliesDepth1.replies[2].timestamp)
+        expect(res.repliesDepth1.replies[2].timestamp).toBeGreaterThan(res.repliesDepth1.replies[3].timestamp)
+
+        // append + newerThan Infinity
+        rendered.rerender({commentCid: postCid, sortType, flat: true, accountComments: {append: true, newerThan: Infinity}})
+
+        await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+        res = rendered.result.current
+
+        // as soon as depth 1 has replies, all other depths also should
+        expect(res.repliesDepth1.replies.length).toBeGreaterThan(0)
+        // flat should not have nested replies
+        expect(res.repliesDepth2.replies.length).toBe(0)
+        expect(res.repliesDepth3.replies.length).toBe(0)
+
+        // has account comments prepended first
+        let length = res.repliesDepth1.replies.length
+        expect(res.repliesDepth1.replies[length - 1].cid).toBe(accountReplyCid2)
+        expect(res.repliesDepth1.replies[length - 1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[length - 2].cid).toBe(accountReplyCid1)
+        expect(res.repliesDepth1.replies[length - 2].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[length - 3].cid).toBe(undefined)
+        expect(res.repliesDepth1.replies[length - 3].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[length - 4].cid).toBe(undefined)
+        expect(res.repliesDepth1.replies[length - 4].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[length - 5].cid).not.toBe(undefined)
+        expect(res.repliesDepth1.replies[length - 5].author.address).not.toBe(authorAddress)
+        // prepend order should be newest first
+        expect(res.repliesDepth1.replies[length - 1].timestamp).toBeGreaterThan(res.repliesDepth1.replies[length - 2].timestamp)
+        expect(res.repliesDepth1.replies[length - 2].timestamp).toBeGreaterThan(res.repliesDepth1.replies[length - 3].timestamp)
+        expect(res.repliesDepth1.replies[length - 3].timestamp).toBeGreaterThan(res.repliesDepth1.replies[length - 4].timestamp)
+
+        // append + newerThan 1h
+        rendered.rerender({commentCid: postCid, sortType, flat: true, accountComments: {append: true, newerThan: 60 * 60}})
+
+        await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 0)
+        res = rendered.result.current
+
+        // as soon as depth 1 has replies, all other depths also should
+        expect(res.repliesDepth1.replies.length).toBeGreaterThan(0)
+        // flat should not have nested replies
+        expect(res.repliesDepth2.replies.length).toBe(0)
+        expect(res.repliesDepth3.replies.length).toBe(0)
+
+        // has account comments prepended first
+        length = res.repliesDepth1.replies.length
+        expect(res.repliesDepth1.replies[length - 1].cid).toBe(accountReplyCid2)
+        expect(res.repliesDepth1.replies[length - 1].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[length - 2].cid).toBe(accountReplyCid1)
+        expect(res.repliesDepth1.replies[length - 2].author.address).toBe(authorAddress)
+        expect(res.repliesDepth1.replies[length - 3].cid).not.toBe(undefined)
+        expect(res.repliesDepth1.replies[length - 3].author.address).not.toBe(authorAddress)
+        // prepend order should be newest first
+        expect(res.repliesDepth1.replies[length - 1].timestamp).toBeGreaterThan(res.repliesDepth1.replies[length - 2].timestamp)
+      })
     })
   })
 })

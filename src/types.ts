@@ -126,7 +126,7 @@ export interface UseRepliesOptions extends Options {
   repliesPerPage?: number
   flat?: boolean
   flatDepth?: number
-  accountComments?: boolean
+  accountComments?: UseRepliesOptionsAccountComments
   filter?: CommentsFilter
   streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
 }
@@ -610,12 +610,13 @@ export type CommentsFilter = {
 export type RepliesFeedOptions = {
   commentCid: string
   commentDepth: number
+  postCid: string
   sortType: string
   accountId: string
   pageNumber: number
   repliesPerPage: number
   flat?: boolean
-  accountComments?: boolean
+  accountComments?: UseRepliesOptionsAccountComments
   filter?: CommentsFilter
   streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
 }

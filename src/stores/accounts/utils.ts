@@ -1,7 +1,10 @@
-import {Account, Role, Subplebbits, AccountComment, AccountsComments, CommentCidsToAccountsComments} from '../../types'
+import {Account, Role, Subplebbits, AccountComment, AccountsComments, CommentCidsToAccountsComments, Comment} from '../../types'
 import assert from 'assert'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:accounts:stores')
+import commentsStore from '../comments'
+import repliesPagesStore from '../replies-pages'
+import subplebbitsPagesStore from '../subplebbits-pages'
 
 const getAuthorAddressRolesFromSubplebbits = (authorAddress: string, subplebbits: Subplebbits) => {
   const roles: {[subplebbitAddress: string]: Role} = {}
@@ -139,11 +142,32 @@ export const getInitAccountCommentsToUpdate = (accountsComments: AccountsComment
   return accountCommentsToUpdate
 }
 
+const getAccountCommentDepth = (comment: Comment) => {
+  if (!comment.parentCid) {
+    return 0
+  }
+  let parentCommentDepth = commentsStore.getState().comments[comment.parentCid]?.depth
+  if (typeof parentCommentDepth === 'number') {
+    return parentCommentDepth + 1
+  }
+  parentCommentDepth = repliesPagesStore.getState().comments[comment.parentCid]?.depth
+  if (typeof parentCommentDepth === 'number') {
+    return parentCommentDepth + 1
+  }
+  parentCommentDepth = subplebbitsPagesStore.getState().comments[comment.parentCid]?.depth
+  if (typeof parentCommentDepth === 'number') {
+    return parentCommentDepth + 1
+  }
+  // if can't find the parent comment depth anywhere, don't include it with the account comment
+  // it will be added automatically when challenge verification is received
+}
+
 const utils = {
   getAccountSubplebbits,
   getCommentCidsToAccountsComments,
   fetchCommentLinkDimensions,
   getInitAccountCommentsToUpdate,
+  getAccountCommentDepth,
 }
 
 export default utils

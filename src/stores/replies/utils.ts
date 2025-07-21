@@ -2,6 +2,7 @@ import assert from 'assert'
 import {Feed, Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Account, Accounts, RepliesPage, RepliesPages} from '../../types'
 import {getRepliesPages, getRepliesFirstPageCid} from '../replies-pages'
 import repliesSorter from '../feeds/feed-sorter'
+import accountsStore from '../accounts'
 import {flattenCommentsPages, commentIsValid, removeInvalidComments} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:stores')
@@ -80,7 +81,7 @@ const getPreloadedReplies = (comment: Comment, sortType: string) => {
   if (preloadedReplies) {
     return preloadedReplies
   }
-  // TODO: should we check pageCids? it's possible to have pageCids 
+  // TODO: should we check pageCids? it's possible to have pageCids
   // and use 'best' preloadedReplies, if they have no nextCid (all replies are preloaded)
   // changing this might bug out nested immediate react renders
   // only check on comment.depth: 0 for now
@@ -121,7 +122,7 @@ const alwaysStreamPage = (feedOptions: RepliesFeedOptions) => {
     return true
   }
   // always stream top level replies and/or flat
-  return (feedOptions.commentDepth > 0 && !feedOptions.flat) ? false : true
+  return feedOptions.commentDepth > 0 && !feedOptions.flat ? false : true
 }
 
 export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => {
@@ -135,13 +136,6 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
     if (!alwaysStreamPage(feedsOptions[feedName]) && !pageNumberIncreased(feedName, pageNumber, loadedFeeds[feedName], bufferedFeeds[feedName])) {
       continue
     }
-    // const _alwaysStreamPage = alwaysStreamPage(feedsOptions[feedName])
-    // const _pageNumberIncreased = pageNumberIncreased(feedName, pageNumber, loadedFeeds[feedName], bufferedFeeds[feedName])
-    // if (!_alwaysStreamPage && !_pageNumberIncreased) {
-    //   console.log(feedName, {_alwaysStreamPage, _pageNumberIncreased}, loadedFeeds[feedName], bufferedFeeds[feedName], 'SKIPPED')
-    //   continue
-    // }
-    // console.log(feedName, {_alwaysStreamPage, _pageNumberIncreased}, loadedFeeds[feedName], bufferedFeeds[feedName])
 
     const plebbit = accounts[accountId]?.plebbit
     const loadedFeedReplyCount = pageNumber * repliesPerPage
@@ -173,11 +167,63 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
   if (Object.keys(loadedFeedsMissingReplies).length === 0) {
     return loadedFeeds
   }
-  const newLoadedFeeds: Feeds = {}
+  let newLoadedFeeds: Feeds = {}
   for (const feedName in loadedFeedsMissingReplies) {
     newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingReplies[feedName]]
   }
-  return {...loadedFeeds, ...newLoadedFeeds}
+  newLoadedFeeds = {...loadedFeeds, ...newLoadedFeeds}
+  addAccountsComments(feedsOptions, newLoadedFeeds)
+  return newLoadedFeeds
+}
+
+const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds) => {
+  const accountsComments = accountsStore.getState().accountsComments || {}
+  for (const feedName in feedsOptions) {
+    const {accountId, accountComments: accountCommentsOptions, commentCid, postCid, commentDepth, flat} = feedsOptions[feedName]
+    const {newerThan, append} = accountCommentsOptions || {}
+    if (!newerThan) {
+      continue
+    }
+    const newerThanTimestamp = newerThan === Infinity ? 0 : Math.floor(Date.now() / 1000) - newerThan
+    const isNewerThan = (reply: Comment) => reply.timestamp > newerThanTimestamp
+
+    const accountComments = accountsComments[accountId] || []
+    const accountReplies = accountComments.filter((reply) => {
+      if (!isNewerThan(reply)) {
+        return false
+      }
+      if (flat) {
+        // if flat, add all account replies with greater comment depth
+        return reply.postCid === postCid && reply.depth > commentDepth
+      }
+      return reply.parentCid === commentCid
+    })
+    if (!accountReplies.length) {
+      continue
+    }
+
+    let loadedFeed = loadedFeeds[feedName]
+    // remove pending replies to not add them twice, don't remove expired newerThan
+    loadedFeed = loadedFeed.filter((reply) => {
+      if (!reply.cid && isNewerThan(reply)) {
+        return false
+      }
+      return true
+    })
+    const loadedFeedCids = new Set(loadedFeed.map((reply) => reply.cid))
+    for (const accountReply of accountReplies) {
+      // account reply already added
+      if (accountReply.cid && loadedFeedCids.has(accountReply.cid)) {
+        continue
+      }
+      if (append) {
+        loadedFeed.push(accountReply)
+      } else {
+        loadedFeed.unshift(accountReply)
+      }
+    }
+    loadedFeeds[feedName] = loadedFeed
+  }
 }
 
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedFeeds: Feeds) => {
@@ -243,12 +289,14 @@ export const getUpdatedFeeds = async (feedsOptions: RepliesFeedsOptions, filtere
       for (const reply of filteredSortedFeeds[feedName]) {
         if (updatedFeedsReplies[feedName]?.[reply.cid]) {
           const {index, updatedReply} = updatedFeedsReplies[feedName][reply.cid]
-          promises.push((async () => {
-            if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await commentIsValid(reply, {validateReplies: false}, plebbit))) {
-              updatedFeed[index] = reply
-              updatedFeedChanged = true
-            }
-          })())
+          promises.push(
+            (async () => {
+              if ((reply.updatedAt || 0) > (updatedReply.updatedAt || 0) && (await commentIsValid(reply, {validateReplies: false}, plebbit))) {
+                updatedFeed[index] = reply
+                updatedFeedChanged = true
+              }
+            })()
+          )
         }
       }
       await Promise.all(promises)

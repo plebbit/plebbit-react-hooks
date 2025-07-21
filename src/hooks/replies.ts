@@ -24,7 +24,18 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
 
   // add replies to store
   const account = useAccount({accountName})
-  const feedOptions = {commentCid: comment?.cid, commentDepth: comment?.depth, sortType, accountId: account?.id, repliesPerPage, flat, accountComments, filter, streamPage}
+  const feedOptions = {
+    commentCid: comment?.cid,
+    commentDepth: comment?.depth,
+    postCid: comment?.postCid,
+    sortType,
+    accountId: account?.id,
+    repliesPerPage,
+    flat,
+    accountComments,
+    filter,
+    streamPage,
+  }
   const repliesFeedName = feedOptionsToFeedName(feedOptions)
   const addFeedToStoreOrUpdateComment = useRepliesStore((state: RepliesState) => state.addFeedToStoreOrUpdateComment)
   useEffect(() => {

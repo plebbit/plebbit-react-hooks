@@ -43,13 +43,14 @@ export type RepliesState = {
   updateFeeds: Function
 }
 
+const defaultAccountComments = {newerThan: Infinity, append: false}
 const addDefaultFeedOptions = (feedOptions: any) => {
   feedOptions = {...feedOptions}
   if (feedOptions.flat === undefined || feedOptions.flat === null) {
     feedOptions.flat = false
   }
   if (feedOptions.accountComments === undefined || feedOptions.accountComments === null) {
-    feedOptions.accountComments = true
+    feedOptions.accountComments = defaultAccountComments
   }
   feedOptions.repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage
   return feedOptions
@@ -57,7 +58,7 @@ const addDefaultFeedOptions = (feedOptions: any) => {
 
 export const feedOptionsToFeedName = (feedOptions: Partial<RepliesFeedOptions>) => {
   feedOptions = addDefaultFeedOptions(feedOptions)
-  return `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}-${feedOptions?.streamPage}`
+  return `${feedOptions?.accountId}-${feedOptions?.commentCid}-${feedOptions?.postCid}-${feedOptions?.sortType}-${feedOptions?.flat}-${feedOptions?.accountComments?.newerThan}-${feedOptions?.accountComments?.append}-${feedOptions?.repliesPerPage}-${feedOptions?.filter?.key}-${feedOptions?.streamPage}`
 }
 
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
@@ -297,6 +298,8 @@ const initializeRepliesStore = async () => {
   repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts)
   // subscribe to replies pages store changes
   repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange)
+  // subscribe to accounts store changes
+  accountsStore.subscribe(updateFeedsOnAccountsCommentsChange)
 }
 
 let previousRepliesPages: {[pageCid: string]: RepliesPage} = {}
@@ -412,6 +415,21 @@ const updateFeedsOnFeedsCommentsChange = (repliesCommentsStoreState: any) => {
   updateFeeds()
 }
 
+let previousAccountsCommentsCount = 0
+const updateFeedsOnAccountsCommentsChange = (accountsStoreState: any) => {
+  const {accountsComments} = accountsStoreState
+  const accountsCommentsCount = Object.values(accountsComments as Comment[][]).reduce((count, accountComments) => count + accountComments.length, 0)
+
+  // no changes, do nothing
+  if (accountsCommentsCount === previousAccountsCommentsCount) {
+    return
+  }
+  previousAccountsCommentsCount = accountsCommentsCount
+
+  // TODO: only update the feeds that are relevant to the new accountComment.parentCid/postCid
+  repliesStore.getState().updateFeeds()
+}
+
 // reset store in between tests
 const originalState = repliesStore.getState()
 // async function because some stores have async init
@@ -424,6 +442,7 @@ export const resetRepliesStore = async () => {
   previousFeedsCommentsLoadedCount = 0
   previousFeedsCommentsRepliesPagesFirstUpdatedAts = ''
   previousRepliesPages = {}
+  previousAccountsCommentsCount = 0
   updateFeedsPending = false
   // destroy all component subscriptions to the store
   repliesStore.destroy()
