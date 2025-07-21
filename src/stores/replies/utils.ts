@@ -202,18 +202,17 @@ const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Fee
       continue
     }
 
-    let loadedFeed = loadedFeeds[feedName]
-    // remove pending replies to not add them twice, don't remove expired newerThan
-    loadedFeed = loadedFeed.filter((reply) => {
-      if (!reply.cid && isNewerThan(reply)) {
-        return false
-      }
-      return true
-    })
-    const loadedFeedCids = new Set(loadedFeed.map((reply) => reply.cid))
+    const loadedFeed = loadedFeeds[feedName]
+    // if a loaded comment doesn't have a cid, then it's pending
+    // and pending account comments should always have unique timestamps
+    const loadedFeedCidsOrTimestamps = new Set(loadedFeed.map((reply) => reply.cid || reply.timestamp))
     for (const accountReply of accountReplies) {
-      // account reply already added
-      if (accountReply.cid && loadedFeedCids.has(accountReply.cid)) {
+      // account reply with cid already added
+      if (accountReply.cid && loadedFeedCidsOrTimestamps.has(accountReply.cid)) {
+        continue
+      }
+      // pending account reply without cid already added
+      if (!accountReply.cid && loadedFeedCidsOrTimestamps.has(accountReply.timestamp)) {
         continue
       }
       if (append) {
@@ -222,7 +221,6 @@ const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Fee
         loadedFeed.unshift(accountReply)
       }
     }
-    loadedFeeds[feedName] = loadedFeed
   }
 }
 
