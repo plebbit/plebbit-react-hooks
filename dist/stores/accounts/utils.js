@@ -134,7 +134,7 @@ export const getInitAccountCommentsToUpdate = (accountsComments) => {
     // during downtimes when we're not fetching anything else
     return accountCommentsToUpdate;
 };
-const getAccountCommentDepth = (comment) => {
+export const getAccountCommentDepth = (comment) => {
     var _a, _b, _c;
     if (!comment.parentCid) {
         return 0;

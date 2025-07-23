@@ -12,6 +12,7 @@ export declare const getInitAccountCommentsToUpdate: (accountsComments: Accounts
     accountComment: AccountComment;
     accountId: string;
 }[];
+export declare const getAccountCommentDepth: (comment: Comment) => number | undefined;
 declare const utils: {
     getAccountSubplebbits: (account: Account, subplebbits: Subplebbits) => any;
     getCommentCidsToAccountsComments: (accountsComments: AccountsComments) => CommentCidsToAccountsComments;

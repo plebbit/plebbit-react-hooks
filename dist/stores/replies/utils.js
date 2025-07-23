@@ -152,19 +152,21 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
         }
         loadedFeedsMissingReplies[feedName] = missingReplies;
     }
-    // do nothing if there are no missing replies
-    if (Object.keys(loadedFeedsMissingReplies).length === 0) {
-        return loadedFeeds;
-    }
     let newLoadedFeeds = {};
     for (const feedName in loadedFeedsMissingReplies) {
         newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingReplies[feedName]];
     }
+    // add account comments
     newLoadedFeeds = Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds);
-    addAccountsComments(feedsOptions, newLoadedFeeds);
+    const accountCommentsChangedFeeds = addAccountsComments(feedsOptions, newLoadedFeeds);
+    // do nothing if there are no missing replies
+    if (Object.keys(loadedFeedsMissingReplies).length === 0 && !accountCommentsChangedFeeds) {
+        return loadedFeeds;
+    }
     return newLoadedFeeds;
 });
 const addAccountsComments = (feedsOptions, loadedFeeds) => {
+    let loadedFeedsChanged = false;
     const accountsComments = accountsStore.getState().accountsComments || {};
     for (const feedName in feedsOptions) {
         const { accountId, accountComments: accountCommentsOptions, commentCid, postCid, commentDepth, flat } = feedsOptions[feedName];
@@ -207,8 +209,10 @@ const addAccountsComments = (feedsOptions, loadedFeeds) => {
             else {
                 loadedFeed.unshift(accountReply);
             }
+            loadedFeedsChanged = true;
         }
     }
+    return loadedFeedsChanged;
 };
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) => {
     var _a, _b, _c, _d, _e;

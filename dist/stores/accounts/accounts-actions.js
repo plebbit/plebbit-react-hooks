@@ -18,7 +18,7 @@ import chain from '../../lib/chain';
 import assert from 'assert';
 const log = Logger('plebbit-react-hooks:accounts:stores');
 import * as accountsActionsInternal from './accounts-actions-internal';
-import { getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions } from './utils';
+import { getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions, getAccountCommentDepth } from './utils';
 import utils from '../../lib/utils';
 const addNewAccountToDatabaseAndState = (newAccount) => __awaiter(void 0, void 0, void 0, function* () {
     // add to database first to init the account
@@ -391,6 +391,8 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     delete createCommentOptions.onPublishingStateChange;
     // make sure the options dont throw
     yield account.plebbit.createComment(createCommentOptions);
+    // try to get comment depth needed for custom depth flat account replies
+    const depth = getAccountCommentDepth(createCommentOptions);
     // set fetching link dimensions state
     let fetchingLinkDimensionsStates;
     if (publishCommentOptions.link) {
@@ -399,14 +401,18 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     }
     // save comment to db
     let accountCommentIndex = accountsComments[account.id].length;
-    yield accountsDatabase.addAccountComment(account.id, createCommentOptions);
-    let createdAccountComment;
-    accountsStore.setState(({ accountsComments }) => {
-        createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
-        return {
-            accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: [...accountsComments[account.id], Object.assign(Object.assign({}, createdAccountComment), fetchingLinkDimensionsStates)] }),
-        };
+    let savedOnce = false;
+    const saveCreatedAccountComment = (accountComment) => __awaiter(void 0, void 0, void 0, function* () {
+        yield accountsDatabase.addAccountComment(account.id, createdAccountComment, savedOnce ? accountCommentIndex : undefined);
+        savedOnce = true;
+        accountsStore.setState(({ accountsComments }) => {
+            const accountComments = [...accountsComments[account.id]];
+            accountComments[accountCommentIndex] = accountComment;
+            return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
+        });
     });
+    let createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { depth, index: accountCommentIndex, accountId: account.id });
+    yield saveCreatedAccountComment(createdAccountComment);
     let comment;
     (() => __awaiter(void 0, void 0, void 0, function* () {
         // fetch comment.link dimensions
@@ -414,13 +420,8 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
             const commentLinkDimensions = yield fetchCommentLinkDimensions(publishCommentOptions.link);
             createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), commentLinkDimensions);
             // save dimensions to db
-            createdAccountComment = Object.assign(Object.assign({}, createCommentOptions), { index: accountCommentIndex, accountId: account.id });
-            yield accountsDatabase.addAccountComment(account.id, createdAccountComment, accountCommentIndex);
-            accountsStore.setState(({ accountsComments }) => {
-                const accountComments = [...accountsComments[account.id]];
-                accountComments[accountCommentIndex] = createdAccountComment;
-                return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [account.id]: accountComments }) };
-            });
+            createdAccountComment = Object.assign(Object.assign({}, createdAccountComment), commentLinkDimensions);
+            yield saveCreatedAccountComment(createdAccountComment);
         }
         comment = yield account.plebbit.createComment(createCommentOptions);
         publishAndRetryFailedChallengeVerification();
@@ -439,7 +440,10 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 publishCommentOptions.onChallengeVerification(challengeVerification, comment);
                 if (!challengeVerification.challengeSuccess && lastChallenge) {
                     // publish again automatically on fail
-                    createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp: Math.round(Date.now() / 1000) });
+                    const timestamp = Math.round(Date.now() / 1000);
+                    createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp });
+                    createdAccountComment = Object.assign(Object.assign({}, createdAccountComment), { timestamp });
+                    yield saveCreatedAccountComment(createdAccountComment);
                     comment = yield account.plebbit.createComment(createCommentOptions);
                     lastChallenge = undefined;
                     publishAndRetryFailedChallengeVerification();
