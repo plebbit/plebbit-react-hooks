@@ -142,7 +142,7 @@ export const getInitAccountCommentsToUpdate = (accountsComments: AccountsComment
   return accountCommentsToUpdate
 }
 
-const getAccountCommentDepth = (comment: Comment) => {
+export const getAccountCommentDepth = (comment: Comment) => {
   if (!comment.parentCid) {
     return 0
   }

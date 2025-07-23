@@ -163,20 +163,25 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
     }
     loadedFeedsMissingReplies[feedName] = missingReplies
   }
-  // do nothing if there are no missing replies
-  if (Object.keys(loadedFeedsMissingReplies).length === 0) {
-    return loadedFeeds
-  }
+
   let newLoadedFeeds: Feeds = {}
   for (const feedName in loadedFeedsMissingReplies) {
     newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingReplies[feedName]]
   }
+
+  // add account comments
   newLoadedFeeds = {...loadedFeeds, ...newLoadedFeeds}
-  addAccountsComments(feedsOptions, newLoadedFeeds)
+  const accountCommentsChangedFeeds = addAccountsComments(feedsOptions, newLoadedFeeds)
+
+  // do nothing if there are no missing replies
+  if (Object.keys(loadedFeedsMissingReplies).length === 0 && !accountCommentsChangedFeeds) {
+    return loadedFeeds
+  }
   return newLoadedFeeds
 }
 
 const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds) => {
+  let loadedFeedsChanged = false
   const accountsComments = accountsStore.getState().accountsComments || {}
   for (const feedName in feedsOptions) {
     const {accountId, accountComments: accountCommentsOptions, commentCid, postCid, commentDepth, flat} = feedsOptions[feedName]
@@ -220,8 +225,10 @@ const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Fee
       } else {
         loadedFeed.unshift(accountReply)
       }
+      loadedFeedsChanged = true
     }
   }
+  return loadedFeedsChanged
 }
 
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedFeeds: Feeds) => {

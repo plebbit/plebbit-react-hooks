@@ -24,7 +24,7 @@ import {
   AccountComment,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
-import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions} from './utils'
+import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions, getAccountCommentDepth} from './utils'
 import utils from '../../lib/utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
@@ -450,6 +450,9 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   // make sure the options dont throw
   await account.plebbit.createComment(createCommentOptions)
 
+  // try to get comment depth needed for custom depth flat account replies
+  const depth = getAccountCommentDepth(createCommentOptions)
+
   // set fetching link dimensions state
   let fetchingLinkDimensionsStates: {state: string; publishingState: string}
   if (publishCommentOptions.link) {
@@ -459,17 +462,18 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
 
   // save comment to db
   let accountCommentIndex = accountsComments[account.id].length
-  await accountsDatabase.addAccountComment(account.id, createCommentOptions)
-  let createdAccountComment: any
-  accountsStore.setState(({accountsComments}) => {
-    createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
-    return {
-      accountsComments: {
-        ...accountsComments,
-        [account.id]: [...accountsComments[account.id], {...createdAccountComment, ...fetchingLinkDimensionsStates}],
-      },
-    }
-  })
+  let savedOnce = false
+  const saveCreatedAccountComment = async (accountComment: AccountComment) => {
+    await accountsDatabase.addAccountComment(account.id, createdAccountComment, savedOnce ? accountCommentIndex : undefined)
+    savedOnce = true
+    accountsStore.setState(({accountsComments}) => {
+      const accountComments = [...accountsComments[account.id]]
+      accountComments[accountCommentIndex] = accountComment
+      return {accountsComments: {...accountsComments, [account.id]: accountComments}}
+    })
+  }
+  let createdAccountComment = {...createCommentOptions, depth, index: accountCommentIndex, accountId: account.id}
+  await saveCreatedAccountComment(createdAccountComment)
 
   let comment: any
   ;(async () => {
@@ -478,13 +482,8 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       const commentLinkDimensions = await fetchCommentLinkDimensions(publishCommentOptions.link)
       createCommentOptions = {...createCommentOptions, ...commentLinkDimensions}
       // save dimensions to db
-      createdAccountComment = {...createCommentOptions, index: accountCommentIndex, accountId: account.id}
-      await accountsDatabase.addAccountComment(account.id, createdAccountComment, accountCommentIndex)
-      accountsStore.setState(({accountsComments}) => {
-        const accountComments: AccountComment[] = [...accountsComments[account.id]]
-        accountComments[accountCommentIndex] = createdAccountComment
-        return {accountsComments: {...accountsComments, [account.id]: accountComments}}
-      })
+      createdAccountComment = {...createdAccountComment, ...commentLinkDimensions}
+      await saveCreatedAccountComment(createdAccountComment)
     }
     comment = await account.plebbit.createComment(createCommentOptions)
     publishAndRetryFailedChallengeVerification()
@@ -501,7 +500,10 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       publishCommentOptions.onChallengeVerification(challengeVerification, comment)
       if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
-        createCommentOptions = {...createCommentOptions, timestamp: Math.round(Date.now() / 1000)}
+        const timestamp = Math.round(Date.now() / 1000)
+        createCommentOptions = {...createCommentOptions, timestamp}
+        createdAccountComment = {...createdAccountComment, timestamp}
+        await saveCreatedAccountComment(createdAccountComment)
         comment = await account.plebbit.createComment(createCommentOptions)
         lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()

@@ -9,6 +9,7 @@ import utils from '../lib/utils'
 import repliesStore, {defaultRepliesPerPage as repliesPerPage} from '../stores/replies'
 import repliesPagesStore from '../stores/replies-pages'
 import accountsStore from '../stores/accounts'
+import * as accountsActions from '../stores/accounts/accounts-actions'
 
 const plebbitJsMockRepliesPageLength = 100
 
@@ -1641,6 +1642,30 @@ describe('replies', () => {
       expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].cid).not.toBe(undefined)
       expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 2].author.address).not.toBe(authorAddress)
 
+      // publishing a reply automatically adds to replies feed
+      await act(async () => {
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: postCid,
+          postCid,
+          content: 'added to feed',
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: reply1Depth2Cid,
+          postCid,
+          content: 'added to feed 2',
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.replies[rendered.result.current.repliesDepth1.replies.length - 1].content === 'added to feed')
+      res = rendered.result.current
+      expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].content).toBe('added to feed')
+      expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].content).toBe('added to feed 2')
+
       // TODO: test reply that was newer than, but that becomes not newer than later
     })
 
@@ -1725,6 +1750,30 @@ describe('replies', () => {
       expect(res.repliesDepth1.replies[length - 3].author.address).not.toBe(authorAddress)
       // prepend order should be newest first
       expect(res.repliesDepth1.replies[length - 1].timestamp).toBeGreaterThan(res.repliesDepth1.replies[length - 2].timestamp)
+
+      // publishing a reply automatically adds to replies feed
+      await act(async () => {
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: postCid,
+          postCid,
+          content: 'added to feed',
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: reply1Depth2Cid,
+          postCid,
+          content: 'added to feed 2',
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.replies[rendered.result.current.repliesDepth1.replies.length - 1].content === 'added to feed 2')
+      res = rendered.result.current
+      expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].content).toBe('added to feed')
+      expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].content).toBe('added to feed 2')
     })
   })
 })
