@@ -21,21 +21,22 @@ import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutL
 export const defaultRepliesPerPage = 25;
 // keep large buffer because fetching cids is slow
 export const commentRepliesLeftBeforeNextPage = 50;
+const defaultAccountComments = { newerThan: Infinity, append: false };
 const addDefaultFeedOptions = (feedOptions) => {
     feedOptions = Object.assign({}, feedOptions);
     if (feedOptions.flat === undefined || feedOptions.flat === null) {
         feedOptions.flat = false;
     }
     if (feedOptions.accountComments === undefined || feedOptions.accountComments === null) {
-        feedOptions.accountComments = true;
+        feedOptions.accountComments = defaultAccountComments;
     }
     feedOptions.repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage;
     return feedOptions;
 };
 export const feedOptionsToFeedName = (feedOptions) => {
-    var _a;
+    var _a, _b, _c;
     feedOptions = addDefaultFeedOptions(feedOptions);
-    return `${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountId}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.commentCid}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.sortType}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.flat}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountComments}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.repliesPerPage}-${(_a = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.filter) === null || _a === void 0 ? void 0 : _a.key}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.streamPage}`;
+    return `${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountId}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.commentCid}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.postCid}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.sortType}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.flat}-${(_a = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountComments) === null || _a === void 0 ? void 0 : _a.newerThan}-${(_b = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.accountComments) === null || _b === void 0 ? void 0 : _b.append}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.repliesPerPage}-${(_c = feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.filter) === null || _c === void 0 ? void 0 : _c.key}-${feedOptions === null || feedOptions === void 0 ? void 0 : feedOptions.streamPage}`;
 };
 // don't updateFeeds more than once per updateFeedsMinIntervalTime
 let updateFeedsPending = false;
@@ -229,6 +230,8 @@ const initializeRepliesStore = () => __awaiter(void 0, void 0, void 0, function*
     repliesStore.subscribe(addRepliesPagesOnLowBufferedFeedsReplyCounts);
     // subscribe to replies pages store changes
     repliesPagesStore.subscribe(updateFeedsOnFeedsRepliesPagesChange);
+    // subscribe to accounts store changes
+    accountsStore.subscribe(updateFeedsOnAccountsCommentsChange);
 });
 let previousRepliesPages = {};
 const updateFeedsOnFeedsRepliesPagesChange = (repliesPagesStoreState) => {
@@ -322,6 +325,18 @@ const updateFeedsOnFeedsCommentsChange = (repliesCommentsStoreState) => {
     previousFeedsCommentsFirstPageCids = feedsCommentsFirstPageCids;
     updateFeeds();
 };
+let previousAccountsCommentsCount = 0;
+const updateFeedsOnAccountsCommentsChange = (accountsStoreState) => {
+    const { accountsComments } = accountsStoreState;
+    const accountsCommentsCount = Object.values(accountsComments).reduce((count, accountComments) => count + accountComments.length, 0);
+    // no changes, do nothing
+    if (accountsCommentsCount === previousAccountsCommentsCount) {
+        return;
+    }
+    previousAccountsCommentsCount = accountsCommentsCount;
+    // TODO: only update the feeds that are relevant to the new accountComment.parentCid/postCid
+    repliesStore.getState().updateFeeds();
+};
 // reset store in between tests
 const originalState = repliesStore.getState();
 // async function because some stores have async init
@@ -334,6 +349,7 @@ export const resetRepliesStore = () => __awaiter(void 0, void 0, void 0, functio
     previousFeedsCommentsLoadedCount = 0;
     previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
     previousRepliesPages = {};
+    previousAccountsCommentsCount = 0;
     updateFeedsPending = false;
     // destroy all component subscriptions to the store
     repliesStore.destroy();

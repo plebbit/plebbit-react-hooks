@@ -28,7 +28,18 @@ export function useReplies(options) {
     const [errors, setErrors] = useState([]);
     // add replies to store
     const account = useAccount({ accountName });
-    const feedOptions = { commentCid: comment === null || comment === void 0 ? void 0 : comment.cid, commentDepth: comment === null || comment === void 0 ? void 0 : comment.depth, sortType, accountId: account === null || account === void 0 ? void 0 : account.id, repliesPerPage, flat, accountComments, filter, streamPage };
+    const feedOptions = {
+        commentCid: comment === null || comment === void 0 ? void 0 : comment.cid,
+        commentDepth: comment === null || comment === void 0 ? void 0 : comment.depth,
+        postCid: comment === null || comment === void 0 ? void 0 : comment.postCid,
+        sortType,
+        accountId: account === null || account === void 0 ? void 0 : account.id,
+        repliesPerPage,
+        flat,
+        accountComments,
+        filter,
+        streamPage,
+    };
     const repliesFeedName = feedOptionsToFeedName(feedOptions);
     const addFeedToStoreOrUpdateComment = useRepliesStore((state) => state.addFeedToStoreOrUpdateComment);
     useEffect(() => {

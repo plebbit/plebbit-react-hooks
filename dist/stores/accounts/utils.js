@@ -10,6 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import assert from 'assert';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:stores');
+import commentsStore from '../comments';
+import repliesPagesStore from '../replies-pages';
+import subplebbitsPagesStore from '../subplebbits-pages';
 const getAuthorAddressRolesFromSubplebbits = (authorAddress, subplebbits) => {
     var _a, _b;
     const roles = {};
@@ -131,10 +134,31 @@ export const getInitAccountCommentsToUpdate = (accountsComments) => {
     // during downtimes when we're not fetching anything else
     return accountCommentsToUpdate;
 };
+const getAccountCommentDepth = (comment) => {
+    var _a, _b, _c;
+    if (!comment.parentCid) {
+        return 0;
+    }
+    let parentCommentDepth = (_a = commentsStore.getState().comments[comment.parentCid]) === null || _a === void 0 ? void 0 : _a.depth;
+    if (typeof parentCommentDepth === 'number') {
+        return parentCommentDepth + 1;
+    }
+    parentCommentDepth = (_b = repliesPagesStore.getState().comments[comment.parentCid]) === null || _b === void 0 ? void 0 : _b.depth;
+    if (typeof parentCommentDepth === 'number') {
+        return parentCommentDepth + 1;
+    }
+    parentCommentDepth = (_c = subplebbitsPagesStore.getState().comments[comment.parentCid]) === null || _c === void 0 ? void 0 : _c.depth;
+    if (typeof parentCommentDepth === 'number') {
+        return parentCommentDepth + 1;
+    }
+    // if can't find the parent comment depth anywhere, don't include it with the account comment
+    // it will be added automatically when challenge verification is received
+};
 const utils = {
     getAccountSubplebbits,
     getCommentCidsToAccountsComments,
     fetchCommentLinkDimensions,
     getInitAccountCommentsToUpdate,
+    getAccountCommentDepth,
 };
 export default utils;

@@ -227,7 +227,8 @@ export const validateUseRepliesArguments = (comment, sortType, accountName, flat
         assert(typeof flat === 'boolean', `useReplies flat argument '${flat}' not a boolean`);
     }
     if (accountComments !== undefined && accountComments !== null) {
-        assert(typeof accountComments === 'boolean', `useReplies accountComments argument '${accountComments}' not a boolean`);
+        assert(typeof accountComments.newerThan === 'number', `useReplies accountComments.newerThan argument '${accountComments.newerThan}' not a number`);
+        assert(!accountComments.append || typeof accountComments.append === 'boolean', `useReplies accountComments.append argument '${accountComments.append}' not a boolean`);
     }
     if (filter) {
         assert(typeof filter.filter === 'function', `useReplies filter.filter argument '${filter.filter}' not a function, useRepliesOptions.filter is now an object Filter {filter: (comment: Comment) => Boolean, key: string}`);
