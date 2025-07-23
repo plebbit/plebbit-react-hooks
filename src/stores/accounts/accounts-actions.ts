@@ -437,7 +437,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   }
 
   let createCommentOptions: any = {
-    timestamp: Math.round(Date.now() / 1000),
+    timestamp: Math.floor(Date.now() / 1000),
     author,
     signer: account.signer,
     ...publishCommentOptions,
@@ -500,7 +500,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
       publishCommentOptions.onChallengeVerification(challengeVerification, comment)
       if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
-        const timestamp = Math.round(Date.now() / 1000)
+        const timestamp = Math.floor(Date.now() / 1000)
         createCommentOptions = {...createCommentOptions, timestamp}
         createdAccountComment = {...createdAccountComment, timestamp}
         await saveCreatedAccountComment(createdAccountComment)
@@ -617,7 +617,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
   validator.validateAccountsActionsPublishVoteArguments({publishVoteOptions, accountName, account})
 
   let createVoteOptions: any = {
-    timestamp: Math.round(Date.now() / 1000),
+    timestamp: Math.floor(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
     ...publishVoteOptions,
@@ -638,7 +638,7 @@ export const publishVote = async (publishVoteOptions: PublishVoteOptions, accoun
       publishVoteOptions.onChallengeVerification(challengeVerification, vote)
       if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
-        createVoteOptions = {...createVoteOptions, timestamp: Math.round(Date.now() / 1000)}
+        createVoteOptions = {...createVoteOptions, timestamp: Math.floor(Date.now() / 1000)}
         vote = await account.plebbit.createVote(createVoteOptions)
         lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
@@ -684,7 +684,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
   validator.validateAccountsActionsPublishCommentEditArguments({publishCommentEditOptions, accountName, account})
 
   let createCommentEditOptions: any = {
-    timestamp: Math.round(Date.now() / 1000),
+    timestamp: Math.floor(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
     ...publishCommentEditOptions,
@@ -704,7 +704,7 @@ export const publishCommentEdit = async (publishCommentEditOptions: PublishComme
       publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit)
       if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
-        createCommentEditOptions = {...createCommentEditOptions, timestamp: Math.round(Date.now() / 1000)}
+        createCommentEditOptions = {...createCommentEditOptions, timestamp: Math.floor(Date.now() / 1000)}
         commentEdit = await account.plebbit.createCommentEdit(createCommentEditOptions)
         lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
@@ -752,7 +752,7 @@ export const publishCommentModeration = async (publishCommentModerationOptions: 
   validator.validateAccountsActionsPublishCommentModerationArguments({publishCommentModerationOptions, accountName, account})
 
   let createCommentModerationOptions: any = {
-    timestamp: Math.round(Date.now() / 1000),
+    timestamp: Math.floor(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
     ...publishCommentModerationOptions,
@@ -772,7 +772,7 @@ export const publishCommentModeration = async (publishCommentModerationOptions: 
       publishCommentModerationOptions.onChallengeVerification(challengeVerification, commentModeration)
       if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
-        createCommentModerationOptions = {...createCommentModerationOptions, timestamp: Math.round(Date.now() / 1000)}
+        createCommentModerationOptions = {...createCommentModerationOptions, timestamp: Math.floor(Date.now() / 1000)}
         commentModeration = await account.plebbit.createCommentModeration(createCommentModerationOptions)
         lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
@@ -840,7 +840,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
     `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`
   )
   let createSubplebbitEditOptions: any = {
-    timestamp: Math.round(Date.now() / 1000),
+    timestamp: Math.floor(Date.now() / 1000),
     author: account.author,
     signer: account.signer,
     // not possible to edit subplebbit.address over pubsub, only locally
@@ -858,7 +858,7 @@ export const publishSubplebbitEdit = async (subplebbitAddress: string, publishSu
       publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit)
       if (!challengeVerification.challengeSuccess && lastChallenge) {
         // publish again automatically on fail
-        createSubplebbitEditOptions = {...createSubplebbitEditOptions, timestamp: Math.round(Date.now() / 1000)}
+        createSubplebbitEditOptions = {...createSubplebbitEditOptions, timestamp: Math.floor(Date.now() / 1000)}
         subplebbitEdit = await account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions)
         lastChallenge = undefined
         publishAndRetryFailedChallengeVerification()
