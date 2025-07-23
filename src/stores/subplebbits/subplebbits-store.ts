@@ -60,6 +60,7 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
         try {
           subplebbit = await account.plebbit.createSubplebbit(subplebbitData)
         } catch (e) {
+          fetchedAt = undefined
           // need to log this always or it could silently fail in production and cache never be used
           console.error('failed plebbit.createSubplebbit(cachedSubplebbit)', {cachedSubplebbit: subplebbitData, error: e})
         }
