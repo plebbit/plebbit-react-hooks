@@ -384,7 +384,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     if (previousCommentCid) {
         author.previousCommentCid = previousCommentCid;
     }
-    let createCommentOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author, signer: account.signer }, publishCommentOptions);
+    let createCommentOptions = Object.assign({ timestamp: Math.floor(Date.now() / 1000), author, signer: account.signer }, publishCommentOptions);
     delete createCommentOptions.onChallenge;
     delete createCommentOptions.onChallengeVerification;
     delete createCommentOptions.onError;
@@ -440,7 +440,7 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
                 publishCommentOptions.onChallengeVerification(challengeVerification, comment);
                 if (!challengeVerification.challengeSuccess && lastChallenge) {
                     // publish again automatically on fail
-                    const timestamp = Math.round(Date.now() / 1000);
+                    const timestamp = Math.floor(Date.now() / 1000);
                     createCommentOptions = Object.assign(Object.assign({}, createCommentOptions), { timestamp });
                     createdAccountComment = Object.assign(Object.assign({}, createdAccountComment), { timestamp });
                     yield saveCreatedAccountComment(createdAccountComment);
@@ -549,7 +549,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
         account = accounts[accountId];
     }
     validator.validateAccountsActionsPublishVoteArguments({ publishVoteOptions, accountName, account });
-    let createVoteOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
+    let createVoteOptions = Object.assign({ timestamp: Math.floor(Date.now() / 1000), author: account.author, signer: account.signer }, publishVoteOptions);
     delete createVoteOptions.onChallenge;
     delete createVoteOptions.onChallengeVerification;
     delete createVoteOptions.onError;
@@ -566,7 +566,7 @@ export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0
             publishVoteOptions.onChallengeVerification(challengeVerification, vote);
             if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
-                createVoteOptions = Object.assign(Object.assign({}, createVoteOptions), { timestamp: Math.round(Date.now() / 1000) });
+                createVoteOptions = Object.assign(Object.assign({}, createVoteOptions), { timestamp: Math.floor(Date.now() / 1000) });
                 vote = yield account.plebbit.createVote(createVoteOptions);
                 lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
@@ -601,7 +601,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
         account = accounts[accountId];
     }
     validator.validateAccountsActionsPublishCommentEditArguments({ publishCommentEditOptions, accountName, account });
-    let createCommentEditOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentEditOptions);
+    let createCommentEditOptions = Object.assign({ timestamp: Math.floor(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentEditOptions);
     delete createCommentEditOptions.onChallenge;
     delete createCommentEditOptions.onChallengeVerification;
     delete createCommentEditOptions.onError;
@@ -617,7 +617,7 @@ export const publishCommentEdit = (publishCommentEditOptions, accountName) => __
             publishCommentEditOptions.onChallengeVerification(challengeVerification, commentEdit);
             if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
-                createCommentEditOptions = Object.assign(Object.assign({}, createCommentEditOptions), { timestamp: Math.round(Date.now() / 1000) });
+                createCommentEditOptions = Object.assign(Object.assign({}, createCommentEditOptions), { timestamp: Math.floor(Date.now() / 1000) });
                 commentEdit = yield account.plebbit.createCommentEdit(createCommentEditOptions);
                 lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
@@ -658,7 +658,7 @@ export const publishCommentModeration = (publishCommentModerationOptions, accoun
         account = accounts[accountId];
     }
     validator.validateAccountsActionsPublishCommentModerationArguments({ publishCommentModerationOptions, accountName, account });
-    let createCommentModerationOptions = Object.assign({ timestamp: Math.round(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentModerationOptions);
+    let createCommentModerationOptions = Object.assign({ timestamp: Math.floor(Date.now() / 1000), author: account.author, signer: account.signer }, publishCommentModerationOptions);
     delete createCommentModerationOptions.onChallenge;
     delete createCommentModerationOptions.onChallengeVerification;
     delete createCommentModerationOptions.onError;
@@ -674,7 +674,7 @@ export const publishCommentModeration = (publishCommentModerationOptions, accoun
             publishCommentModerationOptions.onChallengeVerification(challengeVerification, commentModeration);
             if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
-                createCommentModerationOptions = Object.assign(Object.assign({}, createCommentModerationOptions), { timestamp: Math.round(Date.now() / 1000) });
+                createCommentModerationOptions = Object.assign(Object.assign({}, createCommentModerationOptions), { timestamp: Math.floor(Date.now() / 1000) });
                 commentModeration = yield account.plebbit.createCommentModeration(createCommentModerationOptions);
                 lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
@@ -732,7 +732,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
     }
     assert(!publishSubplebbitEditOptions.address || publishSubplebbitEditOptions.address === subplebbitAddress, `accountsActions.publishSubplebbitEdit can't edit address of a remote subplebbit`);
     let createSubplebbitEditOptions = {
-        timestamp: Math.round(Date.now() / 1000),
+        timestamp: Math.floor(Date.now() / 1000),
         author: account.author,
         signer: account.signer,
         // not possible to edit subplebbit.address over pubsub, only locally
@@ -750,7 +750,7 @@ export const publishSubplebbitEdit = (subplebbitAddress, publishSubplebbitEditOp
             publishSubplebbitEditOptions.onChallengeVerification(challengeVerification, subplebbitEdit);
             if (!challengeVerification.challengeSuccess && lastChallenge) {
                 // publish again automatically on fail
-                createSubplebbitEditOptions = Object.assign(Object.assign({}, createSubplebbitEditOptions), { timestamp: Math.round(Date.now() / 1000) });
+                createSubplebbitEditOptions = Object.assign(Object.assign({}, createSubplebbitEditOptions), { timestamp: Math.floor(Date.now() / 1000) });
                 subplebbitEdit = yield account.plebbit.createSubplebbitEdit(createSubplebbitEditOptions);
                 lastChallenge = undefined;
                 publishAndRetryFailedChallengeVerification();
