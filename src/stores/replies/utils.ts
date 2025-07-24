@@ -140,17 +140,18 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
     const plebbit = accounts[accountId]?.plebbit
     const loadedFeedReplyCount = pageNumber * repliesPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
-    const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.length
+    // don't count account replies
+    const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.filter((reply) => reply.index === undefined).length
 
     // get new replies from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
 
     let missingReplies: any[] = []
     for (const reply of bufferedFeed) {
-      if (missingReplies.length === missingRepliesCount) {
+      if (missingReplies.length >= missingRepliesCount) {
         missingReplies = await removeInvalidComments(missingReplies, {validateReplies: false}, plebbit)
         // only stop if there were no invalid comments
-        if (missingReplies.length === missingRepliesCount) {
+        if (missingReplies.length >= missingRepliesCount) {
           break
         }
       }

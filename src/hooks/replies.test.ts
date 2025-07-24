@@ -73,7 +73,7 @@ describe('replies', () => {
         return useReplies({...useRepliesOptions, commentCid: undefined, comment: useRepliesOptions?.comment || comment})
       })
       waitFor = testUtils.createWaitFor(rendered)
-      scrollOnePage = scrollOnePage = async () => {
+      scrollOnePage = async () => {
         const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
         await act(async () => {
           await rendered.result.current.loadMore()
@@ -457,7 +457,7 @@ describe('replies', () => {
         return useReplies({...useRepliesOptions, commentCid: undefined, comment: useRepliesOptions?.comment || comment})
       })
       waitFor = testUtils.createWaitFor(rendered)
-      scrollOnePage = scrollOnePage = async () => {
+      scrollOnePage = async () => {
         const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
         await act(async () => {
           await rendered.result.current.loadMore()
@@ -588,7 +588,7 @@ describe('replies', () => {
       })
 
       waitFor = testUtils.createWaitFor(rendered)
-      scrollOnePage = scrollOnePage = async () => {
+      scrollOnePage = async () => {
         const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
         await act(async () => {
           await rendered.result.current.loadMore()
@@ -1034,7 +1034,7 @@ describe('replies', () => {
       })
 
       waitFor = testUtils.createWaitFor(rendered)
-      scrollOnePage = scrollOnePage = async () => {
+      scrollOnePage = async () => {
         const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
         await act(async () => {
           await rendered.result.current.loadMore()
@@ -1479,7 +1479,7 @@ describe('replies', () => {
       Pages.prototype.pageToGet = pageToGet
     })
 
-    let rendered, waitFor, scrollOnePage
+    let rendered, waitFor
 
     const sortType = 'best'
     const postCid = 'comment cid 1'
@@ -1504,6 +1504,7 @@ describe('replies', () => {
                 timestamp: yearAgo - 1, // very old reply
                 parentCid: postCid,
                 depth: 1,
+                index: 0,
               },
               {
                 ...defaultProps,
@@ -1511,6 +1512,7 @@ describe('replies', () => {
                 timestamp: yearAgo, // very old reply
                 parentCid: reply1Depth2Cid,
                 depth: 2,
+                index: 1,
               },
               {
                 ...defaultProps,
@@ -1519,6 +1521,7 @@ describe('replies', () => {
                 parentCid: postCid,
                 updatedAt: now,
                 depth: 1,
+                index: 2,
               },
               {
                 ...defaultProps,
@@ -1527,6 +1530,7 @@ describe('replies', () => {
                 parentCid: reply1Depth2Cid,
                 updatedAt: now,
                 depth: 2,
+                index: 3,
               },
             ],
           },
@@ -1545,17 +1549,6 @@ describe('replies', () => {
       })
 
       waitFor = testUtils.createWaitFor(rendered)
-      scrollOnePage = scrollOnePage = async () => {
-        const nextFeedLength = (rendered.result.current.replies?.length || 0) + repliesPerPage
-        await act(async () => {
-          await rendered.result.current.loadMore()
-        })
-        try {
-          await rendered.waitFor(() => rendered.result.current.replies?.length >= nextFeedLength)
-        } catch (e) {
-          // console.error('scrollOnePage failed:', e)
-        }
-      }
     })
     afterEach(async () => {
       await testUtils.resetDatabasesAndStores()
@@ -1774,6 +1767,353 @@ describe('replies', () => {
       res = rendered.result.current
       expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 2].content).toBe('added to feed')
       expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].content).toBe('added to feed 2')
+    })
+
+    test('scroll pages', async () => {
+      const repliesPerPage = 1
+      const scrollOnePage = async () => {
+        const current = rendered.result.current.repliesDepth1
+        const nextFeedLength = (current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => current.replies?.length >= nextFeedLength)
+        } catch (e) {}
+      }
+
+      rendered.rerender({commentCid: postCid, sortType, repliesPerPage, accountComments: {newerThan: Infinity}})
+
+      // wait for 2 the first time because account comments can appear before comment update replies
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 2)
+      let res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(3)
+      expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      await scrollOnePage()
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 3)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(4)
+      expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      // total mock replies is 5, so scroll 1 more times
+      await act(async () => {
+        await rendered.result.current.repliesDepth1.loadMore()
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.hasMore === false)
+      expect(rendered.result.current.repliesDepth1.hasMore).toBe(false)
+    })
+
+    test('scroll pages and publish', async () => {
+      const repliesPerPage = 1
+      const scrollOnePage = async () => {
+        const current = rendered.result.current.repliesDepth1
+        const nextFeedLength = (current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => current.replies?.length >= nextFeedLength)
+        } catch (e) {}
+      }
+
+      rendered.rerender({commentCid: postCid, sortType, repliesPerPage, accountComments: {newerThan: Infinity}})
+
+      // wait for 2 the first time because account comments can appear before comment update replies
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 2)
+      let res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(3)
+      expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      const content = 'published content'
+      await act(async () => {
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: postCid,
+          postCid,
+          content,
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.replies[0].content === content)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(4)
+      expect(res.repliesDepth1.replies[0].content).toBe(content)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      await scrollOnePage()
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 4)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(5)
+      expect(res.repliesDepth1.replies[0].content).toBe(content)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.replies[4].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[4].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+    })
+
+    test('scroll pages flat', async () => {
+      const repliesPerPage = 1
+      const scrollOnePage = async () => {
+        const current = rendered.result.current.repliesDepth1
+        const nextFeedLength = (current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => current.replies?.length >= nextFeedLength)
+        } catch (e) {}
+      }
+
+      rendered.rerender({commentCid: postCid, sortType, repliesPerPage, flat: true, accountComments: {newerThan: Infinity}})
+
+      // wait for 2 the first time because account comments can appear before comment update replies
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 4)
+      let res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(5)
+      expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[4].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[4].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      await scrollOnePage()
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 5)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(6)
+      expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[4].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[4].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.replies[5].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[5].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      // total mock flat replies is 13, so scroll 7 more times
+      await act(async () => {
+        await rendered.result.current.repliesDepth1.loadMore()
+        await rendered.result.current.repliesDepth1.loadMore()
+        await rendered.result.current.repliesDepth1.loadMore()
+        await rendered.result.current.repliesDepth1.loadMore()
+        await rendered.result.current.repliesDepth1.loadMore()
+        await rendered.result.current.repliesDepth1.loadMore()
+        await rendered.result.current.repliesDepth1.loadMore()
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.hasMore === false)
+      expect(rendered.result.current.repliesDepth1.hasMore).toBe(false)
+    })
+
+    test('scroll pages flat and publish', async () => {
+      const repliesPerPage = 1
+      const scrollOnePage = async () => {
+        const current = rendered.result.current.repliesDepth1
+        const nextFeedLength = (current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => current.replies?.length >= nextFeedLength)
+        } catch (e) {}
+      }
+
+      rendered.rerender({commentCid: postCid, sortType, repliesPerPage, flat: true, accountComments: {newerThan: Infinity}})
+
+      // wait for 2 the first time because account comments can appear before comment update replies
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 4)
+      let res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(5)
+      expect(res.repliesDepth1.replies[0].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[0].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[4].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[4].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      const content = 'published content'
+      await act(async () => {
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: postCid,
+          postCid,
+          content,
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.replies[0].content === content)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(6)
+      expect(res.repliesDepth1.replies[0].content).toBe(content)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[4].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[5].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[5].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      await scrollOnePage()
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 6)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(7)
+      expect(res.repliesDepth1.replies[0].content).toBe(content)
+      expect(res.repliesDepth1.replies[1].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[4].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[5].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[5].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.replies[6].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[6].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+    })
+
+    test('scroll pages flat, append and publish', async () => {
+      const repliesPerPage = 1
+      const scrollOnePage = async () => {
+        const current = rendered.result.current.repliesDepth1
+        const nextFeedLength = (current.replies?.length || 0) + repliesPerPage
+        await act(async () => {
+          await current.loadMore()
+        })
+        try {
+          await rendered.waitFor(() => current.replies?.length >= nextFeedLength)
+        } catch (e) {}
+      }
+
+      rendered.rerender({commentCid: postCid, sortType, repliesPerPage, flat: true, accountComments: {newerThan: Infinity, append: true}})
+
+      // wait for 2 the first time because account comments can appear before comment update replies
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 4)
+      let res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(5)
+      expect(res.repliesDepth1.replies[4].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[0].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[0].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      const content = 'published content'
+      await act(async () => {
+        await accountsActions.publishComment({
+          subplebbitAddress: 'subplebbit address',
+          parentCid: postCid,
+          postCid,
+          content,
+          onChallenge: () => {},
+          onChallengeVerification: () => {},
+        })
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.replies[5].content === content)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(6)
+      expect(res.repliesDepth1.replies[5].content).toBe(content)
+      expect(res.repliesDepth1.replies[4].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[0].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[0].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      await scrollOnePage()
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 6)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(7)
+      expect(res.repliesDepth1.replies[6].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[6].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.replies[5].content).toBe(content)
+      expect(res.repliesDepth1.replies[4].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[0].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[0].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
     })
   })
 })
