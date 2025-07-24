@@ -132,15 +132,16 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
         const plebbit = (_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.plebbit;
         const loadedFeedReplyCount = pageNumber * repliesPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];
-        const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.length;
+        // don't count account replies
+        const missingRepliesCount = loadedFeedReplyCount - currentLoadedFeed.filter((reply) => reply.index === undefined).length;
         // get new replies from buffered feed
         const bufferedFeed = bufferedFeeds[feedName] || [];
         let missingReplies = [];
         for (const reply of bufferedFeed) {
-            if (missingReplies.length === missingRepliesCount) {
+            if (missingReplies.length >= missingRepliesCount) {
                 missingReplies = yield removeInvalidComments(missingReplies, { validateReplies: false }, plebbit);
                 // only stop if there were no invalid comments
-                if (missingReplies.length === missingRepliesCount) {
+                if (missingReplies.length >= missingRepliesCount) {
                     break;
                 }
             }
