@@ -326,12 +326,18 @@ const updateFeedsOnFeedsCommentsChange = (repliesCommentsStoreState) => {
     updateFeeds();
 };
 let previousAccountsCommentsCount = 0;
+let previousAccountsCommentsCids = '';
 const updateFeedsOnAccountsCommentsChange = (accountsStoreState) => {
     const { accountsComments } = accountsStoreState;
     const accountsCommentsCount = Object.values(accountsComments).reduce((count, accountComments) => count + accountComments.length, 0);
     // no changes, do nothing
     if (accountsCommentsCount === previousAccountsCommentsCount) {
-        return;
+        // if cids haven't changed (account comments receive cids after pending), do nothing
+        const accountsCommentsCids = Object.values(accountsComments).reduce((cids, accountComments) => cids + String(accountComments.map((comment) => comment.cid || '')), '');
+        if (accountsCommentsCids === previousAccountsCommentsCids) {
+            return;
+        }
+        previousAccountsCommentsCids = accountsCommentsCids;
     }
     previousAccountsCommentsCount = accountsCommentsCount;
     // TODO: only update the feeds that are relevant to the new accountComment.parentCid/postCid
@@ -350,6 +356,7 @@ export const resetRepliesStore = () => __awaiter(void 0, void 0, void 0, functio
     previousFeedsCommentsRepliesPagesFirstUpdatedAts = '';
     previousRepliesPages = {};
     previousAccountsCommentsCount = 0;
+    previousAccountsCommentsCids = '';
     updateFeedsPending = false;
     // destroy all component subscriptions to the store
     repliesStore.destroy();
