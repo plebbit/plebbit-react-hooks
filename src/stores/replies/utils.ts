@@ -211,14 +211,30 @@ const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Fee
     const loadedFeed = loadedFeeds[feedName]
     // if a loaded comment doesn't have a cid, then it's pending
     // and pending account comments should always have unique timestamps
-    const loadedFeedCidsOrTimestamps = new Set(loadedFeed.map((reply) => reply.cid || reply.timestamp))
+    const loadedFeedMap = new Map()
+    loadedFeed.forEach((reply, loadedFeedIndex) => {
+      if (reply.cid) loadedFeedMap.set(reply.cid, loadedFeedIndex)
+      if (reply.index) loadedFeedMap.set(reply.index, loadedFeedIndex)
+      if (!reply.cid) loadedFeedMap.set(reply.timestamp, loadedFeedIndex)
+    })
     for (const accountReply of accountReplies) {
       // account reply with cid already added
-      if (accountReply.cid && loadedFeedCidsOrTimestamps.has(accountReply.cid)) {
+      if (accountReply.cid && loadedFeedMap.has(accountReply.cid)) {
+        continue
+      }
+      // account reply without cid already added, but now we have the cid
+      if (accountReply.cid && loadedFeedMap.has(accountReply.index)) {
+        const loadedFeedIndex = loadedFeedMap.get(accountReply.index)
+        // update the feed with the accountReply.cid now that we have it
+        loadedFeed[loadedFeedIndex] = accountReply
+        loadedFeedsChanged = true
+        continue
+      }
+      if (loadedFeedMap.has(accountReply.index)) {
         continue
       }
       // pending account reply without cid already added
-      if (!accountReply.cid && loadedFeedCidsOrTimestamps.has(accountReply.timestamp)) {
+      if (!accountReply.cid && loadedFeedMap.has(accountReply.timestamp)) {
         continue
       }
       if (append) {

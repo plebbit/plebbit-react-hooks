@@ -416,13 +416,22 @@ const updateFeedsOnFeedsCommentsChange = (repliesCommentsStoreState: any) => {
 }
 
 let previousAccountsCommentsCount = 0
+let previousAccountsCommentsCids = ''
 const updateFeedsOnAccountsCommentsChange = (accountsStoreState: any) => {
   const {accountsComments} = accountsStoreState
   const accountsCommentsCount = Object.values(accountsComments as Comment[][]).reduce((count, accountComments) => count + accountComments.length, 0)
 
   // no changes, do nothing
   if (accountsCommentsCount === previousAccountsCommentsCount) {
-    return
+    // if cids haven't changed (account comments receive cids after pending), do nothing
+    const accountsCommentsCids = Object.values(accountsComments as Comment[][]).reduce(
+      (cids, accountComments) => cids + String(accountComments.map((comment) => comment.cid || '')),
+      ''
+    )
+    if (accountsCommentsCids === previousAccountsCommentsCids) {
+      return
+    }
+    previousAccountsCommentsCids = accountsCommentsCids
   }
   previousAccountsCommentsCount = accountsCommentsCount
 
@@ -443,6 +452,7 @@ export const resetRepliesStore = async () => {
   previousFeedsCommentsRepliesPagesFirstUpdatedAts = ''
   previousRepliesPages = {}
   previousAccountsCommentsCount = 0
+  previousAccountsCommentsCids = ''
   updateFeedsPending = false
   // destroy all component subscriptions to the store
   repliesStore.destroy()

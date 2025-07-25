@@ -2306,5 +2306,65 @@ describe('replies', () => {
       expect(res.repliesDepth1.replies[0].author.address).not.toBe(authorAddress)
       expect(res.repliesDepth1.hasMore).toBe(true)
     })
+
+    test('receiving cid updates feeds and does not cause duplicate comments', async () => {
+      const repliesPerPage = 1
+      rendered.rerender({commentCid: postCid, sortType, repliesPerPage, flat: true, accountComments: {newerThan: Infinity, append: true}})
+
+      // wait for 2 the first time because account comments can appear before comment update replies
+      await waitFor(() => rendered.result.current.repliesDepth1.replies.length > 4)
+      let res = rendered.result.current
+
+      // NOTE: sometimes there's a race condition that puts the account comments first
+      expect(res.repliesDepth1.replies.length).toBe(5)
+      expect(res.repliesDepth1.replies[4].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[0].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[0].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+
+      // trigger several accounts comments state changes to make sure the next
+      // state change is caused by the new cid, and not something else
+      let count = 10
+      while (count--) {
+        accountsStore.setState((state) => {
+          const accountId = Object.keys(state.accountsComments)[0]
+          const accountComments = [...state.accountsComments[accountId]]
+          return {accountsComments: {[accountId]: accountComments}}
+        })
+      }
+
+      // receiving cid updates feeds and doesn't cause duplicate comments
+      const publishedCommentCid = 'published comment cid'
+      const accountCommentIndex = res.repliesDepth1.replies[1].index
+      expect(typeof accountCommentIndex).toBe('number')
+      accountsStore.setState((state) => {
+        const accountId = Object.keys(state.accountsComments)[0]
+        const accountComments = [...state.accountsComments[accountId]]
+        accountComments[accountCommentIndex].cid = 'published comment cid'
+        return {accountsComments: {[accountId]: accountComments}}
+      })
+      await waitFor(() => rendered.result.current.repliesDepth1.replies[1].cid === publishedCommentCid)
+      res = rendered.result.current
+
+      expect(res.repliesDepth1.replies.length).toBe(5)
+      expect(res.repliesDepth1.replies[4].cid).toBe(accountReplyCid2)
+      expect(res.repliesDepth1.replies[4].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[3].cid).toBe(accountReplyCid1)
+      expect(res.repliesDepth1.replies[3].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[2].cid).toBe(undefined)
+      expect(res.repliesDepth1.replies[2].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[1].cid).toBe(publishedCommentCid)
+      expect(res.repliesDepth1.replies[1].author.address).toBe(authorAddress)
+      expect(res.repliesDepth1.replies[0].cid).not.toBe(undefined)
+      expect(res.repliesDepth1.replies[0].author.address).not.toBe(authorAddress)
+      expect(res.repliesDepth1.hasMore).toBe(true)
+    })
   })
 })
