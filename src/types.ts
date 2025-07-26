@@ -607,6 +607,8 @@ export type CommentsFilter = {
 /**
  * Replies store
  */
+// NOTE: to have different replies options for different depth, eg smaller repliesPerPage for depth > 1,
+// we will need another prop, eg `{depth: '>1': {repliesPerPage: 3}}`, because of how react renders work
 export type RepliesFeedOptions = {
   commentCid: string
   commentDepth: number

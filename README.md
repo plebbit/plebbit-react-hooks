@@ -927,90 +927,44 @@ const filter = useCallback((edit) => edit.subplebbitAddress === subplebbitAddres
 const {accountEdits} = useAccountEdits({filter})
 ```
 
-#### Get replies to a post (nested)
+#### Get replies to a post (nested or flat)
 
 ```jsx
-import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
+import {useReplies, useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 
-const useRepliesAndAccountReplies = (comment) => {
-  // filter only the parent cid
-  const filter = useCallback((accountComment) => accountComment.parentCid === (comment?.cid || 'n/a'), [comment?.cid])
-  const {accountComments} = useAccountComments({filter})
+// NOTE: recommended to use the same replies options for all depths, or will load slower
+const useRepliesOptions = {flat: false, repliesPerPage: 20, accountComments: {newerThan: Infinity, append: false}}
 
-  // the account's replies have a delay before getting published, so get them locally from accountComments instead
-  const accountRepliesNotYetPublished = useMemo(() => {
-    const replies = comment?.replies?.pages?.topAll?.comments || []
-    const replyCids = new Set(replies.map(reply => reply.cid))
-    // filter out the account comments already in comment.replies, so they don't appear twice
-    return accountComments.filter(accountReply => !replyCids.has(accountReply.cid))
-  }, [comment?.replies?.pages?.topAll?.comments, accountComments])
+const Reply = ({reply, updatedReply}) => {
+  const {replies, updatedReplies, bufferedReplies, hasMore, loadMore} = useReplies({...useRepliesOptions, sortType: 'best', comment: reply})
 
-  const repliesAndNotYetPublishedReplies = useMemo(() => {
-    return [
-      // put the author's unpublished replies at the top, latest first (reverse)
-      ...accountRepliesNotYetPublished.reverse(),
-      // put the published replies after,
-      ...comment?.replies?.pages?.topAll?.comments || []
-    ]
-  }, [comment?.replies?.pages?.topAll?.comments, accountRepliesNotYetPublished])
+  // updatedReply updates values in real time, reply does not
+  const score = (updatedReply?.upvoteCount || 0) - (updatedReply?.downvoteCount || 0)
 
-  return repliesAndNotYetPublishedReplies
-}
+  // bufferedReplies updates in real time, can show new replies count in real time
+  const moreReplies = hasMore && bufferedReplies?.length !== 0 ? `(${bufferedReplies.length} more replies)` : ''
 
-const Reply = ({reply}) => {
-  const replies = useRepliesAndAccountReplies(reply)
+  // publishing states exist only on account comment
+  const accountReply = useAccountComment({commentIndex: reply.index})
+  const state = accountReply?.state
+  const publishingStateString = useStateString(accountReply)
+
   return (
     <div>
-      <div>{reply.author.address} {reply.timestamp}</div>
-      {reply.state === 'pending' && <div>PENDING</div>}
-      {reply.state === 'failed' && <div>FAILED</div>}
+      <div>{score} {reply.author.address} {reply.timestamp} {moreReplies}</div>
+      {state === 'pending' && <div>PENDING ({publishingStateString})</div>}
+      {state === 'failed' && <div>FAILED</div>}
       <div>{reply.content}</div>
       <div style={{marginLeft: 4}}>
-        {replies.map(reply => <Reply reply={reply}/>))}
+        {replies.map((reply, index) => <Reply key={reply?.index || reply?.cid} reply={reply} updatedReply={updatedReplies[index]}/>)}
       </div>
     </div>
   )
 }
 
-// account replies can have reply.state 'pending' or 'failed' when they are not published yet
-// it is recommended to add a 'pending' or 'failed' label to these replies
 const comment = useComment({commentCid})
-const replies = useRepliesAndAccountReplies(comment)
-const repliesComponents = replies.map(reply => <Reply reply={reply}/>)
-```
-
-#### Get replies to a post flattened (not nested)
-
-```jsx
-import {useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
-import {flattenCommentsPages} from '@plebbit/plebbit-react-hooks/dist/lib/utils'
-
-// the post
-const comment = useComment({commentCid})
-
-// the default way to display replies is nested, flatten (unnest) them instead
-const flattenedReplies = useMemo(() => flattenCommentsPages(comment.replies), [comment.replies])
-
-// the account replies to the post (commentCid) and account replies to all the post's replies
-const postAndRepliesCids = useMemo(() => new Set([(commentCid || 'n/a'), ...flattenedReplies.map(reply => reply.cid)]), [commentCid, flattenedReplies])
-const filter = useCallback((accountComment) => postAndRepliesCids.has(accountComment.parentCid), [postAndRepliesCids])
-const {accountComments} = useAccountComments({filter})
-
-// the account's replies have a delay before getting published, so get them locally from accountComments instead
-const accountRepliesNotYetInCommentReplies = useMemo(() => {
-  const commentReplyCids = new Set(flattenedReplies.map(reply => reply.cid))
-  // filter out the account comments already in comment.replies, so they don't appear twice
-  return accountComments.filter(accountReply => !commentReplyCids.has(accountReply.cid))
-}, [flattenedReplies, accountComments])
-
-// merge the not yet published account replies and published replies, and sort them by timestamp
-const sortedReplies = useMemo(() => [...accountRepliesNotYetInCommentReplies, ...flattenedReplies].sort((a, b) => a.timestamp - b.timestamp), [accountRepliesNotYetInCommentReplies, flattenedReplies])
-
-for (const reply of sortedReplies) {
-  // account replies can have reply.state 'pending' or 'failed' when they are not published yet
-  // it is recommended to add a 'pending' or 'failed' label to these replies
-  console.log(reply)
-}
+const {replies, updatedReplies, hasMore, loadMore} = useReplies({...useRepliesOptions, sortType: 'best', comment: reply})
+const repliesComponents = replies.map((reply, index) => <Reply key={reply?.index || reply?.cid} reply={reply} updatedReply={updatedReplies[index]}/>)
 ```
 
 #### Get a shortCid or shortAddress
