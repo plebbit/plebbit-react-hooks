@@ -933,10 +933,10 @@ const {accountEdits} = useAccountEdits({filter})
 import {useReplies, useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
 
 // NOTE: recommended to use the same replies options for all depths, or will load slower
-const useRepliesOptions = {flat: false, repliesPerPage: 20, accountComments: {newerThan: Infinity, append: false}}
+const useRepliesOptions = {sortType: 'best', flat: false, repliesPerPage: 20, accountComments: {newerThan: Infinity, append: false}}
 
 const Reply = ({reply, updatedReply}) => {
-  const {replies, updatedReplies, bufferedReplies, hasMore, loadMore} = useReplies({...useRepliesOptions, sortType: 'best', comment: reply})
+  const {replies, updatedReplies, bufferedReplies, hasMore, loadMore} = useReplies({...useRepliesOptions, comment: reply})
 
   // updatedReply updates values in real time, reply does not
   const score = (updatedReply?.upvoteCount || 0) - (updatedReply?.downvoteCount || 0)
@@ -963,7 +963,7 @@ const Reply = ({reply, updatedReply}) => {
 }
 
 const comment = useComment({commentCid})
-const {replies, updatedReplies, hasMore, loadMore} = useReplies({...useRepliesOptions, sortType: 'best', comment: reply})
+const {replies, updatedReplies, hasMore, loadMore} = useReplies({...useRepliesOptions, comment: reply})
 const repliesComponents = replies.map((reply, index) => <Reply key={reply?.index || reply?.cid} reply={reply} updatedReply={updatedReplies[index]}/>)
 ```
 
