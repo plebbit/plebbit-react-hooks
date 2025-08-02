@@ -15,7 +15,7 @@ import localForageLru from '../../lib/localforage-lru';
 import accountsStore from '../accounts';
 import repliesCommentsStore from './replies-comments-store';
 import repliesPagesStore from '../replies-pages';
-import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getUpdatedFeeds, getFeedsReplyCounts, getFeedsHaveMore, feedsCommentsChanged, getFeedsComments, getFeedsCommentsLoadedCount, getFeedsCommentsRepliesPagesFirstUpdatedAts, getFilteredSortedFeeds, getSortTypeFromComment, } from './utils';
+import { getFeedsCommentsFirstPageCids, getLoadedFeeds, getBufferedFeedsWithoutLoadedFeeds, getUpdatedFeeds, getFeedsReplyCounts, getFeedsHaveMore, feedsCommentsChanged, getFeedsComments, getFeedsCommentsLoadedCount, getFeedsCommentsRepliesPagesFirstUpdatedAts, getFilteredSortedFeeds, getSortTypeFromComment, addAccountsComments, } from './utils';
 // reddit loads approximately 25 posts per page
 // while infinite scrolling
 export const defaultRepliesPerPage = 25;
@@ -342,6 +342,26 @@ const updateFeedsOnAccountsCommentsChange = (accountsStoreState) => {
     previousAccountsCommentsCount = accountsCommentsCount;
     // TODO: only update the feeds that are relevant to the new accountComment.parentCid/postCid
     repliesStore.getState().updateFeeds();
+};
+// needed to view replies instantly without waiting for zustant store react rerenders. must be synchronous
+export const getRepliesFirstPageSkipValidation = (comment, feedOptions) => {
+    const feedName = `firstPageSkipValidation-${comment === null || comment === void 0 ? void 0 : comment.cid}`;
+    const feedsOptions = { [feedName]: feedOptions };
+    const { accounts } = accountsStore.getState();
+    // don't use comments store, only use preloaded comment.replies.pages
+    const comments = { [comment.cid]: comment };
+    // don't use any reply pages, they can't provide instant loading like preloaded comment.replies.pages
+    const repliesPages = {};
+    const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, comments, repliesPages, accounts);
+    // only get first page and put next page in buffered
+    const bufferedFeeds = { [feedName]: [] };
+    const repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage;
+    if (filteredSortedFeeds[feedName].length > repliesPerPage) {
+        bufferedFeeds[feedName] = filteredSortedFeeds[feedName].splice(repliesPerPage);
+    }
+    addAccountsComments(feedsOptions, filteredSortedFeeds);
+    const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, comments, repliesPages, accounts);
+    return { replies: filteredSortedFeeds[feedName], hasMore: feedsHaveMore[feedName] };
 };
 // reset store in between tests
 const originalState = repliesStore.getState();

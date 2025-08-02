@@ -94,6 +94,7 @@ export interface UseRepliesOptions extends Options {
     flatDepth?: number;
     accountComments?: UseRepliesOptionsAccountComments;
     filter?: CommentsFilter;
+    validateOptimistically?: boolean;
     streamPage?: boolean;
 }
 export interface UseRepliesResult extends Result {

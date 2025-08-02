@@ -166,7 +166,7 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
     }
     return newLoadedFeeds;
 });
-const addAccountsComments = (feedsOptions, loadedFeeds) => {
+export const addAccountsComments = (feedsOptions, loadedFeeds) => {
     let loadedFeedsChanged = false;
     const accountsComments = accountsStore.getState().accountsComments || {};
     for (const feedName in feedsOptions) {

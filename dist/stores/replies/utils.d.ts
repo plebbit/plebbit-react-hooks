@@ -4,6 +4,7 @@ import { Feeds, RepliesFeedOptions, RepliesFeedsOptions, Comment, Comments, Acco
  */
 export declare const getFilteredSortedFeeds: (feedsOptions: RepliesFeedsOptions, comments: Comments, repliesPages: RepliesPages, accounts: Accounts) => Feeds;
 export declare const getLoadedFeeds: (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
+export declare const addAccountsComments: (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds) => boolean;
 export declare const getBufferedFeedsWithoutLoadedFeeds: (bufferedFeeds: Feeds, loadedFeeds: Feeds) => Feeds;
 export declare const getUpdatedFeeds: (feedsOptions: RepliesFeedsOptions, filteredSortedFeeds: Feeds, updatedFeeds: Feeds, loadedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
 export declare const getFeedsReplyCounts: (feedsOptions: RepliesFeedsOptions, feeds: Feeds) => {

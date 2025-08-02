@@ -13,15 +13,19 @@ import validator from '../lib/validator';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:replies:hooks');
 import assert from 'assert';
-import useRepliesStore, { feedOptionsToFeedName } from '../stores/replies';
+import useRepliesStore, { feedOptionsToFeedName, getRepliesFirstPageSkipValidation } from '../stores/replies';
 export function useReplies(options) {
+    var _a;
     assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`);
-    let { comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter, streamPage } = options || {};
+    let { comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter, validateOptimistically, streamPage } = options || {};
     if (!sortType) {
         sortType = 'best';
     }
     if (typeof flatDepth !== 'number') {
         flatDepth = 0;
+    }
+    if (validateOptimistically === undefined) {
+        validateOptimistically = true;
     }
     const invalidFlatDepth = flat && typeof (comment === null || comment === void 0 ? void 0 : comment.depth) === 'number' && flatDepth !== comment.depth;
     validator.validateUseRepliesArguments(comment, sortType, accountName, flat, accountComments, repliesPerPage, filter);
@@ -88,6 +92,16 @@ export function useReplies(options) {
             setErrors([...errors, e]);
         }
     });
+    // optimistically avoid the initial validation delay by using skipped validation until validated feed is loaded
+    const skipValidation = useMemo(() => {
+        if (validateOptimistically && !replies && (comment === null || comment === void 0 ? void 0 : comment.cid) && (account === null || account === void 0 ? void 0 : account.id)) {
+            return getRepliesFirstPageSkipValidation(comment, feedOptions);
+        }
+    }, [validateOptimistically, replies, comment === null || comment === void 0 ? void 0 : comment.cid, account === null || account === void 0 ? void 0 : account.id, comment, repliesFeedName]);
+    if (validateOptimistically && !replies && ((_a = skipValidation === null || skipValidation === void 0 ? void 0 : skipValidation.replies) === null || _a === void 0 ? void 0 : _a.length)) {
+        replies = skipValidation.replies;
+        hasMore = skipValidation.hasMore;
+    }
     // don't display nested replies when flat
     // to start flat replies at a depth other than 0, e.g. a twitter reply thread, change flatDepth
     if (invalidFlatDepth) {
