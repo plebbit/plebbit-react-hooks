@@ -20,6 +20,7 @@ import {
   getFeedsCommentsRepliesPagesFirstUpdatedAts,
   getFilteredSortedFeeds,
   getSortTypeFromComment,
+  addAccountsComments,
 } from './utils'
 
 // reddit loads approximately 25 posts per page
@@ -437,6 +438,32 @@ const updateFeedsOnAccountsCommentsChange = (accountsStoreState: any) => {
 
   // TODO: only update the feeds that are relevant to the new accountComment.parentCid/postCid
   repliesStore.getState().updateFeeds()
+}
+
+// needed to view replies instantly without waiting for zustant store react rerenders. must be synchronous
+export const getRepliesFirstPageSkipValidation = (comment: Comment, feedOptions: Partial<RepliesFeedOptions>) => {
+  const feedName = `firstPageSkipValidation-${comment?.cid}`
+  const feedsOptions: any = {[feedName]: feedOptions}
+  const {accounts} = accountsStore.getState()
+
+  // don't use comments store, only use preloaded comment.replies.pages
+  const comments = {[comment.cid]: comment}
+
+  // don't use any reply pages, they can't provide instant loading like preloaded comment.replies.pages
+  const repliesPages = {}
+
+  const filteredSortedFeeds = getFilteredSortedFeeds(feedsOptions, comments, repliesPages, accounts)
+
+  // only get first page and put next page in buffered
+  const bufferedFeeds: Feeds = {[feedName]: []}
+  const repliesPerPage = feedOptions.repliesPerPage || defaultRepliesPerPage
+  if (filteredSortedFeeds[feedName].length > repliesPerPage) {
+    bufferedFeeds[feedName] = filteredSortedFeeds[feedName].splice(repliesPerPage)
+  }
+  addAccountsComments(feedsOptions, filteredSortedFeeds)
+
+  const feedsHaveMore = getFeedsHaveMore(feedsOptions, bufferedFeeds, comments, repliesPages, accounts)
+  return {replies: filteredSortedFeeds[feedName], hasMore: feedsHaveMore[feedName]}
 }
 
 // reset store in between tests

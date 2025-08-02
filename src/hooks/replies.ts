@@ -5,17 +5,20 @@ import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:replies:hooks')
 import assert from 'assert'
 import {Comment, UseRepliesOptions, UseRepliesResult, CommentsFilter} from '../types'
-import useRepliesStore, {RepliesState, feedOptionsToFeedName} from '../stores/replies'
+import useRepliesStore, {RepliesState, feedOptionsToFeedName, getRepliesFirstPageSkipValidation} from '../stores/replies'
 import shallow from 'zustand/shallow'
 
 export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
   assert(!options || typeof options === 'object', `useReplies options argument '${options}' not an object`)
-  let {comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter, streamPage} = options || {}
+  let {comment, sortType, accountName, flat, flatDepth, accountComments, repliesPerPage, filter, validateOptimistically, streamPage} = options || {}
   if (!sortType) {
     sortType = 'best'
   }
   if (typeof flatDepth !== 'number') {
     flatDepth = 0
+  }
+  if (validateOptimistically === undefined) {
+    validateOptimistically = true
   }
   const invalidFlatDepth = flat && typeof comment?.depth === 'number' && flatDepth !== comment.depth
   validator.validateUseRepliesArguments(comment, sortType, accountName, flat, accountComments, repliesPerPage, filter)
@@ -86,6 +89,17 @@ export function useReplies(options?: UseRepliesOptions): UseRepliesResult {
       await new Promise((r) => setTimeout(r, 50))
       setErrors([...errors, e])
     }
+  }
+
+  // optimistically avoid the initial validation delay by using skipped validation until validated feed is loaded
+  const skipValidation = useMemo(() => {
+    if (validateOptimistically && !replies && comment?.cid && account?.id) {
+      return getRepliesFirstPageSkipValidation(comment, feedOptions)
+    }
+  }, [validateOptimistically, replies, comment?.cid, account?.id, comment, repliesFeedName])
+  if (validateOptimistically && !replies && skipValidation?.replies?.length) {
+    replies = skipValidation.replies
+    hasMore = skipValidation.hasMore
   }
 
   // don't display nested replies when flat

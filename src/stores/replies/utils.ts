@@ -181,7 +181,7 @@ export const getLoadedFeeds = async (feedsOptions: RepliesFeedsOptions, loadedFe
   return newLoadedFeeds
 }
 
-const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds) => {
+export const addAccountsComments = (feedsOptions: RepliesFeedsOptions, loadedFeeds: Feeds) => {
   let loadedFeedsChanged = false
   const accountsComments = accountsStore.getState().accountsComments || {}
   for (const feedName in feedsOptions) {

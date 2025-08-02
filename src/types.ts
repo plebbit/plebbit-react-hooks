@@ -128,6 +128,7 @@ export interface UseRepliesOptions extends Options {
   flatDepth?: number
   accountComments?: UseRepliesOptionsAccountComments
   filter?: CommentsFilter
+  validateOptimistically?: boolean // assume replies are valid to first render immediately, then validate, then remove invalid replies, generally safe because validation takes less than 100ms
   streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
 }
 export interface UseRepliesResult extends Result {
