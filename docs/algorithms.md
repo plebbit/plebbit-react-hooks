@@ -69,9 +69,16 @@ subplebbitsPagesStore {
 
 1. the feeds store gets updated with the new page number and loadedFeeds, bufferedFeeds and bufferedFeedsSubplebbitsPostCounts are partially recalculated and updated
 
-#### Comments trees and infinite scrolling
+#### Replies stores
 
-Currently not implemented. Only uses the preloaded replies to a post.
+Similar to feeds store, but with a some differences:
+
+- each reply depth needs its own feed, and all the nested feeds must be added at the same time with addFeedsToStore or all depths won't render simultaneously
+- because nested feeds are added in bulk, not possible to set a custom feedStoreName, must use feedOptionsToFeedName
+- feeds store take a subplebbit addresses argument and add the subplebbit to subplebbits store, adding all nested replies to comments store and subscribing to updates would not scale, so instead useReplies takes a comment argument, which is passed to addFeedToStoreOrUpdateComment
+  - every time the comment changes, addFeedToStoreOrUpdateComment is called, which calls addFeedsToStore to add all new nested feeds simultaneously
+- validating replies has a few 100ms delay, but this looks ugly in the ui, so show replies instantly with getRepliesFirstPageSkipValidation, and after validation remove invalid replies, can be turned off with validateOptimistically: false
+- nested replies don't automatically stream new replies until repliesPerPage is reached, because that would displace the ui, loadMore must be called manually is feedOptions.streamPage is false
 
 #### Accounts settings persistance, export, import and caching
 
