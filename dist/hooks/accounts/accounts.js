@@ -343,7 +343,7 @@ export function useEditedComment(options) {
             return editedResult;
         }
         // don't include these props as they are not edit props, they are publication props
-        const nonEditPropertyNames = new Set(['author, signer', 'commentCid', 'subplebbitAddress', 'timestamp']);
+        const nonEditPropertyNames = new Set(['author', 'signer', 'commentCid', 'subplebbitAddress', 'timestamp']);
         // iterate over commentEdits and consolidate them into 1 propertyNameEdits object
         const propertyNameEdits = {};
         for (let commentEdit of commentEdits) {
