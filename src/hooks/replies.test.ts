@@ -1778,8 +1778,6 @@ describe('replies', () => {
         res = rendered.result.current
         expect(res.repliesDepth1.replies[res.repliesDepth1.replies.length - 1].content).toBe('added to feed')
         expect(res.repliesDepth2.replies[res.repliesDepth2.replies.length - 1].content).toBe('added to feed 2')
-
-        // TODO: test reply that was newer than, but that becomes not newer than later
       })
 
       test('flat', async () => {

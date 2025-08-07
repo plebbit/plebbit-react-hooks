@@ -7,6 +7,7 @@ import localForageLru from '../../lib/localforage-lru'
 import localForage from 'localforage'
 import feedsStore, {defaultPostsPerPage as postsPerPage} from '../../stores/feeds'
 import subplebbitsStore from '../../stores/subplebbits'
+import accountsStore from '../../stores/accounts'
 import PlebbitJsMock, {Plebbit, Subplebbit, Pages, simulateLoadingTime} from '../../lib/plebbit-js/plebbit-js-mock'
 
 const plebbitJsMockSubplebbitPageLength = 100
@@ -1491,6 +1492,225 @@ describe('feeds', () => {
 
       // restore mock
       Subplebbit.prototype.update = update
+    })
+
+    describe('accountComments', () => {
+      const sortType = 'hot'
+      const subplebbitAddress = 'subplebbit address 1'
+      const subplebbitAddresses = [subplebbitAddress]
+      const accountPostCid1 = 'account post cid 1'
+      const authorAddress = 'accountcomments.eth'
+      const author = {address: authorAddress}
+
+      const addMockAccountCommentsToStore = () => {
+        // add account comments, sorted by oldest
+        const now = Math.round(Date.now() / 1000)
+        const yearAgo = now - 60 * 60 * 24 * 365
+        accountsStore.setState((state) => {
+          const accountId = Object.keys(state.accountsComments)[0]
+          return {
+            accountsComments: {
+              [accountId]: [
+                {
+                  // no cid, no updatedAt, is pending
+                  timestamp: yearAgo - 2, // very old reply
+                  subplebbitAddress,
+                  // depth: 0, test no depth
+                  index: 0,
+                  author,
+                },
+                {
+                  // no cid, no updatedAt, is pending
+                  timestamp: yearAgo - 1, // very old reply
+                  subplebbitAddress: 'wrong subplebbit address',
+                  depth: 0,
+                  index: 1,
+                  author,
+                },
+                {
+                  // no cid, no updatedAt, is pending
+                  timestamp: yearAgo, // very old reply
+                  subplebbitAddress,
+                  // is reply, should not appear in feed
+                  parentCid: accountPostCid1,
+                  postCid: accountPostCid1,
+                  depth: 1,
+                  index: 2,
+                  author,
+                },
+                {
+                  timestamp: now - 2,
+                  subplebbitAddress,
+                  cid: accountPostCid1, // cid received, not pending, but not published by sub owner yet
+                  updatedAt: now,
+                  depth: 0,
+                  index: 3,
+                  author,
+                },
+                {
+                  timestamp: now - 1,
+                  subplebbitAddress: 'wrong subplebbit address',
+                  cid: 'account post cid 2', // cid received, not pending, but not published by sub owner yet
+                  updatedAt: now,
+                  depth: 0,
+                  index: 4,
+                  author,
+                },
+                {
+                  timestamp: now,
+                  subplebbitAddress,
+                  cid: 'account reply cid 1', // cid received, not pending, but not published by sub owner yet
+                  parentCid: accountPostCid1,
+                  postCid: accountPostCid1,
+                  updatedAt: now,
+                  depth: 1,
+                  index: 5,
+                  author,
+                },
+              ],
+            },
+          }
+        })
+      }
+
+      afterEach(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
+      test('prepend changes to append and publish', async () => {
+        // default (prepend) + newerThan Infinity
+        rendered.rerender({subplebbitAddresses, sortType, accountComments: {newerThan: Infinity}})
+
+        await waitFor(() => rendered.result.current.feed.length > 0)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage)
+
+        addMockAccountCommentsToStore()
+        await waitFor(() => rendered.result.current.feed[0].cid === accountPostCid1)
+
+        // has account comments prepended first
+        expect(rendered.result.current.feed.length).toBe(postsPerPage + 2)
+        expect(rendered.result.current.feed[0].cid).toBe(accountPostCid1)
+        expect(rendered.result.current.feed[0].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[0].subplebbitAddress).toBe(subplebbitAddress)
+        expect(rendered.result.current.feed[1].cid).toBe(undefined)
+        expect(rendered.result.current.feed[1].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[1].subplebbitAddress).toBe(subplebbitAddress)
+        expect(rendered.result.current.feed[2].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[2].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.feed[2].subplebbitAddress).toBe(subplebbitAddress)
+        // prepend order should be newest first
+        expect(rendered.result.current.feed[0].timestamp).toBeGreaterThan(rendered.result.current.feed[1].timestamp)
+
+        // newerThan 1h
+        rendered.rerender({subplebbitAddresses, sortType, accountComments: {newerThan: 60 * 60}})
+        await waitFor(() => rendered.result.current.feed[1].cid)
+
+        // has account comments prepended first
+        expect(rendered.result.current.feed.length).toBe(postsPerPage + 1)
+        expect(rendered.result.current.feed[0].cid).toBe(accountPostCid1)
+        expect(rendered.result.current.feed[0].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[0].subplebbitAddress).toBe(subplebbitAddress)
+        expect(rendered.result.current.feed[1].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[1].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.feed[1].subplebbitAddress).toBe(subplebbitAddress)
+
+        // append + newerThan Infinity
+        rendered.rerender({subplebbitAddresses, sortType, accountComments: {append: true, newerThan: Infinity}})
+
+        await waitFor(() => rendered.result.current.feed.length > 0)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage + 2)
+
+        // has account comments appended last
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 1].cid).toBe(accountPostCid1)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 1].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 1].subplebbitAddress).toBe(subplebbitAddress)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 2].cid).toBe(undefined)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 2].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 2].subplebbitAddress).toBe(subplebbitAddress)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 3].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 3].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 3].subplebbitAddress).toBe(subplebbitAddress)
+
+        // append: true order should be newest last
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 1].timestamp).toBeGreaterThan(
+          rendered.result.current.feed[rendered.result.current.feed.length - 2].timestamp
+        )
+
+        // publishing a post automatically adds to feed
+        await act(async () => {
+          await accountsActions.publishComment({
+            subplebbitAddress,
+            content: 'added to feed',
+            onChallenge: () => {},
+            onChallengeVerification: () => {},
+          })
+        })
+        await waitFor(() => rendered.result.current.feed[rendered.result.current.feed.length - 1].content === 'added to feed')
+        expect(rendered.result.current.feed[rendered.result.current.feed.length - 1].content).toBe('added to feed')
+        expect(rendered.result.current.feed.length).toBe(postsPerPage + 3)
+      })
+
+      test('scroll pages and publish', async () => {
+        const postsPerPage = 1
+        const scrollOnePage = async () => {
+          const nextFeedLength = (rendered.result.current.feed?.length || 0) + postsPerPage
+          await act(async () => {
+            await rendered.result.current.loadMore()
+          })
+          try {
+            await rendered.waitFor(() => rendered.result.current.feed?.length >= nextFeedLength)
+          } catch (e) {}
+        }
+
+        rendered.rerender({subplebbitAddresses, sortType, postsPerPage, accountComments: {newerThan: Infinity}})
+        addMockAccountCommentsToStore()
+        await waitFor(() => rendered.result.current.feed.length === 3)
+
+        expect(rendered.result.current.feed.length).toBe(3)
+        expect(rendered.result.current.feed[0].cid).toBe(accountPostCid1)
+        expect(rendered.result.current.feed[0].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[1].cid).toBe(undefined)
+        expect(rendered.result.current.feed[1].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[2].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[2].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.hasMore).toBe(true)
+
+        const content = 'published content'
+        await act(async () => {
+          await accountsActions.publishComment({
+            subplebbitAddress,
+            content,
+            onChallenge: () => {},
+            onChallengeVerification: () => {},
+          })
+        })
+        await waitFor(() => rendered.result.current.feed[0].content === content)
+
+        expect(rendered.result.current.feed.length).toBe(4)
+        expect(rendered.result.current.feed[0].content).toBe(content)
+        expect(rendered.result.current.feed[1].cid).toBe(accountPostCid1)
+        expect(rendered.result.current.feed[1].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[2].cid).toBe(undefined)
+        expect(rendered.result.current.feed[2].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[3].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[3].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.hasMore).toBe(true)
+
+        await scrollOnePage()
+        await waitFor(() => rendered.result.current.feed.length > 4)
+
+        expect(rendered.result.current.feed.length).toBe(5)
+        expect(rendered.result.current.feed[0].content).toBe(content)
+        expect(rendered.result.current.feed[1].cid).toBe(accountPostCid1)
+        expect(rendered.result.current.feed[1].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[2].cid).toBe(undefined)
+        expect(rendered.result.current.feed[2].author.address).toBe(authorAddress)
+        expect(rendered.result.current.feed[3].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[3].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.feed[4].cid).not.toBe(undefined)
+        expect(rendered.result.current.feed[4].author.address).not.toBe(authorAddress)
+        expect(rendered.result.current.hasMore).toBe(true)
+      })
     })
 
     // TODO: not implemented

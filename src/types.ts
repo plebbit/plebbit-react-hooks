@@ -126,7 +126,7 @@ export interface UseRepliesOptions extends Options {
   repliesPerPage?: number
   flat?: boolean
   flatDepth?: number
-  accountComments?: UseRepliesOptionsAccountComments
+  accountComments?: FeedOptionsAccountComments
   filter?: CommentsFilter
   validateOptimistically?: boolean // assume replies are valid to first render immediately, then validate, then remove invalid replies, generally safe because validation takes less than 100ms
   streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
@@ -135,10 +135,6 @@ export interface UseRepliesResult extends Result {
   replies: Comment[]
   hasMore: boolean
   loadMore(): Promise<void>
-}
-export type UseRepliesOptionsAccountComments = {
-  newerThan?: number
-  append?: boolean // default to prepend, set append: true to append instead
 }
 
 // useEditedComment(options): result
@@ -193,6 +189,7 @@ export interface UseFeedOptions extends Options {
   sortType?: string
   postsPerPage?: number
   newerThan?: number
+  accountComments?: FeedOptionsAccountComments
   filter?: CommentsFilter
 }
 export interface UseFeedResult extends Result {
@@ -591,6 +588,11 @@ export type FeedOptions = {
   postsPerPage: number
   filter: CommentsFilter
   newerThan?: number
+  accountComments?: FeedOptionsAccountComments
+}
+export type FeedOptionsAccountComments = {
+  newerThan?: number
+  append?: boolean // default to prepend, set append: true to append instead
 }
 export type FeedsOptions = {[feedName: string]: FeedOptions}
 export type FeedSubplebbitsPostCounts = {[subplebbitAddress: string]: number}
@@ -619,7 +621,7 @@ export type RepliesFeedOptions = {
   pageNumber: number
   repliesPerPage: number
   flat?: boolean
-  accountComments?: UseRepliesOptionsAccountComments
+  accountComments?: FeedOptionsAccountComments
   filter?: CommentsFilter
   streamPage?: boolean // by default, replies with depth > 1 won't continuously fill the page until repliesPerPage is reached, to not displace the UI
 }

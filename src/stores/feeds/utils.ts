@@ -14,6 +14,7 @@ import {
   FeedsSubplebbitsPostCounts,
 } from '../../types'
 import {getSubplebbitPages, getSubplebbitFirstPageCid} from '../subplebbits-pages'
+import accountsStore from '../accounts'
 import feedSorter from './feed-sorter'
 import {subplebbitPostsCacheExpired, commentIsValid, removeInvalidComments} from '../../lib/utils'
 import Logger from '@plebbit/plebbit-logger'
@@ -150,17 +151,17 @@ export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Fe
     const plebbit = accounts[accountId]?.plebbit
     const loadedFeedPostCount = pageNumber * postsPerPage
     const currentLoadedFeed = loadedFeeds[feedName] || []
-    const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length
+    const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.filter((post) => post.index === undefined).length
 
     // get new posts from buffered feed
     const bufferedFeed = bufferedFeeds[feedName] || []
 
     let missingPosts: any[] = []
     for (const post of bufferedFeed) {
-      if (missingPosts.length === missingPostsCount) {
+      if (missingPosts.length >= missingPostsCount) {
         missingPosts = await removeInvalidComments(missingPosts, {validateReplies: false}, plebbit)
         // only stop if there were no invalid comments
-        if (missingPosts.length === missingPostsCount) {
+        if (missingPosts.length >= missingPostsCount) {
           break
         }
       }
@@ -173,15 +174,89 @@ export const getLoadedFeeds = async (feedsOptions: FeedsOptions, loadedFeeds: Fe
     }
     loadedFeedsMissingPosts[feedName] = missingPosts
   }
-  // do nothing if there are no missing posts
-  if (Object.keys(loadedFeedsMissingPosts).length === 0) {
-    return loadedFeeds
-  }
-  const newLoadedFeeds: Feeds = {}
+
+  let newLoadedFeeds: Feeds = {}
   for (const feedName in loadedFeedsMissingPosts) {
     newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]]
   }
-  return {...loadedFeeds, ...newLoadedFeeds}
+
+  // add account comments
+  newLoadedFeeds = {...loadedFeeds, ...newLoadedFeeds}
+  const accountCommentsChangedFeeds = addAccountsComments(feedsOptions, newLoadedFeeds)
+
+  // do nothing if there are no missing posts
+  if (Object.keys(loadedFeedsMissingPosts).length === 0 && !accountCommentsChangedFeeds) {
+    return loadedFeeds
+  }
+  return newLoadedFeeds
+}
+
+export const addAccountsComments = (feedsOptions: FeedsOptions, loadedFeeds: Feeds) => {
+  let loadedFeedsChanged = false
+  const accountsComments = accountsStore.getState().accountsComments || {}
+  for (const feedName in feedsOptions) {
+    const {accountId, accountComments: accountCommentsOptions, subplebbitAddresses} = feedsOptions[feedName]
+    const {newerThan, append} = accountCommentsOptions || {}
+    if (!newerThan) {
+      continue
+    }
+    const newerThanTimestamp = newerThan === Infinity ? 0 : Math.floor(Date.now() / 1000) - newerThan
+    const isNewerThan = (post: Comment) => post.timestamp > newerThanTimestamp
+
+    const subplebbitAddressesSet = new Set(subplebbitAddresses)
+    const accountComments = accountsComments[accountId] || []
+    const accountPosts = accountComments.filter((comment) => {
+      // is a reply, not a post
+      if (comment.parentCid || comment.depth > 0) {
+        return false
+      }
+      if (!isNewerThan(comment)) {
+        return false
+      }
+      return subplebbitAddressesSet.has(comment.subplebbitAddress)
+    })
+    if (!accountPosts.length) {
+      continue
+    }
+
+    const loadedFeed = loadedFeeds[feedName]
+    // if a loaded comment doesn't have a cid, then it's pending
+    // and pending account comments should always have unique timestamps
+    const loadedFeedMap = new Map()
+    loadedFeed.forEach((post, loadedFeedIndex) => {
+      if (post.cid) loadedFeedMap.set(post.cid, loadedFeedIndex)
+      if (post.index) loadedFeedMap.set(post.index, loadedFeedIndex)
+      if (!post.cid) loadedFeedMap.set(post.timestamp, loadedFeedIndex)
+    })
+    for (const accountPost of accountPosts) {
+      // account post with cid already added
+      if (accountPost.cid && loadedFeedMap.has(accountPost.cid)) {
+        continue
+      }
+      // account post without cid already added, but now we have the cid
+      if (accountPost.cid && loadedFeedMap.has(accountPost.index)) {
+        const loadedFeedIndex = loadedFeedMap.get(accountPost.index)
+        // update the feed with the accountPost.cid now that we have it
+        loadedFeed[loadedFeedIndex] = accountPost
+        loadedFeedsChanged = true
+        continue
+      }
+      if (loadedFeedMap.has(accountPost.index)) {
+        continue
+      }
+      // pending account post without cid already added
+      if (!accountPost.cid && loadedFeedMap.has(accountPost.timestamp)) {
+        continue
+      }
+      if (append) {
+        loadedFeed.push(accountPost)
+      } else {
+        loadedFeed.unshift(accountPost)
+      }
+      loadedFeedsChanged = true
+    }
+  }
+  return loadedFeedsChanged
 }
 
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds: Feeds, loadedFeeds: Feeds) => {
@@ -248,12 +323,14 @@ export const getUpdatedFeeds = async (feedsOptions: FeedsOptions, filteredSorted
         if (updatedFeedsPosts[feedName]?.[post.cid]) {
           const {index, updatedPost} = updatedFeedsPosts[feedName][post.cid]
           // faster to validate comments async
-          promises.push((async () => {
-            if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}, plebbit))) {
-              updatedFeed[index] = post
-              updatedFeedChanged = true
-            }
-          })())
+          promises.push(
+            (async () => {
+              if ((post.updatedAt || 0) > (updatedPost.updatedAt || 0) && (await commentIsValid(post, {validateReplies: false}, plebbit))) {
+                updatedFeed[index] = post
+                updatedFeedChanged = true
+              }
+            })()
+          )
         }
       }
       await Promise.all(promises)
