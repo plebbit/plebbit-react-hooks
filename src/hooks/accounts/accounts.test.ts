@@ -2220,6 +2220,74 @@ describe('accounts', () => {
       expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
     })
 
+    test('author edited content succeeded', async () => {
+      const commentCid = rendered.result.current.accountComments[0].cid
+      expect(commentCid).not.toBe(undefined)
+      const subplebbitAddress = rendered.result.current.accountComments[0].subplebbitAddress
+      expect(subplebbitAddress).not.toBe(undefined)
+
+      rendered.rerender(commentCid)
+
+      // wait for useComment to load comment from store
+      await waitFor(() => rendered.result.current.comment?.cid && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment?.cid).toBe(commentCid)
+      // comment isn't an account comment (doesn't have comment.index)
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // publish edit options
+      let challengeVerificationCount = 0
+      const commentEditTimestamp = Math.ceil(Date.now() / 1000)
+      const publishCommentEditOptions = {
+        timestamp: commentEditTimestamp,
+        commentCid,
+        subplebbitAddress,
+        content: 'edited content',
+        onChallenge: (challenge: any, comment: any) => comment.publishChallengeAnswers(),
+        onChallengeVerification: () => challengeVerificationCount++,
+      }
+
+      // publish edit
+      expect(rendered.result.current.editedComment.editedComment).toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('unedited')
+      await act(async () => {
+        await accountsActions.publishCommentEdit(publishCommentEditOptions)
+      })
+
+      // edit is pending because the comment from store doesn't yet have content edited
+      await waitFor(() => rendered.result.current.editedComment.editedComment)
+      expect(rendered.result.current.comment.content).toBe(undefined)
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('pending')
+      expect(rendered.result.current.editedComment.editedComment.content).toBe('edited content')
+      expect(rendered.result.current.editedComment.pendingEdits.content).toBe('edited content')
+      // there are no unnecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+
+      // update comment with edited prop in store
+      const updatedComment = {...commentsStore.getState().comments[commentCid]}
+      updatedComment.content = 'edited content'
+      updatedComment.updatedAt = commentEditTimestamp + 1
+      commentsStore.setState(({comments}) => ({comments: {...comments, [commentCid]: updatedComment}}))
+
+      // wait for comment to become updated and to not be account comment (not have comment.index)
+      await waitFor(() => rendered.result.current.comment.content === 'edited content' && rendered.result.current.comment.index === undefined)
+      expect(rendered.result.current.comment.content).toBe('edited content')
+      expect(rendered.result.current.comment.index).toBe(undefined)
+
+      // wait for edit to become succeeded
+      await waitFor(() => rendered.result.current.editedComment.state === 'succeeded')
+      expect(rendered.result.current.editedComment.editedComment).not.toBe(undefined)
+      expect(rendered.result.current.editedComment.state).toBe('succeeded')
+      expect(rendered.result.current.editedComment.editedComment.content).toBe('edited content')
+      expect(rendered.result.current.editedComment.succeededEdits.content).toBe('edited content')
+      // there are no unnecessary keys in editedCommentResult.[state]Edits
+      expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
+      expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
+      expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+    })
+
     test('comment moderation succeeded', async () => {
       const commentCid = rendered.result.current.accountComments[0].cid
       expect(commentCid).not.toBe(undefined)
