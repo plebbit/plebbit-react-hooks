@@ -33,7 +33,7 @@ const feedsStore = createStore((setState, getState) => ({
     bufferedFeedsSubplebbitsPostCounts: {},
     feedsHaveMore: {},
     feedsSubplebbitAddressesWithNewerPosts: {},
-    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan) {
+    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             // init here because must be called after async accounts store finished initializing
@@ -48,6 +48,7 @@ const feedsStore = createStore((setState, getState) => ({
             assert(!newerThan || typeof newerThan === 'number', `addFeedToStore.addFeedToStore newerThan '${newerThan}' invalid`);
             postsPerPage = postsPerPage || defaultPostsPerPage;
             assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`);
+            assert(!accountComments || typeof (accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan) === 'number', `addFeedToStore.addFeedToStore accountComments.newerThan '${accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan}' invalid`);
             const { feedsOptions, updateFeeds } = getState();
             // feed is in store already, do nothing
             // if the feed already exist but is at page 0, reset it to page 1
@@ -55,7 +56,16 @@ const feedsStore = createStore((setState, getState) => ({
                 return;
             }
             // to add a buffered feed, add a feed with pageNumber 0
-            const feedOptions = { subplebbitAddresses, sortType, accountId: account.id, pageNumber: isBufferedFeed === true ? 0 : 1, postsPerPage, newerThan, filter };
+            const feedOptions = {
+                subplebbitAddresses,
+                sortType,
+                accountId: account.id,
+                pageNumber: isBufferedFeed === true ? 0 : 1,
+                postsPerPage,
+                newerThan,
+                filter,
+                accountComments,
+            };
             log('feedsActions.addFeedToStore', feedOptions);
             setState(({ feedsOptions }) => {
                 // make sure to never overwrite a feed already added
@@ -162,6 +172,8 @@ const initializeFeedsStore = () => __awaiter(void 0, void 0, void 0, function* (
     accountsStore.subscribe(updateFeedsOnAccountsBlockedAddressesChange);
     // subscribe to accounts store change (for blocked cids)
     accountsStore.subscribe(updateFeedsOnAccountsBlockedCidsChange);
+    // subscribe to accounts store changes (for account comments)
+    accountsStore.subscribe(updateFeedsOnAccountsCommentsChange);
 });
 let previousBlockedAddresses = [];
 let previousAccountsBlockedAddresses = [];
@@ -318,6 +330,24 @@ const updateFeedsOnFeedsSubplebbitsChange = (subplebbitsStoreState) => {
     previousFeedsSubplebbitsFirstPageCids = feedsSubplebbitsFirstPageCids;
     updateFeeds();
 };
+let previousAccountsCommentsCount = 0;
+let previousAccountsCommentsCids = '';
+const updateFeedsOnAccountsCommentsChange = (accountsStoreState) => {
+    const { accountsComments } = accountsStoreState;
+    const accountsCommentsCount = Object.values(accountsComments).reduce((count, accountComments) => count + accountComments.length, 0);
+    // no changes, do nothing
+    if (accountsCommentsCount === previousAccountsCommentsCount) {
+        // if cids haven't changed (account comments receive cids after pending), do nothing
+        const accountsCommentsCids = Object.values(accountsComments).reduce((cids, accountComments) => cids + String(accountComments.map((comment) => comment.cid || '')), '');
+        if (accountsCommentsCids === previousAccountsCommentsCids) {
+            return;
+        }
+        previousAccountsCommentsCids = accountsCommentsCids;
+    }
+    previousAccountsCommentsCount = accountsCommentsCount;
+    // TODO: only update the feeds that are relevant to the new accountComment.parentCid/postCid
+    feedsStore.getState().updateFeeds();
+};
 const addSubplebbitsToSubplebbitsStore = (subplebbitAddresses, account) => {
     const addSubplebbitToStore = subplebbitsStore.getState().addSubplebbitToStore;
     for (const subplebbitAddress of subplebbitAddresses) {
@@ -340,6 +370,8 @@ export const resetFeedsStore = () => __awaiter(void 0, void 0, void 0, function*
     previousFeedsSubplebbitsLoadedCount = 0;
     previousFeedsSubplebbitsPostsPagesFirstUpdatedAts = '';
     previousSubplebbitsPages = {};
+    previousAccountsCommentsCount = 0;
+    previousAccountsCommentsCids = '';
     updateFeedsPending = false;
     // destroy all component subscriptions to the store
     feedsStore.destroy();

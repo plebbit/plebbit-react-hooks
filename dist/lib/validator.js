@@ -160,7 +160,7 @@ const feedSortTypes = new Set([
 export const validateFeedSortType = (sortType) => {
     assert(feedSortTypes.has(sortType), `invalid feed sort type '${sortType}'`);
 };
-export const validateUseFeedArguments = (subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan) => {
+export const validateUseFeedArguments = (subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments) => {
     if (subplebbitAddresses) {
         assert(Array.isArray(subplebbitAddresses), `useFeed subplebbitAddresses argument '${toString(subplebbitAddresses)}' not an array`);
         for (const subplebbitAddress of subplebbitAddresses) {
@@ -180,6 +180,10 @@ export const validateUseFeedArguments = (subplebbitAddresses, sortType, accountN
     }
     if (newerThan !== undefined && newerThan !== null) {
         assert(typeof newerThan === 'number', `useFeed newerThan argument '${newerThan}' not a number`);
+    }
+    if (accountComments) {
+        assert(typeof accountComments === 'object', `useFeed accountComments argument '${accountComments}' not an object`);
+        assert(typeof accountComments.newerThan === 'number', `useFeed accountComments.newerThan argument '${accountComments}' not a number`);
     }
 };
 export const validateUseBufferedFeedsArguments = (feedsOptions, accountName) => {

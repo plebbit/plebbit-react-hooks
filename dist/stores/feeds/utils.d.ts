@@ -4,6 +4,7 @@ import { Feeds, FeedsOptions, Subplebbit, Subplebbits, Accounts, SubplebbitsPage
  */
 export declare const getFilteredSortedFeeds: (feedsOptions: FeedsOptions, subplebbits: Subplebbits, subplebbitsPages: SubplebbitsPages, accounts: Accounts) => Feeds;
 export declare const getLoadedFeeds: (feedsOptions: FeedsOptions, loadedFeeds: Feeds, bufferedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
+export declare const addAccountsComments: (feedsOptions: FeedsOptions, loadedFeeds: Feeds) => boolean;
 export declare const getBufferedFeedsWithoutLoadedFeeds: (bufferedFeeds: Feeds, loadedFeeds: Feeds) => Feeds;
 export declare const getUpdatedFeeds: (feedsOptions: FeedsOptions, filteredSortedFeeds: Feeds, updatedFeeds: Feeds, loadedFeeds: Feeds, accounts: Accounts) => Promise<Feeds>;
 export declare const getFeedsSubplebbitAddressesWithNewerPosts: (filteredSortedFeeds: Feeds, loadedFeeds: Feeds, previousFeedsSubplebbitAddressesWithNewerPosts: {

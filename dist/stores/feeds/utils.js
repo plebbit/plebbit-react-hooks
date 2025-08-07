@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { getSubplebbitPages, getSubplebbitFirstPageCid } from '../subplebbits-pages';
+import accountsStore from '../accounts';
 import feedSorter from './feed-sorter';
 import { subplebbitPostsCacheExpired, commentIsValid, removeInvalidComments } from '../../lib/utils';
 import Logger from '@plebbit/plebbit-logger';
@@ -132,15 +133,15 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
         const plebbit = (_a = accounts[accountId]) === null || _a === void 0 ? void 0 : _a.plebbit;
         const loadedFeedPostCount = pageNumber * postsPerPage;
         const currentLoadedFeed = loadedFeeds[feedName] || [];
-        const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.length;
+        const missingPostsCount = loadedFeedPostCount - currentLoadedFeed.filter((post) => post.index === undefined).length;
         // get new posts from buffered feed
         const bufferedFeed = bufferedFeeds[feedName] || [];
         let missingPosts = [];
         for (const post of bufferedFeed) {
-            if (missingPosts.length === missingPostsCount) {
+            if (missingPosts.length >= missingPostsCount) {
                 missingPosts = yield removeInvalidComments(missingPosts, { validateReplies: false }, plebbit);
                 // only stop if there were no invalid comments
-                if (missingPosts.length === missingPostsCount) {
+                if (missingPosts.length >= missingPostsCount) {
                     break;
                 }
             }
@@ -152,16 +153,88 @@ export const getLoadedFeeds = (feedsOptions, loadedFeeds, bufferedFeeds, account
         }
         loadedFeedsMissingPosts[feedName] = missingPosts;
     }
-    // do nothing if there are no missing posts
-    if (Object.keys(loadedFeedsMissingPosts).length === 0) {
-        return loadedFeeds;
-    }
-    const newLoadedFeeds = {};
+    let newLoadedFeeds = {};
     for (const feedName in loadedFeedsMissingPosts) {
         newLoadedFeeds[feedName] = [...(loadedFeeds[feedName] || []), ...loadedFeedsMissingPosts[feedName]];
     }
-    return Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds);
+    // add account comments
+    newLoadedFeeds = Object.assign(Object.assign({}, loadedFeeds), newLoadedFeeds);
+    const accountCommentsChangedFeeds = addAccountsComments(feedsOptions, newLoadedFeeds);
+    // do nothing if there are no missing posts
+    if (Object.keys(loadedFeedsMissingPosts).length === 0 && !accountCommentsChangedFeeds) {
+        return loadedFeeds;
+    }
+    return newLoadedFeeds;
 });
+export const addAccountsComments = (feedsOptions, loadedFeeds) => {
+    let loadedFeedsChanged = false;
+    const accountsComments = accountsStore.getState().accountsComments || {};
+    for (const feedName in feedsOptions) {
+        const { accountId, accountComments: accountCommentsOptions, subplebbitAddresses } = feedsOptions[feedName];
+        const { newerThan, append } = accountCommentsOptions || {};
+        if (!newerThan) {
+            continue;
+        }
+        const newerThanTimestamp = newerThan === Infinity ? 0 : Math.floor(Date.now() / 1000) - newerThan;
+        const isNewerThan = (post) => post.timestamp > newerThanTimestamp;
+        const subplebbitAddressesSet = new Set(subplebbitAddresses);
+        const accountComments = accountsComments[accountId] || [];
+        const accountPosts = accountComments.filter((comment) => {
+            // is a reply, not a post
+            if (comment.parentCid || comment.depth > 0) {
+                return false;
+            }
+            if (!isNewerThan(comment)) {
+                return false;
+            }
+            return subplebbitAddressesSet.has(comment.subplebbitAddress);
+        });
+        if (!accountPosts.length) {
+            continue;
+        }
+        const loadedFeed = loadedFeeds[feedName];
+        // if a loaded comment doesn't have a cid, then it's pending
+        // and pending account comments should always have unique timestamps
+        const loadedFeedMap = new Map();
+        loadedFeed.forEach((post, loadedFeedIndex) => {
+            if (post.cid)
+                loadedFeedMap.set(post.cid, loadedFeedIndex);
+            if (post.index)
+                loadedFeedMap.set(post.index, loadedFeedIndex);
+            if (!post.cid)
+                loadedFeedMap.set(post.timestamp, loadedFeedIndex);
+        });
+        for (const accountPost of accountPosts) {
+            // account post with cid already added
+            if (accountPost.cid && loadedFeedMap.has(accountPost.cid)) {
+                continue;
+            }
+            // account post without cid already added, but now we have the cid
+            if (accountPost.cid && loadedFeedMap.has(accountPost.index)) {
+                const loadedFeedIndex = loadedFeedMap.get(accountPost.index);
+                // update the feed with the accountPost.cid now that we have it
+                loadedFeed[loadedFeedIndex] = accountPost;
+                loadedFeedsChanged = true;
+                continue;
+            }
+            if (loadedFeedMap.has(accountPost.index)) {
+                continue;
+            }
+            // pending account post without cid already added
+            if (!accountPost.cid && loadedFeedMap.has(accountPost.timestamp)) {
+                continue;
+            }
+            if (append) {
+                loadedFeed.push(accountPost);
+            }
+            else {
+                loadedFeed.unshift(accountPost);
+            }
+            loadedFeedsChanged = true;
+        }
+    }
+    return loadedFeedsChanged;
+};
 export const getBufferedFeedsWithoutLoadedFeeds = (bufferedFeeds, loadedFeeds) => {
     var _a, _b, _c, _d, _e;
     // contruct a list of posts already loaded to remove them from buffered feeds

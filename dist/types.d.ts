@@ -92,7 +92,7 @@ export interface UseRepliesOptions extends Options {
     repliesPerPage?: number;
     flat?: boolean;
     flatDepth?: number;
-    accountComments?: UseRepliesOptionsAccountComments;
+    accountComments?: FeedOptionsAccountComments;
     filter?: CommentsFilter;
     validateOptimistically?: boolean;
     streamPage?: boolean;
@@ -102,10 +102,6 @@ export interface UseRepliesResult extends Result {
     hasMore: boolean;
     loadMore(): Promise<void>;
 }
-export type UseRepliesOptionsAccountComments = {
-    newerThan?: number;
-    append?: boolean;
-};
 export interface UseEditedCommentOptions extends Options {
     comment?: Comment;
 }
@@ -153,6 +149,7 @@ export interface UseFeedOptions extends Options {
     sortType?: string;
     postsPerPage?: number;
     newerThan?: number;
+    accountComments?: FeedOptionsAccountComments;
     filter?: CommentsFilter;
 }
 export interface UseFeedResult extends Result {
@@ -489,6 +486,11 @@ export type FeedOptions = {
     postsPerPage: number;
     filter: CommentsFilter;
     newerThan?: number;
+    accountComments?: FeedOptionsAccountComments;
+};
+export type FeedOptionsAccountComments = {
+    newerThan?: number;
+    append?: boolean;
 };
 export type FeedsOptions = {
     [feedName: string]: FeedOptions;
@@ -522,7 +524,7 @@ export type RepliesFeedOptions = {
     pageNumber: number;
     repliesPerPage: number;
     flat?: boolean;
-    accountComments?: UseRepliesOptionsAccountComments;
+    accountComments?: FeedOptionsAccountComments;
     filter?: CommentsFilter;
     streamPage?: boolean;
 };
