@@ -13,6 +13,7 @@ export declare const getInitAccountCommentsToUpdate: (accountsComments: Accounts
     accountId: string;
 }[];
 export declare const getAccountCommentDepth: (comment: Comment) => number | undefined;
+export declare const addShortAddressesToAccountComment: (comment: Comment) => Comment;
 declare const utils: {
     getAccountSubplebbits: (account: Account, subplebbits: Subplebbits) => any;
     getCommentCidsToAccountsComments: (accountsComments: AccountsComments) => CommentCidsToAccountsComments;
@@ -28,5 +29,6 @@ declare const utils: {
         accountId: string;
     }[];
     getAccountCommentDepth: (comment: Comment) => number | undefined;
+    addShortAddressesToAccountComment: (comment: Comment) => Comment;
 };
 export default utils;
