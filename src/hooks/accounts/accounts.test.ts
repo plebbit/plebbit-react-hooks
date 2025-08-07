@@ -1182,6 +1182,18 @@ describe('accounts', () => {
       expect(rendered.result.current.accountComments[2].state).toBe('pending')
     })
 
+    test(`pending account comments have depth and short addresses`, async () => {
+      expect(rendered.result.current.accountComments.length).toBe(3)
+      expect(rendered.result.current.accountComments[1].depth).toBe(0)
+      expect(rendered.result.current.accountComments[2].depth).toBe(0)
+      expect(rendered.result.current.accountComments[0].shortSubplebbitAddress).not.toBe(undefined)
+      expect(rendered.result.current.accountComments[1].shortSubplebbitAddress).not.toBe(undefined)
+      expect(rendered.result.current.accountComments[2].shortSubplebbitAddress).not.toBe(undefined)
+      expect(rendered.result.current.accountComments[0].author.shortAddress).not.toBe(undefined)
+      expect(rendered.result.current.accountComments[1].author.shortAddress).not.toBe(undefined)
+      expect(rendered.result.current.accountComments[2].author.shortAddress).not.toBe(undefined)
+    })
+
     test(`account comments have publishing states`, async () => {
       expect(rendered.result.current.accountComments.length).toBe(3)
       // state is 'waiting-challenge-answers' because the test setup doesn't call publishChallengeAnswers
@@ -2451,7 +2463,7 @@ describe('accounts', () => {
         privateKey: 'mV8GRU5TGScen7UYZOuNQQ1CKe2G46DCc60moM1yLF4',
         publicKey: 'lF41sWk/JHHdfQSH5VAR55uGZp0/Cv9/xXxwS+vOOVI',
         address: '12D3KooWKoXpxTwfnjA5ExuFbeverNKhjKy6a4KesBSh3e6VLaW5',
-        shortAddress: 'KoXpxTwfnjA5'
+        shortAddress: 'KoXpxTwfnjA5',
       })
     })
     afterAll(() => {
@@ -2509,7 +2521,7 @@ describe('accounts', () => {
         await accountsActions.setAccount(account)
       })
 
-      await waitFor(() => rendered.result.current.address === 'authoraddress.eth')
+      await waitFor(() => rendered.result.current.author.address === 'authoraddress.eth')
       expect(rendered.result.current.author.address).toBe('authoraddress.eth')
       const wallets = rendered.result.current.author.wallets
       expect(wallets.eth.address).toBe('0x37BC48124fDf985DC3983E2e8414606D4a996ED7')
@@ -2536,7 +2548,7 @@ describe('accounts', () => {
         await accountsActions.setAccount(account)
       })
 
-      await waitFor(() => rendered.result.current.displayName === 'John')
+      await waitFor(() => rendered.result.current.author.displayName === 'John')
       expect(rendered.result.current.author.displayName).toBe('John')
       expect(rendered.result.current.author.wallets.eth.signature.signature).toBe(previousEthSignature)
       expect(rendered.result.current.author.wallets.sol.signature.signature).toBe(previousSolSignature)

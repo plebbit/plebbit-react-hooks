@@ -5,6 +5,7 @@ const log = Logger('plebbit-react-hooks:accounts:stores')
 import commentsStore from '../comments'
 import repliesPagesStore from '../replies-pages'
 import subplebbitsPagesStore from '../subplebbits-pages'
+import PlebbitJs from '../../lib/plebbit-js'
 
 const getAuthorAddressRolesFromSubplebbits = (authorAddress: string, subplebbits: Subplebbits) => {
   const roles: {[subplebbitAddress: string]: Role} = {}
@@ -162,12 +163,25 @@ export const getAccountCommentDepth = (comment: Comment) => {
   // it will be added automatically when challenge verification is received
 }
 
+export const addShortAddressesToAccountComment = (comment: Comment) => {
+  comment = {...comment}
+  try {
+    comment.shortSubplebbitAddress = PlebbitJs.Plebbit.getShortAddress(comment.subplebbitAddress)
+  } catch (e) {}
+  try {
+    comment.author = {...comment.author}
+    comment.author.shortAddress = PlebbitJs.Plebbit.getShortAddress(comment.author.address)
+  } catch (e) {}
+  return comment
+}
+
 const utils = {
   getAccountSubplebbits,
   getCommentCidsToAccountsComments,
   fetchCommentLinkDimensions,
   getInitAccountCommentsToUpdate,
   getAccountCommentDepth,
+  addShortAddressesToAccountComment,
 }
 
 export default utils

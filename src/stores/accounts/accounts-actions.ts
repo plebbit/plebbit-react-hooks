@@ -24,7 +24,7 @@ import {
   AccountComment,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
-import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions, getAccountCommentDepth} from './utils'
+import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions, getAccountCommentDepth, addShortAddressesToAccountComment} from './utils'
 import utils from '../../lib/utils'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
@@ -473,6 +473,7 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
     })
   }
   let createdAccountComment = {...createCommentOptions, depth, index: accountCommentIndex, accountId: account.id}
+  createdAccountComment = addShortAddressesToAccountComment(createdAccountComment)
   await saveCreatedAccountComment(createdAccountComment)
 
   let comment: any
