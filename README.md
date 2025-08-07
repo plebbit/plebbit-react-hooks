@@ -27,7 +27,7 @@ useNotifications(): {notifications: Notification[], markAsRead: Function}
 #### Comments Hooks
 ```
 useComment({commentCid: string, onlyIfCached?: boolean}): Comment
-useReplies({comment: Comment, sortType?: string, flat?: boolean, repliesPerPage?: number, filter?: CommentsFilter, accountComments: {newerThan: number, append?: boolean}}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
+useReplies({comment: Comment, sortType?: string, flat?: boolean, repliesPerPage?: number, filter?: CommentsFilter, accountComments?: {newerThan: number, append?: boolean}}): {replies: Comment[], hasMore: boolean, loadMore: function, reset: function, updatedReplies: Comment[], bufferedReplies: Comment[]}
 useComments({commentCids: string[], onlyIfCached?: boolean}): {comments: Comment[]}
 useEditedComment({comment: Comment}): {editedComment: Comment | undefined}
 useValidateComment({comment: Comment, validateReplies?: boolean}): {valid: boolean}
@@ -50,7 +50,7 @@ setAuthorAvatarsWhitelistedTokenAddresses(tokenAddresses: string[])
 ```
 #### Feeds Hooks
 ```
-useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter: CommentsFilter, newerThan: number}): {feed: Comment[], loadMore: function, hasMore: boolean, reset: function, updatedFeed: Comment[], bufferedFeed: Comment[], subplebbitAddressesWithNewerPosts: string[]}
+useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter?: CommentsFilter, newerThan?: number, accountComments?: {newerThan: number, append?: boolean}}): {feed: Comment[], loadMore: function, hasMore: boolean, reset: function, updatedFeed: Comment[], bufferedFeed: Comment[], subplebbitAddressesWithNewerPosts: string[]}
 useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 ```
 #### Actions Hooks
@@ -679,6 +679,12 @@ const myRepliesToSomeComment = useAccountComments({filter})
 // know if you upvoted a comment already with cid 'Qm...'
 const {vote} = useAccountVote({commentCid: 'Qm...'})
 console.log(vote) // 1, -1 or 0
+
+// my own pending posts in a feed
+const {feed} = useFeed({subplebbitAddresses: [subplebbitAddress], accountComments: {newerThan: Infinity, append: false}})
+
+// my own pending replies in a replies feed
+const {replies} = useReplies({comment: post, accountComments: {newerThan: Infinity, append: false}})
 ```
 
 #### Determine if a comment is your own
@@ -930,7 +936,7 @@ const {accountEdits} = useAccountEdits({filter})
 #### Get replies to a post (nested or flat)
 
 ```jsx
-import {useReplies, useComment, useAccountComments} from '@plebbit/plebbit-react-hooks'
+import {useReplies, useComment, useAccountComment} from '@plebbit/plebbit-react-hooks'
 
 // NOTE: recommended to use the same replies options for all depths, or will load slower
 const useRepliesOptions = {sortType: 'best', flat: false, repliesPerPage: 20, accountComments: {newerThan: Infinity, append: false}}
