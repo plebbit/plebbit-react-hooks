@@ -3,6 +3,7 @@ export declare const flattenCommentsPages: (pageInstanceOrPagesInstance: any) =>
 export declare const memo: (functionToMemo: Function, memoOptions: any) => (...args: any) => Promise<any>;
 export declare const memoSync: (functionToMemo: Function, memoOptions: any) => (...args: any) => any;
 export declare const clientsOnStateChange: (clients: any, onStateChange: Function) => void;
+export declare const pageClientsOnStateChange: (clients: any, onStateChange: Function) => void;
 export declare const subplebbitPostsCacheExpired: (subplebbit: any) => boolean;
 export declare const removeInvalidComments: (comments: Comment[], { validateReplies, blockSubplebbit }: any, plebbit: any) => Promise<Comment[]>;
 export declare const commentIsValid: (comment: Comment, { validateReplies, blockSubplebbit }: any, plebbit: any) => Promise<boolean>;
@@ -17,6 +18,7 @@ declare const utils: {
     retryInfinityMinTimeout: number;
     retryInfinityMaxTimeout: number;
     clientsOnStateChange: (clients: any, onStateChange: Function) => void;
+    pageClientsOnStateChange: (clients: any, onStateChange: Function) => void;
     subplebbitPostsCacheExpired: (subplebbit: any) => boolean;
     commentIsValid: (comment: Comment, { validateReplies, blockSubplebbit }: any, plebbit: any) => Promise<boolean>;
     removeInvalidComments: (comments: Comment[], { validateReplies, blockSubplebbit }: any, plebbit: any) => Promise<Comment[]>;
