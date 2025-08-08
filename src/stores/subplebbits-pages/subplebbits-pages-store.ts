@@ -160,29 +160,6 @@ const onSubplebbitPostsClientsStateChange = (subplebbitAddress: string) => (clie
   })
 }
 
-const subplebbitPostsClientsOnStateChange = (clients: any, onStateChange: Function) => {
-  for (const sortType in clients?.ipfsGateways) {
-    for (const clientUrl in clients?.ipfsGateways?.[sortType]) {
-      clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', sortType, clientUrl))
-    }
-  }
-  for (const sortType in clients?.kuboRpcClients) {
-    for (const clientUrl in clients?.kuboRpcClients?.[sortType]) {
-      clients?.kuboRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'kuboRpcClients', sortType, clientUrl))
-    }
-  }
-  for (const sortType in clients?.plebbitRpcClients) {
-    for (const clientUrl in clients?.plebbitRpcClients?.[sortType]) {
-      clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
-    }
-  }
-  for (const sortType in clients?.libp2pJsClients) {
-    for (const clientUrl in clients?.libp2pJsClients?.[sortType]) {
-      clients?.libp2pJsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'libp2pJsClients', sortType, clientUrl))
-    }
-  }
-}
-
 const fetchPageSubplebbits: {[subplebbitAddress: string]: any} = {} // cache plebbit.createSubplebbits because sometimes it's slow
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Account) => {
@@ -195,7 +172,7 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
     fetchPageSubplebbits[subplebbitAddress] = await account.plebbit.createSubplebbit({address: subplebbitAddress})
 
     // set clients states on subplebbits store so the frontend can display it
-    subplebbitPostsClientsOnStateChange(fetchPageSubplebbits[subplebbitAddress].posts?.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress))
+    utils.pageClientsOnStateChange(fetchPageSubplebbits[subplebbitAddress].posts?.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress))
   }
 
   const onError = (error: any) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error)

@@ -222,6 +222,29 @@ export const clientsOnStateChange = (clients: any, onStateChange: Function) => {
   }
 }
 
+export const pageClientsOnStateChange = (clients: any, onStateChange: Function) => {
+  for (const sortType in clients?.ipfsGateways) {
+    for (const clientUrl in clients?.ipfsGateways?.[sortType]) {
+      clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', sortType, clientUrl))
+    }
+  }
+  for (const sortType in clients?.kuboRpcClients) {
+    for (const clientUrl in clients?.kuboRpcClients?.[sortType]) {
+      clients?.kuboRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'kuboRpcClients', sortType, clientUrl))
+    }
+  }
+  for (const sortType in clients?.plebbitRpcClients) {
+    for (const clientUrl in clients?.plebbitRpcClients?.[sortType]) {
+      clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
+    }
+  }
+  for (const sortType in clients?.libp2pJsClients) {
+    for (const clientUrl in clients?.libp2pJsClients?.[sortType]) {
+      clients?.libp2pJsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'libp2pJsClients', sortType, clientUrl))
+    }
+  }
+}
+
 export const subplebbitPostsCacheExpired = (subplebbit: any) => {
   // NOTE: fetchedAt is undefined on owner subplebbits
   if (!subplebbit?.fetchedAt) {
@@ -320,6 +343,7 @@ const utils = {
   retryInfinityMinTimeout: 1000,
   retryInfinityMaxTimeout: 1000 * 60 * 60 * 24,
   clientsOnStateChange,
+  pageClientsOnStateChange,
   subplebbitPostsCacheExpired,
   commentIsValid,
   removeInvalidComments,

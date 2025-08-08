@@ -170,29 +170,6 @@ const onCommentRepliesClientsStateChange = (commentCid: string) => (clientState:
   })
 }
 
-const commentRepliesClientsOnStateChange = (clients: any, onStateChange: Function) => {
-  for (const sortType in clients?.ipfsGateways) {
-    for (const clientUrl in clients?.ipfsGateways?.[sortType]) {
-      clients?.ipfsGateways?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'ipfsGateways', sortType, clientUrl))
-    }
-  }
-  for (const sortType in clients?.kuboRpcClients) {
-    for (const clientUrl in clients?.kuboRpcClients?.[sortType]) {
-      clients?.kuboRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'kuboRpcClients', sortType, clientUrl))
-    }
-  }
-  for (const sortType in clients?.plebbitRpcClients) {
-    for (const clientUrl in clients?.plebbitRpcClients?.[sortType]) {
-      clients?.plebbitRpcClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'plebbitRpcClients', sortType, clientUrl))
-    }
-  }
-  for (const sortType in clients?.libp2pJsClients) {
-    for (const clientUrl in clients?.libp2pJsClients?.[sortType]) {
-      clients?.libp2pJsClients?.[sortType]?.[clientUrl].on('statechange', (state: string) => onStateChange(state, 'libp2pJsClients', sortType, clientUrl))
-    }
-  }
-}
-
 const fetchPageComments: {[commentCid: string]: any} = {} // cache plebbit.createComment because sometimes it's slow
 let fetchPagePending: {[key: string]: boolean} = {}
 const fetchPage = async (pageCid: string, comment: Comment, account: Account) => {
@@ -210,7 +187,7 @@ const fetchPage = async (pageCid: string, comment: Comment, account: Account) =>
     })
 
     // set clients states on subplebbits store so the frontend can display it
-    commentRepliesClientsOnStateChange(fetchPageComments[comment.cid].replies?.clients, onCommentRepliesClientsStateChange(comment.cid))
+    utils.pageClientsOnStateChange(fetchPageComments[comment.cid].replies?.clients, onCommentRepliesClientsStateChange(comment.cid))
   }
 
   const onError = (error: any) => log.error(`repliesPagesStore comment '${comment.cid}' failed comment.replies.getPage page cid '${pageCid}':`, error)

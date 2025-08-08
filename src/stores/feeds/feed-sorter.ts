@@ -126,7 +126,8 @@ const sortByBest = (feed: any[]) => {
 }
 
 export const sort = (sortType: string, feed: any[]) => {
-  // pinned posts are not sorted, maybe in a future version we can sort them based on something
+  // NOTE: pinned posts are not sorted, maybe in a future version we can sort them based on something
+  // NOTE: with useReplies({flat: true}), nested pins are at the top, unclear yet what we should do with them
   const pinnedPosts = feed.filter((post) => post.pinned)
 
   feed = feed.filter((post) => !post.pinned)
