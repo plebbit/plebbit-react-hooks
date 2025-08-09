@@ -10,19 +10,26 @@ const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('./config')
 ;(async () => {
   // load signers in a way compatible with both CJS and ESM
   let signers = undefined
+  let importError, requireError
   try {
     // Prefer dynamic import to support ESM default export
     const mod = await import('../fixtures/signers.js')
     signers = mod.default || mod
   } catch (e) {
+    importError = e
     // Fallback to require if available
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       signers = require('../fixtures/signers')
-    } catch (_) {}
+    } catch (e2) {
+      requireError = e2
+      // eslint-disable-next-line no-console
+      console.error('Failed to load signers via require("../fixtures/signers")', e2?.message || e2)
+    }
   }
-  if (!signers) {
-    throw Error('Failed to load test/fixtures/signers')
+  if (!Array.isArray(signers)) {
+    const details = importError || requireError ? ` (importError: ${importError?.message || ''} requireError: ${requireError?.message || ''})` : ''
+    throw Error(`Invalid signers module: expected an array export from test/fixtures/signers${details}`)
   }
   const privateKey = signers[0].privateKey
   const adminRoleAddress = signers[1].address
