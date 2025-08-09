@@ -49,14 +49,26 @@ export const getCommentCidsToAccountsComments = (accountsComments) => {
     return commentCidsToAccountsComments;
 };
 export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!link) {
+        return {};
+    }
     const fetchImageDimensions = (url) => new Promise((resolve, reject) => {
         const image = new Image();
         image.onload = () => {
-            const dimensions = {
-                width: image.width,
-                height: image.height,
-            };
-            resolve(dimensions);
+            // don't accept 0px value
+            if (!image.width || !image.height) {
+                return reject(Error(`failed fetching image dimensions for url '${url}'`));
+            }
+            resolve({
+                linkWidth: image.width,
+                linkHeight: image.height,
+                linkHtmlTagName: 'img',
+            });
+            // remove image from memory
+            try {
+                image.src = '';
+            }
+            catch (e) { }
         };
         image.onerror = (error) => {
             reject(Error(`failed fetching image dimensions for url '${url}'`));
@@ -72,11 +84,15 @@ export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, vo
         video.muted = true;
         video.loop = false;
         video.addEventListener('loadeddata', () => {
-            const dimensions = {
-                width: video.videoWidth,
-                height: video.videoHeight,
-            };
-            resolve(dimensions);
+            // don't accept 0px value
+            if (!video.videoWidth || !video.videoHeight) {
+                return reject(Error(`failed fetching video dimensions for url '${url}'`));
+            }
+            resolve({
+                linkWidth: video.videoWidth,
+                linkHeight: video.videoHeight,
+                linkHtmlTagName: 'video',
+            });
             // prevent video from playing
             try {
                 video.pause();
@@ -97,26 +113,49 @@ export const fetchCommentLinkDimensions = (link) => __awaiter(void 0, void 0, vo
         // start loading
         video.src = url;
     });
-    if (link) {
-        try {
-            if (new URL(link).protocol !== 'https:') {
-                throw Error(`failed fetching comment.link dimensions for link '${link}' not https protocol`);
+    const fetchAudio = (url) => new Promise((resolve, reject) => {
+        const audio = document.createElement('audio');
+        audio.addEventListener('loadeddata', () => {
+            resolve({
+                linkHtmlTagName: 'audio',
+            });
+            try {
+                audio.pause();
             }
-            const dimensions = yield Promise.race([fetchImageDimensions(link), fetchVideoDimensions(link)]);
-            // don't accept 0px value
-            if (!dimensions.width || !dimensions.height) {
-                return {};
+            catch (_a) { }
+            try {
+                audio.src = '';
             }
-            return {
-                linkWidth: dimensions.width,
-                linkHeight: dimensions.height,
-            };
+            catch (_b) { }
+        });
+        audio.addEventListener('error', () => reject(Error(`failed fetching audio html tag name for url '${url}'`)));
+        const timeout = 20000;
+        setTimeout(() => reject(Error(`failed fetching audio html tag name for url '${url}' timeout '${timeout}'`)), timeout);
+        audio.src = url;
+    });
+    // polyfill Promise.any
+    const PromiseAny = (promises) => new Promise((res, rej) => {
+        let count = promises.length;
+        if (count === 0)
+            return rej(Error('all promises rejected'));
+        promises.forEach((p) => Promise.resolve(p)
+            .then(res)
+            .catch((e) => {
+            if (--count === 0)
+                rej(Error('all promises rejected'));
+        }));
+    });
+    try {
+        if (new URL(link).protocol !== 'https:') {
+            throw Error(`failed fetching comment.link dimensions for link '${link}' not https protocol`);
         }
-        catch (error) {
-            log.error('fetchCommentLinkDimensions error', { error, link });
-        }
+        const dimensions = yield PromiseAny([fetchImageDimensions(link), fetchVideoDimensions(link), fetchAudio(link)]);
+        return dimensions;
     }
-    return {};
+    catch (error) {
+        log.error('fetchCommentLinkDimensions error', { error, link });
+        return {};
+    }
 });
 export const getInitAccountCommentsToUpdate = (accountsComments) => {
     const accountCommentsToUpdate = [];
