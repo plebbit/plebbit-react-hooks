@@ -73,20 +73,10 @@ jobs:
           (yarn test:server &)
           yarn test:server:wait-on
 
-      - name: Run e2e (mock)
-        run: yarn test:e2e:mock
-
-      - name: Run e2e (Chromium)
+      - name: Run e2e (Vitest Browser)
         env:
           DEBUG: "plebbit-js:*,plebbit-react-hooks:*"
-        run: yarn test:e2e:chrome
-
-      - name: Run e2e (Firefox)
-        env:
-          DEBUG: "plebbit-js:*,plebbit-react-hooks:*"
-        run: yarn test:e2e:firefox
-
-      - name: Run e2e (mock-content)
-        run: yarn test:e2e:mock-content
+          CI: true
+        run: yarn test:e2e:vitest
 
 
