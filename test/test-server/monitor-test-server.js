@@ -35,7 +35,7 @@ const logTestServerCrashed = async () => {
   }
 }
 
-export const assertTestServerDidntCrash = async () => {
+const assertTestServerDidntCrash = async () => {
   const [testServerText, testServerError] = await fetchText('http://localhost:59281')
   if (testServerText !== 'test server ready') {
     throw Error('test server crashed http://localhost:59281: ' + testServerError?.message || '')
@@ -82,3 +82,5 @@ const xmlHttpFetch = (url) =>
     xhr.onerror = () => reject(Error(`status code '${xhr.status}' text '${xhr.statusText}'`))
     xhr.send()
   })
+
+module.exports = {assertTestServerDidntCrash}
