@@ -31,8 +31,19 @@ const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('./config')
     const details = importError || requireError ? ` (importError: ${importError?.message || ''} requireError: ${requireError?.message || ''})` : ''
     throw Error(`Invalid signers module: expected an array export from test/fixtures/signers${details}`)
   }
-  const privateKey = signers[0].privateKey
-  const adminRoleAddress = signers[1].address
+  if (signers.length < 2) {
+    throw Error('Invalid signers module: expected at least two signers in test/fixtures/signers')
+  }
+  const first = signers[0]
+  const second = signers[1]
+  if (!first || typeof first.privateKey !== 'string' || !first.privateKey) {
+    throw Error('Invalid signers[0]: expected a signer with a non-empty privateKey string')
+  }
+  if (!second || typeof second.address !== 'string' || !second.address) {
+    throw Error('Invalid signers[1]: expected a signer with a non-empty address string')
+  }
+  const privateKey = first.privateKey
+  const adminRoleAddress = second.address
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
   await startPlebbitRpc({port: plebbitRpc.port, ipfsApiPort: offlineIpfs.apiPort, pubsubApiPort: pubsubIpfs.apiPort})
