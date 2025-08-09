@@ -1,3 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Build dist
+        run: yarn build
+
+      - name: Run unit tests
+        run: yarn test --pool=forks
+
+  e2e:
+    name: Browser e2e (Vitest + Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: yarn playwright install --with-deps
+
+      - name: Build dist
+        run: yarn build
+
+      - name: Start test server
+        run: |
+          (yarn test:server &)
+          yarn test:server:wait-on
+
+      - name: Run e2e tests (Chromium)
+        env:
+          CI: true
+          DEBUG: plebbit:*
+        run: yarn test:e2e:vitest
+
 # CI for src folder
 name: CI
 

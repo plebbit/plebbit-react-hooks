@@ -2,6 +2,12 @@
 import {defineConfig} from 'vitest/config'
 
 const config = {
+  resolve: {
+    alias: {
+      // Force ESM browser entry to avoid wrapper interop issues in CI
+      uuid: 'uuid/dist/esm-browser/index.js',
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

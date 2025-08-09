@@ -10,7 +10,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import PlebbitJs from '../../lib/plebbit-js';
 import validator from '../../lib/validator';
 import chain from '../../lib/chain';
-import { v4 as uuid } from 'uuid';
+// Use built-in crypto.randomUUID when available to avoid uuid package interop in test runners
+const uuid = () => {
+    // Browser or Node >= 16.7
+    // @ts-ignore
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        // @ts-ignore
+        return crypto.randomUUID();
+    }
+    // Fallback RFC4122 v4 generator
+    // eslint-disable-next-line no-bitwise
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        // eslint-disable-next-line no-bitwise
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+};
 import accountsDatabase from './accounts-database';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:accounts:stores');
