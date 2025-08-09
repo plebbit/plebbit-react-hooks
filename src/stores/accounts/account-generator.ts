@@ -1,15 +1,30 @@
 import PlebbitJs from '../../lib/plebbit-js'
 import validator from '../../lib/validator'
 import chain from '../../lib/chain'
-// Use built-in crypto.randomUUID when available to avoid uuid package interop in test runners
-const uuid = () => {
-  // Browser or Node >= 16.7
-  // @ts-ignore
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    // @ts-ignore
-    return crypto.randomUUID()
+import accountsDatabase from './accounts-database'
+import {Accounts, AccountSubplebbit, ChainProviders} from '../../types'
+import Logger from '@plebbit/plebbit-logger'
+const log = Logger('plebbit-react-hooks:accounts:stores')
+
+// Use built-in crypto.randomUUID when available. Fallback uses crypto.getRandomValues for RFC 4122 v4, then Math.random as last resort
+const uuid = (): string => {
+  const cryptoObj = (globalThis as any)?.crypto
+  if (cryptoObj?.randomUUID) {
+    return cryptoObj.randomUUID()
   }
-  // Fallback RFC4122 v4 generator
+  if (cryptoObj?.getRandomValues) {
+    const bytes = new Uint8Array(16)
+    cryptoObj.getRandomValues(bytes)
+    // Set version 4 and variant bits
+    bytes[6] = (bytes[6] & 0x0f) | 0x40
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+    const hex: string[] = []
+    for (let i = 0; i < 16; i++) {
+      hex.push((bytes[i] + 0x100).toString(16).slice(1))
+    }
+    return `${hex[0]}${hex[1]}${hex[2]}${hex[3]}-${hex[4]}${hex[5]}-${hex[6]}${hex[7]}-${hex[8]}${hex[9]}-${hex[10]}${hex[11]}${hex[12]}${hex[13]}${hex[14]}${hex[15]}`
+  }
+  // Last-resort fallback
   // eslint-disable-next-line no-bitwise
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
@@ -18,10 +33,6 @@ const uuid = () => {
     return v.toString(16)
   })
 }
-import accountsDatabase from './accounts-database'
-import {Accounts, AccountSubplebbit, ChainProviders} from '../../types'
-import Logger from '@plebbit/plebbit-logger'
-const log = Logger('plebbit-react-hooks:accounts:stores')
 
 // default chain providers
 const chainProviders: ChainProviders = {
