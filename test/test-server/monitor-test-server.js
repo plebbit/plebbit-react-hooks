@@ -1,8 +1,8 @@
 // the test server can crash without logs, this script adds logs when this happens
 // you should also import assertTestServerDidntCrash and run it beforeEach and afterEach
 
-const nodeFetch = require('node-fetch')
-const {offlineIpfs, pubsubIpfs} = require('./config')
+import nodeFetch from 'node-fetch'
+import {offlineIpfs, pubsubIpfs} from './config'
 
 // make sure only one instance is running in node
 let started = false
@@ -53,7 +53,7 @@ const assertTestServerDidntCrash = async () => {
 const fetchText = async (url) => {
   let text, error
   try {
-    text = await fetch(url, {cache: 'no-cache'}).then((res) => res.text())
+    text = await (window.navigator.userAgent.match(/electron/i) ? xmlHttpFetch(url) : nodeFetch(url, {cache: 'no-cache'})).then((res) => res.text())
   } catch (e) {
     error = e
   }
@@ -61,12 +61,7 @@ const fetchText = async (url) => {
 }
 
 // use XMLHttpRequest because fetch is forbidden in electron tests
-const fetch = (url, options) => {
-  if (window.navigator.userAgent.match(/electron/i)) {
-    return xmlHttpFetch(url)
-  }
-  return nodeFetch(url, options)
-}
+// keep xmlHttpFetch for Electron path only
 
 const xmlHttpFetch = (url) =>
   new Promise((resolve, reject) => {
@@ -83,4 +78,4 @@ const xmlHttpFetch = (url) =>
     xhr.send()
   })
 
-module.exports = {assertTestServerDidntCrash}
+export {assertTestServerDidntCrash}

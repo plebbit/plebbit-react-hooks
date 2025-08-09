@@ -5,24 +5,25 @@ if (typeof window !== 'undefined') {
       window.localStorage.setItem('debug', String(process.env.DEBUG))
     }
   } catch (_) {}
+
+  // Surface browser import/parse errors in logs
+  window.addEventListener('error', (e) => {
+    // eslint-disable-next-line no-console
+    console.error('window.error', e.message, e.error?.stack || '')
+  })
+  window.addEventListener('unhandledrejection', (e) => {
+    // eslint-disable-next-line no-console
+    console.error('unhandledrejection', e.reason?.message || e.reason || '')
+  })
 }
 
-// Provide chai's expect to keep `expect(...).to.equal(...)` assertions working unchanged
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const chai = require('chai')
-  // @ts-ignore
-  globalThis.expect = chai.expect
-} catch (_) {}
+// Vitest already provides expect with chai-style matchers. No override needed.
 
 // Mocha-style aliases so existing tests using before/after run under Vitest
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const {beforeAll, afterAll} = require('vitest')
-  // @ts-ignore
-  globalThis.before = globalThis.before || beforeAll
-  // @ts-ignore
-  globalThis.after = globalThis.after || afterAll
-} catch (_) {}
+import {beforeAll, afterAll} from 'vitest'
+// @ts-ignore
+globalThis.before = globalThis.before || beforeAll
+// @ts-ignore
+globalThis.after = globalThis.after || afterAll
 
 // Real browsers already provide TextEncoder/TextDecoder and fetch

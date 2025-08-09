@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks/dom'
-import {useFeed, setPlebbitJs, restorePlebbitJs, debugUtils} from '../../dist'
+import {useFeed, setPlebbitJs, restorePlebbitJs} from '../../dist'
+import debugUtils from '../../dist/lib/debug-utils'
 import PlebbitJsMock from '../../dist/lib/plebbit-js/plebbit-js-mock'
 // mock right after importing or sometimes fails to mock
 setPlebbitJs(PlebbitJsMock)

@@ -1,10 +1,11 @@
-const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useFeed, useBufferedFeeds, useAccount, useAccountVotes, useAccountComments, useValidateComment, debugUtils} = require('../../dist')
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const testUtils = require('../../dist/lib/test-utils').default
-const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
-const signers = require('../fixtures/signers')
+import * as monitor from '../test-server/monitor-test-server'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {useFeed, useBufferedFeeds, useAccount, useAccountVotes, useAccountComments, useValidateComment} from '../../dist'
+import debugUtils from '../../dist/lib/debug-utils'
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import testUtils from '../../dist/lib/test-utils'
+import * as serverConfig from '../test-server/config'
+import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
 const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)
 
@@ -12,6 +13,7 @@ const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-
 const timeout = 600000
 
 // run tests using plebbit options gateway and httpClient
+const {offlineIpfs, pubsubIpfs, plebbitRpc} = serverConfig
 const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
 const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
@@ -54,7 +56,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     let rendered, waitFor
 
     beforeEach(async () => {
-      await assertTestServerDidntCrash()
+      await monitor.assertTestServerDidntCrash()
 
       rendered = renderHook((props) => {
         const account = useAccount()
@@ -82,7 +84,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     })
 
     afterEach(async () => {
-      await assertTestServerDidntCrash()
+      await monitor.assertTestServerDidntCrash()
 
       await testUtils.resetDatabasesAndStores()
     })

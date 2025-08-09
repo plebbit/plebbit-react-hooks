@@ -1,11 +1,13 @@
-const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {useAccount, useSubplebbit, useAccountVotes, useComment, debugUtils} = require('../../dist')
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const testUtils = require('../../dist/lib/test-utils').default
-const signers = require('../fixtures/signers')
+import * as monitor from '../test-server/monitor-test-server'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {useAccount, useSubplebbit, useAccountVotes, useComment} from '../../dist'
+import debugUtils from '../../dist/lib/debug-utils'
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import testUtils from '../../dist/lib/test-utils'
+import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
-const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
+import * as serverConfig from '../test-server/config'
+const {offlineIpfs, pubsubIpfs, plebbitRpc} = serverConfig
 
 // large value for manual debugging
 const timeout = 600000
@@ -52,10 +54,10 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     })
 
     beforeEach(async () => {
-      await assertTestServerDidntCrash()
+      await monitor.assertTestServerDidntCrash()
     })
     afterEach(async () => {
-      await assertTestServerDidntCrash()
+      await monitor.assertTestServerDidntCrash()
     })
 
     describe(`no subplebbits in database (${plebbitOptionsType})`, () => {

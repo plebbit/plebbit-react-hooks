@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-hooks/dom'
-import {useAccount, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs, debugUtils} from '../../dist'
+import {useAccount, useAccountVotes, useAccountComments, setPlebbitJs, restorePlebbitJs} from '../../dist'
+import debugUtils from '../../dist/lib/debug-utils'
 import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
 import testUtils from '../../dist/lib/test-utils'
 import PlebbitJsMock from '../../dist/lib/plebbit-js/plebbit-js-mock'

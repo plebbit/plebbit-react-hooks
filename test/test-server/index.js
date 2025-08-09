@@ -5,14 +5,27 @@ const plebbitDataPath = getTmpFolderPath()
 const startIpfs = require('./start-ipfs')
 const startPlebbitRpc = require('./start-plebbit-rpc')
 const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('./config')
-const signers = require('../fixtures/signers')
-
-// always use the same private key and subplebbit address when testing
-const privateKey = signers[0].privateKey
-const adminRoleAddress = signers[1].address
 
 // set up a subplebbit for testing
 ;(async () => {
+  // load signers in a way compatible with both CJS and ESM
+  let signers = undefined
+  try {
+    // Prefer dynamic import to support ESM default export
+    const mod = await import('../fixtures/signers.js')
+    signers = mod.default || mod
+  } catch (e) {
+    // Fallback to require if available
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      signers = require('../fixtures/signers')
+    } catch (_) {}
+  }
+  if (!signers) {
+    throw Error('Failed to load test/fixtures/signers')
+  }
+  const privateKey = signers[0].privateKey
+  const adminRoleAddress = signers[1].address
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
   await startPlebbitRpc({port: plebbitRpc.port, ipfsApiPort: offlineIpfs.apiPort, pubsubApiPort: pubsubIpfs.apiPort})

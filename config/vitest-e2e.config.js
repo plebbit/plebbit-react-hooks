@@ -1,11 +1,10 @@
 import {defineConfig} from 'vitest/config'
-import {viteCommonjs} from '@originjs/vite-plugin-commonjs'
 
 const isCi = !!process.env.CI
 const isFirefox = process.argv.includes('--firefox')
 
 export default defineConfig({
-  plugins: [viteCommonjs()],
+  plugins: [],
   resolve: {
     alias: {
       'node-fetch': '/config/node-fetch-browser-shim.js',
