@@ -21,12 +21,25 @@ on:
       - 'package.json'
       - 'yarn.lock'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
 
     steps:
+      - name: Increase UDP buffer sizes for quic-go
+        run: |
+          sudo sysctl -w net.core.rmem_max=8388608
+          sudo sysctl -w net.core.rmem_default=8388608
+          sudo sysctl -w net.core.wmem_max=8388608
+          sudo sysctl -w net.core.wmem_default=8388608
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -49,8 +62,8 @@ jobs:
       # disable hosts we shouldn't use
       - name: Block external hosts
         run: |
-          echo "255.255.255.255 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
-          echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
+          echo "0.0.0.0 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
+          echo "0.0.0.0 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
       - name: Install Playwright browsers
         run: yarn playwright install --with-deps
