@@ -1,0 +1,79 @@
+name: CI (paths)
+
+on:
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - 'test/**'
+      - 'src/**'
+      - 'config/**'
+      - 'package.json'
+      - 'yarn.lock'
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'test/**'
+      - 'src/**'
+      - 'config/**'
+      - '.github/**'
+      - 'package.json'
+      - 'yarn.lock'
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Build dist
+        run: yarn build
+
+      # optional legacy step retained to minimize disruption
+      - name: Build (webpack legacy)
+        run: yarn webpack
+
+      # disable hosts we shouldn't use
+      - name: Block external hosts
+        run: |
+          echo "255.255.255.255 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
+          echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
+
+      - name: Install Playwright browsers
+        run: yarn playwright install --with-deps
+
+      - name: Start test server
+        run: |
+          (yarn test:server &)
+          yarn test:server:wait-on
+
+      - name: Run e2e (mock)
+        run: yarn test:e2e:mock
+
+      - name: Run e2e (Chromium)
+        env:
+          DEBUG: "plebbit-js:*,plebbit-react-hooks:*"
+        run: yarn test:e2e:chrome
+
+      - name: Run e2e (Firefox)
+        env:
+          DEBUG: "plebbit-js:*,plebbit-react-hooks:*"
+        run: yarn test:e2e:firefox
+
+      - name: Run e2e (mock-content)
+        run: yarn test:e2e:mock-content
+
+
