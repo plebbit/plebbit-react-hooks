@@ -3,9 +3,17 @@ import {defineConfig} from 'vitest/config'
 // more time to debug when not ci
 const testTimeout = process.env.CI ? 300_000 : 600_000
 
-const headless = process.env.CI || process.env.HEADLESS ? true : false
+const headless = Boolean(process.env.CI || process.env.HEADLESS)
 
-const browser = process.env.FIREFOX ? 'firefox' : 'chromium'
+let browser = process.env.FIREFOX ? 'firefox' : 'chromium'
+let launchOptions
+if (process.env.CHROME_BIN) {
+  launchOptions = {executablePath: process.env.CHROME_BIN}
+}
+if (process.env.FIREFOX_BIN) {
+  launchOptions = {executablePath: process.env.FIREFOX_BIN}
+  browser = 'firefox'
+}
 
 let include = ['test/browser-e2e/**/*.test.js']
 // test the plebbit-js-mock files
@@ -31,7 +39,13 @@ export default defineConfig({
     browser: {
       enabled: true,
       provider: 'playwright',
-      instances: [{browser, headless}],
+      instances: [
+        {
+          browser,
+          headless,
+          launchOptions,
+        },
+      ],
     },
     server: {deps: {inline: true}},
   },

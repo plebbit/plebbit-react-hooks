@@ -49,7 +49,7 @@ jobs:
       - run: sudo echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
       - run: yarn test:server & yarn test:server:wait-on
-      - run: yarn test:e2e:mock
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" yarn test:e2e:chrome
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" yarn test:e2e:firefox
-      - run: yarn test:e2e:mock-content
+      - run: CHROME_BIN=$(which chrome) yarn test:e2e:mock
+      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chrome) yarn test:e2e:chrome
+      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" FIREFOX_BIN=$(which firefox) yarn test:e2e:firefox
+      - run: CHROME_BIN=$(which chrome) yarn test:e2e:mock-content
