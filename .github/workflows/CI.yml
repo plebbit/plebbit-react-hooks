@@ -48,8 +48,9 @@ jobs:
       - run: sudo echo "255.255.255.255 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
       - run: sudo echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
+      - run: yarn playwright install
       - run: yarn test:server & yarn test:server:wait-on
-      - run: PLAYWRIGHT_EXECUTABLE_PATH=$(which chromium-browser) yarn test:e2e:mock
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" PLAYWRIGHT_EXECUTABLE_PATH=$(which chromium-browser) yarn test:e2e:chrome
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" PLAYWRIGHT_EXECUTABLE_PATH=$(which firefox) yarn test:e2e:firefox
-      - run: PLAYWRIGHT_EXECUTABLE_PATH=$(which chromium-browser) yarn test:e2e:mock-content
+      - run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock
+      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chromium-browser) yarn test:e2e:chrome
+      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" FIREFOX_BIN=$(which firefox) yarn test:e2e:firefox
+      - run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock-content
