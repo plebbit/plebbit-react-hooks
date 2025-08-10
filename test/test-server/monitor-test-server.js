@@ -1,8 +1,7 @@
 // the test server can crash without logs, this script adds logs when this happens
 // you should also import assertTestServerDidntCrash and run it beforeEach and afterEach
 
-const nodeFetch = require('node-fetch')
-const {offlineIpfs, pubsubIpfs} = require('./config')
+import {offlineIpfs, pubsubIpfs} from './config'
 
 // make sure only one instance is running in node
 let started = false
@@ -35,7 +34,7 @@ const logTestServerCrashed = async () => {
   }
 }
 
-export const assertTestServerDidntCrash = async () => {
+const assertTestServerDidntCrash = async () => {
   const [testServerText, testServerError] = await fetchText('http://localhost:59281')
   if (testServerText !== 'test server ready') {
     throw Error('test server crashed http://localhost:59281: ' + testServerError?.message || '')
@@ -60,25 +59,4 @@ const fetchText = async (url) => {
   return [text, error]
 }
 
-// use XMLHttpRequest because fetch is forbidden in electron tests
-const fetch = (url, options) => {
-  if (window.navigator.userAgent.match(/electron/i)) {
-    return xmlHttpFetch(url)
-  }
-  return nodeFetch(url, options)
-}
-
-const xmlHttpFetch = (url) =>
-  new Promise((resolve, reject) => {
-    let xhr = new XMLHttpRequest()
-    xhr.open('GET', url)
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve({text: async () => xhr.response})
-      } else {
-        reject(Error(`status code '${xhr.status}' text '${xhr.statusText}'`))
-      }
-    }
-    xhr.onerror = () => reject(Error(`status code '${xhr.status}' text '${xhr.statusText}'`))
-    xhr.send()
-  })
+export {assertTestServerDidntCrash}

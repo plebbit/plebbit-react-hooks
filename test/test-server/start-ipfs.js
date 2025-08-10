@@ -1,9 +1,10 @@
 // script to start IPFS and plebbit-js for testing
 
-const {exec, execSync} = require('child_process')
-const getTmpFolderPath = require('tempy').directory
-const ipfsPath = require('kubo').path()
-const assert = require('assert')
+import {exec, execSync} from 'child_process'
+import {directory as getTmpFolderPath} from 'tempy'
+import assert from 'assert'
+import {path as getIpfsPath} from 'kubo'
+const ipfsPath = getIpfsPath()
 
 const startIpfs = ({apiPort, gatewayPort, args = ''} = {}) => {
   assert.equal(typeof apiPort, 'number')
@@ -63,4 +64,4 @@ const startIpfs = ({apiPort, gatewayPort, args = ''} = {}) => {
   return ipfsDaemonIsReady()
 }
 
-module.exports = startIpfs
+export default startIpfs

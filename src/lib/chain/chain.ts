@@ -1,7 +1,6 @@
 import assert from 'assert'
 import {Nft, ChainProviders, Wallet} from '../../types'
 import {ethers} from 'ethers'
-import fetch from 'node-fetch'
 import utils from '../utils'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
@@ -130,7 +129,7 @@ export const getEthWalletFromPlebbitPrivateKey = async (privateKeyBase64: string
     return
   }
 
-  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0))
   if (privateKeyBytes.length !== 32) {
     throw Error('failed getting eth address from private key not 32 bytes')
   }
@@ -141,7 +140,7 @@ export const getEthWalletFromPlebbitPrivateKey = async (privateKeyBase64: string
   // generate signature
   const timestamp = Date.now()
   const signature = await new ethers.Wallet(privateKeyHex).signMessage(getWalletMessageToSign(authorAddress, timestamp))
-  
+
   return {address: ethAddress, timestamp, signature: {signature, type: 'eip191'}}
 }
 
@@ -151,7 +150,7 @@ export const getEthPrivateKeyFromPlebbitPrivateKey = async (privateKeyBase64: st
     return
   }
 
-  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0))
   if (privateKeyBytes.length !== 32) {
     throw Error('failed getting eth address from private key not 32 bytes')
   }
@@ -167,7 +166,7 @@ export const getSolWalletFromPlebbitPrivateKey = async (privateKeyBase64: string
     return
   }
 
-  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0))
   if (privateKeyBytes.length !== 32) {
     throw Error('failed getting sol address from private key not 32 bytes')
   }
@@ -181,13 +180,14 @@ export const getSolWalletFromPlebbitPrivateKey = async (privateKeyBase64: string
   const signatureBase58 = uint8ArrayToString(signatureBytes, 'base58btc')
 
   return {
-    address: solAddress, timestamp, 
+    address: solAddress,
+    timestamp,
     signature: {
       signature: signatureBase58,
       // solana has no signature standard so just call it 'sol' for now
       // can't use just 'ed25519' because we use it for plebbit signature with base64
-      type: 'sol'
-    }
+      type: 'sol',
+    },
   }
 }
 
@@ -197,7 +197,7 @@ export const getSolPrivateKeyFromPlebbitPrivateKey = async (privateKeyBase64: st
     return
   }
 
-  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0))
+  const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0))
   if (privateKeyBytes.length !== 32) {
     throw Error('failed getting sol address from private key not 32 bytes')
   }
@@ -249,5 +249,5 @@ export default {
   getEthPrivateKeyFromPlebbitPrivateKey,
   getSolPrivateKeyFromPlebbitPrivateKey,
   validateEthWallet,
-  validateSolWallet
+  validateSolWallet,
 }

@@ -1,21 +1,12 @@
-const {assertTestServerDidntCrash} = require('../test-server/monitor-test-server')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const {
-  useAccount,
-  useAccountVotes,
-  useAccountComments,
-  useNotifications,
-  useComment,
-  useReplies,
-  useAccountSubplebbits,
-  useSubplebbit,
-  debugUtils,
-} = require('../../dist')
+import * as monitor from '../test-server/monitor-test-server'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {useAccount, useAccountVotes, useAccountComments, useNotifications, useComment, useReplies, useAccountSubplebbits, useSubplebbit} from '../../dist'
+import debugUtils from '../../dist/lib/debug-utils'
 
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const testUtils = require('../../dist/lib/test-utils').default
-const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('../test-server/config')
-const signers = require('../fixtures/signers')
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import testUtils from '../../dist/lib/test-utils'
+import * as serverConfig from '../test-server/config'
+import signers from '../fixtures/signers'
 const subplebbitAddress = signers[0].address
 const adminRoleSigner = signers[1]
 
@@ -25,6 +16,7 @@ const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-
 const timeout = 600000
 
 // run tests using plebbit options gateway and httpClient
+const {offlineIpfs, pubsubIpfs, plebbitRpc} = serverConfig
 const localGatewayUrl = `http://localhost:${offlineIpfs.gatewayPort}`
 const localIpfsProviderUrl = `http://localhost:${offlineIpfs.apiPort}`
 const localPubsubProviderUrl = `http://localhost:${pubsubIpfs.apiPort}/api/v0`
@@ -65,10 +57,10 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     })
 
     beforeEach(async () => {
-      await assertTestServerDidntCrash()
+      await monitor.assertTestServerDidntCrash()
     })
     afterEach(async () => {
-      await assertTestServerDidntCrash()
+      await monitor.assertTestServerDidntCrash()
     })
 
     describe(`no accounts in database (${plebbitOptionsType})`, () => {
@@ -103,6 +95,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     describe(`create subplebbit (${plebbitOptionsType})`, () => {
       // creating subplebbit only works over plebbit rpc
       if (plebbitOptionsType !== 'plebbit rpc client') {
+        it.skip('create and edit a subplebbit (not applicable for this client)', () => {})
         return
       }
 

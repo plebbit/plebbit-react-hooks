@@ -1,7 +1,8 @@
-const path = require('path')
-const assert = require('assert')
-const tcpPortUsed = require('tcp-port-used')
-const getTmpFolderPath = require('tempy').directory
+import path from 'path'
+import assert from 'assert'
+import tcpPortUsed from 'tcp-port-used'
+import PlebbitRpc from '@plebbit/plebbit-js/rpc'
+import {directory as getTmpFolderPath} from 'tempy'
 const plebbitDataPath = getTmpFolderPath()
 
 const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
@@ -19,7 +20,6 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
   }
 
   console.log('plebbit rpc: starting...')
-  const {default: PlebbitRpc} = await import('@plebbit/plebbit-js/rpc')
   const plebbitWebSocketServer = await PlebbitRpc.PlebbitWsServer({port, plebbitOptions})
   plebbitWebSocketServer.ws.on('connection', (socket, request) => {
     console.log('plebbit rpc: new connection')
@@ -32,4 +32,4 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
   console.log(`plebbit rpc: listening on port ${port}`)
 }
 
-module.exports = startPlebbitRpc
+export default startPlebbitRpc

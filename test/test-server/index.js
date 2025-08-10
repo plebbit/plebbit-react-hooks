@@ -2,17 +2,18 @@
 
 const getTmpFolderPath = require('tempy').directory
 const plebbitDataPath = getTmpFolderPath()
-const startIpfs = require('./start-ipfs')
-const startPlebbitRpc = require('./start-plebbit-rpc')
-const {offlineIpfs, pubsubIpfs, plebbitRpc} = require('./config')
-const signers = require('../fixtures/signers')
-
-// always use the same private key and subplebbit address when testing
-const privateKey = signers[0].privateKey
-const adminRoleAddress = signers[1].address
 
 // set up a subplebbit for testing
 ;(async () => {
+  const {offlineIpfs, pubsubIpfs, plebbitRpc} = await import('./config.js')
+  const {default: startIpfs} = await import('./start-ipfs.js')
+  const {default: startPlebbitRpc} = await import('./start-plebbit-rpc.js')
+  const {default: signers} = await import('../fixtures/signers.js')
+
+  // always use the same private key and subplebbit address when testing
+  const privateKey = signers[0].privateKey
+  const adminRoleAddress = signers[1].address
+
   await startIpfs(offlineIpfs)
   await startIpfs(pubsubIpfs)
   await startPlebbitRpc({port: plebbitRpc.port, ipfsApiPort: offlineIpfs.apiPort, pubsubApiPort: pubsubIpfs.apiPort})

@@ -1,22 +1,20 @@
-/// <reference types="vitest" />
 import {defineConfig} from 'vitest/config'
+import path from 'path'
 
 const config = {
   test: {
+    // silence sourcemap warnings
+    sourcemap: false,
+
     globals: true,
     environment: 'jsdom',
-    server: {
-      deps: {
-        inline: true,
-      },
-    },
+    server: {deps: {inline: true}},
     alias: {
-      // mock plebbit-js with random package or parsing errors
-      '@plebbit/plebbit-js/dist/browser/index': 'react',
-      '@plebbit/plebbit-js': 'react',
+      // mock plebbit-js because it throws in jsdom
+      '@plebbit/plebbit-js': path.resolve(__dirname, 'vitest-empty-alias.js'),
     },
     root: 'src/',
-    setupFiles: ['../config/vitest.setup.js'],
+    setupFiles: [path.resolve(__dirname, 'vitest.setup.js')],
   },
 }
 

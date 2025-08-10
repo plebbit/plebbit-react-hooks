@@ -10,4 +10,4 @@ signers[1] = {
   address: '12D3KooWS3z6sH3Q7NU2FWU5KL9t1XXSmfnE15BE7vjuFXSvQYSZ',
 }
 
-module.exports = signers
+export default signers

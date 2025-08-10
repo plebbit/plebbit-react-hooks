@@ -4,14 +4,14 @@ window.process = {env: {}}
 window.process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT = '1'
 window.process.env.REACT_APP_PLEBBIT_REACT_HOOKS_MOCK_CONTENT_LOADING_TIME = '1000'
 
-const {useComment, useSubplebbit, useFeed, useAccountSubplebbits, useAccount, setPlebbitJs} = require('../../dist')
-const {default: PlebbitJsMockContent} = require('../../dist/lib/plebbit-js/plebbit-js-mock-content')
+import {useComment, useSubplebbit, useFeed, useAccountSubplebbits, useAccount, setPlebbitJs} from '../../dist'
+import PlebbitJsMockContent from '../../dist/lib/plebbit-js/plebbit-js-mock-content'
 // mock right after importing or sometimes fails to mock
 setPlebbitJs(PlebbitJsMockContent)
 
-const accountsActions = require('../../dist/stores/accounts/accounts-actions')
-const {act, renderHook} = require('@testing-library/react-hooks/dom')
-const testUtils = require('../../dist/lib/test-utils').default
+import * as accountsActions from '../../dist/stores/accounts/accounts-actions'
+import {act, renderHook} from '@testing-library/react-hooks/dom'
+import testUtils from '../../dist/lib/test-utils'
 
 const timeout = 180_000
 
