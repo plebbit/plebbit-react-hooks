@@ -14,6 +14,7 @@ if (process.env.FIREFOX_BIN) {
   launchOptions = {executablePath: process.env.FIREFOX_BIN}
   browser = 'firefox'
 }
+console.log(process.env.CHROME_BIN, {browser, launchOptions})
 
 let include = ['test/browser-e2e/**/*.test.js']
 // test the plebbit-js-mock files
