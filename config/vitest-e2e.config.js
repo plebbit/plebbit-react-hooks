@@ -44,7 +44,7 @@ export default defineConfig({
         {
           browser,
           headless,
-          launchOptions,
+          // launchOptions,
         },
       ],
     },
