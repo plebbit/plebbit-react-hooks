@@ -122,7 +122,7 @@ export const getEthWalletFromPlebbitPrivateKey = (privateKeyBase64, authorAddres
     if (privateKeyBase64 === 'private key') {
         return;
     }
-    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0));
+    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0));
     if (privateKeyBytes.length !== 32) {
         throw Error('failed getting eth address from private key not 32 bytes');
     }
@@ -139,7 +139,7 @@ export const getEthPrivateKeyFromPlebbitPrivateKey = (privateKeyBase64, authorAd
     if (privateKeyBase64 === 'private key') {
         return;
     }
-    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0));
+    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0));
     if (privateKeyBytes.length !== 32) {
         throw Error('failed getting eth address from private key not 32 bytes');
     }
@@ -153,7 +153,7 @@ export const getSolWalletFromPlebbitPrivateKey = (privateKeyBase64, authorAddres
     if (privateKeyBase64 === 'private key') {
         return;
     }
-    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0));
+    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0));
     if (privateKeyBytes.length !== 32) {
         throw Error('failed getting sol address from private key not 32 bytes');
     }
@@ -165,13 +165,14 @@ export const getSolWalletFromPlebbitPrivateKey = (privateKeyBase64, authorAddres
     const signatureBytes = yield ed25519Sign(messageBytes, privateKeyBytes);
     const signatureBase58 = uint8ArrayToString(signatureBytes, 'base58btc');
     return {
-        address: solAddress, timestamp,
+        address: solAddress,
+        timestamp,
         signature: {
             signature: signatureBase58,
             // solana has no signature standard so just call it 'sol' for now
             // can't use just 'ed25519' because we use it for plebbit signature with base64
-            type: 'sol'
-        }
+            type: 'sol',
+        },
     };
 });
 export const getSolPrivateKeyFromPlebbitPrivateKey = (privateKeyBase64, authorAddress) => __awaiter(void 0, void 0, void 0, function* () {
@@ -179,7 +180,7 @@ export const getSolPrivateKeyFromPlebbitPrivateKey = (privateKeyBase64, authorAd
     if (privateKeyBase64 === 'private key') {
         return;
     }
-    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0));
+    const privateKeyBytes = Uint8Array.from(atob(privateKeyBase64), (c) => c.charCodeAt(0));
     if (privateKeyBytes.length !== 32) {
         throw Error('failed getting sol address from private key not 32 bytes');
     }
@@ -230,5 +231,5 @@ export default {
     getEthPrivateKeyFromPlebbitPrivateKey,
     getSolPrivateKeyFromPlebbitPrivateKey,
     validateEthWallet,
-    validateSolWallet
+    validateSolWallet,
 };
