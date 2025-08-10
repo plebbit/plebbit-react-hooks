@@ -48,8 +48,16 @@ jobs:
       - run: sudo echo "255.255.255.255 cloudflare-ipfs.com" | sudo tee -a /etc/hosts
       - run: sudo echo "255.255.255.255 pubsubprovider.xyz" | sudo tee -a /etc/hosts
 
+      - name: Debug available Chrome/Chromium browsers
+        run: |
+          echo "Checking Chrome and Chromium executables..."
+          which chrome || echo "chrome not found"
+          which chromium-browser || echo "chromium-browser not found"
+          which chromium || echo "chromium not found"
+          which google-chrome || echo "google-chrome not found"
+
       - run: yarn test:server & yarn test:server:wait-on
-      - run: CHROME_BIN=$(which chrome) yarn test:e2e:mock
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chrome) yarn test:e2e:chrome
+      - run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock
+      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chromium-browser) yarn test:e2e:chrome
       - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" FIREFOX_BIN=$(which firefox) yarn test:e2e:firefox
-      - run: CHROME_BIN=$(which chrome) yarn test:e2e:mock-content
+      - run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock-content
