@@ -9,13 +9,13 @@ import testUtils from '../../dist/lib/test-utils'
 const timeout = 10000
 
 describe('feeds (plebbit-js mock)', () => {
-  before(async () => {
+  beforeAll(async () => {
     console.log('before feeds tests')
     testUtils.silenceReactWarnings()
     // reset before or init accounts sometimes fails
     await testUtils.resetDatabasesAndStores()
   })
-  after(async () => {
+  afterAll(async () => {
     testUtils.restoreAll()
     await testUtils.resetDatabasesAndStores()
     console.log('after reset stores')

@@ -44,13 +44,13 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`accounts (${plebbitOptionsType})`, () => {
-    before(async () => {
+    beforeAll(async () => {
       console.log(`before accounts tests (${plebbitOptionsType})`)
       testUtils.silenceReactWarnings()
       // reset before or init accounts sometimes fails
       await testUtils.resetDatabasesAndStores()
     })
-    after(async () => {
+    afterAll(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
     })
@@ -100,7 +100,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
 
       let rendered, waitFor
 
-      before(async () => {
+      beforeAll(async () => {
         rendered = renderHook((subplebbitAddress) => {
           const account = useAccount()
           const {accountSubplebbits} = useAccountSubplebbits()
@@ -223,7 +223,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     describe(`publish subplebbit edit (${plebbitOptionsType})`, () => {
       let rendered, waitFor
 
-      before(async () => {
+      beforeAll(async () => {
         rendered = renderHook((subplebbitAddress) => {
           const account = useAccount()
           const subplebbit = useSubplebbit({subplebbitAddress})
@@ -298,7 +298,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     describe(`publish (${plebbitOptionsType})`, () => {
       let rendered, waitFor, publishedCid
 
-      before(async () => {
+      beforeAll(async () => {
         rendered = renderHook((commentCid) => {
           const account = useAccount()
           const {accountVotes} = useAccountVotes()

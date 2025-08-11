@@ -41,13 +41,13 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`feeds (${plebbitOptionsType})`, () => {
-    before(async () => {
+    beforeAll(async () => {
       console.log(`before feeds tests (${plebbitOptionsType})`)
       testUtils.silenceReactWarnings()
       // reset before or init accounts sometimes fails
       await testUtils.resetDatabasesAndStores()
     })
-    after(async () => {
+    afterAll(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
     })

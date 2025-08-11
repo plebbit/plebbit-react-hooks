@@ -41,13 +41,13 @@ const plebbitOptionsTypes = {
 
 for (const plebbitOptionsType in plebbitOptionsTypes) {
   describe(`subplebbits (${plebbitOptionsType})`, () => {
-    before(async () => {
+    beforeAll(async () => {
       console.log(`before subplebbits tests (${plebbitOptionsType})`)
       testUtils.silenceReactWarnings()
       // reset before or init accounts sometimes fails
       await testUtils.resetDatabasesAndStores()
     })
-    after(async () => {
+    afterAll(async () => {
       testUtils.restoreAll()
       await testUtils.resetDatabasesAndStores()
     })
@@ -62,7 +62,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
     describe(`no subplebbits in database (${plebbitOptionsType})`, () => {
       let rendered, waitFor, commentCid
 
-      before(async () => {
+      beforeAll(async () => {
         rendered = renderHook(({subplebbitAddress, commentCid} = {}) => {
           const account = useAccount()
           const subplebbit = useSubplebbit({subplebbitAddress})

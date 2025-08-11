@@ -16,10 +16,10 @@ import testUtils from '../../dist/lib/test-utils'
 const timeout = 180_000
 
 describe('mock content', () => {
-  before(() => {
+  beforeAll(() => {
     testUtils.silenceReactWarnings()
   })
-  after(() => {
+  afterAll(() => {
     testUtils.restoreAll()
   })
 
