@@ -1,5 +1,6 @@
 {
   "name": "@plebbit/plebbit-react-hooks",
+  "type": "module",
   "keywords": [
     "plebbit",
     "subplebbit"
