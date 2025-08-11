@@ -2,6 +2,7 @@ export default {
   semi: false,
   singleQuote: true,
   printWidth: 170,
-  parser: "typescript",
+  parser: 'typescript',
   bracketSpacing: false,
-};
+  trailingComma: 'es5',
+}
