@@ -259,46 +259,34 @@ describe('subplebbits', () => {
     const timeout = 60000
 
     // skip because uses internet and not deterministic
-    test.skip(
-      'useResolvedSubplebbitAddress',
-      async () => {
-        const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test.skip('useResolvedSubplebbitAddress', {timeout}, async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender('plebbit.eth')
-        await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
-        expect(rendered.result.current.resolvedAddress).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
-      },
-      {timeout}
-    )
+      rendered.rerender('plebbit.eth')
+      await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
+      expect(rendered.result.current.resolvedAddress).toBe('QmW5Zt7YXmtskSUjjenGNS3QNRbjqjUPaT35zw5RYUCtY1')
+    })
 
-    test(
-      'unsupported crypto domain',
-      async () => {
-        const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
-        const waitFor = testUtils.createWaitFor(rendered)
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('unsupported crypto domain', {timeout}, async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender('plebbit.com')
-        await waitFor(() => rendered.result.current.error)
-        expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
-      },
-      {timeout}
-    )
+      rendered.rerender('plebbit.com')
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
+    })
 
-    test(
-      'not a crypto domain',
-      async () => {
-        const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
-        const waitFor = testUtils.createWaitFor(rendered)
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('not a crypto domain', {timeout}, async () => {
+      const rendered = renderHook<any, any>((subplebbitAddress) => useResolvedSubplebbitAddress({subplebbitAddress}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender('abc')
-        await waitFor(() => rendered.result.current.error)
-        expect(rendered.result.current.error.message).toBe('not a crypto domain')
-      },
-      {timeout}
-    )
+      rendered.rerender('abc')
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('not a crypto domain')
+    })
   })
 })

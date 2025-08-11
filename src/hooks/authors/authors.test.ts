@@ -481,189 +481,149 @@ describe('authors', () => {
       ])
     })
 
-    test(
-      'useAuthorAvatar avatar has no signature',
-      async () => {
-        const author = {
-          address: authorAddress,
-          avatar: {
-            ...avatarNft1,
-            signature: undefined,
+    test('useAuthorAvatar avatar has no signature', {timeout}, async () => {
+      const author = {
+        address: authorAddress,
+        avatar: {
+          ...avatarNft1,
+          signature: undefined,
+        },
+      }
+      const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current.imageUrl).toBe(undefined)
+
+      rendered.rerender(author)
+      // NOTE: waitFor expected to fail because our test signer doesn't own the nft
+      // manually check the logs to see if it actually works on not
+      await waitFor(() => rendered.result.current.state === 'failed')
+      expect(rendered.result.current.state).toBe('failed')
+      expect(rendered.result.current.error.message.includes('invalid nft.signature')).toBe(true)
+    })
+
+    // skip because uses internet and not deterministic
+    test.skip('useNftImageUrl', {timeout}, async () => {
+      const rendered = renderHook<any, any>((nft) => {
+        const {metadataUrl} = useNftMetadataUrl(nft)
+        return useNftImageUrl(metadataUrl)
+      })
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current).toEqual({error: undefined, imageUrl: undefined})
+
+      // test eth network
+      rendered.rerender(avatarNft1)
+      await waitFor(() => typeof rendered.result.current.imageUrl === 'string')
+      expect(rendered.result.current.imageUrl).toBe(avatarNftImageUrl1)
+
+      // test polygon network
+      rendered.rerender(avatarNft2)
+      await waitFor(() => typeof rendered.result.current.imageUrl === 'string' && rendered.result.current.imageUrl !== avatarNftImageUrl1)
+      expect(rendered.result.current.imageUrl).toBe(avatarNftImageUrl2)
+    })
+
+    // skip because uses internet and not deterministic
+    test.skip('useVerifiedAuthorAvatarSignature', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useVerifiedAuthorAvatarSignature(author))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current).toEqual({verified: undefined, error: undefined})
+
+      // test eth network
+      rendered.rerender(author)
+      await waitFor(() => rendered.result.current.verified === false)
+      expect(rendered.result.current.verified).toBe(false)
+    })
+
+    // skip because uses internet and not deterministic
+    test.skip('useAuthorAvatar', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current.imageUrl).toBe(undefined)
+
+      rendered.rerender(author)
+      // NOTE: waitFor expected to fail because our test signer doesn't own the nft
+      // manually check the logs to see if it actually works on not
+      await waitFor(() => typeof rendered.result.current.imageUrl === 'string')
+      console.log(rendered.result.current)
+      expect(rendered.result.current).toBe(undefined)
+    })
+
+    // skip because uses internet and not deterministic
+    test.skip('useAuthorAvatar with ENS', {timeout}, async () => {
+      const author = {
+        displayName: 'Esteban Abaroa',
+        address: 'estebanabaroa.eth',
+        avatar: {
+          chainTicker: 'matic',
+          address: '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed',
+          id: '105',
+          signature: {
+            signature: '0xcb73c6b96193684ecea48952facbc217b3438c5e9290d978d40f227e3663eaf765d7f19f96151c35115deadee8003060352ffef1e6cc2e0600062e98c1e298301b',
+            type: 'eip191',
+            signedPropertyNames: ['domainSeparator', 'authorAddress', 'tokenAddress', 'tokenId'],
           },
-        }
-        const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current.imageUrl).toBe(undefined)
+        },
+      }
+      const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current.imageUrl).toBe(undefined)
 
-        rendered.rerender(author)
-        // NOTE: waitFor expected to fail because our test signer doesn't own the nft
-        // manually check the logs to see if it actually works on not
-        await waitFor(() => rendered.result.current.state === 'failed')
-        expect(rendered.result.current.state).toBe('failed')
-        expect(rendered.result.current.error.message.includes('invalid nft.signature')).toBe(true)
-      },
-      {timeout}
-    )
-
-    // skip because uses internet and not deterministic
-    test.skip(
-      'useNftImageUrl',
-      async () => {
-        const rendered = renderHook<any, any>((nft) => {
-          const {metadataUrl} = useNftMetadataUrl(nft)
-          return useNftImageUrl(metadataUrl)
-        })
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current).toEqual({error: undefined, imageUrl: undefined})
-
-        // test eth network
-        rendered.rerender(avatarNft1)
-        await waitFor(() => typeof rendered.result.current.imageUrl === 'string')
-        expect(rendered.result.current.imageUrl).toBe(avatarNftImageUrl1)
-
-        // test polygon network
-        rendered.rerender(avatarNft2)
-        await waitFor(() => typeof rendered.result.current.imageUrl === 'string' && rendered.result.current.imageUrl !== avatarNftImageUrl1)
-        expect(rendered.result.current.imageUrl).toBe(avatarNftImageUrl2)
-      },
-      {timeout}
-    )
-
-    // skip because uses internet and not deterministic
-    test.skip(
-      'useVerifiedAuthorAvatarSignature',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useVerifiedAuthorAvatarSignature(author))
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current).toEqual({verified: undefined, error: undefined})
-
-        // test eth network
-        rendered.rerender(author)
-        await waitFor(() => rendered.result.current.verified === false)
-        expect(rendered.result.current.verified).toBe(false)
-      },
-      {timeout}
-    )
-
-    // skip because uses internet and not deterministic
-    test.skip(
-      'useAuthorAvatar',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current.imageUrl).toBe(undefined)
-
-        rendered.rerender(author)
-        // NOTE: waitFor expected to fail because our test signer doesn't own the nft
-        // manually check the logs to see if it actually works on not
-        await waitFor(() => typeof rendered.result.current.imageUrl === 'string')
-        console.log(rendered.result.current)
-        expect(rendered.result.current).toBe(undefined)
-      },
-      {timeout}
-    )
-
-    // skip because uses internet and not deterministic
-    test.skip(
-      'useAuthorAvatar with ENS',
-      async () => {
-        const author = {
-          displayName: 'Esteban Abaroa',
-          address: 'estebanabaroa.eth',
-          avatar: {
-            chainTicker: 'matic',
-            address: '0x890a2e81836e0e76e0f49995e6b51ca6ce6f39ed',
-            id: '105',
-            signature: {
-              signature: '0xcb73c6b96193684ecea48952facbc217b3438c5e9290d978d40f227e3663eaf765d7f19f96151c35115deadee8003060352ffef1e6cc2e0600062e98c1e298301b',
-              type: 'eip191',
-              signedPropertyNames: ['domainSeparator', 'authorAddress', 'tokenAddress', 'tokenId'],
-            },
-          },
-        }
-        const rendered = renderHook<any, any>((author) => useAuthorAvatar({author}))
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current.imageUrl).toBe(undefined)
-
-        rendered.rerender(author)
-        await waitFor(() => typeof rendered.result.current.imageUrl === 'string')
-        expect(rendered.result.current.imageUrl).toBe('https://cloudflare-ipfs.com/ipfs/QmbzsdEuX7Wnw3fEcue9siszymd94GRy6XMNDGkbUbVhTL')
-      },
-      {timeout}
-    )
+      rendered.rerender(author)
+      await waitFor(() => typeof rendered.result.current.imageUrl === 'string')
+      expect(rendered.result.current.imageUrl).toBe('https://cloudflare-ipfs.com/ipfs/QmbzsdEuX7Wnw3fEcue9siszymd94GRy6XMNDGkbUbVhTL')
+    })
   })
 
   describe('author address', () => {
     const timeout = 60000
 
     // skip because uses internet and not deterministic
-    test(
-      'useResolvedAuthorAddress',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
-        const waitFor = testUtils.createWaitFor(rendered, {timeout})
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('useResolvedAuthorAddress', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered, {timeout})
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender({address: 'subplebbit.eth'})
-        await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
-        expect(rendered.result.current.resolvedAddress).toBe('resolved author address')
-      },
-      {timeout}
-    )
+      rendered.rerender({address: 'subplebbit.eth'})
+      await waitFor(() => typeof rendered.result.current.resolvedAddress === 'string')
+      expect(rendered.result.current.resolvedAddress).toBe('resolved author address')
+    })
 
-    test(
-      'useResolvedAuthorAddress unsupported crypto domain',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
-        const waitFor = testUtils.createWaitFor(rendered)
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('useResolvedAuthorAddress unsupported crypto domain', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender({address: 'plebbit.com'})
-        await waitFor(() => rendered.result.current.error)
-        expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
-      },
-      {timeout}
-    )
+      rendered.rerender({address: 'plebbit.com'})
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('crypto domain type unsupported')
+    })
 
-    test(
-      'useResolvedAuthorAddress not a crypto domain',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
-        const waitFor = testUtils.createWaitFor(rendered)
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('useResolvedAuthorAddress not a crypto domain', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender({address: 'abc'})
-        await waitFor(() => rendered.result.current.error)
-        expect(rendered.result.current.error.message).toBe('not a crypto domain')
-      },
-      {timeout}
-    )
+      rendered.rerender({address: 'abc'})
+      await waitFor(() => rendered.result.current.error)
+      expect(rendered.result.current.error.message).toBe('not a crypto domain')
+    })
 
-    test(
-      'useResolvedAuthorAddress .eth has no error',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
-        const waitFor = testUtils.createWaitFor(rendered)
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('useResolvedAuthorAddress .eth has no error', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender({address: 'abc.eth'})
-        expect(rendered.result.current.error).toBe(undefined)
-      },
-      {timeout}
-    )
+      rendered.rerender({address: 'abc.eth'})
+      expect(rendered.result.current.error).toBe(undefined)
+    })
 
-    test(
-      'useResolvedAuthorAddress .sol has no error',
-      async () => {
-        const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
-        const waitFor = testUtils.createWaitFor(rendered)
-        expect(rendered.result.current.resolvedAddress).toBe(undefined)
+    test('useResolvedAuthorAddress .sol has no error', {timeout}, async () => {
+      const rendered = renderHook<any, any>((author) => useResolvedAuthorAddress({author}))
+      const waitFor = testUtils.createWaitFor(rendered)
+      expect(rendered.result.current.resolvedAddress).toBe(undefined)
 
-        rendered.rerender({address: 'abc.sol'})
-        expect(rendered.result.current.error).toBe(undefined)
-      },
-      {timeout}
-    )
+      rendered.rerender({address: 'abc.sol'})
+      expect(rendered.result.current.error).toBe(undefined)
+    })
   })
 })
 

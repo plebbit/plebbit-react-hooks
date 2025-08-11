@@ -1,4 +1,12 @@
-import {getNftImageUrl, getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, validateEthWallet, validateSolWallet} from '.'
+import {
+  getNftImageUrl,
+  getEthWalletFromPlebbitPrivateKey,
+  getSolWalletFromPlebbitPrivateKey,
+  getEthPrivateKeyFromPlebbitPrivateKey,
+  getSolPrivateKeyFromPlebbitPrivateKey,
+  validateEthWallet,
+  validateSolWallet,
+} from '.'
 
 const avatarNft1 = {
   chainTicker: 'eth',
@@ -39,18 +47,14 @@ describe('chain', () => {
 
     // skip because uses internet and not deterministic
     // also cache and pending is difficult to test without console logging it
-    test.skip(
-      'getNftImageUrl (cache and pending)',
-      async () => {
-        // const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
-        // console.log(url)
-        // const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
-        // console.log(cachedUrl)
-        // const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders)])
-        // console.log(res)
-      },
-      {timeout}
-    )
+    test.skip('getNftImageUrl (cache and pending)', {timeout}, async () => {
+      // const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
+      // console.log(url)
+      // const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
+      // console.log(cachedUrl)
+      // const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders)])
+      // console.log(res)
+    })
   })
 
   describe('eth wallet', () => {
@@ -69,7 +73,9 @@ describe('chain', () => {
       expect(wallet.privateKey).toBe(undefined)
       expect(privateKey).toBe('0x995f06454e5319271e9fb51864eb8d410d4229ed86e3a0c273ad26a0cd722c5e')
       expect(wallet.signature.type).toBe('eip191')
-      expect(wallet.signature.signature).toBe('0xaa9ddcd4efb2fa27b779a81cc33a020276b6a0429f6e7e92bbadb254abd805c03de6d00df328a229414f6909cd67674ac54a0bde762e8a9e5b4adfa0345faf141b')
+      expect(wallet.signature.signature).toBe(
+        '0xaa9ddcd4efb2fa27b779a81cc33a020276b6a0429f6e7e92bbadb254abd805c03de6d00df328a229414f6909cd67674ac54a0bde762e8a9e5b4adfa0345faf141b'
+      )
     })
 
     test('validateEthWallet', async () => {
@@ -77,22 +83,20 @@ describe('chain', () => {
       await validateEthWallet(wallet, authorAddress)
 
       // bad signatures
-      await expect(validateEthWallet({...wallet, timestamp: wallet.timestamp + 1}, authorAddress)).rejects
-        .toThrow('wallet address does not equal signature address')
-      await expect(validateEthWallet(wallet, 'invalidauthoraddress.eth')).rejects
-        .toThrow('wallet address does not equal signature address')
-      await expect(validateEthWallet({...wallet, timestamp: undefined}, authorAddress)).rejects
-        .toThrow(`validateEthWallet invalid wallet.timestamp 'undefined' not a number`)
-      await expect(validateEthWallet({...wallet, signature: undefined}, authorAddress)).rejects
-        .toThrow(`validateEthWallet invalid wallet.signature 'undefined'`)
-      await expect(validateEthWallet({...wallet, signature: {type: 'eip191'}}, authorAddress)).rejects
-        .toThrow(`validateEthWallet invalid wallet.signature.signature 'undefined'`)
-      await expect(validateEthWallet({...wallet, signature: {}}, authorAddress)).rejects
-        .toThrow(`validateEthWallet invalid wallet.signature.signature 'undefined'`)
-      await expect(validateEthWallet({...wallet, address: undefined}, authorAddress)).rejects
-        .toThrow(`validateEthWallet invalid wallet.address 'undefined'`)
-      await expect(validateEthWallet({...wallet, address: '0x0000000000000000000000000000000000000000'}, authorAddress)).rejects
-        .toThrow('wallet address does not equal signature address')
+      await expect(validateEthWallet({...wallet, timestamp: wallet.timestamp + 1}, authorAddress)).rejects.toThrow('wallet address does not equal signature address')
+      await expect(validateEthWallet(wallet, 'invalidauthoraddress.eth')).rejects.toThrow('wallet address does not equal signature address')
+      await expect(validateEthWallet({...wallet, timestamp: undefined}, authorAddress)).rejects.toThrow(
+        `validateEthWallet invalid wallet.timestamp 'undefined' not a number`
+      )
+      await expect(validateEthWallet({...wallet, signature: undefined}, authorAddress)).rejects.toThrow(`validateEthWallet invalid wallet.signature 'undefined'`)
+      await expect(validateEthWallet({...wallet, signature: {type: 'eip191'}}, authorAddress)).rejects.toThrow(
+        `validateEthWallet invalid wallet.signature.signature 'undefined'`
+      )
+      await expect(validateEthWallet({...wallet, signature: {}}, authorAddress)).rejects.toThrow(`validateEthWallet invalid wallet.signature.signature 'undefined'`)
+      await expect(validateEthWallet({...wallet, address: undefined}, authorAddress)).rejects.toThrow(`validateEthWallet invalid wallet.address 'undefined'`)
+      await expect(validateEthWallet({...wallet, address: '0x0000000000000000000000000000000000000000'}, authorAddress)).rejects.toThrow(
+        'wallet address does not equal signature address'
+      )
     })
   })
 
@@ -120,20 +124,15 @@ describe('chain', () => {
       await validateSolWallet(wallet, authorAddress)
 
       // bad signatures
-      await expect(validateSolWallet({...wallet, timestamp: wallet.timestamp + 1}, authorAddress)).rejects
-        .toThrow('signature invalid')
-      await expect(validateSolWallet(wallet, 'invalidauthoraddress.eth')).rejects
-        .toThrow('signature invalid')
-      await expect(validateSolWallet({...wallet, timestamp: undefined}, authorAddress)).rejects
-        .toThrow(`validateSolWallet invalid wallet.timestamp 'undefined' not a number`)
-      await expect(validateSolWallet({...wallet, signature: undefined}, authorAddress)).rejects
-        .toThrow(`validateSolWallet invalid wallet.signature 'undefined'`)
-      await expect(validateSolWallet({...wallet, signature: {}}, authorAddress)).rejects
-        .toThrow(`validateSolWallet invalid wallet.signature.signature 'undefined'`)
-      await expect(validateSolWallet({...wallet, address: undefined}, authorAddress)).rejects
-        .toThrow(`validateSolWallet invalid wallet.address 'undefined'`)
-      await expect(validateSolWallet({...wallet, address: '11111111111111111111111111111111'}, authorAddress)).rejects
-        .toThrow('signature invalid')
+      await expect(validateSolWallet({...wallet, timestamp: wallet.timestamp + 1}, authorAddress)).rejects.toThrow('signature invalid')
+      await expect(validateSolWallet(wallet, 'invalidauthoraddress.eth')).rejects.toThrow('signature invalid')
+      await expect(validateSolWallet({...wallet, timestamp: undefined}, authorAddress)).rejects.toThrow(
+        `validateSolWallet invalid wallet.timestamp 'undefined' not a number`
+      )
+      await expect(validateSolWallet({...wallet, signature: undefined}, authorAddress)).rejects.toThrow(`validateSolWallet invalid wallet.signature 'undefined'`)
+      await expect(validateSolWallet({...wallet, signature: {}}, authorAddress)).rejects.toThrow(`validateSolWallet invalid wallet.signature.signature 'undefined'`)
+      await expect(validateSolWallet({...wallet, address: undefined}, authorAddress)).rejects.toThrow(`validateSolWallet invalid wallet.address 'undefined'`)
+      await expect(validateSolWallet({...wallet, address: '11111111111111111111111111111111'}, authorAddress)).rejects.toThrow('signature invalid')
     })
   })
 })
