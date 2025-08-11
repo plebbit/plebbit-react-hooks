@@ -105,7 +105,7 @@ describe('utils', () => {
       expect(await memoedFunction(arg1)).toBe(1)
       expect(await memoedFunction(arg1)).toBe(1)
       expect(await memoedFunction(arg1)).toBe(1)
-      expect(memoedFunction(arg2)).rejects.toThrow(`failed`)
+      await expect(memoedFunction(arg2)).rejects.toThrow(`failed`)
     })
 
     test('wrong args', async () => {
@@ -116,9 +116,9 @@ describe('utils', () => {
       const memoedFunction = utils.memo(functionToMemo, {maxSize: 100})
       const arg1 = {}
       const arg2 = {}
-      expect(memoedFunction(arg1, arg2)).rejects.toThrow()
-      expect(memoedFunction(arg1, 'arg2')).rejects.toThrow()
-      expect(memoedFunction(arg1, undefined)).rejects.toThrow()
+      await expect(memoedFunction(arg1, arg2)).rejects.toThrow()
+      await expect(memoedFunction(arg1, 'arg2')).rejects.toThrow()
+      await expect(memoedFunction(arg1, undefined)).rejects.toThrow()
     })
   })
 

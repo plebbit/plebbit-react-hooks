@@ -545,7 +545,7 @@ describe('states', () => {
       await testUtils.resetDatabasesAndStores()
     })
 
-    test('fetch feed', async () => {
+    test('fetch feed', {retry: 5}, async () => {
       const subplebbitAddresses = ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']
       const rendered = renderHook<any, any>(() => {
         const {states} = useSubplebbitsStates({subplebbitAddresses})

@@ -115,7 +115,7 @@ describe('accounts', () => {
       delete window.defaultPlebbitOptions
     })
 
-    test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
+    // test.todo('default generated account has all the data defined in schema, like signer, author, plebbitOptions, etc')
 
     test('create new accounts', async () => {
       const rendered = renderHook<any, any>((accountName) => {
@@ -338,11 +338,11 @@ describe('accounts', () => {
       })
     })
 
-    test.todo('edited account can still sign and publish comments')
+    // test.todo('edited account can still sign and publish comments')
 
-    test.todo(`fail to edit account.author.address that doesn't match signer private key`)
+    // test.todo(`fail to edit account.author.address that doesn't match signer private key`)
 
-    test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
+    // test.todo(`fail to edit account.signer.address that doesn't match signer private key`)
 
     describe('account comments, account votes, account edits in database', () => {
       const subplebbitAddress = 'subplebbit address'
@@ -766,10 +766,10 @@ describe('accounts', () => {
     })
 
     // already implemented but not tested
-    test.todo('deleting account deletes account comments')
+    // test.todo('deleting account deletes account comments')
 
     // already implemented but not tested
-    test.todo('deleting account deletes account votes')
+    // test.todo('deleting account deletes account votes')
   })
 
   describe('no comments or votes in database', () => {

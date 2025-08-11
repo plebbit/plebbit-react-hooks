@@ -1715,12 +1715,12 @@ describe('feeds', () => {
 
     // TODO: not implemented
     // at the moment a comment already inside a loaded feed will ignore all updates from future pages
-    test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`)
+    // test.todo(`if an updated subplebbit page gives a comment already in a loaded feed, replace it with the newest version with updated votes/replies`)
 
     // TODO: not implemented
-    test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`)
+    // test.todo(`don't let a malicious sub owner display older posts in top hour/day/week/month/year`)
 
     // already implemented but no tests for it because difficult to test
-    test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`)
+    // test.todo(`subplebbits finish loading with 0 posts, hasMore becomes false, but only after finished loading`)
   })
 })

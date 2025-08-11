@@ -421,9 +421,9 @@ describe('replies', () => {
       // expect(Object.keys(repliesStore.getState().feedsOptions).length).toBe(2)
     })
 
-    test.todo('has account comments', async () => {})
+    // test.todo('has account comments', async () => {})
 
-    test.todo('nested scroll pages', async () => {})
+    // test.todo('nested scroll pages', async () => {})
   })
 
   describe('useReplies no pageCids, no page.nextCid', () => {
