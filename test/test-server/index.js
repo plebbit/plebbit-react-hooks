@@ -46,6 +46,9 @@ const plebbitDataPath = getTmpFolderPath()
   })
   console.log('subplebbit created')
 
+  // tests can cause subplebbit errors, e.g. changing name to wrong .eth
+  subplebbit.on('error', console.log)
+
   console.log('starting subplebbit...')
   await subplebbit.start()
   subplebbit.once('update', async () => {

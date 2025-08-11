@@ -27,6 +27,7 @@ const startPlebbitRpc = async ({port, ipfsApiPort, pubsubApiPort}) => {
     // debug raw JSON RPC messages in console
     socket.on('message', (message) => console.log(`plebbit rpc: ${message.toString()}`))
   })
+  // NOTE: don't subscribe to plebbitWebSocketServer.on('error'), no errors should be emitted during tests
 
   await tcpPortUsed.waitUntilUsed(port)
   console.log(`plebbit rpc: listening on port ${port}`)

@@ -91,134 +91,132 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
     })
 
-    describe(`create subplebbit (${plebbitOptionsType})`, () => {
-      // creating subplebbit only works over plebbit rpc
-      if (plebbitOptionsType !== 'plebbit rpc client') {
-        it.skip(`${plebbitOptionsType} can't create subplebbit`, () => {})
-        return
-      }
+    if (plebbitOptionsType !== 'plebbit rpc client') {
+      console.log(`${plebbitOptionsType} can't create subplebbit, skipping`)
+    } else {
+      describe(`create subplebbit (${plebbitOptionsType})`, () => {
+        let rendered, waitFor
 
-      let rendered, waitFor
-
-      beforeAll(async () => {
-        rendered = renderHook((subplebbitAddress) => {
-          const account = useAccount()
-          const {accountSubplebbits} = useAccountSubplebbits()
-          const subplebbit = useSubplebbit({subplebbitAddress})
-          return {account, accountSubplebbits, subplebbit, ...accountsActions}
-        })
-        waitFor = testUtils.createWaitFor(rendered, {timeout})
-
-        await waitFor(() => rendered.result.current.account.name === 'Account 1')
-        expect(isBase64(rendered.result.current.account.signer.privateKey)).to.be.true
-        expect(rendered.result.current.account.signer.address).to.equal(rendered.result.current.account.author.address)
-        expect(rendered.result.current.account.name).to.equal('Account 1')
-        expect(typeof rendered.result.current.publishComment).to.equal('function')
-        expect(typeof rendered.result.current.publishVote).to.equal('function')
-
-        const plebbitOptions = {...plebbitOptionsTypes[plebbitOptionsType]}
-
-        console.log('before set account')
-        await act(async () => {
-          const account = {...rendered.result.current.account, plebbitOptions}
-          await rendered.result.current.setAccount(account)
-        })
-        expect(rendered.result.current.account.plebbitOptions).to.deep.equal(plebbitOptions)
-        console.log('after set account')
-      })
-
-      // TODO: wait for plebbit-js bug PlebbitError: subplebbit-address text record of domain is pointing to a different address than subplebbit.signer.address
-      it.skip('create and edit a subplebbit', async () => {
-        console.log('before create subplebbit')
-        const createdSubplebbitTitle = 'my title'
-        let subplebbit
-        await act(async () => {
-          subplebbit = await rendered.result.current.createSubplebbit({title: createdSubplebbitTitle})
-        })
-        console.log('after create subplebbit', subplebbit.address)
-        const createdSubplebbitAddress = subplebbit?.address
-        expect(typeof createdSubplebbitAddress).to.equal('string')
-        expect(subplebbit.title).to.equal(createdSubplebbitTitle)
-
-        console.log('before used subplebbit')
-        // can useSubplebbit
-        rendered.rerender(createdSubplebbitAddress)
-        await waitFor(() => rendered.result.current.subplebbit.title === createdSubplebbitTitle)
-        expect(rendered.result.current.subplebbit.address).to.equal(createdSubplebbitAddress)
-        expect(rendered.result.current.subplebbit.title).to.equal(createdSubplebbitTitle)
-        console.log('after used subplebbit')
-
-        // wait for subplebbit to be added to account subplebbits
-        console.log('before subplebbit added to account subplebbits')
-        await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
-        expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).to.equal('owner')
-        console.log('after subplebbit added to account subplebbits')
-
-        console.log('before edit subplebbit address')
-        // publishSubplebbitEdit address
-        const editedSubplebbitAddress = 'my-sub.eth'
-        let onChallenge = () => {}
-        const onChallengeVerificationCalls = []
-        let onChallengeVerification = (...args) => onChallengeVerificationCalls.push([...args])
-
-        await act(async () => {
-          await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedSubplebbitAddress, onChallenge, onChallengeVerification})
-        })
-        console.log('after edit subplebbit address')
-
-        console.log('before use subplebbit')
-        // change useSubplebbit address
-        rendered.rerender(editedSubplebbitAddress)
-        await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
-        expect(rendered.result.current.subplebbit.address).to.equal(editedSubplebbitAddress)
-        expect(rendered.result.current.subplebbit.title).to.equal(createdSubplebbitTitle)
-        console.log('after use subplebbit')
-
-        console.log('before onChallengeVerification')
-        // onChallengeVerification should be called with success even if the sub is edited locally
-        await waitFor(() => onChallengeVerificationCalls.length >= 1)
-        expect(onChallengeVerificationCalls.length).to.equal(1)
-        expect(onChallengeVerificationCalls[0][0].challengeSuccess).to.equal(true)
-        console.log('after onChallengeVerification')
-
-        console.log('before edit subplebbit title')
-        // publishSubplebbitEdit title and description
-        const editedSubplebbitTitle = 'edited title'
-        const editedSubplebbitDescription = 'edited description'
-        await act(async () => {
-          await rendered.result.current.publishSubplebbitEdit(editedSubplebbitAddress, {
-            title: editedSubplebbitTitle,
-            description: editedSubplebbitDescription,
-            onChallenge,
-            onChallengeVerification,
+        beforeAll(async () => {
+          rendered = renderHook((subplebbitAddress) => {
+            const account = useAccount()
+            const {accountSubplebbits} = useAccountSubplebbits()
+            const subplebbit = useSubplebbit({subplebbitAddress})
+            return {account, accountSubplebbits, subplebbit, ...accountsActions}
           })
+          waitFor = testUtils.createWaitFor(rendered, {timeout})
+
+          await waitFor(() => rendered.result.current.account.name === 'Account 1')
+          expect(isBase64(rendered.result.current.account.signer.privateKey)).to.be.true
+          expect(rendered.result.current.account.signer.address).to.equal(rendered.result.current.account.author.address)
+          expect(rendered.result.current.account.name).to.equal('Account 1')
+          expect(typeof rendered.result.current.publishComment).to.equal('function')
+          expect(typeof rendered.result.current.publishVote).to.equal('function')
+
+          const plebbitOptions = {...plebbitOptionsTypes[plebbitOptionsType]}
+
+          console.log('before set account')
+          await act(async () => {
+            const account = {...rendered.result.current.account, plebbitOptions}
+            await rendered.result.current.setAccount(account)
+          })
+          expect(rendered.result.current.account.plebbitOptions).to.deep.equal(plebbitOptions)
+          console.log('after set account')
         })
-        console.log('after edit subplebbit title')
 
-        console.log('before subplebbit change')
-        // wait for change
-        await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
-        expect(rendered.result.current.subplebbit.address).to.equal(editedSubplebbitAddress)
-        console.log('after subplebbit change')
+        // TODO: wait for plebbit-js bug PlebbitError: subplebbit-address text record of domain is pointing to a different address than subplebbit.signer.address
+        it('create and edit a subplebbit', async () => {
+          console.log('before create subplebbit')
+          const createdSubplebbitTitle = 'my title'
+          let subplebbit
+          await act(async () => {
+            subplebbit = await rendered.result.current.createSubplebbit({title: createdSubplebbitTitle})
+          })
+          console.log('after create subplebbit', subplebbit.address)
+          const createdSubplebbitAddress = subplebbit?.address
+          expect(typeof createdSubplebbitAddress).to.equal('string')
+          expect(subplebbit.title).to.equal(createdSubplebbitTitle)
 
-        console.log('before onChallengeVerification')
-        // onChallengeVerification should be called with success even if the sub is edited locally
-        await waitFor(() => onChallengeVerificationCalls.length >= 2)
-        expect(onChallengeVerificationCalls.length).to.equal(2)
-        expect(onChallengeVerificationCalls[1][0].challengeSuccess).to.equal(true)
-        console.log('after onChallengeVerification')
+          console.log('before used subplebbit')
+          // can useSubplebbit
+          rendered.rerender(createdSubplebbitAddress)
+          await waitFor(() => rendered.result.current.subplebbit.title === createdSubplebbitTitle)
+          expect(rendered.result.current.subplebbit.address).to.equal(createdSubplebbitAddress)
+          expect(rendered.result.current.subplebbit.title).to.equal(createdSubplebbitTitle)
+          console.log('after used subplebbit')
 
-        // delete subplebbit
-        console.log('before deleteSubplebbit')
-        await act(async () => {
-          await rendered.result.current.deleteSubplebbit(editedSubplebbitAddress)
+          // wait for subplebbit to be added to account subplebbits
+          console.log('before subplebbit added to account subplebbits')
+          await waitFor(() => rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role === 'owner')
+          expect(rendered.result.current.accountSubplebbits[createdSubplebbitAddress].role.role).to.equal('owner')
+          console.log('after subplebbit added to account subplebbits')
+
+          console.log('before edit subplebbit address')
+          // publishSubplebbitEdit address
+          const editedSubplebbitAddress = 'my-sub.eth'
+          let onChallenge = () => {}
+          const onChallengeVerificationCalls = []
+          let onChallengeVerification = (...args) => onChallengeVerificationCalls.push([...args])
+
+          await act(async () => {
+            await rendered.result.current.publishSubplebbitEdit(createdSubplebbitAddress, {address: editedSubplebbitAddress, onChallenge, onChallengeVerification})
+          })
+          console.log('after edit subplebbit address')
+
+          console.log('before use subplebbit')
+          // change useSubplebbit address
+          rendered.rerender(editedSubplebbitAddress)
+          await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
+          expect(rendered.result.current.subplebbit.address).to.equal(editedSubplebbitAddress)
+          expect(rendered.result.current.subplebbit.title).to.equal(createdSubplebbitTitle)
+          console.log('after use subplebbit')
+
+          console.log('before onChallengeVerification')
+          // onChallengeVerification should be called with success even if the sub is edited locally
+          await waitFor(() => onChallengeVerificationCalls.length >= 1)
+          expect(onChallengeVerificationCalls.length).to.equal(1)
+          expect(onChallengeVerificationCalls[0][0].challengeSuccess).to.equal(true)
+          console.log('after onChallengeVerification')
+
+          console.log('before edit subplebbit title')
+          // publishSubplebbitEdit title and description
+          const editedSubplebbitTitle = 'edited title'
+          const editedSubplebbitDescription = 'edited description'
+          await act(async () => {
+            await rendered.result.current.publishSubplebbitEdit(editedSubplebbitAddress, {
+              title: editedSubplebbitTitle,
+              description: editedSubplebbitDescription,
+              onChallenge,
+              onChallengeVerification,
+            })
+          })
+          console.log('after edit subplebbit title')
+
+          console.log('before subplebbit change')
+          // wait for change
+          await waitFor(() => rendered.result.current.subplebbit.address === editedSubplebbitAddress)
+          expect(rendered.result.current.subplebbit.address).to.equal(editedSubplebbitAddress)
+          console.log('after subplebbit change')
+
+          console.log('before onChallengeVerification')
+          // onChallengeVerification should be called with success even if the sub is edited locally
+          await waitFor(() => onChallengeVerificationCalls.length >= 2)
+          expect(onChallengeVerificationCalls.length).to.equal(2)
+          expect(onChallengeVerificationCalls[1][0].challengeSuccess).to.equal(true)
+          console.log('after onChallengeVerification')
+
+          // delete subplebbit
+          console.log('before deleteSubplebbit')
+          await act(async () => {
+            await rendered.result.current.deleteSubplebbit(editedSubplebbitAddress)
+          })
+          await waitFor(() => rendered.result.current.subplebbit?.updatedAt === undefined)
+          expect(rendered.result.current.subplebbit?.updatedAt).to.equal(undefined)
+          await waitFor(() => rendered.result.current.accountSubplebbits[editedSubplebbitAddress]?.updatedAt === undefined)
+          console.log('after deleteSubplebbit')
         })
-        await waitFor(() => rendered.result.current.subplebbit?.updatedAt === undefined)
-        expect(rendered.result.current.subplebbit?.updatedAt).to.equal(undefined)
-        await waitFor(() => rendered.result.current.accountSubplebbits[editedSubplebbitAddress]?.updatedAt === undefined)
-        console.log('after deleteSubplebbit')
       })
-    })
+    }
 
     describe(`publish subplebbit edit (${plebbitOptionsType})`, () => {
       let rendered, waitFor
