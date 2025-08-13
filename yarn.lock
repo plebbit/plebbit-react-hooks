@@ -2334,9 +2334,9 @@
   dependencies:
     playwright "1.54.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#a415a3c9cc1642ae8c7421a483225a69edc0fd2f":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#8958f72cc1e4487cabe7d6458df5e77a47571692":
   version "0.0.7"
-  resolved "https://github.com/plebbit/plebbit-js.git#a415a3c9cc1642ae8c7421a483225a69edc0fd2f"
+  resolved "https://github.com/plebbit/plebbit-js.git#8958f72cc1e4487cabe7d6458df5e77a47571692"
   dependencies:
     "@bonfida/spl-name-service" "3.0.10"
     "@chainsafe/libp2p-gossipsub" "14.1.1"
