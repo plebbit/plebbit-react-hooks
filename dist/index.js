@@ -30,6 +30,8 @@ import { createAccount, deleteAccount, setAccount, setActiveAccount, setAccounts
 import { useClientsStates, useSubplebbitsStates } from './hooks/states';
 // plebbit-rpc
 import { usePlebbitRpcSettings } from './hooks/plebbit-rpc';
+// chain
+import { getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, } from './lib/chain';
 // utils
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
@@ -57,6 +59,8 @@ createAccount, deleteAccount, setAccount, setActiveAccount, setAccountsOrder, im
 useClientsStates, useSubplebbitsStates, 
 // plebbit-rpc
 usePlebbitRpcSettings, 
+// chain
+getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, 
 // utils
 setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 // IMPORTANT: should be the same as 'export {}'
@@ -117,6 +121,11 @@ const hooks = {
     useSubplebbitsStates,
     // plebbit-rpc
     usePlebbitRpcSettings,
+    // chain
+    getEthWalletFromPlebbitPrivateKey,
+    getSolWalletFromPlebbitPrivateKey,
+    getEthPrivateKeyFromPlebbitPrivateKey,
+    getSolPrivateKeyFromPlebbitPrivateKey,
     // utils
     setPlebbitJs,
     restorePlebbitJs,
