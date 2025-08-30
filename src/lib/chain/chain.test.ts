@@ -1,12 +1,5 @@
-import {
-  getNftImageUrl,
-  getEthWalletFromPlebbitPrivateKey,
-  getSolWalletFromPlebbitPrivateKey,
-  getEthPrivateKeyFromPlebbitPrivateKey,
-  getSolPrivateKeyFromPlebbitPrivateKey,
-  validateEthWallet,
-  validateSolWallet,
-} from '.'
+import {getNftImageUrl, validateEthWallet, validateSolWallet} from '.'
+import {getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey} from '../..'
 
 const avatarNft1 = {
   chainTicker: 'eth',
