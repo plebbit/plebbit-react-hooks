@@ -78,9 +78,9 @@ const getAccounts = (accountIds) => __awaiter(void 0, void 0, void 0, function* 
     }
     return accounts;
 });
-const accountVersion = 3;
+const accountVersion = 4;
 const migrateAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     let version = account.version || 1;
     // version 2
     if (version === 1) {
@@ -104,6 +104,16 @@ const migrateAccount = (account) => __awaiter(void 0, void 0, void 0, function* 
             account.author.wallets.eth = yield chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
         }
         if (!account.author.wallets.sol) {
+            account.author.wallets.sol = yield chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
+        }
+    }
+    if (version === 3) {
+        version++;
+        // in version 3, wallets had timestamps in ms, should be seconds
+        if (((_e = (_d = (_c = account.author) === null || _c === void 0 ? void 0 : _c.wallets) === null || _d === void 0 ? void 0 : _d.eth) === null || _e === void 0 ? void 0 : _e.timestamp) > 1e12) {
+            account.author.wallets.eth = yield chain.getEthWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
+        }
+        if (((_h = (_g = (_f = account.author) === null || _f === void 0 ? void 0 : _f.wallets) === null || _g === void 0 ? void 0 : _g.sol) === null || _h === void 0 ? void 0 : _h.timestamp) > 1e12) {
             account.author.wallets.sol = yield chain.getSolWalletFromPlebbitPrivateKey(account.signer.privateKey, account.address);
         }
     }
@@ -144,7 +154,7 @@ const getDatabaseAsArray = (database) => __awaiter(void 0, void 0, void 0, funct
     return items;
 });
 const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d, _e;
+    var _j, _k, _l;
     validator.validateAccountsDatabaseAddAccountArguments(account);
     let accountIds = yield accountsMetadataDatabase.getItem('accountIds');
     // handle no duplicate names
@@ -166,7 +176,7 @@ const addAccount = (account) => __awaiter(void 0, void 0, void 0, function* () {
     if (accountToPutInDatabase.plebbitOptions) {
         const plebbit = yield PlebbitJs.Plebbit(accountToPutInDatabase.plebbitOptions);
         plebbit.on('error', () => { });
-        (_e = (_c = plebbit.destroy) === null || _c === void 0 ? void 0 : (_d = _c.call(plebbit)).catch) === null || _e === void 0 ? void 0 : _e.call(_d, (error) => log('database.addAccount plebbit.destroy error', { error })); // make sure it's garbage collected
+        (_l = (_j = plebbit.destroy) === null || _j === void 0 ? void 0 : (_k = _j.call(plebbit)).catch) === null || _l === void 0 ? void 0 : _l.call(_k, (error) => log('database.addAccount plebbit.destroy error', { error })); // make sure it's garbage collected
     }
     yield accountsDatabase.setItem(accountToPutInDatabase.id, accountToPutInDatabase);
     // handle updating accountNamesToAccountIds database

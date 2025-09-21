@@ -130,7 +130,7 @@ export const getEthWalletFromPlebbitPrivateKey = (privateKeyBase64, authorAddres
     const privateKeyHex = ethers.utils.hexlify(privateKeyBytes);
     const ethAddress = ethers.utils.computeAddress(publicKeyHex);
     // generate signature
-    const timestamp = Date.now();
+    const timestamp = Math.floor(Date.now() / 1000);
     const signature = yield new ethers.Wallet(privateKeyHex).signMessage(getWalletMessageToSign(authorAddress, timestamp));
     return { address: ethAddress, timestamp, signature: { signature, type: 'eip191' } };
 });
@@ -160,7 +160,7 @@ export const getSolWalletFromPlebbitPrivateKey = (privateKeyBase64, authorAddres
     const publicKeyBytes = yield ed25519GetPublicKey(privateKeyBytes);
     const solAddress = uint8ArrayToString(publicKeyBytes, 'base58btc');
     // generate signature (https://solscan.io/verifiedsignatures)
-    const timestamp = Date.now();
+    const timestamp = Math.floor(Date.now() / 1000);
     const messageBytes = uint8ArrayFromString(getWalletMessageToSign(authorAddress, timestamp), 'utf8');
     const signatureBytes = yield ed25519Sign(messageBytes, privateKeyBytes);
     const signatureBase58 = uint8ArrayToString(signatureBytes, 'base58btc');
