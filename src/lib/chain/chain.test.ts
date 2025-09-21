@@ -32,7 +32,7 @@ const chainProviders = {
 
 const plebbitPrivateKey = 'mV8GRU5TGScen7UYZOuNQQ1CKe2G46DCc60moM1yLF4'
 const authorAddress = 'authoraddress.eth'
-const walletTimestamp = 1740000000000
+const walletTimestamp = 1740000000
 
 describe('chain', () => {
   describe('nft', () => {
@@ -55,7 +55,7 @@ describe('chain', () => {
     beforeAll(async () => {
       privateKey = await getEthPrivateKeyFromPlebbitPrivateKey(plebbitPrivateKey)
       const dateNow = Date.now
-      Date.now = () => walletTimestamp
+      Date.now = () => walletTimestamp * 1000
       wallet = await getEthWalletFromPlebbitPrivateKey(plebbitPrivateKey, authorAddress)
       Date.now = dateNow
     })
@@ -67,7 +67,7 @@ describe('chain', () => {
       expect(privateKey).toBe('0x995f06454e5319271e9fb51864eb8d410d4229ed86e3a0c273ad26a0cd722c5e')
       expect(wallet.signature.type).toBe('eip191')
       expect(wallet.signature.signature).toBe(
-        '0xaa9ddcd4efb2fa27b779a81cc33a020276b6a0429f6e7e92bbadb254abd805c03de6d00df328a229414f6909cd67674ac54a0bde762e8a9e5b4adfa0345faf141b'
+        '0xea38d758767f746fa73761a0e5c60a810ee6762ab2d6fd0d9d3390d9e5e60f304c91aebb91f4f7337321cebbfbbf8206ee4ec92909f136ba5ff546322434a90c1b'
       )
     })
 
@@ -98,18 +98,18 @@ describe('chain', () => {
     beforeAll(async () => {
       privateKey = await getSolPrivateKeyFromPlebbitPrivateKey(plebbitPrivateKey)
       const dateNow = Date.now
-      Date.now = () => walletTimestamp
+      Date.now = () => walletTimestamp * 1000
       wallet = await getSolWalletFromPlebbitPrivateKey(plebbitPrivateKey, authorAddress)
       Date.now = dateNow
     })
 
-    test('getEthWalletFromPlebbitPrivateKey', async () => {
+    test('getSolWalletFromPlebbitPrivateKey', async () => {
       expect(wallet.timestamp).toBe(walletTimestamp)
       expect(wallet.address).toBe('AzAfDLMxbptaq5Ppy4BK5aEsEzvTYNFAub5ffewbSdn9')
       expect(wallet.privateKey).toBe(undefined)
       expect(privateKey).toBe('44rJnvSKZwF6qMrc49MVe4KqcugR8zc8B4i1yo9iXrvKsf6FAFB7x1dSNdbAqqga4xvpU7VmnKRkwyvQWxrcBmGV')
       expect(wallet.signature.type).toBe('sol')
-      expect(wallet.signature.signature).toBe('5rSeVjVpsFS7fipN19buEJtNd6mHqp8K5RJXvPVRzH6VbiseAFu8wiRTfQCGkGKrfByuodvSFkKN51JkaLUVk2B9')
+      expect(wallet.signature.signature).toBe('4A5VKfweqJMxj3mrFXDEgfxtQBJDYEgfg5BNKKaa7Aiq65ACC7rokBQXoRfBwERKRGQZryw8ZYrr9vuxnG8tnVnB')
     })
 
     test('validateSolWallet', async () => {

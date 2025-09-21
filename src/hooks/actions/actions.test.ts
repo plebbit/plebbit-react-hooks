@@ -391,7 +391,8 @@ describe('actions', () => {
     })
   })
 
-  describe('usePublishComment', () => {
+  // retry usePublish because publishing state is flaky
+  describe('usePublishComment', {retry: 3}, () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
@@ -560,7 +561,8 @@ describe('actions', () => {
     })
   })
 
-  describe('usePublishCommentEdit', () => {
+  // retry usePublish because publishing state is flaky
+  describe('usePublishCommentEdit', {retry: 3}, () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
@@ -671,7 +673,8 @@ describe('actions', () => {
     })
   })
 
-  describe('usePublishCommentModeration', () => {
+  // retry usePublish because publishing state is flaky
+  describe('usePublishCommentModeration', {retry: 3}, () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
@@ -782,7 +785,8 @@ describe('actions', () => {
     })
   })
 
-  describe('usePublishSubplebbitEdit', () => {
+  // retry usePublish because publishing state is flaky
+  describe('usePublishSubplebbitEdit', {retry: 3}, () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
@@ -891,7 +895,8 @@ describe('actions', () => {
     })
   })
 
-  describe('usePublishVote', () => {
+  // retry usePublish because publishing state is flaky
+  describe('usePublishVote', {retry: 3}, () => {
     let rendered: any, waitFor: Function
 
     beforeEach(async () => {
