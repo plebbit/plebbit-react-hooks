@@ -631,16 +631,9 @@ const createAuthorAvatarSignature = async (nft: Nft, authorAddress: string) => {
   const testPrivateKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
   const ethersJsSigner = new ethers.Wallet(Buffer.from(testPrivateKey, 'hex'))
 
-  let messageToSign: any = {}
-  // the property names must be in this order for the signature to match
-  // insert props one at a time otherwise babel/webpack will reorder
-  messageToSign.domainSeparator = 'plebbit-author-avatar'
-  messageToSign.authorAddress = authorAddress
-  messageToSign.timestamp = nft.timestamp
-  messageToSign.tokenAddress = nft.address
-  messageToSign.tokenId = nft.id
   // use plain JSON so the user can read what he's signing
-  messageToSign = JSON.stringify(messageToSign)
+  // property names must always be in this order for signature to match so don't use JSON.stringify
+  const messageToSign = `{"domainSeparator":"plebbit-author-avatar","authorAddress":"${authorAddress}","timestamp":${nft.timestamp},"tokenAddress":"${nft.address}","tokenId":"${nft.id}"}`
 
   // the ethers.js signer is usually gotten from metamask https://docs.ethers.io/v5/api/signer/
   const signature = await ethersJsSigner.signMessage(messageToSign)

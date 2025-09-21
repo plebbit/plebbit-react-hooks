@@ -112,15 +112,9 @@ const nftAbi = [
 ]
 
 const getWalletMessageToSign = (authorAddress: string, timestamp: number) => {
-  let messageToSign: any = {}
-  // the property names must be in this order for the signature to match
-  // insert props one at a time otherwise babel/webpack will reorder
-  messageToSign.domainSeparator = 'plebbit-author-wallet'
-  messageToSign.authorAddress = authorAddress
-  messageToSign.timestamp = timestamp
   // use plain JSON so the user can read what he's signing
-  const messageToSignJson = JSON.stringify(messageToSign)
-  return messageToSignJson
+  // property names must always be in this order for signature to match so don't use JSON.stringify
+  return `{"domainSeparator":"plebbit-author-wallet","authorAddress":"${authorAddress}","timestamp":${timestamp}}`
 }
 
 export const getEthWalletFromPlebbitPrivateKey = async (privateKeyBase64: string, authorAddress: string) => {
