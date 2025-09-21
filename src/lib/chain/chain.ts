@@ -217,6 +217,7 @@ export const validateEthWallet = async (wallet: Wallet, authorAddress: string) =
   assert(wallet?.signature?.signature, `validateEthWallet invalid wallet.signature.signature '${wallet?.signature?.signature}'`)
   assert(wallet.signature.type === 'eip191', `validateEthWallet invalid wallet.signature.type '${wallet?.signature?.type}'`)
   assert(authorAddress && typeof authorAddress === 'string', `validateEthWallet invalid authorAddress '${authorAddress}'`)
+  assert(wallet?.timestamp <= Date.now() / 1000, `validateEthWallet invalid wallet.timestamp '${wallet?.timestamp}' greater than current Date.now() / 1000`)
   const signatureAddress = ethers.utils.verifyMessage(getWalletMessageToSign(authorAddress, wallet.timestamp), wallet.signature.signature)
   if (wallet.address !== signatureAddress) {
     throw Error('wallet address does not equal signature address')
@@ -230,6 +231,7 @@ export const validateSolWallet = async (wallet: Wallet, authorAddress: string) =
   assert(wallet?.signature, `validateSolWallet invalid wallet.signature '${wallet?.signature}'`)
   assert(wallet?.signature?.signature, `validateSolWallet invalid wallet.signature.signature '${wallet?.signature?.signature}'`)
   assert(authorAddress && typeof authorAddress === 'string', `validateSolWallet invalid authorAddress '${authorAddress}'`)
+  assert(wallet?.timestamp <= Date.now() / 1000, `validateSolWallet invalid wallet.timestamp '${wallet?.timestamp}' greater than current Date.now() / 1000`)
   const signatureBytes = uint8ArrayFromString(wallet.signature.signature, 'base58btc')
   const messageBytes = uint8ArrayFromString(getWalletMessageToSign(authorAddress, wallet.timestamp), 'utf8')
   const publicKeyBytes = uint8ArrayFromString(wallet.address, 'base58btc')
