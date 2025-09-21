@@ -200,6 +200,7 @@ export const validateEthWallet = (wallet, authorAddress) => __awaiter(void 0, vo
     assert((_a = wallet === null || wallet === void 0 ? void 0 : wallet.signature) === null || _a === void 0 ? void 0 : _a.signature, `validateEthWallet invalid wallet.signature.signature '${(_b = wallet === null || wallet === void 0 ? void 0 : wallet.signature) === null || _b === void 0 ? void 0 : _b.signature}'`);
     assert(wallet.signature.type === 'eip191', `validateEthWallet invalid wallet.signature.type '${(_c = wallet === null || wallet === void 0 ? void 0 : wallet.signature) === null || _c === void 0 ? void 0 : _c.type}'`);
     assert(authorAddress && typeof authorAddress === 'string', `validateEthWallet invalid authorAddress '${authorAddress}'`);
+    assert((wallet === null || wallet === void 0 ? void 0 : wallet.timestamp) <= Date.now() / 1000, `validateEthWallet invalid wallet.timestamp '${wallet === null || wallet === void 0 ? void 0 : wallet.timestamp}' greater than current Date.now() / 1000`);
     const signatureAddress = ethers.utils.verifyMessage(getWalletMessageToSign(authorAddress, wallet.timestamp), wallet.signature.signature);
     if (wallet.address !== signatureAddress) {
         throw Error('wallet address does not equal signature address');
@@ -213,6 +214,7 @@ export const validateSolWallet = (wallet, authorAddress) => __awaiter(void 0, vo
     assert(wallet === null || wallet === void 0 ? void 0 : wallet.signature, `validateSolWallet invalid wallet.signature '${wallet === null || wallet === void 0 ? void 0 : wallet.signature}'`);
     assert((_d = wallet === null || wallet === void 0 ? void 0 : wallet.signature) === null || _d === void 0 ? void 0 : _d.signature, `validateSolWallet invalid wallet.signature.signature '${(_e = wallet === null || wallet === void 0 ? void 0 : wallet.signature) === null || _e === void 0 ? void 0 : _e.signature}'`);
     assert(authorAddress && typeof authorAddress === 'string', `validateSolWallet invalid authorAddress '${authorAddress}'`);
+    assert((wallet === null || wallet === void 0 ? void 0 : wallet.timestamp) <= Date.now() / 1000, `validateSolWallet invalid wallet.timestamp '${wallet === null || wallet === void 0 ? void 0 : wallet.timestamp}' greater than current Date.now() / 1000`);
     const signatureBytes = uint8ArrayFromString(wallet.signature.signature, 'base58btc');
     const messageBytes = uint8ArrayFromString(getWalletMessageToSign(authorAddress, wallet.timestamp), 'utf8');
     const publicKeyBytes = uint8ArrayFromString(wallet.address, 'base58btc');
