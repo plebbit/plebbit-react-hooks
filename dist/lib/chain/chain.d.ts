@@ -24,6 +24,7 @@ export declare const getSolWalletFromPlebbitPrivateKey: (privateKeyBase64: strin
 } | undefined>;
 export declare const getSolPrivateKeyFromPlebbitPrivateKey: (privateKeyBase64: string, authorAddress: string) => Promise<string | undefined>;
 export declare const validateEthWallet: (wallet: Wallet, authorAddress: string) => Promise<void>;
+export declare const validateEthWalletViem: (wallet: Wallet, authorAddress: string) => Promise<void>;
 export declare const validateSolWallet: (wallet: Wallet, authorAddress: string) => Promise<void>;
 declare const _default: {
     getNftOwner: (...args: any) => Promise<any>;
@@ -49,6 +50,7 @@ declare const _default: {
     getEthPrivateKeyFromPlebbitPrivateKey: (privateKeyBase64: string, authorAddress: string) => Promise<string | undefined>;
     getSolPrivateKeyFromPlebbitPrivateKey: (privateKeyBase64: string, authorAddress: string) => Promise<string | undefined>;
     validateEthWallet: (wallet: Wallet, authorAddress: string) => Promise<void>;
+    validateEthWalletViem: (wallet: Wallet, authorAddress: string) => Promise<void>;
     validateSolWallet: (wallet: Wallet, authorAddress: string) => Promise<void>;
 };
 export default _default;
