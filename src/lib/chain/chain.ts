@@ -2,6 +2,7 @@ import assert from 'assert'
 import {Nft, ChainProviders, Wallet} from '../../types'
 import {ethers} from 'ethers'
 import utils from '../utils'
+import {verifyMessage} from 'viem'
 
 // NOTE: getNftImageUrl tests are skipped, if changes are made they must be tested manually
 const getNftImageUrlNoCache = async (nftMetadataUrl: string, ipfsGatewayUrl: string) => {
@@ -213,7 +214,27 @@ export const validateEthWallet = async (wallet: Wallet, authorAddress: string) =
   assert(authorAddress && typeof authorAddress === 'string', `validateEthWallet invalid authorAddress '${authorAddress}'`)
   assert(wallet?.timestamp <= Date.now() / 1000, `validateEthWallet invalid wallet.timestamp '${wallet?.timestamp}' greater than current Date.now() / 1000`)
   const signatureAddress = ethers.utils.verifyMessage(getWalletMessageToSign(authorAddress, wallet.timestamp), wallet.signature.signature)
-  if (wallet.address !== signatureAddress) {
+  if (wallet.address.toLowerCase() !== signatureAddress.toLowerCase()) {
+    throw Error('wallet address does not equal signature address')
+  }
+}
+
+export const validateEthWalletViem = async (wallet: Wallet, authorAddress: string) => {
+  // sanity checks
+  assert(wallet && typeof wallet === 'object', `validateEthWallet invalid wallet argument '${wallet}'`)
+  assert(wallet?.address, `validateEthWallet invalid wallet.address '${wallet?.address}'`)
+  assert(typeof wallet?.timestamp === 'number', `validateEthWallet invalid wallet.timestamp '${wallet?.timestamp}' not a number`)
+  assert(wallet?.signature, `validateEthWallet invalid wallet.signature '${wallet?.signature}'`)
+  assert(wallet?.signature?.signature, `validateEthWallet invalid wallet.signature.signature '${wallet?.signature?.signature}'`)
+  assert(wallet.signature.type === 'eip191', `validateEthWallet invalid wallet.signature.type '${wallet?.signature?.type}'`)
+  assert(authorAddress && typeof authorAddress === 'string', `validateEthWallet invalid authorAddress '${authorAddress}'`)
+  assert(wallet?.timestamp <= Date.now() / 1000, `validateEthWallet invalid wallet.timestamp '${wallet?.timestamp}' greater than current Date.now() / 1000`)
+  const valid = await verifyMessage({
+    address: wallet.address,
+    message: getWalletMessageToSign(authorAddress, wallet.timestamp),
+    signature: wallet.signature.signature,
+  })
+  if (!valid) {
     throw Error('wallet address does not equal signature address')
   }
 }
@@ -245,5 +266,6 @@ export default {
   getEthPrivateKeyFromPlebbitPrivateKey,
   getSolPrivateKeyFromPlebbitPrivateKey,
   validateEthWallet,
+  validateEthWalletViem,
   validateSolWallet,
 }

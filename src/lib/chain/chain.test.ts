@@ -1,4 +1,4 @@
-import {getNftImageUrl, validateEthWallet, validateSolWallet} from '.'
+import {getNftImageUrl, validateEthWallet, validateEthWalletViem, validateSolWallet} from '.'
 import {getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey} from '../..'
 
 const avatarNft1 = {
@@ -75,6 +75,9 @@ describe('chain', () => {
       // good signature
       await validateEthWallet(wallet, authorAddress)
 
+      // make sure viem also works
+      await validateEthWalletViem(wallet, authorAddress)
+
       // bad signatures
       await expect(validateEthWallet({...wallet, timestamp: wallet.timestamp + 1}, authorAddress)).rejects.toThrow('wallet address does not equal signature address')
       await expect(validateEthWallet(wallet, 'invalidauthoraddress.eth')).rejects.toThrow('wallet address does not equal signature address')
@@ -90,6 +93,20 @@ describe('chain', () => {
       await expect(validateEthWallet({...wallet, address: '0x0000000000000000000000000000000000000000'}, authorAddress)).rejects.toThrow(
         'wallet address does not equal signature address'
       )
+    })
+
+    test('validateEthWallet fixture wallet', async () => {
+      const authorAddress = '12D3KooWRLHxva6Mrt2fxuL4hMeGJCs8erHAAoXCzPGLsdLpdvrF'
+      const wallet = {
+        address: '0x172bb210Ebf51882b63d59609A7BC5c70ce84311',
+        timestamp: 1758422293,
+        signature: {
+          signature: '0x0d2a091975bcaa4895eb532a74bdef7060db7980ec7bed47812a3e26d5138ea712b890151c117d5e28739b40303b186dc58483065e7390238bd9902e88dbd1071c',
+          type: 'eip191',
+        },
+      }
+      await validateEthWallet(wallet, authorAddress)
+      await validateEthWalletViem(wallet, authorAddress)
     })
   })
 
@@ -126,6 +143,19 @@ describe('chain', () => {
       await expect(validateSolWallet({...wallet, signature: {}}, authorAddress)).rejects.toThrow(`validateSolWallet invalid wallet.signature.signature 'undefined'`)
       await expect(validateSolWallet({...wallet, address: undefined}, authorAddress)).rejects.toThrow(`validateSolWallet invalid wallet.address 'undefined'`)
       await expect(validateSolWallet({...wallet, address: '11111111111111111111111111111111'}, authorAddress)).rejects.toThrow('signature invalid')
+    })
+
+    test('validateSolWallet fixture wallet', async () => {
+      const authorAddress = '12D3KooWRLHxva6Mrt2fxuL4hMeGJCs8erHAAoXCzPGLsdLpdvrF'
+      const wallet = {
+        address: 'GWvoBSWefymBZ1pe4ktvXQnJAXEX97Sj2nuKVeBvjz8K',
+        timestamp: 1758422293,
+        signature: {
+          signature: 'duY6oPos8RdH31EKaE86g4Lh5oqTL22tVHTG1kTEW8F4eHLG3ynFrP7xVvDm4pFCevKczbLcik8VmH6yZ8mgfx8',
+          type: 'sol',
+        },
+      }
+      await validateSolWallet(wallet, authorAddress)
     })
   })
 })
