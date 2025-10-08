@@ -23,4 +23,5 @@ export declare function useVerifiedAuthorAvatarSignature(author?: Author, accoun
 };
 export declare const setAuthorAvatarsWhitelistedTokenAddresses: (tokenAddresses: string[]) => void;
 export declare function useAuthorAvatarIsWhitelisted(nft?: Nft): any;
+export declare const getNftMessageToSign: (authorAddress: string, timestamp: number, tokenAddress: string, tokenId: string) => string;
 export declare const verifyAuthorAvatarSignature: (nft: Nft, authorAddress: string, chainProviders: ChainProviders) => Promise<boolean>;

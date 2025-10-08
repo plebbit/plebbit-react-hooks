@@ -159,6 +159,11 @@ export function useAuthorAvatarIsWhitelisted(nft) {
     const isWhitelisted = (nft === null || nft === void 0 ? void 0 : nft.address) && Boolean(authorAvatarsWhitelistedTokenAddresses[(_a = nft === null || nft === void 0 ? void 0 : nft.address) === null || _a === void 0 ? void 0 : _a.toLowerCase()]);
     return isWhitelisted;
 }
+export const getNftMessageToSign = (authorAddress, timestamp, tokenAddress, tokenId) => {
+    // use plain JSON so the user can read what he's signing
+    // property names must always be in this order for signature to match so don't use JSON.stringify
+    return `{"domainSeparator":"plebbit-author-avatar","authorAddress":"${authorAddress}","timestamp":${timestamp},"tokenAddress":"${tokenAddress}","tokenId":"${tokenId}"}`;
+};
 // NOTE: verifyAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
 export const verifyAuthorAvatarSignature = (nft, authorAddress, chainProviders) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e;
@@ -171,16 +176,7 @@ export const verifyAuthorAvatarSignature = (nft, authorAddress, chainProviders) 
     assert(authorAddress, `verifyAuthorAvatarSignature invalid authorAddress '${authorAddress}'`);
     // get the owner of the nft at nft.id
     const currentNftOwnerAddress = yield getNftOwner(nft === null || nft === void 0 ? void 0 : nft.address, nft === null || nft === void 0 ? void 0 : nft.id, nft === null || nft === void 0 ? void 0 : nft.chainTicker, (_d = (_c = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _c === void 0 ? void 0 : _c.urls) === null || _d === void 0 ? void 0 : _d[0], (_e = chainProviders === null || chainProviders === void 0 ? void 0 : chainProviders[nft === null || nft === void 0 ? void 0 : nft.chainTicker]) === null || _e === void 0 ? void 0 : _e.chainId);
-    let messageThatShouldBeSigned = {};
-    // the property names must be in this order for the signature to match
-    // insert props one at a time otherwise babel/webpack will reorder
-    messageThatShouldBeSigned.domainSeparator = 'plebbit-author-avatar';
-    messageThatShouldBeSigned.authorAddress = authorAddress;
-    messageThatShouldBeSigned.timestamp = nft.timestamp;
-    messageThatShouldBeSigned.tokenAddress = nft.address;
-    messageThatShouldBeSigned.tokenId = nft.id; // must be a type string, not number
-    // use plain JSON so the user can read what he's signing
-    messageThatShouldBeSigned = JSON.stringify(messageThatShouldBeSigned);
+    const messageThatShouldBeSigned = getNftMessageToSign(authorAddress, nft.timestamp, nft.address, nft.id);
     const signatureAddress = ethers.utils.verifyMessage(messageThatShouldBeSigned, nft.signature.signature);
     let verified = true;
     if (currentNftOwnerAddress !== signatureAddress) {

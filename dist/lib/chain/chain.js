@@ -107,7 +107,7 @@ const nftAbi = [
         type: 'function',
     },
 ];
-const getWalletMessageToSign = (authorAddress, timestamp) => {
+export const getWalletMessageToSign = (authorAddress, timestamp) => {
     // use plain JSON so the user can read what he's signing
     // property names must always be in this order for signature to match so don't use JSON.stringify
     return `{"domainSeparator":"plebbit-author-wallet","authorAddress":"${authorAddress}","timestamp":${timestamp}}`;

@@ -31,7 +31,7 @@ import { useClientsStates, useSubplebbitsStates } from './hooks/states';
 // plebbit-rpc
 import { usePlebbitRpcSettings } from './hooks/plebbit-rpc';
 // chain
-import { getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, } from './lib/chain';
+import { getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, validateEthWallet, validateSolWallet, } from './lib/chain';
 // utils
 import { setPlebbitJs, restorePlebbitJs } from './lib/plebbit-js';
 import { deleteDatabases, deleteCaches } from './lib/debug-utils';
@@ -60,7 +60,7 @@ useClientsStates, useSubplebbitsStates,
 // plebbit-rpc
 usePlebbitRpcSettings, 
 // chain
-getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, 
+getEthWalletFromPlebbitPrivateKey, getSolWalletFromPlebbitPrivateKey, getEthPrivateKeyFromPlebbitPrivateKey, getSolPrivateKeyFromPlebbitPrivateKey, validateEthWallet, validateSolWallet, 
 // utils
 setPlebbitJs, restorePlebbitJs, deleteDatabases, deleteCaches, };
 // IMPORTANT: should be the same as 'export {}'
@@ -126,6 +126,8 @@ const hooks = {
     getSolWalletFromPlebbitPrivateKey,
     getEthPrivateKeyFromPlebbitPrivateKey,
     getSolPrivateKeyFromPlebbitPrivateKey,
+    validateEthWallet,
+    validateSolWallet,
     // utils
     setPlebbitJs,
     restorePlebbitJs,

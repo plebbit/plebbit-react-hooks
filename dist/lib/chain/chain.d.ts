@@ -5,6 +5,7 @@ export declare const getNftOwnerNoCache: (nftAddress: string, nftId: string, cha
 export declare const getNftOwner: (...args: any) => Promise<any>;
 export declare const resolveEnsTxtRecordNoCache: (ensName: string, txtRecordName: string, chainTicker: string, chainProviderUrl?: string, chainId?: number) => Promise<any>;
 export declare const resolveEnsTxtRecord: (...args: any) => Promise<any>;
+export declare const getWalletMessageToSign: (authorAddress: string, timestamp: number) => string;
 export declare const getEthWalletFromPlebbitPrivateKey: (privateKeyBase64: string, authorAddress: string) => Promise<{
     address: string;
     timestamp: number;
