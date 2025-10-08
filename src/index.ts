@@ -77,6 +77,8 @@ import {
   getSolWalletFromPlebbitPrivateKey,
   getEthPrivateKeyFromPlebbitPrivateKey,
   getSolPrivateKeyFromPlebbitPrivateKey,
+  validateEthWallet,
+  validateSolWallet,
 } from './lib/chain'
 
 // utils
@@ -149,6 +151,8 @@ export {
   getSolWalletFromPlebbitPrivateKey,
   getEthPrivateKeyFromPlebbitPrivateKey,
   getSolPrivateKeyFromPlebbitPrivateKey,
+  validateEthWallet,
+  validateSolWallet,
   // utils
   setPlebbitJs,
   restorePlebbitJs,
@@ -219,6 +223,8 @@ const hooks = {
   getSolWalletFromPlebbitPrivateKey,
   getEthPrivateKeyFromPlebbitPrivateKey,
   getSolPrivateKeyFromPlebbitPrivateKey,
+  validateEthWallet,
+  validateSolWallet,
   // utils
   setPlebbitJs,
   restorePlebbitJs,

@@ -173,6 +173,12 @@ export function useAuthorAvatarIsWhitelisted(nft?: Nft) {
   return isWhitelisted
 }
 
+export const getNftMessageToSign = (authorAddress: string, timestamp: number, tokenAddress: string, tokenId: string) => {
+  // use plain JSON so the user can read what he's signing
+  // property names must always be in this order for signature to match so don't use JSON.stringify
+  return `{"domainSeparator":"plebbit-author-avatar","authorAddress":"${authorAddress}","timestamp":${timestamp},"tokenAddress":"${tokenAddress}","tokenId":"${tokenId}"}`
+}
+
 // NOTE: verifyAuthorAvatarSignature tests are skipped, if changes are made they must be tested manually
 export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: string, chainProviders: ChainProviders) => {
   assert(nft && typeof nft === 'object', `verifyAuthorAvatarSignature invalid nft argument '${nft}'`)
@@ -192,17 +198,7 @@ export const verifyAuthorAvatarSignature = async (nft: Nft, authorAddress: strin
     chainProviders?.[nft?.chainTicker]?.chainId
   )
 
-  let messageThatShouldBeSigned: any = {}
-  // the property names must be in this order for the signature to match
-  // insert props one at a time otherwise babel/webpack will reorder
-  messageThatShouldBeSigned.domainSeparator = 'plebbit-author-avatar'
-  messageThatShouldBeSigned.authorAddress = authorAddress
-  messageThatShouldBeSigned.timestamp = nft.timestamp
-  messageThatShouldBeSigned.tokenAddress = nft.address
-  messageThatShouldBeSigned.tokenId = nft.id // must be a type string, not number
-  // use plain JSON so the user can read what he's signing
-  messageThatShouldBeSigned = JSON.stringify(messageThatShouldBeSigned)
-
+  const messageThatShouldBeSigned = getNftMessageToSign(authorAddress, nft.timestamp, nft.address, nft.id)
   const signatureAddress = ethers.utils.verifyMessage(messageThatShouldBeSigned, nft.signature.signature)
 
   let verified = true

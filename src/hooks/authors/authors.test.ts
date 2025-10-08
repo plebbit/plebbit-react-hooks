@@ -11,7 +11,7 @@ import {
   setAuthorAvatarsWhitelistedTokenAddresses,
 } from '../..'
 import {commentsPerPage} from '../../stores/authors-comments'
-import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature} from './author-avatars'
+import {useNftMetadataUrl, useNftImageUrl, useVerifiedAuthorAvatarSignature, verifyAuthorAvatarSignature, getNftMessageToSign} from './author-avatars'
 import localForageLru from '../../lib/localforage-lru'
 import {ethers} from 'ethers'
 import {Nft, Author} from '../../types'
@@ -479,6 +479,21 @@ describe('authors', () => {
         '0x79fcdef22feed20eddacbb2587640e45491b757f',
         '0xf6d8e606c862143556b342149a7fe0558c220375',
       ])
+    })
+
+    test('getNftMessageToSign', () => {
+      const string = getNftMessageToSign(authorAddress, avatarNft1.timestamp, avatarNft1.address, avatarNft1.id)
+      const json = JSON.parse(string)
+      expect(json.domainSeparator).toBe('plebbit-author-avatar')
+      expect(json.authorAddress).toBe(authorAddress)
+      expect(json.authorAddress).not.toBe(undefined)
+      expect(json.timestamp).toBe(avatarNft1.timestamp)
+      expect(json.timestamp).not.toBe(undefined)
+      expect(json.tokenAddress).toBe(avatarNft1.address)
+      expect(json.tokenAddress).not.toBe(undefined)
+      expect(json.tokenId).toBe(avatarNft1.id)
+      expect(json.tokenId).not.toBe(undefined)
+      expect(string).toBe(JSON.stringify(json))
     })
 
     test('useAuthorAvatar avatar has no signature', {timeout}, async () => {

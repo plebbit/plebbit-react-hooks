@@ -1,4 +1,3 @@
-import {getNftImageUrl, validateEthWalletViem, getWalletMessageToSign} from '.'
 import {
   getEthWalletFromPlebbitPrivateKey,
   getSolWalletFromPlebbitPrivateKey,
@@ -6,57 +5,13 @@ import {
   getSolPrivateKeyFromPlebbitPrivateKey,
   validateEthWallet,
   validateSolWallet,
-} from '../..'
-
-const avatarNft1 = {
-  chainTicker: 'eth',
-  address: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', // the contract address of the nft
-  id: 100, // the nft number 100 in the colletion
-}
-const avatarNft2 = {
-  chainTicker: 'matic',
-  address: '0xf6d8e606c862143556b342149a7fe0558c220375', // the contract address of the nft
-  id: 100, // the nft number 100 in the colletion
-}
-
-const ipfsGatewayUrl = 'https://cloudflare-ipfs.com'
-
-const chainProviders = {
-  eth: {
-    // default should not use a url, but rather ethers.js default provider
-    urls: ['ethers.js'],
-    chainId: 1,
-  },
-  avax: {
-    urls: ['https://api.avax.network/ext/bc/C/rpc'],
-    chainId: 43114,
-  },
-  matic: {
-    urls: ['https://polygon-rpc.com'],
-    chainId: 137,
-  },
-}
+} from '../../dist'
 
 const plebbitPrivateKey = 'mV8GRU5TGScen7UYZOuNQQ1CKe2G46DCc60moM1yLF4'
 const authorAddress = 'authoraddress.eth'
 const walletTimestamp = 1740000000
 
 describe('chain', () => {
-  describe('nft', () => {
-    const timeout = 30000
-
-    // skip because uses internet and not deterministic
-    // also cache and pending is difficult to test without console logging it
-    test.skip('getNftImageUrl (cache and pending)', {timeout}, async () => {
-      // const url = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
-      // console.log(url)
-      // const cachedUrl = await getNftImageUrl(avatarNft1, ipfsGatewayUrl, chainProviders)
-      // console.log(cachedUrl)
-      // const res = await Promise.all([getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders), getNftImageUrl(avatarNft2, ipfsGatewayUrl, chainProviders)])
-      // console.log(res)
-    })
-  })
-
   describe('eth wallet', () => {
     let wallet, privateKey
     beforeAll(async () => {
@@ -65,17 +20,6 @@ describe('chain', () => {
       Date.now = () => walletTimestamp * 1000
       wallet = await getEthWalletFromPlebbitPrivateKey(plebbitPrivateKey, authorAddress)
       Date.now = dateNow
-    })
-
-    test('getWalletMessageToSign', () => {
-      const string = getWalletMessageToSign(authorAddress, walletTimestamp)
-      const json = JSON.parse(string)
-      expect(json.domainSeparator).toBe('plebbit-author-wallet')
-      expect(json.authorAddress).toBe(authorAddress)
-      expect(json.authorAddress).not.toBe(undefined)
-      expect(json.timestamp).toBe(walletTimestamp)
-      expect(json.timestamp).not.toBe(undefined)
-      expect(string).toBe(JSON.stringify(json))
     })
 
     test('getEthWalletFromPlebbitPrivateKey', async () => {
@@ -92,9 +36,6 @@ describe('chain', () => {
     test('validateEthWallet', async () => {
       // good signature
       await validateEthWallet(wallet, authorAddress)
-
-      // make sure viem also works
-      await validateEthWalletViem(wallet, authorAddress)
 
       // bad signatures
       await expect(validateEthWallet({...wallet, timestamp: wallet.timestamp + 1}, authorAddress)).rejects.toThrow('wallet address does not equal signature address')
@@ -124,7 +65,6 @@ describe('chain', () => {
         },
       }
       await validateEthWallet(wallet, authorAddress)
-      await validateEthWalletViem(wallet, authorAddress)
     })
 
     test('fixture wallet 2', async () => {
@@ -149,7 +89,6 @@ describe('chain', () => {
       expect(wallet.signature.signature).toBe(generatedWallet.signature.signature)
 
       await validateEthWallet(wallet, authorAddress)
-      await validateEthWalletViem(wallet, authorAddress)
     })
   })
 
