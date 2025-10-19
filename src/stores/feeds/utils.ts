@@ -509,7 +509,7 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
     }
 
     // check pages
-    if (subplebbit.posts.pages) {
+    if (subplebbit.posts?.pages) {
       for (const page of Object.values<SubplebbitPage>(subplebbit.posts.pages)) {
         if (page?.nextCid) {
           feedsSubplebbitsFirstPageCids.add(page?.nextCid)
@@ -518,7 +518,7 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
     }
 
     // check pageCids
-    if (subplebbit.posts.pageCids) {
+    if (subplebbit.posts?.pageCids) {
       for (const pageCid of Object.values<string>(subplebbit.posts.pageCids)) {
         if (pageCid) {
           feedsSubplebbitsFirstPageCids.add(pageCid)
@@ -527,7 +527,7 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
     }
 
     // TODO: would be more performant to only check modQueue if there's a feedOptions with modQueue
-    if (subplebbit.modQueue.pageCids) {
+    if (subplebbit.modQueue?.pageCids) {
       for (const pageCid of Object.values<string>(subplebbit.modQueue.pageCids)) {
         if (pageCid) {
           feedsSubplebbitsFirstPageCids.add(pageCid)
