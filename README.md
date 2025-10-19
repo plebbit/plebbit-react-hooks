@@ -617,7 +617,24 @@ const {feed, hasMore, loadMore} = useFeed({
   endReached={loadMore}
   increaseViewportBy={{bottom: 600, top: 600}}
 />
+```
 
+#### Approve a pending approval comment
+
+```jsx
+const publishCommentModerationOptions = {
+  commentCid: 'QmZVYzLChjKrYDVty6e5JokKffGDZivmEJz9318EYfp2ui',
+  subplebbitAddress: 'news.eth',
+  commentModeration: {approved: true},
+  onChallenge,
+  onChallengeVerification,
+  onError
+}
+const {state, error, publishCommentModeration} = usePublishCommentModeration(publishCommentModerationOptions)
+
+await publishCommentModeration()
+console.log(state)
+console.log(error)
 ```
 
 #### Edit an account
