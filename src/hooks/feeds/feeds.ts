@@ -16,7 +16,7 @@ import shallow from 'zustand/shallow'
  */
 export function useFeed(options?: UseFeedOptions): UseFeedResult {
   assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`)
-  let {subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments} = options || {}
+  let {subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments, modQueue} = options || {}
   sortType = getSortType(sortType, newerThan)
 
   validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments)
@@ -25,7 +25,7 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
   const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber)
   const resetFeed = useFeedsStore((state) => state.resetFeed)
   const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses)
-  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan, accountComments)
+  const feedName = useFeedName(account?.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan, accountComments, modQueue)
   const [errors, setErrors] = useState<Error[]>([])
   const subplebbitAddressesWithNewerPosts = useFeedsStore((state) => state.feedsSubplebbitAddressesWithNewerPosts[feedName])
 
@@ -35,8 +35,8 @@ export function useFeed(options?: UseFeedOptions): UseFeedResult {
       return
     }
     const isBufferedFeed = false
-    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments).catch((error: unknown) =>
-      log.error('useFeed addFeedToStore error', {feedName, error})
+    addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments, modQueue).catch(
+      (error: unknown) => log.error('useFeed addFeedToStore error', {feedName, error})
     )
   }, [feedName])
 
@@ -236,7 +236,8 @@ function useFeedName(
   postsPerPage?: number,
   filter?: CommentsFilter,
   newerThan?: number,
-  accountComments?: UseFeedOptions['accountComments']
+  accountComments?: UseFeedOptions['accountComments'],
+  modQueue?: string[]
 ) {
   return useMemo(() => {
     return (
@@ -254,9 +255,11 @@ function useFeedName(
       '-' +
       accountComments?.newerThan +
       '-' +
-      accountComments?.append
+      accountComments?.append +
+      '-' +
+      modQueue
     )
-  }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter?.key, newerThan, accountComments?.newerThan, accountComments?.append])
+  }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter?.key, newerThan, accountComments?.newerThan, accountComments?.append, modQueue?.toString()])
 }
 
 function useFeedNames(

@@ -84,7 +84,8 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
     postsPerPage?: number,
     filter?: CommentsFilter,
     newerThan?: number,
-    accountComments?: FeedOptionsAccountComments
+    accountComments?: FeedOptionsAccountComments,
+    modQueue?: string[]
   ) {
     // init here because must be called after async accounts store finished initializing
     initializeFeedsStore()
@@ -106,6 +107,7 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       !accountComments || typeof accountComments?.newerThan === 'number',
       `addFeedToStore.addFeedToStore accountComments.newerThan '${accountComments?.newerThan}' invalid`
     )
+    assert(!modQueue || Array.isArray(modQueue), `addFeedToStore.addFeedToStore modQueue '${modQueue}' invalid`)
 
     const {feedsOptions, updateFeeds} = getState()
     // feed is in store already, do nothing
@@ -123,6 +125,8 @@ const feedsStore = createStore<FeedsState>((setState: Function, getState: Functi
       newerThan,
       filter,
       accountComments,
+      // TODO: allow multiple modQueue at once, fow now only use first in array
+      modQueue,
     }
     log('feedsActions.addFeedToStore', feedOptions)
     setState(({feedsOptions}: any) => {
@@ -383,7 +387,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
   for (const feedName in bufferedFeedsSubplebbitsPostCounts) {
     const account = accounts[feedsOptions[feedName].accountId]
     const subplebbitsPostCounts = bufferedFeedsSubplebbitsPostCounts[feedName]
-    const sortType = feedsOptions[feedName].sortType
+    const {sortType, modQueue} = feedsOptions[feedName]
     for (const subplebbitAddress in subplebbitsPostCounts) {
       // don't fetch more pages if subplebbit address is blocked
       if (account?.blockedAddresses[subplebbitAddress]) {
@@ -402,7 +406,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
 
       // subplebbit post count is low, fetch next subplebbit page
       if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
-        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error: unknown) =>
+        addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account, modQueue).catch((error: unknown) =>
           log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', {subplebbitAddress, subplebbit: subplebbits[subplebbitAddress], sortType, error})
         )
       }

@@ -77,6 +77,9 @@ export class Plebbit extends EventEmitter {
       new: subplebbit.address + ' page cid new',
       active: subplebbit.address + ' page cid active',
     }
+    subplebbit.modQueue.pageCids = {
+      pendingApproval: subplebbit.address + ' page cid pendingApproval',
+    }
     return subplebbit
   }
 
@@ -217,6 +220,7 @@ export class Subplebbit extends EventEmitter {
   title: string | undefined
   description: string | undefined
   posts: Pages
+  modQueue: Pages
   updatedAt: number | undefined
   statsCid: string | undefined
   state: string
@@ -233,13 +237,18 @@ export class Subplebbit extends EventEmitter {
     this.updatedAt = createSubplebbitOptions?.updatedAt
 
     this.posts = new Pages({subplebbit: this})
-
     // add subplebbit.posts from createSubplebbitOptions
     if (createSubplebbitOptions?.posts?.pages) {
       this.posts.pages = createSubplebbitOptions?.posts?.pages
     }
     if (createSubplebbitOptions?.posts?.pageCids) {
       this.posts.pageCids = createSubplebbitOptions?.posts?.pageCids
+    }
+
+    this.modQueue = new Pages({subplebbit: this})
+    // add subplebbit.modQueue from createSubplebbitOptions
+    if (createSubplebbitOptions?.modQueue?.pageCids) {
+      this.modQueue.pageCids = createSubplebbitOptions?.modQueue?.pageCids
     }
 
     // only trigger a first update if argument is only ({address})
@@ -309,6 +318,9 @@ export class Subplebbit extends EventEmitter {
       topAll: this.address + ' page cid topAll',
       new: this.address + ' page cid new',
       active: this.address + ' page cid active',
+    }
+    this.modQueue.pageCids = {
+      pendingApproval: this.address + ' page cid pendingApproval',
     }
 
     // simulate the ipns update

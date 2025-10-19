@@ -50,7 +50,7 @@ setAuthorAvatarsWhitelistedTokenAddresses(tokenAddresses: string[])
 ```
 #### Feeds Hooks
 ```
-useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter?: CommentsFilter, newerThan?: number, accountComments?: {newerThan: number, append?: boolean}}): {feed: Comment[], loadMore: function, hasMore: boolean, reset: function, updatedFeed: Comment[], bufferedFeed: Comment[], subplebbitAddressesWithNewerPosts: string[]}
+useFeed({subplebbitAddresses: string[], sortType?: string, postsPerPage?: number, filter?: CommentsFilter, newerThan?: number, accountComments?: {newerThan: number, append?: boolean}, modQueue: ['pendingApproval']}): {feed: Comment[], loadMore: function, hasMore: boolean, reset: function, updatedFeed: Comment[], bufferedFeed: Comment[], subplebbitAddressesWithNewerPosts: string[]}
 useBufferedFeeds({feedsOptions: UseFeedOptions[]}) // preload or buffer feeds in the background, so they load faster when you call `useFeed`
 ```
 #### Actions Hooks
@@ -598,6 +598,26 @@ const filter = {
   key: 'image-only' // required key to cache the filter
 }
 const {feed, hasMore, loadMore} = useFeed({subplebbitAddresses, filter})
+```
+
+#### Get mod queue (pending approval)
+
+```jsx
+import {Virtuoso} from 'react-virtuoso'
+const {feed, hasMore, loadMore} = useFeed({
+  subplebbitAddresses: ['memes.eth', '12D3KooW...', '12D3KooW...'],
+  modQueue: ['pendingApproval']
+})
+
+<Virtuoso
+  data={feed}
+  itemContent={(index, post) => <Post index={index} post={post}/>}
+  useWindowScroll={true}
+  components={{Footer: hasMore ? () => <Loading/> : undefined}}
+  endReached={loadMore}
+  increaseViewportBy={{bottom: 600, top: 600}}
+/>
+
 ```
 
 #### Edit an account

@@ -1200,7 +1200,7 @@ describe('feeds', () => {
       expectFeedToHaveCid(rendered.result.current.bufferedFeed, blockedCid)
     })
 
-    test(`empty subplebbit.post hasMore is false`, async () => {
+    test(`empty subplebbit.posts hasMore is false`, async () => {
       const update = Subplebbit.prototype.update
       const updatedAt = Math.floor(Date.now() / 1000)
       const emptyPosts: any = {pages: {}, pageCids: {}}
@@ -1711,6 +1711,27 @@ describe('feeds', () => {
         expect(rendered.result.current.feed[4].author.address).not.toBe(authorAddress)
         expect(rendered.result.current.hasMore).toBe(true)
       })
+    })
+
+    describe('modQueue', () => {
+      afterEach(async () => {
+        await testUtils.resetDatabasesAndStores()
+      })
+
+      test('modQueue pendingApproval', async () => {
+        const subplebbitAddresses = ['subplebbit address 1', 'subplebbit address 2', 'subplebbit address 3']
+        rendered.rerender({subplebbitAddresses, modQueue: ['pendingApproval']})
+
+        await waitFor(() => rendered.result.current.feed.length > 0)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage)
+        expect(rendered.result.current.feed[0].cid).toMatch('pendingApproval')
+
+        await scrollOnePage()
+        await waitFor(() => rendered.result.current.feed.length == postsPerPage * 2)
+        expect(rendered.result.current.feed.length).toBe(postsPerPage * 2)
+      })
+
+      // TODO: test modQueue page state
     })
 
     // TODO: not implemented

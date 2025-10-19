@@ -27,8 +27,15 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
   // calculate each feed
   let feeds: Feeds = {}
   for (const feedName in feedsOptions) {
-    const {subplebbitAddresses, sortType, accountId, filter, newerThan} = feedsOptions[feedName]
+    let {subplebbitAddresses, sortType, accountId, filter, newerThan, modQueue} = feedsOptions[feedName]
     const newerThanTimestamp = newerThan ? Math.floor(Date.now() / 1000) - newerThan : undefined
+
+    let pageType = 'posts'
+    if (modQueue?.[0]) {
+      // TODO: allow multiple modQueue at once, fow now only use first in array
+      sortType = modQueue[0]
+      pageType = 'modQueue'
+    }
 
     // find all fetched posts
     const bufferedFeedPosts = []
@@ -58,7 +65,7 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
       }
 
       // add all posts from subplebbit pages
-      const subplebbitPages = getSubplebbitPages(subplebbits[subplebbitAddress], sortType, subplebbitsPages)
+      const subplebbitPages = getSubplebbitPages(subplebbits[subplebbitAddress], sortType, subplebbitsPages, pageType)
       for (const subplebbitPage of subplebbitPages) {
         if (subplebbitPage?.comments) {
           for (const post of subplebbitPage.comments) {
@@ -73,7 +80,8 @@ export const getFilteredSortedFeeds = (feedsOptions: FeedsOptions, subplebbits: 
     }
 
     // sort the feed before filtering to get more accurate results
-    const sortedBufferedFeedPosts = feedSorter.sort(sortType, bufferedFeedPosts)
+    const originalSortType = feedsOptions[feedName].sortType
+    const sortedBufferedFeedPosts = feedSorter.sort(originalSortType, bufferedFeedPosts)
 
     // filter the feed
     const filteredSortedBufferedFeedPosts = []
@@ -410,7 +418,15 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
       continue feedsLoop
     }
 
-    const {subplebbitAddresses, sortType, accountId} = feedsOptions[feedName]
+    let {subplebbitAddresses, sortType, accountId, modQueue} = feedsOptions[feedName]
+
+    let pageType = 'posts'
+    if (modQueue?.[0]) {
+      // TODO: allow multiple modQueue at once, fow now only use first in array
+      sortType = modQueue[0]
+      pageType = 'modQueue'
+    }
+
     subplebbitAddressesLoop: for (const subplebbitAddress of subplebbitAddresses) {
       // don't consider the sub if the address is blocked
       if (accounts[accountId]?.blockedAddresses[subplebbitAddress]) {
@@ -430,14 +446,14 @@ export const getFeedsHaveMore = (feedsOptions: FeedsOptions, bufferedFeeds: Feed
         continue feedsLoop
       }
 
-      const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType)
+      const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType, pageType)
       // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
       // should we try to use another sort type by default, like 'hot', or should we just ignore it?
       // 'continue' to ignore it for now
       if (!firstPageCid) {
         continue subplebbitAddressesLoop
       }
-      const pages = getSubplebbitPages(subplebbit, sortType, subplebbitsPages)
+      const pages = getSubplebbitPages(subplebbit, sortType, subplebbitsPages, pageType)
       // if first page isn't loaded yet, then the feed still has more
       if (!pages.length) {
         feedsHaveMore[feedName] = true
@@ -488,7 +504,7 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
   // find all the feeds subplebbits first page cids
   const feedsSubplebbitsFirstPageCids = new Set<string>()
   for (const subplebbit of feedsSubplebbits.values()) {
-    if (!subplebbit?.posts) {
+    if (!subplebbit?.posts && !subplebbit?.modQueue) {
       continue
     }
 
@@ -504,6 +520,15 @@ export const getFeedsSubplebbitsFirstPageCids = (feedsSubplebbits: Map<string, S
     // check pageCids
     if (subplebbit.posts.pageCids) {
       for (const pageCid of Object.values<string>(subplebbit.posts.pageCids)) {
+        if (pageCid) {
+          feedsSubplebbitsFirstPageCids.add(pageCid)
+        }
+      }
+    }
+
+    // TODO: would be more performant to only check modQueue if there's a feedOptions with modQueue
+    if (subplebbit.modQueue.pageCids) {
+      for (const pageCid of Object.values<string>(subplebbit.modQueue.pageCids)) {
         if (pageCid) {
           feedsSubplebbitsFirstPageCids.add(pageCid)
         }
