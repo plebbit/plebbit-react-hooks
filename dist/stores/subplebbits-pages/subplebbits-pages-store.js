@@ -23,13 +23,21 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
     // TODO: eventually clear old pages and comments from memory
     subplebbitsPages: {},
     comments: {},
-    addNextSubplebbitPageToStore: (subplebbit, sortType, account) => __awaiter(void 0, void 0, void 0, function* () {
+    addNextSubplebbitPageToStore: (subplebbit, sortType, account, modQueue) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c;
         assert((subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) && typeof (subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address) === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit}' invalid`);
         assert(sortType && typeof sortType === 'string', `subplebbitsPagesStore.addNextSubplebbitPageToStore sortType '${sortType}' invalid`);
         assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsPagesStore.addNextSubplebbitPageToStore account '${account}' invalid`);
+        assert(!modQueue || Array.isArray(modQueue), `subplebbitsPagesStore.addNextSubplebbitPageToStore modQueue '${modQueue}' invalid`);
+        let pageType = 'posts';
+        if (modQueue === null || modQueue === void 0 ? void 0 : modQueue[0]) {
+            // TODO: allow multiple modQueue at once, fow now only use first in array
+            // TODO: fix 'sortType' is not accurate variable name when pageType is 'modQueue'
+            sortType = modQueue[0];
+            pageType = 'modQueue';
+        }
         // check the preloaded posts on subplebbit.posts.pages first, then the subplebbit.posts.pageCids
-        const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType);
+        const subplebbitFirstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType, pageType);
         if (!subplebbitFirstPageCid) {
             log(`subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit '${subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address}' sortType '${sortType}' no subplebbitFirstPageCid`);
             return;
@@ -37,7 +45,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         // all subplebbits pages in store
         const { subplebbitsPages } = getState();
         // only specific pages of the subplebbit+sortType
-        const subplebbitPages = getSubplebbitPages(subplebbit, sortType, subplebbitsPages);
+        const subplebbitPages = getSubplebbitPages(subplebbit, sortType, subplebbitsPages, pageType);
         // if no pages exist yet, add the first page
         let pageCidToAdd;
         if (!subplebbitPages.length) {
@@ -59,7 +67,7 @@ const subplebbitsPagesStore = createStore((setState, getState) => ({
         fetchPagePending[account.id + pageCidToAdd] = true;
         let page;
         try {
-            page = yield fetchPage(pageCidToAdd, subplebbit.address, account);
+            page = yield fetchPage(pageCidToAdd, subplebbit.address, account, pageType);
             log.trace('subplebbitsPagesStore.addNextSubplebbitPageToStore subplebbit.posts.getPage', { pageCid: pageCidToAdd, subplebbitAddress: subplebbit.address, account });
         }
         catch (e) {
@@ -148,7 +156,7 @@ const onSubplebbitPostsClientsStateChange = (subplebbitAddress) => (clientState,
 };
 const fetchPageSubplebbits = {}; // cache plebbit.createSubplebbits because sometimes it's slow
 let fetchPagePending = {};
-const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, void 0, void 0, function* () {
+const fetchPage = (pageCid, subplebbitAddress, account, pageType) => __awaiter(void 0, void 0, void 0, function* () {
     var _d;
     // subplebbit page is cached
     const cachedSubplebbitPage = yield subplebbitsPagesDatabase.getItem(pageCid);
@@ -158,10 +166,10 @@ const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, voi
     if (!fetchPageSubplebbits[subplebbitAddress]) {
         fetchPageSubplebbits[subplebbitAddress] = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
         // set clients states on subplebbits store so the frontend can display it
-        utils.pageClientsOnStateChange((_d = fetchPageSubplebbits[subplebbitAddress].posts) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress));
+        utils.pageClientsOnStateChange((_d = fetchPageSubplebbits[subplebbitAddress][pageType]) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress));
     }
     const onError = (error) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error);
-    const fetchedSubplebbitPage = yield utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress].posts.getPage(pageCid), { onError });
+    const fetchedSubplebbitPage = yield utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress][pageType].getPage(pageCid), { onError });
     yield subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage));
     return fetchedSubplebbitPage;
 });
@@ -169,11 +177,11 @@ const fetchPage = (pageCid, subplebbitAddress, account) => __awaiter(void 0, voi
  * Util function to get all pages in the store for a
  * specific subplebbit+sortType using `SubplebbitPage.nextCid`
  */
-export const getSubplebbitPages = (subplebbit, sortType, subplebbitsPages) => {
+export const getSubplebbitPages = (subplebbit, sortType, subplebbitsPages, pageType) => {
     var _a;
     assert(subplebbitsPages && typeof subplebbitsPages === 'object', `getSubplebbitPages subplebbitsPages '${subplebbitsPages}' invalid`);
     const pages = [];
-    const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType);
+    const firstPageCid = getSubplebbitFirstPageCid(subplebbit, sortType, pageType);
     // subplebbit has no pages
     // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
     // should we try to use another sort type by default, like 'hot', or should we just ignore it?
@@ -195,15 +203,15 @@ export const getSubplebbitPages = (subplebbit, sortType, subplebbitsPages) => {
         pages.push(subplebbitPage);
     }
 };
-export const getSubplebbitFirstPageCid = (subplebbit, sortType) => {
+export const getSubplebbitFirstPageCid = (subplebbit, sortType, pageType = 'posts') => {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     assert(subplebbit === null || subplebbit === void 0 ? void 0 : subplebbit.address, `getSubplebbitFirstPageCid subplebbit '${subplebbit}' invalid`);
     assert(sortType && typeof sortType === 'string', `getSubplebbitFirstPageCid sortType '${sortType}' invalid`);
     // subplebbit has preloaded posts for sort type
-    if ((_c = (_b = (_a = subplebbit.posts) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments) {
-        return (_f = (_e = (_d = subplebbit.posts) === null || _d === void 0 ? void 0 : _d.pages) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f.nextCid;
+    if ((_c = (_b = (_a = subplebbit[pageType]) === null || _a === void 0 ? void 0 : _a.pages) === null || _b === void 0 ? void 0 : _b[sortType]) === null || _c === void 0 ? void 0 : _c.comments) {
+        return (_f = (_e = (_d = subplebbit[pageType]) === null || _d === void 0 ? void 0 : _d.pages) === null || _e === void 0 ? void 0 : _e[sortType]) === null || _f === void 0 ? void 0 : _f.nextCid;
     }
-    return (_h = (_g = subplebbit.posts) === null || _g === void 0 ? void 0 : _g.pageCids) === null || _h === void 0 ? void 0 : _h[sortType];
+    return (_h = (_g = subplebbit[pageType]) === null || _g === void 0 ? void 0 : _g.pageCids) === null || _h === void 0 ? void 0 : _h[sortType];
     // TODO: if a loaded subplebbit doesn't have a first page, it's unclear what we should do
     // should we try to use another sort type by default, like 'hot', or should we just ignore it?
 };

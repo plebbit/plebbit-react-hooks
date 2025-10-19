@@ -151,6 +151,7 @@ export interface UseFeedOptions extends Options {
     newerThan?: number;
     accountComments?: FeedOptionsAccountComments;
     filter?: CommentsFilter;
+    modQueue?: string[];
 }
 export interface UseFeedResult extends Result {
     feed: Comment[];
@@ -487,6 +488,7 @@ export type FeedOptions = {
     filter: CommentsFilter;
     newerThan?: number;
     accountComments?: FeedOptionsAccountComments;
+    modQueue?: string[];
 };
 export type FeedOptionsAccountComments = {
     newerThan?: number;

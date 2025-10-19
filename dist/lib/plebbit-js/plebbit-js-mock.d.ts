@@ -53,6 +53,7 @@ export declare class Subplebbit extends EventEmitter {
     title: string | undefined;
     description: string | undefined;
     posts: Pages;
+    modQueue: Pages;
     updatedAt: number | undefined;
     statsCid: string | undefined;
     state: string;

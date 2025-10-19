@@ -33,7 +33,7 @@ const feedsStore = createStore((setState, getState) => ({
     bufferedFeedsSubplebbitsPostCounts: {},
     feedsHaveMore: {},
     feedsSubplebbitAddressesWithNewerPosts: {},
-    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments) {
+    addFeedToStore(feedName, subplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments, modQueue) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             // init here because must be called after async accounts store finished initializing
@@ -49,6 +49,7 @@ const feedsStore = createStore((setState, getState) => ({
             postsPerPage = postsPerPage || defaultPostsPerPage;
             assert(typeof postsPerPage === 'number', `addFeedToStore.addFeedToStore postsPerPage '${postsPerPage}' invalid`);
             assert(!accountComments || typeof (accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan) === 'number', `addFeedToStore.addFeedToStore accountComments.newerThan '${accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan}' invalid`);
+            assert(!modQueue || Array.isArray(modQueue), `addFeedToStore.addFeedToStore modQueue '${modQueue}' invalid`);
             const { feedsOptions, updateFeeds } = getState();
             // feed is in store already, do nothing
             // if the feed already exist but is at page 0, reset it to page 1
@@ -65,6 +66,8 @@ const feedsStore = createStore((setState, getState) => ({
                 newerThan,
                 filter,
                 accountComments,
+                // TODO: allow multiple modQueue at once, fow now only use first in array
+                modQueue,
             };
             log('feedsActions.addFeedToStore', feedOptions);
             setState(({ feedsOptions }) => {
@@ -274,7 +277,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
     for (const feedName in bufferedFeedsSubplebbitsPostCounts) {
         const account = accounts[feedsOptions[feedName].accountId];
         const subplebbitsPostCounts = bufferedFeedsSubplebbitsPostCounts[feedName];
-        const sortType = feedsOptions[feedName].sortType;
+        const { sortType, modQueue } = feedsOptions[feedName];
         for (const subplebbitAddress in subplebbitsPostCounts) {
             // don't fetch more pages if subplebbit address is blocked
             if (account === null || account === void 0 ? void 0 : account.blockedAddresses[subplebbitAddress]) {
@@ -290,7 +293,7 @@ const addSubplebbitsPagesOnLowBufferedFeedsSubplebbitsPostCounts = (feedsStoreSt
             }
             // subplebbit post count is low, fetch next subplebbit page
             if (subplebbitsPostCounts[subplebbitAddress] <= subplebbitPostsLeftBeforeNextPage) {
-                addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account).catch((error) => log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', { subplebbitAddress, subplebbit: subplebbits[subplebbitAddress], sortType, error }));
+                addNextSubplebbitPageToStore(subplebbits[subplebbitAddress], sortType, account, modQueue).catch((error) => log.error('feedsStore subplebbitsActions.addNextSubplebbitPageToStore error', { subplebbitAddress, subplebbit: subplebbits[subplebbitAddress], sortType, error }));
             }
         }
     }

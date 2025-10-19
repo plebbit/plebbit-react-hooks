@@ -91,6 +91,9 @@ export class Plebbit extends EventEmitter {
                 new: subplebbit.address + ' page cid new',
                 active: subplebbit.address + ' page cid active',
             };
+            subplebbit.modQueue.pageCids = {
+                pendingApproval: subplebbit.address + ' page cid pendingApproval',
+            };
             return subplebbit;
         });
     }
@@ -223,7 +226,7 @@ export class Pages {
 }
 export class Subplebbit extends EventEmitter {
     constructor(createSubplebbitOptions) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         super();
         this.updateCalledTimes = 0;
         this.updating = false;
@@ -242,6 +245,11 @@ export class Subplebbit extends EventEmitter {
         }
         if ((_c = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _c === void 0 ? void 0 : _c.pageCids) {
             this.posts.pageCids = (_d = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.posts) === null || _d === void 0 ? void 0 : _d.pageCids;
+        }
+        this.modQueue = new Pages({ subplebbit: this });
+        // add subplebbit.modQueue from createSubplebbitOptions
+        if ((_e = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.modQueue) === null || _e === void 0 ? void 0 : _e.pageCids) {
+            this.modQueue.pageCids = (_f = createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.modQueue) === null || _f === void 0 ? void 0 : _f.pageCids;
         }
         // only trigger a first update if argument is only ({address})
         if (!(createSubplebbitOptions === null || createSubplebbitOptions === void 0 ? void 0 : createSubplebbitOptions.address) || Object.keys(createSubplebbitOptions).length !== 1) {
@@ -304,6 +312,9 @@ export class Subplebbit extends EventEmitter {
                 topAll: this.address + ' page cid topAll',
                 new: this.address + ' page cid new',
                 active: this.address + ' page cid active',
+            };
+            this.modQueue.pageCids = {
+                pendingApproval: this.address + ' page cid pendingApproval',
             };
             // simulate the ipns update
             this.updatingState = 'succeeded';

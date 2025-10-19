@@ -23,7 +23,7 @@ import shallow from 'zustand/shallow';
  */
 export function useFeed(options) {
     assert(!options || typeof options === 'object', `useFeed options argument '${options}' not an object`);
-    let { subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments } = options || {};
+    let { subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments, modQueue } = options || {};
     sortType = getSortType(sortType, newerThan);
     validator.validateUseFeedArguments(subplebbitAddresses, sortType, accountName, postsPerPage, filter, newerThan, accountComments);
     const account = useAccount({ accountName });
@@ -31,7 +31,7 @@ export function useFeed(options) {
     const incrementFeedPageNumber = useFeedsStore((state) => state.incrementFeedPageNumber);
     const resetFeed = useFeedsStore((state) => state.resetFeed);
     const uniqueSubplebbitAddresses = useUniqueSorted(subplebbitAddresses);
-    const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan, accountComments);
+    const feedName = useFeedName(account === null || account === void 0 ? void 0 : account.id, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan, accountComments, modQueue);
     const [errors, setErrors] = useState([]);
     const subplebbitAddressesWithNewerPosts = useFeedsStore((state) => state.feedsSubplebbitAddressesWithNewerPosts[feedName]);
     // add feed to store
@@ -40,7 +40,7 @@ export function useFeed(options) {
             return;
         }
         const isBufferedFeed = false;
-        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
+        addFeedToStore(feedName, uniqueSubplebbitAddresses, sortType, account, isBufferedFeed, postsPerPage, filter, newerThan, accountComments, modQueue).catch((error) => log.error('useFeed addFeedToStore error', { feedName, error }));
     }, [feedName]);
     const feed = useFeedsStore((state) => state.loadedFeeds[feedName || '']);
     const updatedFeed = useFeedsStore((state) => state.updatedFeeds[feedName || '']);
@@ -209,7 +209,7 @@ function useUniqueSorted(stringsArray) {
         return [...new Set(stringsArray.sort())];
     }, [stringsArray]);
 }
-function useFeedName(accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan, accountComments) {
+function useFeedName(accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter, newerThan, accountComments, modQueue) {
     return useMemo(() => {
         return (accountId +
             '-' +
@@ -225,8 +225,10 @@ function useFeedName(accountId, sortType, uniqueSubplebbitAddresses, postsPerPag
             '-' +
             (accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan) +
             '-' +
-            (accountComments === null || accountComments === void 0 ? void 0 : accountComments.append));
-    }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter === null || filter === void 0 ? void 0 : filter.key, newerThan, accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan, accountComments === null || accountComments === void 0 ? void 0 : accountComments.append]);
+            (accountComments === null || accountComments === void 0 ? void 0 : accountComments.append) +
+            '-' +
+            modQueue);
+    }, [accountId, sortType, uniqueSubplebbitAddresses, postsPerPage, filter === null || filter === void 0 ? void 0 : filter.key, newerThan, accountComments === null || accountComments === void 0 ? void 0 : accountComments.newerThan, accountComments === null || accountComments === void 0 ? void 0 : accountComments.append, modQueue === null || modQueue === void 0 ? void 0 : modQueue.toString()]);
 }
 function useFeedNames(accountId, sortTypes, uniqueSubplebbitAddressesArrays, postsPerPages, filters, newerThans) {
     return useMemo(() => {
