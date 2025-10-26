@@ -26,7 +26,7 @@
     "test:e2e:mock-content": "cross-env MOCK_CONTENT=1 yarn test:e2e:chrome",
     "test:e2e:chrome": "vitest run --config config/vitest-e2e.config.js",
     "test:e2e:firefox": "cross-env FIREFOX=1 vitest run --config config/vitest-e2e.config.js",
-    "test:e2e:browser": "test:e2e:chrome",
+    "test:e2e:browser": "yarn test:e2e:chrome",
     "test:server": "rm -rf .plebbit/ && node test/test-server",
     "test:server:wait-on": "wait-on http://localhost:59281 --timeout 120000",
     "test:mock-content": "vitest run --config config/vitest.config.ts src/lib/plebbit-js/plebbit-js-mock-content.donttest.ts",
