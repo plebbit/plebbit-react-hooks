@@ -275,7 +275,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           }
 
           // publish wrong challenge answer, verification should be success false
-          const publishCommentOptions = {
+          let publishCommentOptions = {
             subplebbitAddress: subplebbit.address,
             title: 'some title',
             content: 'some content',
@@ -295,14 +295,23 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           await waitFor(() => !!challengeVerification)
           expect(challengeVerification.type).to.equal('CHALLENGEVERIFICATION')
           // verification should be success false
-          // NOTE RINSE: uncomment below, challengeVerification.challengeSuccess should be false if the challenge fails
-          // expect(challengeVerification.challengeSuccess).to.equal(false)
+          expect(challengeVerification.challengeSuccess).to.equal(false)
+          expect(challengeVerification.commentUpdate?.pendingApproval).to.equal(undefined)
+          expect(rendered.result.current.modQueue.feed.length).to.equal(0)
           console.log('after onChallengeVerification wrong challenge answer')
 
           // reset
-          challenge = undefined
-          comment = undefined
-          challengeVerification = undefined
+          let challenge2, comment2, challengeVerification2
+          publishCommentOptions = {...publishCommentOptions}
+          publishCommentOptions.onChallenge = (_challenge, _comment) => {
+            logChallenge('onChallenge', _challenge)
+            challenge2 = _challenge
+            comment2 = _comment
+          }
+          publishCommentOptions.onChallengeVerification = (_challengeVerification) => {
+            logChallenge('onChallengeVerification', _challengeVerification)
+            challengeVerification2 = _challengeVerification
+          }
           publishCommentOptions.content += ' 2'
 
           // publish correct challenge answer, verification should be success true, but pending approval
@@ -312,26 +321,25 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
             console.log('after publishComment')
           })
           // wait for challenge
-          await waitFor(() => !!challenge)
-          expect(challenge.type).to.equal('CHALLENGE')
-          let challengeAnswer = String(eval(challenge.challenges[0].challenge))
-          // NOTE RINSE: delete line below, the correct challengeAnswer above should trigger a pendingApproval, wrong challengeAnswer should fail without pendingApproval
-          challengeAnswer = 'wrong answer'
-          comment.publishChallengeAnswers([challengeAnswer]) // publish correct challenge answer
+          await waitFor(() => !!challenge2)
+          expect(challenge2.type).to.equal('CHALLENGE')
+          let challengeAnswer = String(eval(challenge2.challenges[0].challenge))
+          // challengeAnswer = 'wrong answer'
+          comment2.publishChallengeAnswers([challengeAnswer]) // publish correct challenge answer
           // wait for challenge verification
-          await waitFor(() => !!challengeVerification)
-          expect(challengeVerification.type).to.equal('CHALLENGEVERIFICATION')
-          expect(challengeVerification.challengeSuccess).to.equal(true)
-          expect(challengeVerification.commentUpdate.pendingApproval).to.equal(true)
-          const pendingApprovalCommentCid = challengeVerification.commentUpdate.cid
+          await waitFor(() => !!challengeVerification2)
+          expect(challengeVerification2.type).to.equal('CHALLENGEVERIFICATION')
+          expect(challengeVerification2.challengeSuccess).to.equal(true)
+          expect(challengeVerification2.commentUpdate.pendingApproval).to.equal(true)
+          const pendingApprovalCommentCid = challengeVerification2.commentUpdate.cid
           expect(typeof pendingApprovalCommentCid).to.equal('string')
           console.log('after onChallengeVerification')
 
           // wait for pending approval in modQueue
           console.log(`before useFeed({modQueue: ['pendingApproval']})`)
           await waitFor(() => rendered.result.current.modQueue.feed.length > 0)
-          // NOTE RINSE: uncomment below, if the first challenge fails, should only have 1 comment in modQueue
-          // expect(rendered.result.current.modQueue.feed.length).to.equal(1)
+          console.log(rendered.result.current.modQueue.feed)
+          expect(rendered.result.current.modQueue.feed.length).to.equal(1)
           expect(rendered.result.current.modQueue.feed[0].pendingApproval).to.equal(true)
           expect(rendered.result.current.modQueue.feed[0].content).to.equal(publishCommentOptions.content)
           console.log(`after useFeed({modQueue: ['pendingApproval']})`)

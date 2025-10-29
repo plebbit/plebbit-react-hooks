@@ -34,7 +34,7 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#d3d7a551ec6bd9e07ef31de29b3bdf4b845726cb",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#cf45d92364c34c45d83ada8d753a3d2c2b1c9857",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
     "assert": "2.0.0",
     "ethers": "5.6.9",
