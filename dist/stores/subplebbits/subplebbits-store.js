@@ -145,6 +145,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
             assert(subplebbitAddress !== '' && typeof subplebbitAddress === 'string', `subplebbitsStore.editSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`);
             assert(subplebbitEditOptions && typeof subplebbitEditOptions === 'object', `subplebbitsStore.editSubplebbit invalid subplebbitEditOptions argument '${subplebbitEditOptions}'`);
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsStore.editSubplebbit invalid account argument '${account}'`);
+            // if not added to store first, subplebbit.update() is never called
+            yield getState().addSubplebbitToStore(subplebbitAddress, account);
             // `subplebbitAddress` is different from  `subplebbitEditOptions.address` when editing the subplebbit address
             const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
             yield subplebbit.edit(subplebbitEditOptions);
@@ -170,6 +172,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
             }
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsStore.createSubplebbit invalid account argument '${account}'`);
             const subplebbit = yield account.plebbit.createSubplebbit(createSubplebbitOptions);
+            // if not added to store first, subplebbit.update() is never called
+            yield getState().addSubplebbitToStore(subplebbit.address, account);
             yield subplebbitsDatabase.setItem(subplebbit.address, utils.clone(subplebbit));
             log('subplebbitsStore.createSubplebbit', { createSubplebbitOptions, subplebbit, account });
             setState((state) => ({ subplebbits: Object.assign(Object.assign({}, state.subplebbits), { [subplebbit.address]: utils.clone(subplebbit) }) }));
