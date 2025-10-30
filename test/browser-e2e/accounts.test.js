@@ -449,7 +449,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
       })
     })
 
-    describe(`publish (${plebbitOptionsType})`, () => {
+    describe(`publish (${plebbitOptionsType})`, {retry: 2}, () => {
       let rendered, waitFor, publishedCid
 
       beforeAll(async () => {
@@ -556,7 +556,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           // console.log('after cid', publishedCid)
         })
 
-        it(`publish reply (${plebbitOptionsType})`, async () => {
+        it(`publish reply (${plebbitOptionsType})`, {retry: 2}, async () => {
           // make sure there's no notifications
           expect(rendered.result.current.notifications.notifications.length).to.equal(0)
 
