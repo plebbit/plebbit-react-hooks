@@ -2604,11 +2604,10 @@
   version "0.0.1"
   resolved "https://codeload.github.com/plebbit/plebbit-logger/tar.gz/355a96d7659ed820047980049dfa627d30d83a69"
   dependencies:
-    debug "4.3.4"
+    debug "4.3.3"
 
 "@plebbit/plebbit-logger@https://github.com/plebbit/plebbit-logger.git":
   version "0.0.1"
-  uid "355a96d7659ed820047980049dfa627d30d83a69"
   resolved "https://github.com/plebbit/plebbit-logger.git#355a96d7659ed820047980049dfa627d30d83a69"
   dependencies:
     debug "4.3.4"
@@ -7331,10 +7330,10 @@ kubo-rpc-client@6.0.2:
     uint8arrays "^5.0.3"
     wherearewe "^2.0.1"
 
-kubo@0.34.1:
-  version "0.34.1"
-  resolved "https://registry.yarnpkg.com/kubo/-/kubo-0.34.1.tgz#ac055ff29a363ae0310a05566e6c244c07378104"
-  integrity sha512-gQSyEY/LWJyJ37CVg/IyPYATKjTrGSvYdRIHrdASyL7BiHMR346fumhwOacBsHh7AYXqpbm416s5OaNh0Opvpg==
+kubo@0.38.2:
+  version "0.38.2"
+  resolved "https://registry.yarnpkg.com/kubo/-/kubo-0.38.2.tgz#b9dfb2d1772ca871b86cc3ab802d195f65242d03"
+  integrity sha512-nqOK0oNcQ7tH5z4H8Nd98taJcwIdrzukixCxrS342deESA2B9BXXenRq7LUUd1HO1JidOas+koY46sFqedBkzw==
   dependencies:
     cachedir "^2.3.0"
     got "^11.7.0"
