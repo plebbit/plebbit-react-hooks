@@ -339,6 +339,15 @@ describe('comments', () => {
         throw Error('this is not an error, plebbit.validateComment was mocked by a test to throw invalid')
       }
 
+      // silence invalid comments logs
+      const originalLog = console.log
+      console.log = (...args) => {
+        if (/this is not an error/.test(args[1]?.error)) {
+          return
+        }
+        originalLog.call(console, ...args)
+      }
+
       expect(rendered.result.current.valid).toBe(false)
       expect(rendered.result.current.state).toBe('initializing')
 
@@ -353,6 +362,7 @@ describe('comments', () => {
       expect(rendered.result.current.state).toBe('failed')
 
       Plebbit.prototype.validateComment = validateComment
+      console.log = originalLog
     })
   })
 })
