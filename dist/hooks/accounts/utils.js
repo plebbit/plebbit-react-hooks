@@ -106,7 +106,7 @@ const useAccountCalculatedProperties = (account, accountComments, accountComment
 export const useAccountWithCalculatedProperties = (account, accountComments, accountCommentsReplies) => {
     var _a, _b;
     const accountCalculatedProperties = useAccountCalculatedProperties(account, accountComments, accountCommentsReplies);
-    const shortAddress = ((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address) && PlebbitJs.Plebbit.getShortAddress((_b = account === null || account === void 0 ? void 0 : account.author) === null || _b === void 0 ? void 0 : _b.address);
+    const shortAddress = ((_a = account === null || account === void 0 ? void 0 : account.author) === null || _a === void 0 ? void 0 : _a.address) && PlebbitJs.Plebbit.getShortAddress({ address: (_b = account === null || account === void 0 ? void 0 : account.author) === null || _b === void 0 ? void 0 : _b.address });
     return useMemo(() => {
         if (!account) {
             return;
@@ -196,7 +196,7 @@ const useAccountsAuthorShortAddresses = (accounts) => {
             let shouldUpdate = false;
             for (const accountId in accounts || {}) {
                 const address = (_b = (_a = accounts === null || accounts === void 0 ? void 0 : accounts[accountId]) === null || _a === void 0 ? void 0 : _a.author) === null || _b === void 0 ? void 0 : _b.address;
-                newShortAddresses[accountId] = PlebbitJs.Plebbit.getShortAddress(address);
+                newShortAddresses[accountId] = PlebbitJs.Plebbit.getShortAddress({ address });
                 if (shortAddresses[accountId] !== newShortAddresses[accountId]) {
                     shouldUpdate = true;
                 }

@@ -629,7 +629,7 @@ const getCommentsPage = (pageCid, subplebbitOrComment) => __awaiter(void 0, void
         }
         pageCommentCids.add(cid);
         // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
-        const comment = yield plebbit.getComment(cid);
+        const comment = yield plebbit.getComment({ cid });
         comment.subplebbitAddress = subplebbitAddress;
         const commentUpdateContent = yield getCommentUpdateContent(comment);
         for (const prop in commentUpdateContent) {
@@ -658,7 +658,7 @@ class Plebbit extends EventEmitter {
             };
         });
     }
-    resolveAuthorAddress(authorAddress) {
+    resolveAuthorAddress(options) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
     createSubplebbit(createSubplebbitOptions) {
@@ -676,21 +676,20 @@ class Plebbit extends EventEmitter {
             return subplebbit;
         });
     }
-    getSubplebbit(subplebbitAddress) {
+    getSubplebbit(options) {
         return __awaiter(this, void 0, void 0, function* () {
-            const createSubplebbitOptions = {
-                address: subplebbitAddress,
-            };
+            const address = options === null || options === void 0 ? void 0 : options.address;
+            const createSubplebbitOptions = { address };
             const subplebbit = new Subplebbit(createSubplebbitOptions);
-            const hotPageCid = yield seedToCid(yield getNumberHash(subplebbitAddress + 'hotpagecid'));
+            const hotPageCid = yield seedToCid(yield getNumberHash(address + 'hotpagecid'));
             subplebbit.posts.pages.hot = yield getCommentsPage(hotPageCid, subplebbit);
             subplebbit.posts.pageCids = {
-                hot: yield seedToCid(yield getNumberHash(subplebbitAddress + 'hotpagecid2')),
-                topAll: yield seedToCid(yield getNumberHash(subplebbitAddress + 'topallpagecid')),
-                new: yield seedToCid(yield getNumberHash(subplebbitAddress + 'newpagecid')),
-                active: yield seedToCid(yield getNumberHash(subplebbitAddress + 'activepagecid')),
+                hot: yield seedToCid(yield getNumberHash(address + 'hotpagecid2')),
+                topAll: yield seedToCid(yield getNumberHash(address + 'topallpagecid')),
+                new: yield seedToCid(yield getNumberHash(address + 'newpagecid')),
+                active: yield seedToCid(yield getNumberHash(address + 'activepagecid')),
             };
-            const subplebbitContent = yield getSubplebbitContent(subplebbitAddress);
+            const subplebbitContent = yield getSubplebbitContent(address);
             // add extra props
             for (const prop in subplebbitContent) {
                 subplebbit[prop] = subplebbitContent[prop];
@@ -708,19 +707,20 @@ class Plebbit extends EventEmitter {
             return new Comment(createCommentOptions);
         });
     }
-    getComment(commentCid) {
+    getComment(options) {
         return __awaiter(this, void 0, void 0, function* () {
-            const commentSeedNumber = SeedIncrementer(yield getNumberHash(commentCid + 'getcomment'));
-            let commentContent = yield getPostContent(commentCid + 'postcontent');
-            const isReply = commentCid.endsWith('reply');
+            const cid = options === null || options === void 0 ? void 0 : options.cid;
+            const commentSeedNumber = SeedIncrementer(yield getNumberHash(cid + 'getcomment'));
+            let commentContent = yield getPostContent(cid + 'postcontent');
+            const isReply = cid.endsWith('reply');
             if (isReply) {
                 const depth = yield getNumberBetween(1, 10, commentSeedNumber.increment());
                 const parentCid = yield seedToCid(commentSeedNumber.increment());
                 const postCid = depth === 1 ? parentCid : yield seedToCid(commentSeedNumber.increment());
                 const getReplyContentOptions = { depth, parentCid, postCid };
-                commentContent = yield getReplyContent(getReplyContentOptions, commentCid + 'replycontent');
+                commentContent = yield getReplyContent(getReplyContentOptions, cid + 'replycontent');
             }
-            const createCommentOptions = Object.assign({ cid: commentCid, timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()), subplebbitAddress: 'memes.eth' }, commentContent);
+            const createCommentOptions = Object.assign({ cid, timestamp: yield getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()), subplebbitAddress: 'memes.eth' }, commentContent);
             const comment = new Comment(createCommentOptions);
             // add missing props from createCommentOptions
             for (const prop in createCommentOptions) {
@@ -745,8 +745,9 @@ class Plebbit extends EventEmitter {
             return new SubplebbitEdit();
         });
     }
-    fetchCid(cid) {
+    fetchCid(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cid = options === null || options === void 0 ? void 0 : options.cid;
             if (cid === null || cid === void 0 ? void 0 : cid.startsWith('statscid')) {
                 return JSON.stringify({
                     hourActiveUserCount: 1,
@@ -803,11 +804,12 @@ class Pages {
         Object.defineProperty(this, 'subplebbit', { value: pagesOptions === null || pagesOptions === void 0 ? void 0 : pagesOptions.subplebbit, enumerable: false });
         Object.defineProperty(this, 'comment', { value: pagesOptions === null || pagesOptions === void 0 ? void 0 : pagesOptions.comment, enumerable: false });
     }
-    getPage(pageCid) {
+    getPage(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cid = options === null || options === void 0 ? void 0 : options.cid;
             // need to wait twice otherwise react renders too fast and fetches too many pages in advance
             yield simulateLoadingTime();
-            return getCommentsPage(pageCid, this.subplebbit || this.comment);
+            return getCommentsPage(cid, this.subplebbit || this.comment);
         });
     }
     validatePage(page) {
@@ -905,7 +907,7 @@ class Subplebbit extends EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             this._getSubplebbitOnFirstUpdate = false;
             // @ts-ignore
-            const subplebbit = yield new Plebbit().getSubplebbit(this.address);
+            const subplebbit = yield new Plebbit().getSubplebbit({ address: this.address });
             const props = JSON.parse(JSON.stringify(subplebbit));
             for (const prop in props) {
                 if (prop.startsWith('_')) {
@@ -1065,7 +1067,7 @@ class Comment extends Publication {
         return __awaiter(this, void 0, void 0, function* () {
             this._getCommentOnFirstUpdate = false;
             // @ts-ignore
-            const comment = yield new Plebbit().getComment(this.cid);
+            const comment = yield new Plebbit().getComment({ cid: this.cid });
             const props = JSON.parse(JSON.stringify(comment));
             for (const prop in props) {
                 if (prop.startsWith('_')) {
@@ -1101,13 +1103,15 @@ export class SubplebbitEdit extends Publication {
 const createPlebbit = (...args) => __awaiter(void 0, void 0, void 0, function* () {
     return new Plebbit(...args);
 });
-createPlebbit.getShortAddress = (address) => {
+createPlebbit.getShortAddress = (options) => {
+    const address = options === null || options === void 0 ? void 0 : options.address;
     if (address.includes('.')) {
         return address;
     }
     return address.substring(0, 12);
 };
-createPlebbit.getShortCid = (cid) => {
+createPlebbit.getShortCid = (options) => {
+    const cid = options === null || options === void 0 ? void 0 : options.cid;
     return cid.substring(0, 12);
 };
 export default createPlebbit;

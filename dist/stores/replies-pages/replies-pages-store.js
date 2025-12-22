@@ -175,7 +175,7 @@ const fetchPage = (pageCid, comment, account) => __awaiter(void 0, void 0, void 
         utils.pageClientsOnStateChange((_d = fetchPageComments[comment.cid].replies) === null || _d === void 0 ? void 0 : _d.clients, onCommentRepliesClientsStateChange(comment.cid));
     }
     const onError = (error) => log.error(`repliesPagesStore comment '${comment.cid}' failed comment.replies.getPage page cid '${pageCid}':`, error);
-    const fetchedRepliesPage = yield utils.retryInfinity(() => fetchPageComments[comment.cid].replies.getPage(pageCid), { onError });
+    const fetchedRepliesPage = yield utils.retryInfinity(() => fetchPageComments[comment.cid].replies.getPage({ cid: pageCid }), { onError });
     yield repliesPagesDatabase.setItem(pageCid, utils.clone(fetchedRepliesPage));
     return fetchedRepliesPage;
 });

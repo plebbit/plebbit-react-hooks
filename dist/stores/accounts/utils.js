@@ -197,12 +197,12 @@ export const getAccountCommentDepth = (comment) => {
 export const addShortAddressesToAccountComment = (comment) => {
     comment = Object.assign({}, comment);
     try {
-        comment.shortSubplebbitAddress = PlebbitJs.Plebbit.getShortAddress(comment.subplebbitAddress);
+        comment.shortSubplebbitAddress = PlebbitJs.Plebbit.getShortAddress({ address: comment.subplebbitAddress });
     }
     catch (e) { }
     try {
         comment.author = Object.assign({}, comment.author);
-        comment.author.shortAddress = PlebbitJs.Plebbit.getShortAddress(comment.author.address);
+        comment.author.shortAddress = PlebbitJs.Plebbit.getShortAddress({ address: comment.author.address });
     }
     catch (e) { }
     return comment;

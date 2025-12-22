@@ -169,7 +169,7 @@ const fetchPage = (pageCid, subplebbitAddress, account, pageType) => __awaiter(v
         utils.pageClientsOnStateChange((_d = fetchPageSubplebbits[subplebbitAddress][pageType]) === null || _d === void 0 ? void 0 : _d.clients, onSubplebbitPostsClientsStateChange(subplebbitAddress));
     }
     const onError = (error) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error);
-    const fetchedSubplebbitPage = yield utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress][pageType].getPage(pageCid), { onError });
+    const fetchedSubplebbitPage = yield utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress][pageType].getPage({ cid: pageCid }), { onError });
     yield subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage));
     return fetchedSubplebbitPage;
 });

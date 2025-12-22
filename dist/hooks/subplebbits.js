@@ -71,7 +71,7 @@ export function useSubplebbitStats(options) {
         (() => __awaiter(this, void 0, void 0, function* () {
             let fetchedCid;
             try {
-                fetchedCid = yield account.plebbit.fetchCid(subplebbitStatsCid);
+                fetchedCid = yield account.plebbit.fetchCid({ cid: subplebbitStatsCid });
                 fetchedCid = JSON.parse(fetchedCid);
                 setSubplebbitStats(subplebbitAddress, fetchedCid);
             }

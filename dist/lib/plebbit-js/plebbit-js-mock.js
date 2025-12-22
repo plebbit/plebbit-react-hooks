@@ -31,7 +31,7 @@ export class Plebbit extends EventEmitter {
             },
         };
     }
-    resolveAuthorAddress(authorAddress) {
+    resolveAuthorAddress(options) {
         return __awaiter(this, void 0, void 0, function* () {
             return 'resolved author address';
         });
@@ -75,12 +75,11 @@ export class Plebbit extends EventEmitter {
             return new Subplebbit(createSubplebbitOptions);
         });
     }
-    getSubplebbit(subplebbitAddress) {
+    getSubplebbit(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const address = options === null || options === void 0 ? void 0 : options.address;
             yield simulateLoadingTime();
-            const createSubplebbitOptions = {
-                address: subplebbitAddress,
-            };
+            const createSubplebbitOptions = { address };
             const subplebbit = new Subplebbit(createSubplebbitOptions);
             subplebbit.title = subplebbit.address + ' title';
             const hotPageCid = subplebbit.address + ' page cid hot';
@@ -106,12 +105,13 @@ export class Plebbit extends EventEmitter {
             return new Comment(createCommentOptions);
         });
     }
-    getComment(commentCid) {
+    getComment(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cid = options === null || options === void 0 ? void 0 : options.cid;
             yield simulateLoadingTime();
-            const createCommentOptions = Object.assign({ cid: commentCid, 
+            const createCommentOptions = Object.assign({ cid, 
                 // useComment() requires timestamp or will use account comment instead of comment from store
-                timestamp: 1670000000 }, this.commentToGet(commentCid));
+                timestamp: 1670000000 }, this.commentToGet(cid));
             return new Comment(createCommentOptions);
         });
     }
@@ -143,8 +143,9 @@ export class Plebbit extends EventEmitter {
             return new SubplebbitEdit(createSubplebbitEditOptions);
         });
     }
-    fetchCid(cid) {
+    fetchCid(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cid = options === null || options === void 0 ? void 0 : options.cid;
             if (cid === null || cid === void 0 ? void 0 : cid.startsWith('statscid')) {
                 return JSON.stringify({ hourActiveUserCount: 1 });
             }
@@ -188,11 +189,12 @@ export class Pages {
         Object.defineProperty(this, 'subplebbit', { value: pagesOptions === null || pagesOptions === void 0 ? void 0 : pagesOptions.subplebbit, enumerable: false });
         Object.defineProperty(this, 'comment', { value: pagesOptions === null || pagesOptions === void 0 ? void 0 : pagesOptions.comment, enumerable: false });
     }
-    getPage(pageCid) {
+    getPage(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cid = options === null || options === void 0 ? void 0 : options.cid;
             // need to wait twice otherwise react renders too fast and fetches too many pages in advance
             yield simulateLoadingTime();
-            return this.pageToGet(pageCid);
+            return this.pageToGet(cid);
         });
     }
     validatePage(page) {
@@ -496,7 +498,7 @@ export class Comment extends Publication {
     simulateFetchCommentIpfsUpdateEvent() {
         return __awaiter(this, void 0, void 0, function* () {
             // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
-            const commentIpfs = yield new Plebbit().getComment(this.cid || '');
+            const commentIpfs = yield new Plebbit().getComment({ cid: this.cid || '' });
             this.content = commentIpfs.content;
             this.author = commentIpfs.author;
             this.timestamp = commentIpfs.timestamp;
@@ -523,13 +525,15 @@ export class SubplebbitEdit extends Publication {
 const createPlebbit = (...args) => __awaiter(void 0, void 0, void 0, function* () {
     return new Plebbit(...args);
 });
-createPlebbit.getShortAddress = (address) => {
+createPlebbit.getShortAddress = (options) => {
+    const address = options === null || options === void 0 ? void 0 : options.address;
     if (address.includes('.')) {
         return address;
     }
     return address.substring(2, 14);
 };
-createPlebbit.getShortCid = (cid) => {
+createPlebbit.getShortCid = (options) => {
+    const cid = options === null || options === void 0 ? void 0 : options.cid;
     return cid.substring(2, 14);
 };
 export default createPlebbit;

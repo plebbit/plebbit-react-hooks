@@ -4,22 +4,30 @@ export declare const simulateLoadingTime: () => Promise<unknown>;
 export declare const resetPlebbitJsMock: () => void;
 export declare const debugPlebbitJsMock: () => void;
 export declare class Plebbit extends EventEmitter {
-    resolveAuthorAddress(authorAddress: string): Promise<string>;
+    resolveAuthorAddress(options: {
+        address: string;
+    }): Promise<string>;
     createSigner(): Promise<{
         privateKey: string;
         address: string;
     }>;
     createSubplebbit(createSubplebbitOptions: any): Promise<Subplebbit>;
-    getSubplebbit(subplebbitAddress: string): Promise<any>;
+    getSubplebbit(options: {
+        address: string;
+    }): Promise<any>;
     get subplebbits(): string[];
     createComment(createCommentOptions: any): Promise<Comment>;
-    getComment(commentCid: string): Promise<Comment>;
+    getComment(options: {
+        cid: string;
+    }): Promise<Comment>;
     commentToGet(commentCid?: string): {};
     createVote(): Promise<Vote>;
     createCommentEdit(createCommentEditOptions: any): Promise<CommentEdit>;
     createCommentModeration(createCommentModerationOptions: any): Promise<CommentModeration>;
     createSubplebbitEdit(createSubplebbitEditOptions: any): Promise<SubplebbitEdit>;
-    fetchCid(cid: string): Promise<string>;
+    fetchCid(options: {
+        cid: string;
+    }): Promise<string>;
     pubsubSubscribe(subplebbitAddress: string): Promise<void>;
     pubsubUnsubscribe(subplebbitAddress: string): Promise<void>;
     clients: {
@@ -41,7 +49,9 @@ export declare class Pages {
     subplebbit: any;
     comment: any;
     constructor(pagesOptions?: any);
-    getPage(pageCid: string): Promise<any>;
+    getPage(options: {
+        cid: string;
+    }): Promise<any>;
     validatePage(page: any): Promise<void>;
     pageToGet(pageCid: string): any;
 }

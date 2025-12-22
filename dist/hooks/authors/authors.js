@@ -224,7 +224,7 @@ export function useAuthorAddress(options) {
                 return resolveAuthorAddressPromises[(_b = comment === null || comment === void 0 ? void 0 : comment.author) === null || _b === void 0 ? void 0 : _b.address];
             }
             log('useAuthorAddress plebbit.resolveAuthorAddress', { address: (_c = comment === null || comment === void 0 ? void 0 : comment.author) === null || _c === void 0 ? void 0 : _c.address });
-            resolveAuthorAddressPromises[(_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address] = account.plebbit.resolveAuthorAddress((_e = comment === null || comment === void 0 ? void 0 : comment.author) === null || _e === void 0 ? void 0 : _e.address);
+            resolveAuthorAddressPromises[(_d = comment === null || comment === void 0 ? void 0 : comment.author) === null || _d === void 0 ? void 0 : _d.address] = account.plebbit.resolveAuthorAddress({ address: (_e = comment === null || comment === void 0 ? void 0 : comment.author) === null || _e === void 0 ? void 0 : _e.address });
             return resolveAuthorAddressPromises[(_f = comment === null || comment === void 0 ? void 0 : comment.author) === null || _f === void 0 ? void 0 : _f.address];
         };
         const resolveAuthorAddress = () => __awaiter(this, void 0, void 0, function* () {
@@ -261,7 +261,7 @@ export function useAuthorAddress(options) {
     if (comment && !(comment === null || comment === void 0 ? void 0 : comment.signature)) {
         authorAddress = (_j = comment === null || comment === void 0 ? void 0 : comment.author) === null || _j === void 0 ? void 0 : _j.address;
     }
-    let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress);
+    let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress({ address: authorAddress });
     // if shortAddress is smaller than crypto name, give a longer
     // shortAddress to cause the least UI displacement as possible
     // -4 chars because most fonts will make the address larger
@@ -319,7 +319,7 @@ export function useResolvedAuthorAddress(options) {
             return resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address];
         }
         log('useResolvedAuthorAddress plebbit.resolveAuthorAddress', { address: author === null || author === void 0 ? void 0 : author.address });
-        resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address] = account.plebbit.resolveAuthorAddress(author === null || author === void 0 ? void 0 : author.address);
+        resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address] = account.plebbit.resolveAuthorAddress({ address: author === null || author === void 0 ? void 0 : author.address });
         return resolveAuthorAddressPromises[author === null || author === void 0 ? void 0 : author.address];
     };
     const resolveAuthorAddress = () => __awaiter(this, void 0, void 0, function* () {
