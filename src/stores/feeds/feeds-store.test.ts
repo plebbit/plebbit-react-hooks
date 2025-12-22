@@ -23,11 +23,12 @@ class MockPages {
     }
   }
 
-  async getPage(pageCid: string) {
+  async getPage(options: {cid: string}) {
+    const cid = options?.cid
     await sleep(200)
     const page: SubplebbitPage = {
-      nextCid: pageCid + ' - next page cid',
-      comments: this.getPageMockComments(pageCid),
+      nextCid: cid + ' - next page cid',
+      comments: this.getPageMockComments(cid),
     }
     return page
   }
@@ -63,7 +64,7 @@ const mockAccount: any = {
   id: 'mock account id',
   plebbit: {
     createSubplebbit: async ({address}: any) => new MockSubplebbit({address}),
-    getSubplebbit: async (subplebbitAddress: string) => new MockSubplebbit({address: subplebbitAddress}),
+    getSubplebbit: async (options: {address: string}) => new MockSubplebbit({address: options?.address}),
     subplebbits: [],
     async validateComment(comment: any) {},
   },

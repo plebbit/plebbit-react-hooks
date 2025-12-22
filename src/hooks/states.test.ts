@@ -188,7 +188,8 @@ class Pages {
   constructor(subplebbitAddress) {
     this.subplebbitAddress = subplebbitAddress
   }
-  async getPage(pageCid: string) {
+  async getPage(options: {cid: string}) {
+    const cid = options?.cid
     await simulateLoadingTime(100)
     changeClientsStates(this.clients, 'ipfsGateways', [ipfsGatewayUrl1, ipfsGatewayUrl2], 'fetching-ipfs', 'new')
     changeClientsStates(this.clients, 'kuboRpcClients', [ipfsClientUrl1, ipfsClientUrl2], 'fetching-ipfs', 'new')
@@ -200,9 +201,9 @@ class Pages {
 
     return {
       comments: [
-        {cid: `${pageCid} cid 1`, subplebbitAddress: this.subplebbitAddress},
-        {cid: `${pageCid} cid 2`, subplebbitAddress: this.subplebbitAddress},
-        {cid: `${pageCid} cid 3`, subplebbitAddress: this.subplebbitAddress},
+        {cid: `${cid} cid 1`, subplebbitAddress: this.subplebbitAddress},
+        {cid: `${cid} cid 2`, subplebbitAddress: this.subplebbitAddress},
+        {cid: `${cid} cid 3`, subplebbitAddress: this.subplebbitAddress},
       ],
     }
   }

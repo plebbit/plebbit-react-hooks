@@ -24,11 +24,12 @@ class MockPages {
     }
   }
 
-  async getPage(pageCid: string) {
+  async getPage(options: {cid: string}) {
+    const cid = options?.cid
     await sleep(200)
     const page: RepliesPage = {
-      nextCid: pageCid + ' - next page cid',
-      comments: this.getPageMockComments(pageCid),
+      nextCid: cid + ' - next page cid',
+      comments: this.getPageMockComments(cid),
     }
     return page
   }
@@ -136,7 +137,7 @@ describe('replies pages store', () => {
 
     // no more pages
     const getPage = MockPages.prototype.getPage
-    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: undefined})
+    MockPages.prototype.getPage = async (options) => ({comments: [], nextCid: undefined})
 
     act(() => {
       rendered.result.current.addNextRepliesPageToStore(mockComment, sortType, mockAccount)
@@ -189,7 +190,7 @@ describe('replies pages store', () => {
 
     // no more pages
     const getPage = MockPages.prototype.getPage
-    MockPages.prototype.getPage = async (pageCid) => ({comments: [], nextCid: undefined})
+    MockPages.prototype.getPage = async (options) => ({comments: [], nextCid: undefined})
 
     act(() => {
       rendered.result.current.addNextRepliesPageToStore(mockComment, sortType, mockAccount)

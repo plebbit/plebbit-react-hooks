@@ -89,7 +89,7 @@ export function useSubplebbitStats(options?: UseSubplebbitStatsOptions): UseSubp
     ;(async () => {
       let fetchedCid
       try {
-        fetchedCid = await account.plebbit.fetchCid(subplebbitStatsCid)
+        fetchedCid = await account.plebbit.fetchCid({cid: subplebbitStatsCid})
         fetchedCid = JSON.parse(fetchedCid)
         setSubplebbitStats(subplebbitAddress, fetchedCid)
       } catch (error) {

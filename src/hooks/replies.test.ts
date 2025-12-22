@@ -319,13 +319,14 @@ describe('replies', () => {
     test('hasMore false', async () => {
       // mock a page with no nextCid
       const getPage = Pages.prototype.getPage
-      Pages.prototype.getPage = async function (pageCid: string) {
+      Pages.prototype.getPage = async function (options: {cid: string}) {
+        const cid = options?.cid
         await simulateLoadingTime()
         const page: any = {comments: []}
         while (page.comments.length < 100) {
           page.comments.push({
             timestamp: page.comments.length + 1,
-            cid: pageCid + ' comment cid ' + (page.comments.length + 1),
+            cid: cid + ' comment cid ' + (page.comments.length + 1),
             subplebbitAddress: this.comment.subplebbitAddress,
           })
         }

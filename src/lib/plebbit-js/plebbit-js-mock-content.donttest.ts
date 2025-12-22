@@ -68,11 +68,11 @@ describe.skip('PlebbitJsMockContent', () => {
           console.log(subplebbit.posts.pages)
           // subplebbit.removeAllListeners()
           try {
-            // const page = await subplebbit.posts.getPage(subplebbit.posts.pageCids.new)
+            // const page = await subplebbit.posts.getPage({cid: subplebbit.posts.pageCids.new})
             // console.log(page)
             // const comment = page.comments[0]
             // console.log({comment})
-            // const comment2 = await plebbit.getComment(comment.cid)
+            // const comment2 = await plebbit.getComment({cid: comment.cid})
             // console.log({comment2})
           } catch (e) {
             console.log(e)

@@ -249,7 +249,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
         return resolveAuthorAddressPromises[comment?.author?.address]
       }
       log('useAuthorAddress plebbit.resolveAuthorAddress', {address: comment?.author?.address})
-      resolveAuthorAddressPromises[comment?.author?.address] = account.plebbit.resolveAuthorAddress(comment?.author?.address)
+      resolveAuthorAddressPromises[comment?.author?.address] = account.plebbit.resolveAuthorAddress({address: comment?.author?.address})
       return resolveAuthorAddressPromises[comment?.author?.address]
     }
     const resolveAuthorAddress = async () => {
@@ -287,7 +287,7 @@ export function useAuthorAddress(options?: UseAuthorAddressOptions): UseAuthorAd
     authorAddress = comment?.author?.address
   }
 
-  let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress(authorAddress)
+  let shortAuthorAddress = authorAddress && PlebbitJs.Plebbit.getShortAddress({address: authorAddress})
 
   // if shortAddress is smaller than crypto name, give a longer
   // shortAddress to cause the least UI displacement as possible
@@ -356,7 +356,7 @@ export function useResolvedAuthorAddress(options?: UseResolvedAuthorAddressOptio
       return resolveAuthorAddressPromises[author?.address]
     }
     log('useResolvedAuthorAddress plebbit.resolveAuthorAddress', {address: author?.address})
-    resolveAuthorAddressPromises[author?.address] = account.plebbit.resolveAuthorAddress(author?.address)
+    resolveAuthorAddressPromises[author?.address] = account.plebbit.resolveAuthorAddress({address: author?.address})
     return resolveAuthorAddressPromises[author?.address]
   }
   const resolveAuthorAddress = async () => {

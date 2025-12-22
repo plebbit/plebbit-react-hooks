@@ -191,7 +191,7 @@ const fetchPage = async (pageCid: string, comment: Comment, account: Account) =>
   }
 
   const onError = (error: any) => log.error(`repliesPagesStore comment '${comment.cid}' failed comment.replies.getPage page cid '${pageCid}':`, error)
-  const fetchedRepliesPage = await utils.retryInfinity(() => fetchPageComments[comment.cid].replies.getPage(pageCid), {onError})
+  const fetchedRepliesPage = await utils.retryInfinity(() => fetchPageComments[comment.cid].replies.getPage({cid: pageCid}), {onError})
   await repliesPagesDatabase.setItem(pageCid, utils.clone(fetchedRepliesPage))
   return fetchedRepliesPage
 }

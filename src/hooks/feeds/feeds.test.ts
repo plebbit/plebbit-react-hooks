@@ -159,13 +159,14 @@ describe('feeds', () => {
     test('get feed with newerThan', async () => {
       const getPage = Pages.prototype.getPage
       const now = Math.floor(Date.now() / 1000)
-      Pages.prototype.getPage = async function (pageCid: string) {
+      Pages.prototype.getPage = async function (options: {cid: string}) {
+        const cid = options?.cid
         await simulateLoadingTime()
         const page: any = {comments: []}
         while (page.comments.length < 100) {
           page.comments.push({
             timestamp: now - page.comments.length, // 1 post per second
-            cid: pageCid + ' comment cid ' + (page.comments.length + 1),
+            cid: cid + ' comment cid ' + (page.comments.length + 1),
             subplebbitAddress: this.subplebbit.address,
           })
         }
@@ -193,7 +194,7 @@ describe('feeds', () => {
     test('get feed with newerThan sortType active', async () => {
       const getPage = Pages.prototype.getPage
       const now = Math.floor(Date.now() / 1000)
-      Pages.prototype.getPage = async function (pageCid: string) {
+      Pages.prototype.getPage = async function (options: {cid: string}) {
         await simulateLoadingTime()
         return {
           comments: [
@@ -368,7 +369,8 @@ describe('feeds', () => {
     test('get feed with 1 subplebbit sorted by new and scroll to multiple pages', async () => {
       let getPageCalledTimes = 0
       const getPage = Pages.prototype.getPage
-      Pages.prototype.getPage = async function (pageCid: string) {
+      Pages.prototype.getPage = async function (options: {cid: string}) {
+        const cid = options?.cid
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         const page: any = {
@@ -381,7 +383,7 @@ describe('feeds', () => {
         while (index++ < postCount) {
           page.comments.push({
             timestamp: commentStartIndex + index,
-            cid: pageCid + ' comment cid ' + (commentStartIndex + index),
+            cid: cid + ' comment cid ' + (commentStartIndex + index),
             subplebbitAddress: this.subplebbit.address,
           })
         }
@@ -448,7 +450,8 @@ describe('feeds', () => {
         'subplebbit address 3': 0,
       }
       const getPage = Pages.prototype.getPage
-      Pages.prototype.getPage = async function (pageCid: string) {
+      Pages.prototype.getPage = async function (options: {cid: string}) {
+        const cid = options?.cid
         // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
         await simulateLoadingTime()
         await simulateLoadingTime()
@@ -464,7 +467,7 @@ describe('feeds', () => {
         while (index++ < postCount) {
           page.comments.push({
             timestamp: commentStartIndex + index,
-            cid: pageCid + ' comment cid ' + (commentStartIndex + index),
+            cid: cid + ' comment cid ' + (commentStartIndex + index),
             subplebbitAddress: this.subplebbit.address,
           })
         }
@@ -820,7 +823,8 @@ describe('feeds', () => {
 
       beforeEach(() => {
         // mock getPage to only give 1 or 2 pages
-        Pages.prototype.getPage = async function (pageCid: string) {
+        Pages.prototype.getPage = async function (options: {cid: string}) {
+          const cid = options?.cid
           // without the extra simulated load time the hooks will fetch multiple pages in advance instead of just 1
           await simulateLoadingTime()
           await simulateLoadingTime()
@@ -830,7 +834,7 @@ describe('feeds', () => {
           while (index++ < postCount) {
             page.comments.push({
               timestamp: index,
-              cid: pageCid + ' comment cid ' + index,
+              cid: cid + ' comment cid ' + index,
               subplebbitAddress: this.subplebbit.address,
             })
           }
@@ -960,10 +964,11 @@ describe('feeds', () => {
       const getPage = Pages.prototype.getPage
 
       beforeEach(() => {
-        Pages.prototype.getPage = async function (pageCid: string) {
+        Pages.prototype.getPage = async function (options: {cid: string}) {
+          const cid = options?.cid
           // it can get called with a next cid to fetch the second page
-          if (!pageCid.match('next')) {
-            throw Error(`subplebbit.getPage() was called with argument '${pageCid}', should not get called at all on first page of sort type 'hot'`)
+          if (!cid.match('next')) {
+            throw Error(`subplebbit.getPage() was called with argument '${cid}', should not get called at all on first page of sort type 'hot'`)
           }
           return {nextCid: undefined, comments: []}
         }
@@ -1034,12 +1039,13 @@ describe('feeds', () => {
 
       beforeEach(() => {
         const usedPageCids: any = {}
-        Pages.prototype.getPage = async function (pageCid: string) {
-          if (usedPageCids[pageCid]) {
-            throw Error(`subplebbit.getPage() already called with argument '${pageCid}'`)
+        Pages.prototype.getPage = async function (options: {cid: string}) {
+          const cid = options?.cid
+          if (usedPageCids[cid]) {
+            throw Error(`subplebbit.getPage() already called with argument '${cid}'`)
           }
-          usedPageCids[pageCid] = true
-          return getPage.bind(this)(pageCid)
+          usedPageCids[cid] = true
+          return getPage.bind(this)(cid)
         }
       })
 

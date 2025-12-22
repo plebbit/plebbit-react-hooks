@@ -185,7 +185,7 @@ const fetchPage = async (pageCid: string, subplebbitAddress: string, account: Ac
   }
 
   const onError = (error: any) => log.error(`subplebbitsPagesStore subplebbit '${subplebbitAddress}' failed subplebbit.posts.getPage page cid '${pageCid}':`, error)
-  const fetchedSubplebbitPage = await utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress][pageType].getPage(pageCid), {onError})
+  const fetchedSubplebbitPage = await utils.retryInfinity(() => fetchPageSubplebbits[subplebbitAddress][pageType].getPage({cid: pageCid}), {onError})
   await subplebbitsPagesDatabase.setItem(pageCid, utils.clone(fetchedSubplebbitPage))
   return fetchedSubplebbitPage
 }

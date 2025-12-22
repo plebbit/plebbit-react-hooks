@@ -18,7 +18,7 @@ export const debugPlebbitJsMock = () => {
 }
 
 export class Plebbit extends EventEmitter {
-  async resolveAuthorAddress(authorAddress: string) {
+  async resolveAuthorAddress(options: {address: string}) {
     return 'resolved author address'
   }
 
@@ -62,11 +62,10 @@ export class Plebbit extends EventEmitter {
     return new Subplebbit(createSubplebbitOptions)
   }
 
-  async getSubplebbit(subplebbitAddress: string) {
+  async getSubplebbit(options: {address: string}) {
+    const address = options?.address
     await simulateLoadingTime()
-    const createSubplebbitOptions = {
-      address: subplebbitAddress,
-    }
+    const createSubplebbitOptions = {address}
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
     subplebbit.title = subplebbit.address + ' title'
     const hotPageCid = subplebbit.address + ' page cid hot'
@@ -92,13 +91,14 @@ export class Plebbit extends EventEmitter {
     return new Comment(createCommentOptions)
   }
 
-  async getComment(commentCid: string) {
+  async getComment(options: {cid: string}) {
+    const cid = options?.cid
     await simulateLoadingTime()
     const createCommentOptions = {
-      cid: commentCid,
+      cid,
       // useComment() requires timestamp or will use account comment instead of comment from store
       timestamp: 1670000000,
-      ...this.commentToGet(commentCid),
+      ...this.commentToGet(cid),
     }
     return new Comment(createCommentOptions)
   }
@@ -128,7 +128,8 @@ export class Plebbit extends EventEmitter {
     return new SubplebbitEdit(createSubplebbitEditOptions)
   }
 
-  async fetchCid(cid: string) {
+  async fetchCid(options: {cid: string}) {
+    const cid = options?.cid
     if (cid?.startsWith('statscid')) {
       return JSON.stringify({hourActiveUserCount: 1})
     }
@@ -178,10 +179,11 @@ export class Pages {
     Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
   }
 
-  async getPage(pageCid: string) {
+  async getPage(options: {cid: string}) {
+    const cid = options?.cid
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return this.pageToGet(pageCid)
+    return this.pageToGet(cid)
   }
 
   async validatePage(page: any) {}
@@ -542,7 +544,7 @@ export class Comment extends Publication {
 
   async simulateFetchCommentIpfsUpdateEvent() {
     // use plebbit.getComment() so mocking Plebbit.prototype.getComment works
-    const commentIpfs = await new Plebbit().getComment(this.cid || '')
+    const commentIpfs = await new Plebbit().getComment({cid: this.cid || ''})
     this.content = commentIpfs.content
     this.author = commentIpfs.author
     this.timestamp = commentIpfs.timestamp
@@ -571,14 +573,16 @@ const createPlebbit: any = async (...args: any) => {
   return new Plebbit(...args)
 }
 
-createPlebbit.getShortAddress = (address: string) => {
+createPlebbit.getShortAddress = (options: {address: string}) => {
+  const address = options?.address
   if (address.includes('.')) {
     return address
   }
   return address.substring(2, 14)
 }
 
-createPlebbit.getShortCid = (cid: string) => {
+createPlebbit.getShortCid = (options: {cid: string}) => {
+  const cid = options?.cid
   return cid.substring(2, 14)
 }
 

@@ -215,11 +215,11 @@ export const getAccountCommentDepth = (comment: Comment) => {
 export const addShortAddressesToAccountComment = (comment: Comment) => {
   comment = {...comment}
   try {
-    comment.shortSubplebbitAddress = PlebbitJs.Plebbit.getShortAddress(comment.subplebbitAddress)
+    comment.shortSubplebbitAddress = PlebbitJs.Plebbit.getShortAddress({address: comment.subplebbitAddress})
   } catch (e) {}
   try {
     comment.author = {...comment.author}
-    comment.author.shortAddress = PlebbitJs.Plebbit.getShortAddress(comment.author.address)
+    comment.author.shortAddress = PlebbitJs.Plebbit.getShortAddress({address: comment.author.address})
   } catch (e) {}
   return comment
 }

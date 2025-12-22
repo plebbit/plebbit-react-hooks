@@ -696,7 +696,7 @@ const getCommentsPage = async (pageCid: string, subplebbitOrComment: any) => {
     }
     pageCommentCids.add(cid)
     // comment = {...comment, ...(await getPostContent(comment.cid)), ...(await getCommentUpdateContent(comment))}
-    const comment: any = await plebbit.getComment(cid)
+    const comment: any = await plebbit.getComment({cid})
     comment.subplebbitAddress = subplebbitAddress
     const commentUpdateContent: any = await getCommentUpdateContent(comment)
     for (const prop in commentUpdateContent) {
@@ -718,7 +718,7 @@ class Plebbit extends EventEmitter {
     }
   }
 
-  async resolveAuthorAddress(authorAddress: string) {}
+  async resolveAuthorAddress(options: {address: string}) {}
 
   async createSubplebbit(createSubplebbitOptions: any) {
     // if the only argument is {address}, the user didn't create the sub, it's a fetched sub
@@ -737,21 +737,20 @@ class Plebbit extends EventEmitter {
     return subplebbit
   }
 
-  async getSubplebbit(subplebbitAddress: string) {
-    const createSubplebbitOptions = {
-      address: subplebbitAddress,
-    }
+  async getSubplebbit(options: {address: string}) {
+    const address = options?.address
+    const createSubplebbitOptions = {address}
     const subplebbit: any = new Subplebbit(createSubplebbitOptions)
-    const hotPageCid = await seedToCid(await getNumberHash(subplebbitAddress + 'hotpagecid'))
+    const hotPageCid = await seedToCid(await getNumberHash(address + 'hotpagecid'))
     subplebbit.posts.pages.hot = await getCommentsPage(hotPageCid, subplebbit)
     subplebbit.posts.pageCids = {
-      hot: await seedToCid(await getNumberHash(subplebbitAddress + 'hotpagecid2')),
-      topAll: await seedToCid(await getNumberHash(subplebbitAddress + 'topallpagecid')),
-      new: await seedToCid(await getNumberHash(subplebbitAddress + 'newpagecid')),
-      active: await seedToCid(await getNumberHash(subplebbitAddress + 'activepagecid')),
+      hot: await seedToCid(await getNumberHash(address + 'hotpagecid2')),
+      topAll: await seedToCid(await getNumberHash(address + 'topallpagecid')),
+      new: await seedToCid(await getNumberHash(address + 'newpagecid')),
+      active: await seedToCid(await getNumberHash(address + 'activepagecid')),
     }
 
-    const subplebbitContent = await getSubplebbitContent(subplebbitAddress)
+    const subplebbitContent = await getSubplebbitContent(address)
     // add extra props
     for (const prop in subplebbitContent) {
       subplebbit[prop] = subplebbitContent[prop]
@@ -769,19 +768,20 @@ class Plebbit extends EventEmitter {
     return new Comment(createCommentOptions)
   }
 
-  async getComment(commentCid: string) {
-    const commentSeedNumber = SeedIncrementer(await getNumberHash(commentCid + 'getcomment'))
-    let commentContent: any = await getPostContent(commentCid + 'postcontent')
-    const isReply = commentCid.endsWith('reply')
+  async getComment(options: {cid: string}) {
+    const cid = options?.cid
+    const commentSeedNumber = SeedIncrementer(await getNumberHash(cid + 'getcomment'))
+    let commentContent: any = await getPostContent(cid + 'postcontent')
+    const isReply = cid.endsWith('reply')
     if (isReply) {
       const depth = await getNumberBetween(1, 10, commentSeedNumber.increment())
       const parentCid = await seedToCid(commentSeedNumber.increment())
       const postCid = depth === 1 ? parentCid : await seedToCid(commentSeedNumber.increment())
       const getReplyContentOptions = {depth, parentCid, postCid}
-      commentContent = await getReplyContent(getReplyContentOptions, commentCid + 'replycontent')
+      commentContent = await getReplyContent(getReplyContentOptions, cid + 'replycontent')
     }
     const createCommentOptions = {
-      cid: commentCid,
+      cid,
       timestamp: await getNumberBetween(NOW - DAY * 30, NOW, commentSeedNumber.increment()),
       subplebbitAddress: 'memes.eth',
       ...commentContent,
@@ -807,7 +807,8 @@ class Plebbit extends EventEmitter {
     return new SubplebbitEdit()
   }
 
-  async fetchCid(cid: string) {
+  async fetchCid(options: {cid: string}) {
+    const cid = options?.cid
     if (cid?.startsWith('statscid')) {
       return JSON.stringify({
         hourActiveUserCount: 1,
@@ -870,10 +871,11 @@ class Pages {
     Object.defineProperty(this, 'comment', {value: pagesOptions?.comment, enumerable: false})
   }
 
-  async getPage(pageCid: string) {
+  async getPage(options: {cid: string}) {
+    const cid = options?.cid
     // need to wait twice otherwise react renders too fast and fetches too many pages in advance
     await simulateLoadingTime()
-    return getCommentsPage(pageCid, this.subplebbit || this.comment)
+    return getCommentsPage(cid, this.subplebbit || this.comment)
   }
 
   async validatePage(page: any) {}
@@ -992,7 +994,7 @@ class Subplebbit extends EventEmitter {
     this._getSubplebbitOnFirstUpdate = false
 
     // @ts-ignore
-    const subplebbit = await new Plebbit().getSubplebbit(this.address)
+    const subplebbit = await new Plebbit().getSubplebbit({address: this.address})
     const props = JSON.parse(JSON.stringify(subplebbit))
     for (const prop in props) {
       if (prop.startsWith('_')) {
@@ -1183,7 +1185,7 @@ class Comment extends Publication {
     this._getCommentOnFirstUpdate = false
 
     // @ts-ignore
-    const comment = await new Plebbit().getComment(this.cid)
+    const comment = await new Plebbit().getComment({cid: this.cid})
     const props = JSON.parse(JSON.stringify(comment))
     for (const prop in props) {
       if (prop.startsWith('_')) {
@@ -1222,14 +1224,16 @@ const createPlebbit: any = async (...args: any) => {
   return new Plebbit(...args)
 }
 
-createPlebbit.getShortAddress = (address: string) => {
+createPlebbit.getShortAddress = (options: {address: string}) => {
+  const address = options?.address
   if (address.includes('.')) {
     return address
   }
   return address.substring(0, 12)
 }
 
-createPlebbit.getShortCid = (cid: string) => {
+createPlebbit.getShortCid = (options: {cid: string}) => {
+  const cid = options?.cid
   return cid.substring(0, 12)
 }
 

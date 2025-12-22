@@ -65,8 +65,8 @@ describe('comments', () => {
       const getComment = Plebbit.prototype.getComment
       const simulateUpdateEvent = Comment.prototype.simulateUpdateEvent
       // mock getComment on the Plebbit class
-      Plebbit.prototype.getComment = (commentCid) => {
-        throw Error(`plebbit.getComment called with comment cid '${commentCid}' should not be called when getting comments from database`)
+      Plebbit.prototype.getComment = (options) => {
+        throw Error(`plebbit.getComment called with comment cid '${options?.cid}' should not be called when getting comments from database`)
       }
       // don't simulate 'update' event during this test to see if the updates were saved to database
       let throwOnCommentUpdateEvent = false
