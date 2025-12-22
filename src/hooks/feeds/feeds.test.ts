@@ -1045,7 +1045,7 @@ describe('feeds', () => {
             throw Error(`subplebbit.getPage() already called with argument '${cid}'`)
           }
           usedPageCids[cid] = true
-          return getPage.bind(this)(cid)
+          return getPage.bind(this)(options)
         }
       })
 
