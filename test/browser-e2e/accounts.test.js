@@ -608,7 +608,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
 
           // wait for reply challenge verification
           await waitFor(() => replyChallengeVerification)
-          expect(replyChallengeVerification.challengeSuccess).to.equal(true)
+          expect(replyChallengeVerification.challengeSuccess).to.equal(true, 'Not expected this challengeVerification: ' + JSON.stringify(replyChallengeVerification))
           console.log('after onChallengeVerification')
 
           // wait for useReplies
