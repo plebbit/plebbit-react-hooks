@@ -8,6 +8,8 @@ const config = {
 
     globals: true,
     environment: 'jsdom',
+    reporter: ['default', 'json'],
+    outputFile: './.vitest-reports/tests.json',
     server: {deps: {inline: true}},
     alias: {
       // mock plebbit-js because it throws in jsdom

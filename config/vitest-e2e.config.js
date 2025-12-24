@@ -30,6 +30,8 @@ if (process.env.MOCK_CONTENT) {
 export default defineConfig({
   test: {
     globals: true,
+    reporter: ['default', 'json'],
+    outputFile: './.vitest-reports/browser-tests.json',
     poolOptions: {
       threads: {singleThread: true},
     },

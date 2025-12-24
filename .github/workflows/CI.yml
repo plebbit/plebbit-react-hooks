@@ -41,7 +41,12 @@ jobs:
           node-version: 22
 
       - run: yarn install --frozen-lockfile
-      - run: yarn test --pool=forks # --pool=forks fixes "Segmentation fault" error in CI
+      - name: Run unit tests
+        id: run_unit_tests
+        run: yarn test --pool=forks # --pool=forks fixes "Segmentation fault" error in CI
+      - name: Print failed unit tests
+        if: ${{ failure() && steps.run_unit_tests.outcome == 'failure' }}
+        run: node .github/workflows/print-vitest-failures.cjs
       - run: yarn build
 
       # disable hosts we shouldn't use
@@ -52,7 +57,27 @@ jobs:
       - run: yarn playwright install
 
       - run: yarn test:server & yarn test:server:wait-on
-      - run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chromium-browser) yarn test:e2e:chrome
-      - run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" FIREFOX_BIN=$(which firefox) yarn test:e2e:firefox
-      - run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock-content
+      - name: Run e2e mock tests
+        id: run_e2e_mock
+        run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock
+      - name: Print failed e2e mock tests
+        if: ${{ failure() && steps.run_e2e_mock.outcome == 'failure' }}
+        run: node .github/workflows/print-vitest-failures.cjs
+      - name: Run e2e chrome tests
+        id: run_e2e_chrome
+        run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" CHROME_BIN=$(which chromium-browser) yarn test:e2e:chrome
+      - name: Print failed e2e chrome tests
+        if: ${{ failure() && steps.run_e2e_chrome.outcome == 'failure' }}
+        run: node .github/workflows/print-vitest-failures.cjs
+      - name: Run e2e firefox tests
+        id: run_e2e_firefox
+        run: DEBUG="plebbit-js:*,plebbit-react-hooks:*" FIREFOX_BIN=$(which firefox) yarn test:e2e:firefox
+      - name: Print failed e2e firefox tests
+        if: ${{ failure() && steps.run_e2e_firefox.outcome == 'failure' }}
+        run: node .github/workflows/print-vitest-failures.cjs
+      - name: Run e2e mock-content tests
+        id: run_e2e_mock_content
+        run: CHROME_BIN=$(which chromium-browser) yarn test:e2e:mock-content
+      - name: Print failed e2e mock-content tests
+        if: ${{ failure() && steps.run_e2e_mock_content.outcome == 'failure' }}
+        run: node .github/workflows/print-vitest-failures.cjs
