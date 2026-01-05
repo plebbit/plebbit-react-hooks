@@ -6,12 +6,6 @@ import startPlebbitRpc from './start-plebbit-rpc.js'
 import signers from '../fixtures/signers.js'
 import {directory as getTmpFolderPath} from 'tempy'
 import http from 'http'
-import fs from 'fs'
-import path from 'path'
-import {fileURLToPath} from 'url'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 const plebbitDataPath = getTmpFolderPath()
 
 // set up a subplebbit for testing
@@ -46,32 +40,6 @@ const plebbitDataPath = getTmpFolderPath()
     dataPath: getTmpFolderPath(),
   })
   const signer = await plebbit.createSigner({privateKey, type: 'ed25519'})
-
-  // Create a signer for testing ENS domain address editing
-  // The 'my-sub.eth' domain should resolve to this signer's address
-  const ensTestSigner = await plebbit.createSigner()
-  const ensTestDomain = 'my-sub.eth'
-
-  // Mock the ENS text record for 'my-sub.eth' to point to ensTestSigner.address
-  // This allows the test to successfully edit a subplebbit's address to 'my-sub.eth'
-  const cacheKey = plebbit._clientsManager._getKeyOfCachedDomainTextRecord(ensTestDomain, 'subplebbit-address')
-  const timestamp = () => Math.floor(Date.now() / 1000)
-  await plebbit._storage.setItem(cacheKey, {
-    timestampSeconds: timestamp(),
-    valueOfTextRecord: ensTestSigner.address,
-  })
-  console.log(`Mocked ENS text record '${ensTestDomain}' -> '${ensTestSigner.address}'`)
-
-  // Export the ENS test signer info to a file so tests can use it
-  const ensTestSignerInfo = {
-    privateKey: ensTestSigner.privateKey,
-    address: ensTestSigner.address,
-    type: ensTestSigner.type,
-    domain: ensTestDomain,
-  }
-  const signerInfoPath = path.join(__dirname, 'ens-test-signer.json')
-  fs.writeFileSync(signerInfoPath, JSON.stringify(ensTestSignerInfo, null, 2))
-  console.log(`Exported ENS test signer info to '${signerInfoPath}'`)
 
   console.log(`creating subplebbit with address '${signer.address}'...`)
   const subplebbit = await plebbit.createSubplebbit({
@@ -114,13 +82,7 @@ const plebbitDataPath = getTmpFolderPath()
     http
       .createServer((req, res) => {
         res.setHeader('Access-Control-Allow-Origin', '*')
-        if (req.url === '/ens-test-signer') {
-          // Return the ENS test signer info for browser tests
-          res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify(ensTestSignerInfo))
-        } else {
-          res.end('test server ready')
-        }
+        res.end('test server ready')
       })
       .listen(59281)
   })

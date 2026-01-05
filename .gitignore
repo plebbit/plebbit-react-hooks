@@ -10,9 +10,6 @@ test-karma-webpack
 .plebbit
 .plebbit/
 
-# test-server generated files
-test/test-server/ens-test-signer.json
-
 # build folder 
 dist/
 /dist/

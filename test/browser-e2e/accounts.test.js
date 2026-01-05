@@ -8,19 +8,8 @@ import subplebbitsStore from '../../dist/stores/subplebbits'
 import testUtils from '../../dist/lib/test-utils'
 import {offlineIpfs, pubsubIpfs, plebbitRpc} from '../test-server/config'
 import signers from '../fixtures/signers'
-
 const subplebbitAddress = signers[0].address
 const adminRoleSigner = signers[1]
-
-// Load ENS test signer info from test-server via HTTP
-// This allows tests to create subplebbits with a signer that matches 'my-sub.eth'
-// The test-server has an endpoint at http://localhost:59281/ens-test-signer
-let ensTestSignerPromise
-const loadEnsTestSigner = async () => {
-  const response = await fetch('http://localhost:59281/ens-test-signer')
-  return await response.json()
-}
-ensTestSignerPromise = loadEnsTestSigner()
 
 const isBase64 = (testString) => /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}))?$/gm.test(testString)
 
@@ -144,17 +133,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           const createdSubplebbitTitle = 'my title'
           let subplebbit
           await act(async () => {
-            // Use the ensTestSigner so that 'my-sub.eth' resolves to this subplebbit's address
-            // This is required for the ENS address validation to pass
-            const ensTestSigner = await ensTestSignerPromise
-            const createOptions = {title: createdSubplebbitTitle}
-            if (ensTestSigner) {
-              createOptions.signer = {
-                type: ensTestSigner.type,
-                privateKey: ensTestSigner.privateKey,
-              }
-            }
-            subplebbit = await rendered.result.current.createSubplebbit(createOptions)
+            subplebbit = await rendered.result.current.createSubplebbit({title: createdSubplebbitTitle})
           })
           console.log('after create subplebbit', subplebbit.address)
           const createdSubplebbitAddress = subplebbit?.address
