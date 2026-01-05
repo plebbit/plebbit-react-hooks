@@ -149,6 +149,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
             yield getState().addSubplebbitToStore(subplebbitAddress, account);
             // `subplebbitAddress` is different from  `subplebbitEditOptions.address` when editing the subplebbit address
             const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
+            // could fix some test issues
+            subplebbit.on('error', console.log);
             yield subplebbit.edit(subplebbitEditOptions);
             const updatedSubplebbit = utils.clone(subplebbit);
             // edit db of both old and new subplebbit address to not break the UI
@@ -172,6 +174,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
             }
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsStore.createSubplebbit invalid account argument '${account}'`);
             const subplebbit = yield account.plebbit.createSubplebbit(createSubplebbitOptions);
+            // could fix some test issues
+            subplebbit.on('error', console.log);
             // if not added to store first, subplebbit.update() is never called
             yield getState().addSubplebbitToStore(subplebbit.address, account);
             yield subplebbitsDatabase.setItem(subplebbit.address, utils.clone(subplebbit));
@@ -187,6 +191,8 @@ const subplebbitsStore = createStore((setState, getState) => ({
             assert(subplebbitAddress && typeof subplebbitAddress === 'string', `subplebbitsStore.deleteSubplebbit invalid subplebbitAddress argument '${subplebbitAddress}'`);
             assert(typeof ((_a = account === null || account === void 0 ? void 0 : account.plebbit) === null || _a === void 0 ? void 0 : _a.createSubplebbit) === 'function', `subplebbitsStore.deleteSubplebbit invalid account argument '${account}'`);
             const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
+            // could fix some test issues
+            subplebbit.on('error', console.log);
             yield subplebbit.delete();
             yield subplebbitsDatabase.removeItem(subplebbitAddress);
             log('subplebbitsStore.deleteSubplebbit', { subplebbitAddress, subplebbit, account });
