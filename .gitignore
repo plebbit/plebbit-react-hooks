@@ -1,5 +1,7 @@
 /TODO.md
 
+.vitest-reports
+
 # generated preload.js file for karma electron tests
 karma-electron-preload.js
 

@@ -175,6 +175,10 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
 
     // `subplebbitAddress` is different from  `subplebbitEditOptions.address` when editing the subplebbit address
     const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+
+    // could fix some test issues
+    subplebbit.on('error', console.log)
+
     await subplebbit.edit(subplebbitEditOptions)
 
     const updatedSubplebbit = utils.clone(subplebbit)
@@ -208,6 +212,9 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
 
     const subplebbit = await account.plebbit.createSubplebbit(createSubplebbitOptions)
 
+    // could fix some test issues
+    subplebbit.on('error', console.log)
+
     // if not added to store first, subplebbit.update() is never called
     await getState().addSubplebbitToStore(subplebbit.address, account)
 
@@ -223,6 +230,10 @@ const subplebbitsStore = createStore<SubplebbitsState>((setState: Function, getS
     assert(typeof account?.plebbit?.createSubplebbit === 'function', `subplebbitsStore.deleteSubplebbit invalid account argument '${account}'`)
 
     const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
+
+    // could fix some test issues
+    subplebbit.on('error', console.log)
+
     await subplebbit.delete()
     await subplebbitsDatabase.removeItem(subplebbitAddress)
     log('subplebbitsStore.deleteSubplebbit', {subplebbitAddress, subplebbit, account})
