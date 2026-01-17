@@ -14,10 +14,6 @@ const chainProviders: ChainProviders = {
     urls: ['https://ethrpc.xyz', 'viem', 'ethers.js'],
     chainId: 1,
   },
-  avax: {
-    urls: ['https://api.avax.network/ext/bc/C/rpc'],
-    chainId: 43114,
-  },
   matic: {
     urls: ['https://polygon-rpc.com'],
     chainId: 137,
