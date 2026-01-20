@@ -2460,9 +2460,9 @@
   dependencies:
     playwright "1.54.2"
 
-"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#3a70ec2b97a4fe2ed53f7746d69e9ec6a00dc324":
+"@plebbit/plebbit-js@https://github.com/plebbit/plebbit-js.git#a21d896bd55c76070758dae65dc0693d1c3726db":
   version "0.0.8"
-  resolved "https://github.com/plebbit/plebbit-js.git#3a70ec2b97a4fe2ed53f7746d69e9ec6a00dc324"
+  resolved "https://github.com/plebbit/plebbit-js.git#a21d896bd55c76070758dae65dc0693d1c3726db"
   dependencies:
     "@bonfida/spl-name-service" "3.0.10"
     "@enhances/with-resolvers" "0.0.5"
@@ -4679,6 +4679,13 @@ debug@4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
   integrity sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==
+  dependencies:
+    ms "2.1.2"
+
+debug@4.3.3:
+  version "4.3.3"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.3.tgz#04266e0b70a98d4462e6e288e38259213332b664"
+  integrity sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==
   dependencies:
     ms "2.1.2"
 
