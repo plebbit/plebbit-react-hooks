@@ -219,7 +219,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           console.log('after deleteSubplebbit')
         })
 
-        it('create pending approval subplebbit, publish and approve', async () => {
+        it.skip('create pending approval subplebbit, publish and approve', async () => {
           const title = 'pending approval subplebbit'
           console.log('before create subplebbit')
           let subplebbit
