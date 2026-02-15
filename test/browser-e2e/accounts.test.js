@@ -460,7 +460,7 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
           const notifications = useNotifications()
           const comment = useComment({commentCid})
           const replies = useReplies({comment})
-          return {account, accountVotes, accountComments, notifications, replies, ...accountsActions}
+          return {account, accountVotes, accountComments, notifications, comment, replies, ...accountsActions}
         })
         waitFor = testUtils.createWaitFor(rendered, {timeout})
 
@@ -571,6 +571,11 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
             console.log(challengeVerification)
             replyChallengeVerification = challengeVerification
           }
+          // wait for the parent comment to be indexed by the subplebbit before publishing a reply
+          rendered.rerender(publishedCid)
+          await waitFor(() => typeof rendered.result.current.comment?.timestamp === 'number')
+          console.log('parent comment indexed, publishing reply')
+
           const publishCommentOptions = {
             subplebbitAddress,
             parentCid: publishedCid,
@@ -592,7 +597,6 @@ for (const plebbitOptionsType in plebbitOptionsTypes) {
 
           // wait for useReplies
           expect(typeof publishedCid).to.equal('string')
-          rendered.rerender(publishedCid)
           await waitFor(() => rendered.result.current.replies.replies.length > 0)
           expect(rendered.result.current.replies.replies.length).to.equal(1)
           console.log('after useReplies')
