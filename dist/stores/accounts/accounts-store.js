@@ -93,54 +93,6 @@ const initializeAccountsStore = () => __awaiter(void 0, void 0, void 0, function
         }));
     }
 });
-// TODO: find way to test started subplebbits
-// poll all local subplebbits and start them if they are not started
-let startSubplebbitsInterval;
-let startedSubplebbits = {};
-let pendingStartedSubplebbits = {};
-const initializeStartSubplebbits = () => __awaiter(void 0, void 0, void 0, function* () {
-    // if re-initializing, clear previous interval
-    if (startSubplebbitsInterval) {
-        clearInterval(startSubplebbitsInterval);
-    }
-    // if re-initializing, stop all started subplebbits
-    for (const subplebbitAddress in startedSubplebbits) {
-        try {
-            yield startedSubplebbits[subplebbitAddress].stop();
-        }
-        catch (error) {
-            log.error('accountsStore subplebbit.stop error', { subplebbitAddress, error });
-        }
-    }
-    // don't start subplebbits twice
-    startedSubplebbits = {};
-    pendingStartedSubplebbits = {};
-    const startSubplebbitsPollTime = 1000;
-    startSubplebbitsInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        const { accounts, activeAccountId } = accountsStore.getState();
-        const account = accounts === null || accounts === void 0 ? void 0 : accounts[activeAccountId || ''];
-        if (!(account === null || account === void 0 ? void 0 : account.plebbit)) {
-            return;
-        }
-        for (const subplebbitAddress of account.plebbit.subplebbits) {
-            if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
-                continue;
-            }
-            pendingStartedSubplebbits[subplebbitAddress] = true;
-            try {
-                const subplebbit = yield account.plebbit.createSubplebbit({ address: subplebbitAddress });
-                yield subplebbit.start();
-                startedSubplebbits[subplebbitAddress] = subplebbit;
-                log('subplebbit started', { subplebbit });
-            }
-            catch (error) {
-                // don't log start errors, too much spam
-                // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
-            }
-            pendingStartedSubplebbits[subplebbitAddress] = false;
-        }
-    }), startSubplebbitsPollTime);
-});
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING;
 const waitForInitialized = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -173,7 +125,6 @@ const waitForInitialized = () => __awaiter(void 0, void 0, void 0, function* () 
         delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING;
     }
     log('accounts store initializing finished');
-    yield initializeStartSubplebbits();
 }))();
 // reset store in between tests
 const originalState = accountsStore.getState();
@@ -190,8 +141,6 @@ export const resetAccountsStore = () => __awaiter(void 0, void 0, void 0, functi
     accountsStore.setState(originalState);
     // init the store
     yield initializeAccountsStore();
-    // init start subplebbits
-    yield initializeStartSubplebbits();
     log('accounts store reset finished');
 });
 // reset database and store in between tests

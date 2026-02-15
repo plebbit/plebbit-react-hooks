@@ -34,7 +34,7 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "dependencies": {
-    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#339f22b29aa670c44b938aa3533529db14261851",
+    "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#41a631c9ef28631bbd41cc8f3915dd1fa2a9345c",
     "@plebbit/plebbit-logger": "https://github.com/plebbit/plebbit-logger.git",
     "assert": "2.0.0",
     "ethers": "5.6.9",
@@ -71,7 +71,7 @@
     "fs-extra": "10.1.0",
     "husky": "4.3.8",
     "jsdom": "26.1.0",
-    "kubo": "0.38.2",
+    "kubo": "0.39.0",
     "lint-staged": "12.3.8",
     "prettier": "3.6.2",
     "react": "17.0.2",

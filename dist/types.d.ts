@@ -451,7 +451,6 @@ export type Role = {
 };
 export type AccountSubplebbit = {
     role: Role;
-    autoStart?: boolean;
 };
 export type AccountsVotes = {
     [accountId: string]: AccountVotes;

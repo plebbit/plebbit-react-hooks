@@ -18,7 +18,6 @@ describe('accountsStore utils', () => {
       const previousAccountSubplebbits = {
         subplebbitAddress1: {
           role: adminRole,
-          autoStart: false,
         },
       }
       const account = {author, subplebbits: previousAccountSubplebbits}
@@ -57,7 +56,6 @@ describe('accountsStore utils', () => {
       const previousAccountSubplebbits = {
         subplebbitAddress1: {
           role: adminRole,
-          autoStart: false,
         },
       }
       const account = {author, subplebbits: previousAccountSubplebbits}
@@ -72,7 +70,6 @@ describe('accountsStore utils', () => {
       const expectedAccountSubplebbits = {
         subplebbitAddress1: {
           role: adminRole,
-          autoStart: false,
         },
         subplebbitAddress2: {
           role: adminRole,
@@ -85,7 +82,6 @@ describe('accountsStore utils', () => {
       const previousAccountSubplebbits = {
         subplebbitAddress1: {
           role: adminRole,
-          autoStart: false,
         },
       }
       const account = {author, subplebbits: previousAccountSubplebbits}
@@ -105,7 +101,6 @@ describe('accountsStore utils', () => {
       const expectedAccountSubplebbits = {
         subplebbitAddress1: {
           role: moderatorRole,
-          autoStart: false,
         },
         subplebbitAddress2: {
           role: adminRole,

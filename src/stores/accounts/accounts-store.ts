@@ -4,7 +4,6 @@ const log = Logger('plebbit-react-hooks:accounts:stores')
 import accountsDatabase from './accounts-database'
 import accountGenerator from './account-generator'
 import {
-  Subplebbit,
   AccountNamesToAccountIds,
   Account,
   Accounts,
@@ -125,56 +124,6 @@ const initializeAccountsStore = async () => {
   }
 }
 
-// TODO: find way to test started subplebbits
-// poll all local subplebbits and start them if they are not started
-let startSubplebbitsInterval: any
-let startedSubplebbits: {[subplebbitAddress: string]: Subplebbit} = {}
-let pendingStartedSubplebbits: {[subplebbitAddress: string]: boolean} = {}
-const initializeStartSubplebbits = async () => {
-  // if re-initializing, clear previous interval
-  if (startSubplebbitsInterval) {
-    clearInterval(startSubplebbitsInterval)
-  }
-
-  // if re-initializing, stop all started subplebbits
-  for (const subplebbitAddress in startedSubplebbits) {
-    try {
-      await startedSubplebbits[subplebbitAddress].stop()
-    } catch (error) {
-      log.error('accountsStore subplebbit.stop error', {subplebbitAddress, error})
-    }
-  }
-
-  // don't start subplebbits twice
-  startedSubplebbits = {}
-  pendingStartedSubplebbits = {}
-
-  const startSubplebbitsPollTime = 1000
-  startSubplebbitsInterval = setInterval(async () => {
-    const {accounts, activeAccountId} = accountsStore.getState()
-    const account = accounts?.[activeAccountId || '']
-    if (!account?.plebbit) {
-      return
-    }
-    for (const subplebbitAddress of account.plebbit.subplebbits) {
-      if (startedSubplebbits[subplebbitAddress] || pendingStartedSubplebbits[subplebbitAddress]) {
-        continue
-      }
-      pendingStartedSubplebbits[subplebbitAddress] = true
-      try {
-        const subplebbit = await account.plebbit.createSubplebbit({address: subplebbitAddress})
-        await subplebbit.start()
-        startedSubplebbits[subplebbitAddress] = subplebbit
-        log('subplebbit started', {subplebbit})
-      } catch (error) {
-        // don't log start errors, too much spam
-        // log.error('accountsStore subplebbit.start error', {subplebbitAddress, error})
-      }
-      pendingStartedSubplebbits[subplebbitAddress] = false
-    }
-  }, startSubplebbitsPollTime)
-}
-
 // @ts-ignore
 const isInitializing = () => !!window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
 const waitForInitialized = async () => {
@@ -208,8 +157,6 @@ const waitForInitialized = async () => {
     delete window.PLEBBIT_REACT_HOOKS_ACCOUNTS_STORE_INITIALIZING
   }
   log('accounts store initializing finished')
-
-  await initializeStartSubplebbits()
 })()
 
 // reset store in between tests
@@ -229,8 +176,6 @@ export const resetAccountsStore = async () => {
   accountsStore.setState(originalState)
   // init the store
   await initializeAccountsStore()
-  // init start subplebbits
-  await initializeStartSubplebbits()
 
   log('accounts store reset finished')
 }
