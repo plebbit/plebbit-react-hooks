@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import useAccountsStore from '../../stores/accounts'
 import Logger from '@plebbit/plebbit-logger'
 const log = Logger('plebbit-react-hooks:actions:hooks')
@@ -34,6 +34,28 @@ import type {
 type PublishChallengeAnswers = (challengeAnswers: string[]) => Promise<void>
 const publishChallengeAnswersNotReady: PublishChallengeAnswers = async (challengeAnswers) => {
   throw Error(`can't call publishChallengeAnswers() before result.challenge is defined (before the challenge message is received)`)
+}
+
+function useIframeChallengeAutoAnswer(challenge: Challenge | undefined, publishChallengeAnswers: PublishChallengeAnswers | undefined) {
+  const iframeChallengeUrl = challenge?.challenges?.find((c) => c.type === 'url/iframe')?.challenge
+
+  useEffect(() => {
+    if (!iframeChallengeUrl || !publishChallengeAnswers) return
+
+    let iframeOrigin: string | undefined
+    try {
+      iframeOrigin = new URL(iframeChallengeUrl).origin
+    } catch (e) {}
+
+    const handleMessage = (event: MessageEvent) => {
+      if (iframeOrigin && event.origin !== iframeOrigin) return
+      if (event.data?.type === 'challengeAnswer' && Array.isArray(event.data.challengeAnswers)) {
+        publishChallengeAnswers(event.data.challengeAnswers)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [iframeChallengeUrl, publishChallengeAnswers])
 }
 
 export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult {
@@ -155,6 +177,7 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+  useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers)
 
   let initialState = 'initializing'
   // before the accountId and options is defined, nothing can happen
@@ -228,6 +251,7 @@ export function usePublishVote(options?: UsePublishVoteOptions): UsePublishVoteR
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+  useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers)
 
   let initialState = 'initializing'
   // before the accountId and options is defined, nothing can happen
@@ -299,6 +323,7 @@ export function usePublishCommentEdit(options?: UsePublishCommentEditOptions): U
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+  useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers)
 
   let initialState = 'initializing'
   // before the accountId and options is defined, nothing can happen
@@ -370,6 +395,7 @@ export function usePublishCommentModeration(options?: UsePublishCommentModeratio
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+  useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers)
 
   let initialState = 'initializing'
   // before the accountId and options is defined, nothing can happen
@@ -441,6 +467,7 @@ export function usePublishSubplebbitEdit(options?: UsePublishSubplebbitEditOptio
   const [challenge, setChallenge] = useState<Challenge>()
   const [challengeVerification, setChallengeVerification] = useState<ChallengeVerification>()
   const [publishChallengeAnswers, setPublishChallengeAnswers] = useState<PublishChallengeAnswers>()
+  useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers)
 
   let initialState = 'initializing'
   // before the accountId and options is defined, nothing can happen
