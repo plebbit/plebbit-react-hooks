@@ -37,25 +37,41 @@ const publishChallengeAnswersNotReady: PublishChallengeAnswers = async (challeng
 }
 
 function useIframeChallengeAutoAnswer(challenge: Challenge | undefined, publishChallengeAnswers: PublishChallengeAnswers | undefined) {
-  const iframeChallengeUrl = challenge?.challenges?.find((c) => c.type === 'url/iframe')?.challenge
+  const challenges: {type: string; challenge: string}[] | undefined = challenge?.challenges
+  const allIframe = challenges?.length ? challenges.every((c: {type: string; challenge: string}) => c.type === 'url/iframe') : false
 
   useEffect(() => {
-    if (!iframeChallengeUrl || !publishChallengeAnswers) return
+    if (!allIframe || !challenges || !publishChallengeAnswers) return
 
-    let iframeOrigin: string | undefined
-    try {
-      iframeOrigin = new URL(iframeChallengeUrl).origin
-    } catch (e) {}
+    const origins = challenges.map((c: {type: string; challenge: string}) => {
+      try {
+        return new URL(c.challenge).origin
+      } catch (e) {
+        return undefined
+      }
+    })
+
+    const answers: (string | undefined)[] = new Array(challenges.length).fill(undefined)
+    let submitted = false
 
     const handleMessage = (event: MessageEvent) => {
-      if (iframeOrigin && event.origin !== iframeOrigin) return
-      if (event.data?.type === 'challengeAnswer' && Array.isArray(event.data.challengeAnswers)) {
-        publishChallengeAnswers(event.data.challengeAnswers)
+      if (submitted) return
+      if (event.data?.type !== 'challengeanswer' || typeof event.data.challengeAnswer !== 'string') return
+
+      // find which iframe sent this by matching origin to first unfilled slot
+      const index = origins.findIndex((origin, i) => answers[i] === undefined && (!origin || origin === event.origin))
+      if (index === -1) return
+
+      answers[index] = event.data.challengeAnswer
+
+      if (answers.every((a) => a !== undefined)) {
+        submitted = true
+        publishChallengeAnswers(answers as string[])
       }
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [iframeChallengeUrl, publishChallengeAnswers])
+  }, [allIframe, challenges, publishChallengeAnswers])
 }
 
 export function useSubscribe(options?: UseSubscribeOptions): UseSubscribeResult {

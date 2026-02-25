@@ -18,7 +18,7 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useAccountsStore from '../../stores/accounts';
 import Logger from '@plebbit/plebbit-logger';
 const log = Logger('plebbit-react-hooks:actions:hooks');
@@ -27,6 +27,42 @@ import { useAccount, useAccountId } from '../accounts';
 const publishChallengeAnswersNotReady = (challengeAnswers) => __awaiter(void 0, void 0, void 0, function* () {
     throw Error(`can't call publishChallengeAnswers() before result.challenge is defined (before the challenge message is received)`);
 });
+function useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers) {
+    const challenges = challenge === null || challenge === void 0 ? void 0 : challenge.challenges;
+    const allIframe = (challenges === null || challenges === void 0 ? void 0 : challenges.length) ? challenges.every((c) => c.type === 'url/iframe') : false;
+    useEffect(() => {
+        if (!allIframe || !challenges || !publishChallengeAnswers)
+            return;
+        const origins = challenges.map((c) => {
+            try {
+                return new URL(c.challenge).origin;
+            }
+            catch (e) {
+                return undefined;
+            }
+        });
+        const answers = new Array(challenges.length).fill(undefined);
+        let submitted = false;
+        const handleMessage = (event) => {
+            var _a;
+            if (submitted)
+                return;
+            if (((_a = event.data) === null || _a === void 0 ? void 0 : _a.type) !== 'challengeanswer' || typeof event.data.challengeAnswer !== 'string')
+                return;
+            // find which iframe sent this by matching origin to first unfilled slot
+            const index = origins.findIndex((origin, i) => answers[i] === undefined && (!origin || origin === event.origin));
+            if (index === -1)
+                return;
+            answers[index] = event.data.challengeAnswer;
+            if (answers.every((a) => a !== undefined)) {
+                submitted = true;
+                publishChallengeAnswers(answers);
+            }
+        };
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [allIframe, challenges, publishChallengeAnswers]);
+}
 export function useSubscribe(options) {
     var _a;
     assert(!options || typeof options === 'object', `useSubscribe options argument '${options}' not an object`);
@@ -137,6 +173,7 @@ export function usePublishComment(options) {
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
+    useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers);
     let initialState = 'initializing';
     // before the accountId and options is defined, nothing can happen
     if (accountId && options) {
@@ -201,6 +238,7 @@ export function usePublishVote(options) {
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
+    useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers);
     let initialState = 'initializing';
     // before the accountId and options is defined, nothing can happen
     if (accountId && options) {
@@ -263,6 +301,7 @@ export function usePublishCommentEdit(options) {
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
+    useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers);
     let initialState = 'initializing';
     // before the accountId and options is defined, nothing can happen
     if (accountId && options) {
@@ -325,6 +364,7 @@ export function usePublishCommentModeration(options) {
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
+    useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers);
     let initialState = 'initializing';
     // before the accountId and options is defined, nothing can happen
     if (accountId && options) {
@@ -387,6 +427,7 @@ export function usePublishSubplebbitEdit(options) {
     const [challenge, setChallenge] = useState();
     const [challengeVerification, setChallengeVerification] = useState();
     const [publishChallengeAnswers, setPublishChallengeAnswers] = useState();
+    useIframeChallengeAutoAnswer(challenge, publishChallengeAnswers);
     let initialState = 'initializing';
     // before the accountId and options is defined, nothing can happen
     if (accountId && subplebbitAddress) {
