@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> **Plebbit has rebranded to [Bitsocial](https://bitsocial.net).** This repository is archived and preserved for historical reference.
+>
+> Use [Bitsocial React Hooks](https://github.com/bitsocialnet/bitsocial-react-hooks) for current development. Documentation and examples: [hooks.bitsocial.net](https://hooks.bitsocial.net).
+>
+> Find current projects at [@bitsocialnet](https://github.com/bitsocialnet).
+
 *Telegram group for this repo https://t.me/plebbitreact*
 
 ### Docs:
